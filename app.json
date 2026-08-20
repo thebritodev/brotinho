@@ -1,0 +1,71 @@
+{
+  "expo": {
+    "name": "Brotinho",
+    "slug": "brotinho",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "light",
+    "backgroundColor": "#FBF6EC",
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.brotinho.app",
+      "infoPlist": {
+        "RCTAsyncStorageExcludeFromBackup": false
+      }
+    },
+    "android": {
+      "package": "com.brotinho.app",
+      "adaptiveIcon": {
+        "backgroundColor": "#EFB183",
+        "foregroundImage": "./assets/android-icon-foreground.png",
+        "backgroundImage": "./assets/android-icon-background.png",
+        "monochromeImage": "./assets/android-icon-monochrome.png"
+      },
+      "predictiveBackGestureEnabled": false,
+      "allowBackup": true
+    },
+    "web": {
+      "favicon": "./assets/favicon.png"
+    },
+    "plugins": [
+      "expo-font",
+      [
+        "expo-splash-screen",
+        {
+          "backgroundColor": "#FBF6EC",
+          "resizeMode": "contain"
+        }
+      ],
+      [
+        "expo-audio",
+        {
+          "recordAudioAndroid": true,
+          "microphonePermission": "O Brotinho usa o microfone para você desabafar por voz no diário."
+        }
+      ],
+      [
+        "expo-speech-recognition",
+        {
+          "microphonePermission": "O Brotinho usa o microfone para transformar seu desabafo em texto.",
+          "speechRecognitionPermission": "O Brotinho usa o reconhecimento de fala do próprio aparelho para escrever o que você falar.",
+          "androidSpeechServicePackages": [
+            "com.google.android.googlequicksearchbox"
+          ]
+        }
+      ],
+      [
+        "expo-notifications",
+        {
+          "color": "#5B8A72"
+        }
+      ],
+      [
+        "expo-local-authentication",
+        {
+          "faceIDPermission": "O Brotinho usa reconhecimento facial para proteger seu diário."
+        }
+      ]
+    ]
+  }
+}
