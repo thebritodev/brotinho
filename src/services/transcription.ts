@@ -13,11 +13,24 @@ import { MOCK_TRANSCRIPTION } from '../data/content';
  * Defina em um `.env` na raiz do projeto:
  *   EXPO_PUBLIC_TRANSCRIPTION_URL=http://192.168.0.91:8787/transcrever
  *
- * Sem isso, o app cai no texto simulado e avisa que é demonstração.
+ * Só vale em desenvolvimento — ver `isTranscriptionConfigured` logo abaixo.
  */
 export const TRANSCRIPTION_ENDPOINT = process.env.EXPO_PUBLIC_TRANSCRIPTION_URL ?? '';
 
-export const isTranscriptionConfigured = () => TRANSCRIPTION_ENDPOINT.length > 0;
+/**
+ * O envio para servidor vale **apenas em desenvolvimento**.
+ *
+ * `EXPO_PUBLIC_*` é embutido no pacote na hora do build. Se a variável estiver
+ * definida na máquina que gera a build da loja, o envio de áudio vai junto — e
+ * aí a política de privacidade, a descrição na loja e o questionário da Apple
+ * passam todos a afirmar algo falso, sem ninguém perceber.
+ *
+ * Depender de lembrar de limpar o `.env` antes de cada build é frágil demais
+ * para uma promessa desse tamanho. O `__DEV__` transforma isso em garantia:
+ * numa build de produção o áudio não tem para onde sair, mesmo que a variável
+ * esteja lá.
+ */
+export const isTranscriptionConfigured = () => __DEV__ && TRANSCRIPTION_ENDPOINT.length > 0;
 
 export type TranscriptionResult = {
   text: string;
@@ -58,6 +71,17 @@ async function diagnoseFailure(original: unknown): Promise<string> {
  */
 export async function transcribeAudio(uri: string): Promise<TranscriptionResult> {
   if (!isTranscriptionConfigured()) {
+    /**
+     * Fora do desenvolvimento, devolver o texto de exemplo seria escrever uma
+     * frase inventada no diário da pessoa como se ela tivesse falado aquilo —
+     * inclusive um sentimento que não é dela. Num diário, isso é pior do que
+     * falhar. Então aqui falha, e falha dizendo o que aconteceu.
+     */
+    if (!__DEV__) {
+      throw new Error(
+        'O ditado por voz não está disponível neste aparelho. Você pode escrever normalmente.',
+      );
+    }
     return { text: MOCK_TRANSCRIPTION, simulated: true };
   }
 

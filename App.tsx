@@ -19,6 +19,7 @@ import { View } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
+import { ErrorBoundary } from './src/components/ErrorBoundary';
 import { RootNavigator } from './src/navigation/RootNavigator';
 import { AppLockGate } from './src/screens/AppLockGate';
 import { AppStateProvider } from './src/state/AppStateProvider';
@@ -27,7 +28,7 @@ import { colors } from './src/theme';
 
 void SplashScreen.preventAutoHideAsync();
 
-export default function App() {
+function AppInterno() {
   const [fontsLoaded, fontError] = useFonts({
     Baloo2_400Regular,
     Baloo2_500Medium,
@@ -63,5 +64,18 @@ export default function App() {
         </View>
       </SafeAreaProvider>
     </GestureHandlerRootView>
+  );
+}
+
+/**
+ * O limite de erro fica por fora de tudo, inclusive do carregamento das fontes:
+ * um erro ali dentro também precisa cair numa tela que explica, e não na tela
+ * branca permanente.
+ */
+export default function App() {
+  return (
+    <ErrorBoundary>
+      <AppInterno />
+    </ErrorBoundary>
   );
 }

@@ -547,7 +547,7 @@ export function OnboardingScreen() {
         {!isPaywall && (
           <View style={{ flex: 1, alignItems: 'center' }}>
             {/* O progresso é um caule ganhando folhas: a mesma metáfora do app. */}
-            <ProgressStem step={step} total={STEPS} width={Math.min(largura - 130, 230)} />
+            <ProgressStem step={step} total={STEPS} width={Math.max(120, Math.min(largura - 130, 230))} />
           </View>
         )}
 

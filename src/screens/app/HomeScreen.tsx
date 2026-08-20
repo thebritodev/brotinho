@@ -50,7 +50,10 @@ export function HomeScreen({
    * — o que sobra depois da barra de status e da navegação de baixo.
    */
   const sproutSize = Math.min(width, height * 0.46);
-  const faceSize = Math.min(54, (width - 40) / 6.2);
+  // `useWindowDimensions` devolve 0 no primeiro quadro, e aí a conta daria
+  // tamanho negativo — que no SVG é inválido, não apenas feio. O piso segura
+  // esse quadro; do segundo em diante a largura real assume.
+  const faceSize = Math.max(36, Math.min(54, (width - 40) / 6.2));
 
   const today = dayKey();
   const mood = data.moodHistory.find((m) => m.date === today)?.mood ?? 'neutro';

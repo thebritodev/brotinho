@@ -134,20 +134,39 @@ Só o que vem junto com a assinatura, através do RevenueCat:
 > O RevenueCat publica um guia de como preencher esse questionário. **Siga o
 > deles**, porque muda conforme as versões do SDK — e é a fonte oficial.
 
-### ⚠️ Uma coisa que precisa ser conferida ANTES de gerar a build
+### O envio de áudio: resolvido no código, não mais no checklist
 
 O app tem dois caminhos para transcrever voz:
 
 1. **Reconhecimento do próprio aparelho** — o áudio não sai dali. É o caminho
    normal no iPhone.
-2. **Servidor de transcrição** — reserva, usada em desenvolvimento.
+2. **Servidor de transcrição** — reserva, usada só em desenvolvimento.
 
-O segundo só liga se a variável `EXPO_PUBLIC_TRANSCRIPTION_URL` existir na
-build. Se ela for junto para a loja, **o áudio passa a sair do aparelho** — e
-aí a descrição acima fica falsa, a política de privacidade fica falsa, e o
-questionário fica errado.
+Antes, o segundo ligava sozinho se a variável `EXPO_PUBLIC_TRANSCRIPTION_URL`
+estivesse na máquina que gerou a build — e aí o áudio passaria a sair do
+aparelho, tornando falsas a descrição acima, a política de privacidade e este
+questionário, sem ninguém perceber.
 
-- [ ] Conferir que a build de produção **não** tem `EXPO_PUBLIC_TRANSCRIPTION_URL`
+**Isso agora é impossível.** O envio para servidor só existe em
+desenvolvimento (`__DEV__`): numa build de produção o áudio não tem para onde
+sair, mesmo que a variável esteja definida. Uma promessa desse tamanho não pode
+depender de alguém lembrar de limpar um arquivo antes de cada build.
+
+> Junto veio outra correção: fora do desenvolvimento o app não inventa mais um
+> texto de exemplo quando não consegue transcrever. Ele avisa que o ditado não
+> está disponível. Escrever uma frase inventada no diário de alguém, como se a
+> pessoa tivesse falado aquilo, é pior do que falhar.
+
+### Manifesto de privacidade (`PrivacyInfo.xcprivacy`)
+
+Já configurado no `app.json`, em `ios.privacyManifests`. A Apple **recusa o
+upload** sem ele, com um e-mail automático, para apps que usam certas APIs — e
+o Brotinho usa quatro delas através das bibliotecas: armazenamento local
+(AsyncStorage), data de arquivo e espaço em disco (gravação do áudio e do PDF)
+e tempo de sistema (React Native).
+
+Cada uma vai declarada com seu motivo oficial, e `NSPrivacyTracking` vai como
+`false`.
 
 ---
 
@@ -208,3 +227,13 @@ adicione você mesmo.
 2. Revisar os textos acima
 3. Tirar as capturas de tela
 4. Confirmar a declaração de criptografia
+5. Uma revisão das 31 práticas por um psicólogo, antes de publicar
+
+## O que já está pronto do lado técnico
+
+- `eas.json` criado, com os perfis `development`, `preview` e `production`.
+  Sem esse arquivo não existia build nenhuma para a loja.
+- Número de build automatizado (`autoIncrement`), para não esbarrar no erro
+  de reenviar com o mesmo número.
+- Manifesto de privacidade declarado.
+- Envio de áudio impedido em produção pelo próprio código.

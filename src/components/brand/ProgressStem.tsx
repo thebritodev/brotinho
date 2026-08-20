@@ -25,17 +25,20 @@ type Props = {
 export function ProgressStem({ step, total, width }: Props) {
   // Margem nas pontas: a primeira e a última folha não encostam na borda.
   const margem = 8;
-  const util = Math.max(1, width - margem * 2);
+  // Largura negativa ou zero gera um SVG inválido. Quem chama já se protege,
+  // mas um componente reutilizável não deveria depender disso.
+  const largura = Math.max(1, width);
+  const util = Math.max(1, largura - margem * 2);
   const passo = util / Math.max(1, total - 1);
   const y = ALTURA / 2;
   const feitoAte = margem + passo * step;
 
   return (
-    <View style={{ width, height: ALTURA }}>
-      <Svg width={width} height={ALTURA}>
+    <View style={{ width: largura, height: ALTURA }}>
+      <Svg width={largura} height={ALTURA}>
         {/* Caule inteiro, apagado, e por cima o trecho já percorrido. */}
         <Path
-          d={`M${margem} ${y} L${width - margem} ${y}`}
+          d={`M${margem} ${y} L${largura - margem} ${y}`}
           stroke={palette.brown200}
           strokeWidth={3}
           strokeLinecap="round"
