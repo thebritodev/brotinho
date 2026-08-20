@@ -6,11 +6,19 @@
  * publicidade — este arquivo precisa mudar junto, ou vira declaração falsa.
  *
  * Não é peça jurídica revisada. Antes de publicar nas lojas, passe por
- * revisão e preencha OPERADOR e CONTATO.
+ * revisão de alguém da área.
  */
 
-/** Preencha antes de publicar. */
-export const OPERADOR = '[nome da pessoa ou empresa responsável]';
+/**
+ * Quem responde pelos dados, na linguagem da LGPD.
+ *
+ * Aparece em três lugares: nesta política, na tela Sobre e como destinatário
+ * do e-mail de feedback. Precisa identificar uma pessoa ou empresa real — um
+ * nome de marca sozinho não cumpre a exigência.
+ */
+export const OPERADOR = 'Pedro Henrique de Brito Pinto Ferreira';
+
+/** FALTA PREENCHER: sem isto o botão de feedback não tem para onde enviar. */
 export const CONTATO = '[e-mail de contato]';
 
 export const POLICY_VERSION = '1.0';
