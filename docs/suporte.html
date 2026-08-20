@@ -1,0 +1,285 @@
+<title>Suporte do Brotinho</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700;800&family=Nunito:wght@400;600;700&display=swap">
+
+<style>
+  /* Mesma paleta e tipografia de src/theme/tokens.ts, para a página de suporte
+     e a política formarem um conjunto com o app. */
+  :root {
+    --ground: #FBF6EC;
+    --surface: #FFFFFF;
+    --ink: #3A3630;
+    --ink-muted: #8A8375;
+    --accent: #3E6B54;
+    --accent-soft: #E3EDE6;
+    --rule: #E9E2D2;
+    --urgente: #7A3B2E;
+    --urgente-soft: #F7E2D8;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --ground: #23211D;
+      --surface: #2C2925;
+      --ink: #EDE7DA;
+      --ink-muted: #A8A093;
+      --accent: #8CB68B;
+      --accent-soft: #313A33;
+      --rule: #3B3730;
+      --urgente: #F0B9A6;
+      --urgente-soft: #3A2A25;
+    }
+  }
+
+  :root[data-theme="dark"] {
+    --ground: #23211D;
+    --surface: #2C2925;
+    --ink: #EDE7DA;
+    --ink-muted: #A8A093;
+    --accent: #8CB68B;
+    --accent-soft: #313A33;
+    --rule: #3B3730;
+    --urgente: #F0B9A6;
+    --urgente-soft: #3A2A25;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    background: var(--ground);
+    color: var(--ink);
+    font-family: 'Nunito', 'Segoe UI', system-ui, sans-serif;
+    font-size: 17px;
+    line-height: 1.65;
+    margin: 0;
+    padding: 0 24px 96px;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .wrap { max-width: 40rem; margin: 0 auto; }
+
+  header {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    padding: 64px 0 28px;
+  }
+  .marca { display: flex; align-items: center; gap: 14px; }
+  .marca svg { width: 46px; height: 46px; flex: none; }
+  .marca b {
+    font-family: 'Baloo 2', 'Trebuchet MS', system-ui, sans-serif;
+    font-weight: 800;
+    font-size: 21px;
+  }
+  h1 {
+    font-family: 'Baloo 2', 'Trebuchet MS', system-ui, sans-serif;
+    font-weight: 700;
+    font-size: clamp(30px, 6vw, 40px);
+    line-height: 1.15;
+    text-wrap: balance;
+    margin: 0;
+    color: var(--accent);
+  }
+  header p { margin: 0; color: var(--ink-muted); }
+
+  /* --- Aviso de crise: primeiro, porque é quem mais precisa ------------- */
+
+  .crise {
+    background: var(--urgente-soft);
+    border-radius: 14px;
+    padding: 22px 24px;
+    margin: 8px 0 40px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .crise h2 {
+    font-family: 'Baloo 2', 'Trebuchet MS', system-ui, sans-serif;
+    font-weight: 700;
+    font-size: 20px;
+    margin: 0;
+    color: var(--urgente);
+  }
+  .crise p { margin: 0; }
+  .crise a { color: var(--urgente); font-weight: 700; }
+
+  /* --- Contato ---------------------------------------------------------- */
+
+  .contato {
+    background: var(--accent-soft);
+    border-radius: 14px;
+    padding: 24px 26px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-bottom: 8px;
+  }
+  .contato h2 {
+    font-family: 'Baloo 2', 'Trebuchet MS', system-ui, sans-serif;
+    font-weight: 700;
+    font-size: 22px;
+    margin: 0;
+    color: var(--accent);
+  }
+  .contato .email {
+    font-family: 'Baloo 2', 'Trebuchet MS', system-ui, sans-serif;
+    font-weight: 700;
+    font-size: clamp(18px, 4.4vw, 24px);
+    word-break: break-all;
+  }
+  .contato p { margin: 0; }
+
+  /* --- Perguntas -------------------------------------------------------- */
+
+  h2.secao {
+    font-family: 'Baloo 2', 'Trebuchet MS', system-ui, sans-serif;
+    font-weight: 700;
+    font-size: 25px;
+    margin: 48px 0 4px;
+    text-wrap: balance;
+  }
+
+  .q {
+    padding: 26px 0;
+    border-top: 1px solid var(--rule);
+  }
+  .q h3 {
+    font-family: 'Baloo 2', 'Trebuchet MS', system-ui, sans-serif;
+    font-weight: 700;
+    font-size: 20px;
+    line-height: 1.3;
+    text-wrap: balance;
+    margin: 0 0 8px;
+  }
+  .q p { margin: 0 0 12px; }
+  .q p:last-child { margin-bottom: 0; }
+
+  /* Caminho dentro do app, tratado como objeto e não como texto corrido. */
+  .caminho {
+    display: inline-block;
+    background: var(--surface);
+    border: 1px solid var(--rule);
+    border-radius: 8px;
+    padding: 3px 9px;
+    font-size: 15px;
+    font-weight: 700;
+    white-space: nowrap;
+  }
+
+  a { color: var(--accent); }
+  strong { font-weight: 700; }
+
+  :focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 3px;
+    border-radius: 3px;
+  }
+
+  footer {
+    margin-top: 48px;
+    padding-top: 28px;
+    border-top: 1px solid var(--rule);
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    font-size: 15px;
+    color: var(--ink-muted);
+  }
+  footer .quem { color: var(--ink); font-weight: 700; }
+
+  @media (prefers-reduced-motion: reduce) {
+    * { animation: none !important; transition: none !important; scroll-behavior: auto !important; }
+  }
+</style>
+
+<div class="wrap">
+
+  <header>
+    <div class="marca">
+      <svg viewBox="0 0 100 100" role="img" aria-label="Símbolo do Brotinho">
+        <circle cx="50" cy="50" r="49" fill="#EFB183"></circle>
+        <path d="M 47.9 88.5 C 47.9 79 48.2 69.5 49.3 63 C 50.2 57.5 52.1 54.4 54.6 52.6"
+              fill="none" stroke="#8CB68B" stroke-width="2.2" stroke-linecap="round"></path>
+        <g fill="#8CB68B">
+          <path d="M 13.7 26.4 C 36.7 26.6 49.1 38.8 49.6 64.6 C 30.7 63.8 12.4 45.8 13.7 26.4 Z"></path>
+          <path d="M 13.7 26.4 C 36.7 26.6 49.1 38.8 49.6 64.6 C 30.7 63.8 12.4 45.8 13.7 26.4 Z"
+                transform="translate(100 0) scale(-1 1) rotate(-7 13.7 26.4)"></path>
+        </g>
+      </svg>
+      <b>Brotinho</b>
+    </div>
+
+    <h1>Suporte</h1>
+    <p>Dúvidas, problemas ou sugestões sobre o app.</p>
+  </header>
+
+  <div class="crise">
+    <h2>Se você precisa de ajuda agora</h2>
+    <p>Este canal é de suporte técnico e não é atendimento de emergência. Não há ninguém de plantão aqui.</p>
+    <p>Se você estiver em sofrimento intenso ou pensando em se machucar, procure o <strong>CVV</strong>: atendimento gratuito, 24 horas por dia, pelo telefone <a href="tel:188">188</a> ou em <a href="https://cvv.org.br">cvv.org.br</a>.</p>
+  </div>
+
+  <div class="contato">
+    <h2>Falar com a gente</h2>
+    <div class="email"><a href="mailto:brotinho.suporte@gmail.com">brotinho.suporte@gmail.com</a></div>
+    <p>O Brotinho é feito por uma pessoa só. A resposta costuma levar alguns dias, e toda mensagem é lida.</p>
+    <p>Ajuda muito dizer qual aparelho você usa e a versão do app — ela aparece em <span class="caminho">Configurações › Sobre o Brotinho</span>.</p>
+  </div>
+
+  <h2 class="secao">Perguntas frequentes</h2>
+
+  <div class="q">
+    <h3>O que eu escrevo fica guardado onde?</h3>
+    <p>No seu próprio aparelho. O Brotinho não tem cadastro nem servidor, e seus registros não são enviados para lugar nenhum — nem para nós.</p>
+    <p>Os detalhes estão na <a href="https://claude.ai/code/artifact/233e5a2a-0e5b-4ef9-b870-3789a54de19b">política de privacidade</a>.</p>
+  </div>
+
+  <div class="q">
+    <h3>Como apago tudo o que registrei?</h3>
+    <p>Em <span class="caminho">Configurações › Privacidade › Apagar meus dados</span>. A exclusão no aparelho é imediata e definitiva.</p>
+    <p>Um detalhe que costuma passar batido: se o backup do seu celular estiver ligado, seus registros podem voltar ao reinstalar o app. Para apagar de verdade, use essa opção <strong>antes</strong> de desinstalar.</p>
+  </div>
+
+  <div class="q">
+    <h3>Troquei de celular. Perdi meu diário?</h3>
+    <p>Provavelmente não. O Brotinho entra na cópia de segurança que o próprio sistema já faz — o backup do Android no Google Drive, e o do iCloud no iPhone.</p>
+    <p>Se você restaurou o novo aparelho a partir desse backup, seus registros voltam junto. Se restaurou do zero, sem backup, eles não têm de onde voltar: como não existe conta nem servidor, não há cópia nossa para recuperar.</p>
+  </div>
+
+  <div class="q">
+    <h3>Como cancelo a assinatura?</h3>
+    <p>Pela loja, não pelo app. No iPhone, em <span class="caminho">Ajustes › seu nome › Assinaturas</span>. No Android, na Google Play Store, em <span class="caminho">Pagamentos e assinaturas</span>.</p>
+    <p>Cancelar interrompe as próximas cobranças e mantém o acesso até o fim do período já pago. Seus registros continuam no aparelho.</p>
+  </div>
+
+  <div class="q">
+    <h3>Paguei e o app não liberou</h3>
+    <p>Toque em <strong>Restaurar</strong> na tela de planos. Ele reconsulta a compra na conta da loja que você usou.</p>
+    <p>Se não resolver, escreva contando qual loja, qual plano e a data aproximada da compra.</p>
+  </div>
+
+  <div class="q">
+    <h3>O lembrete não chega</h3>
+    <p>Confira se ele está ligado em <span class="caminho">Configurações › Lembretes</span> e se o sistema permite notificações do Brotinho — no Android, em Ajustes › Aplicativos › Brotinho › Notificações.</p>
+    <p>Economia de bateria agressiva também costuma segurar lembretes em alguns aparelhos.</p>
+  </div>
+
+  <div class="q">
+    <h3>O ditado por voz não funciona</h3>
+    <p>O Brotinho usa o reconhecimento de fala do próprio aparelho, e ele precisa estar disponível e com permissão de microfone concedida.</p>
+    <p>Em alguns aparelhos esse recurso não existe ou está desativado. Nesse caso, escrever continua funcionando normalmente.</p>
+  </div>
+
+  <div class="q">
+    <h3>As práticas substituem terapia?</h3>
+    <p>Não. São exercícios de autocuidado baseados em técnicas conhecidas, e ajudam — mas não substituem acompanhamento psicológico ou médico.</p>
+    <p>Se você faz terapia, o app monta um resumo em PDF das suas semanas para levar à sessão: <span class="caminho">Perfil › Para minha terapia</span>.</p>
+  </div>
+
+  <footer>
+    <div class="quem">Responsável: Pedro Henrique de Brito Pinto Ferreira</div>
+    <div>Contato: <a href="mailto:brotinho.suporte@gmail.com">brotinho.suporte@gmail.com</a></div>
+  </footer>
+
+</div>

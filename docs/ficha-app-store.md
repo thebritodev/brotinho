@@ -190,16 +190,21 @@ adicione você mesmo.
 
 ## 6. Links obrigatórios na ficha
 
-- [ ] **URL da política de privacidade** — obrigatória. Ainda não existe; a
-      política só está dentro do app. Me passe o nome do responsável e o e-mail
-      de contato que eu publico como página.
-- [ ] **URL de suporte** — pode ser uma página simples com o mesmo e-mail.
+- [x] **URL da política de privacidade** — publicada e pública:
+      `https://claude.ai/code/artifact/233e5a2a-0e5b-4ef9-b870-3789a54de19b`
+- [x] **URL de suporte** — publicada e pública:
+      `https://claude.ai/code/artifact/97423828-4a27-4ef8-ab40-e32bc1ceb7df`
+
+> As duas foram conferidas sem login, que é como a Apple acessa. O código-fonte
+> das páginas está em `docs/privacidade.html` e `docs/suporte.html`: se um dia
+> houver domínio próprio, é só subir e trocar os links na ficha.
 
 ---
 
 ## Resumo do que falta de você
 
-1. Nome do responsável e e-mail de contato *(destrava a política e o suporte)*
+1. Criar de fato a conta `brotinho.suporte@gmail.com` e ligar a resposta
+   automática — o texto está pronto em `docs/resposta-automatica.md`
 2. Revisar os textos acima
 3. Tirar as capturas de tela
 4. Confirmar a declaração de criptografia
