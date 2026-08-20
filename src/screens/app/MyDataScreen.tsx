@@ -204,6 +204,8 @@ export function MyDataScreen({ onBack }: { onBack: () => void }) {
       >
         <View style={{ flex: 1, justifyContent: 'center', padding: 24 }}>
           <Pressable
+            accessibilityRole="button"
+            accessibilityLabel="Fechar"
             onPress={() => setEditandoNome(false)}
             style={[StyleSheet.absoluteFill, { backgroundColor: 'rgba(58,54,48,0.4)' }]}
           />
@@ -237,6 +239,8 @@ export function MyDataScreen({ onBack }: { onBack: () => void }) {
             disputaria o gesto e travaria a rolagem. */}
         <View style={{ flex: 1, justifyContent: 'flex-end' }}>
           <Pressable
+            accessibilityRole="button"
+            accessibilityLabel="Fechar"
             onPress={() => setCampo(null)}
             style={[StyleSheet.absoluteFill, { backgroundColor: 'rgba(58,54,48,0.4)' }]}
           />

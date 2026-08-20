@@ -18,8 +18,8 @@ import {
 } from '../services/notifications';
 import { clearAppData, loadAppData, saveAppData } from '../storage/appStorage';
 import type { Mood } from '../theme';
-import { renomear } from '../data/onboarding';
 import { dayKey } from './derived';
+import { sanitizarDados } from './sanitize';
 import {
   INITIAL_APP_DATA,
   INITIAL_PROFILE,
@@ -59,31 +59,22 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     let cancelled = false;
 
-    loadAppData().then((stored) => {
-      if (cancelled) return;
-      const perfil = { ...INITIAL_PROFILE, ...stored?.profile };
-
-      setData({
-        profile: {
-          ...perfil,
-          // Rótulos de resposta mudaram; sem isto o que a pessoa marcou some
-          // da seleção em Meus dados.
-          checkin: perfil.checkin ? renomear(perfil.checkin) : null,
-          tentou: perfil.tentou.map(renomear),
-        },
-        settings: { ...INITIAL_SETTINGS, ...stored?.settings },
-        journal: stored?.journal ?? [],
-        composts: stored?.composts ?? [],
-        moodHistory: stored?.moodHistory ?? [],
-        // Primeira abertura define a data de início de uso.
-        startedAt: stored?.startedAt ?? dayKey(),
-        // `null` em quem instalou antes do broto crescer: quem adota o estágio
-        // atual é a Home, em silêncio, para não comemorar um passado inteiro.
-        stageSeen: stored?.stageSeen ?? null,
+    loadAppData()
+      .then((stored) => {
+        if (cancelled) return;
+        // Tudo que vem do disco passa pelo saneamento antes de virar estado.
+        setData(sanitizarDados(stored, dayKey()));
+      })
+      .catch(() => {
+        // Nem uma exceção aqui pode deixar o app preso na tela de carregamento:
+        // sem `hydrated`, nada é renderizado e a pessoa fica olhando o vazio.
+        if (!cancelled) setData(INITIAL_APP_DATA);
+      })
+      .finally(() => {
+        if (cancelled) return;
+        canPersist.current = true;
+        setHydrated(true);
       });
-      canPersist.current = true;
-      setHydrated(true);
-    });
 
     return () => {
       cancelled = true;

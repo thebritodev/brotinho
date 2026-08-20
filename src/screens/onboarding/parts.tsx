@@ -105,6 +105,8 @@ export function TimeField({ label, value, onChange }: TimeFieldProps) {
         {/* Fundo como irmão: envolver a roda num Pressable roubaria o arrasto. */}
         <View style={{ flex: 1, justifyContent: 'center', padding: 24 }}>
           <Pressable
+            accessibilityRole="button"
+            accessibilityLabel="Fechar"
             onPress={() => setOpen(false)}
             style={[StyleSheet.absoluteFill, { backgroundColor: 'rgba(58,54,48,0.4)' }]}
           />

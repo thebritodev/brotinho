@@ -84,6 +84,8 @@ export function WelcomeScreen({ onStart }: { onStart: () => void }) {
       >
         <View style={{ flex: 1, justifyContent: 'center', padding: 22 }}>
           <Pressable
+            accessibilityRole="button"
+            accessibilityLabel="Fechar"
             onPress={() => setExplicando(false)}
             style={[StyleSheet.absoluteFill, { backgroundColor: 'rgba(58,54,48,0.45)' }]}
           />

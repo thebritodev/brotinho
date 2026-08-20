@@ -504,6 +504,8 @@ export function JournalScreen() {
       <Modal visible={!!lendo} transparent animationType="fade" onRequestClose={() => setLendo(null)}>
         <View style={{ flex: 1, justifyContent: 'center', padding: 22 }}>
           <Pressable
+            accessibilityRole="button"
+            accessibilityLabel="Fechar"
             onPress={() => setLendo(null)}
             style={[StyleSheet.absoluteFill, { backgroundColor: 'rgba(58,54,48,0.45)' }]}
           />
@@ -566,6 +568,8 @@ export function JournalScreen() {
       >
         <View style={{ flex: 1, justifyContent: 'center', padding: 22 }}>
           <Pressable
+            accessibilityRole="button"
+            accessibilityLabel="Fechar"
             onPress={() => setEditando(null)}
             style={[StyleSheet.absoluteFill, { backgroundColor: 'rgba(58,54,48,0.45)' }]}
           />
@@ -623,6 +627,8 @@ export function JournalScreen() {
       >
         <View style={{ flex: 1, justifyContent: 'center', padding: 22 }}>
           <Pressable
+            accessibilityRole="button"
+            accessibilityLabel="Fechar"
             onPress={() => setExcluindo(null)}
             style={[StyleSheet.absoluteFill, { backgroundColor: 'rgba(58,54,48,0.5)' }]}
           />

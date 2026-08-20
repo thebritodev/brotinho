@@ -168,6 +168,8 @@ export function PrivacyScreen({ onBack }: { onBack: () => void }) {
       >
         <View style={{ flex: 1, justifyContent: 'center', padding: 24 }}>
           <Pressable
+            accessibilityRole="button"
+            accessibilityLabel="Fechar"
             onPress={() => setConfirmandoExclusao(false)}
             style={[StyleSheet.absoluteFill, { backgroundColor: 'rgba(58,54,48,0.5)' }]}
           />
