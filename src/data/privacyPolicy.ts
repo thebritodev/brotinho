@@ -18,8 +18,14 @@
  */
 export const OPERADOR = 'Pedro Henrique de Brito Pinto Ferreira';
 
-/** FALTA PREENCHER: sem isto o botão de feedback não tem para onde enviar. */
-export const CONTATO = '[e-mail de contato]';
+/**
+ * Destinatário do botão de feedback e contato exigido pelas lojas.
+ *
+ * É uma caixa dedicada, não o e-mail pessoal: num app de saúde mental chegam
+ * mensagens pesadas e fora de hora, e isso precisa de resposta automática
+ * própria — com o CVV e um aviso de que aqui não é atendimento de emergência.
+ */
+export const CONTATO = 'brotinho.suporte@gmail.com';
 
 export const POLICY_VERSION = '1.0';
 export const POLICY_DATE = 'agosto de 2026';

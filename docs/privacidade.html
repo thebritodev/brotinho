@@ -1,0 +1,348 @@
+<title>Privacidade do Brotinho</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700;800&family=Nunito:wght@400;600;700&display=swap">
+
+<style>
+  /* Paleta e tipografia vêm de src/theme/tokens.ts do app: a política precisa
+     parecer o Brotinho, não um documento avulso. */
+  :root {
+    --ground: #FBF6EC;
+    --surface: #FFFFFF;
+    --ink: #3A3630;
+    --ink-muted: #8A8375;
+    --accent: #3E6B54;
+    --accent-soft: #E3EDE6;
+    --rule: #E9E2D2;
+    --peach: #EFB183;
+
+    --display: 'Baloo 2', 'Trebuchet MS', system-ui, sans-serif;
+    --body: 'Nunito', 'Segoe UI', system-ui, sans-serif;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --ground: #23211D;
+      --surface: #2C2925;
+      --ink: #EDE7DA;
+      --ink-muted: #A8A093;
+      --accent: #8CB68B;
+      --accent-soft: #313A33;
+      --rule: #3B3730;
+    }
+  }
+
+  :root[data-theme="dark"] {
+    --ground: #23211D;
+    --surface: #2C2925;
+    --ink: #EDE7DA;
+    --ink-muted: #A8A093;
+    --accent: #8CB68B;
+    --accent-soft: #313A33;
+    --rule: #3B3730;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    background: var(--ground);
+    color: var(--ink);
+    font-family: var(--body);
+    font-size: 17px;
+    line-height: 1.65;
+    margin: 0;
+    padding: 0 24px 96px;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .wrap { max-width: 40rem; margin: 0 auto; }
+
+  /* --- Cabeçalho ------------------------------------------------------- */
+
+  header {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+    padding: 64px 0 32px;
+    border-bottom: 1px solid var(--rule);
+  }
+
+  .marca { display: flex; align-items: center; gap: 14px; }
+  .marca svg { width: 46px; height: 46px; flex: none; }
+  .marca b {
+    font-family: var(--display);
+    font-weight: 800;
+    font-size: 21px;
+    letter-spacing: 0.01em;
+  }
+
+  h1 {
+    font-family: var(--display);
+    font-weight: 700;
+    font-size: clamp(30px, 6vw, 40px);
+    line-height: 1.15;
+    text-wrap: balance;
+    margin: 0;
+    color: var(--accent);
+  }
+
+  .meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px 14px;
+    font-size: 14px;
+    color: var(--ink-muted);
+  }
+  .meta span { white-space: nowrap; }
+
+  /* --- Resumo em destaque ---------------------------------------------- */
+
+  .resumo {
+    background: var(--accent-soft);
+    border-radius: 14px;
+    padding: 24px 26px;
+    margin: 36px 0 8px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+  .resumo h2 {
+    font-family: var(--display);
+    font-weight: 700;
+    font-size: 20px;
+    margin: 0;
+    color: var(--accent);
+  }
+  .resumo p { margin: 0; }
+
+  /* --- Índice ----------------------------------------------------------- */
+
+  nav { margin: 40px 0 12px; }
+  nav h2 {
+    font-family: var(--body);
+    font-weight: 700;
+    font-size: 12px;
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+    color: var(--ink-muted);
+    margin: 0 0 14px;
+  }
+  nav ol {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    gap: 2px;
+    counter-reset: item;
+  }
+  nav li { counter-increment: item; }
+  nav a {
+    display: flex;
+    gap: 12px;
+    padding: 7px 0;
+    color: var(--ink);
+    text-decoration: none;
+    border-bottom: 1px solid transparent;
+  }
+  nav a::before {
+    content: counter(item, decimal-leading-zero);
+    font-variant-numeric: tabular-nums;
+    color: var(--ink-muted);
+    font-size: 14px;
+    font-weight: 700;
+    min-width: 1.9em;
+  }
+  nav a:hover, nav a:focus-visible { color: var(--accent); }
+
+  /* --- Seções ----------------------------------------------------------- */
+
+  section {
+    padding: 34px 0;
+    border-top: 1px solid var(--rule);
+  }
+  section h2 {
+    font-family: var(--display);
+    font-weight: 700;
+    font-size: 24px;
+    line-height: 1.25;
+    text-wrap: balance;
+    margin: 0 0 6px;
+    scroll-margin-top: 24px;
+  }
+  section .n {
+    display: block;
+    font-family: var(--body);
+    font-variant-numeric: tabular-nums;
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    color: var(--accent);
+    margin-bottom: 8px;
+  }
+  section p { margin: 0 0 14px; }
+  section p:last-child { margin-bottom: 0; }
+
+  strong { font-weight: 700; }
+  a { color: var(--accent); }
+
+  :focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 3px;
+    border-radius: 3px;
+  }
+
+  /* --- Rodapé ----------------------------------------------------------- */
+
+  footer {
+    margin-top: 44px;
+    padding-top: 28px;
+    border-top: 1px solid var(--rule);
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    font-size: 15px;
+    color: var(--ink-muted);
+  }
+  footer .quem { color: var(--ink); font-weight: 700; }
+
+  @media (prefers-reduced-motion: reduce) {
+    * { animation: none !important; transition: none !important; scroll-behavior: auto !important; }
+  }
+</style>
+
+<div class="wrap">
+
+  <header>
+    <div class="marca">
+      <svg viewBox="0 0 100 100" role="img" aria-label="Símbolo do Brotinho">
+        <circle cx="50" cy="50" r="49" fill="#EFB183"></circle>
+        <path d="M 47.9 88.5 C 47.9 79 48.2 69.5 49.3 63 C 50.2 57.5 52.1 54.4 54.6 52.6"
+              fill="none" stroke="#8CB68B" stroke-width="2.2" stroke-linecap="round"></path>
+        <g fill="#8CB68B">
+          <path d="M 13.7 26.4 C 36.7 26.6 49.1 38.8 49.6 64.6 C 30.7 63.8 12.4 45.8 13.7 26.4 Z"></path>
+          <path d="M 13.7 26.4 C 36.7 26.6 49.1 38.8 49.6 64.6 C 30.7 63.8 12.4 45.8 13.7 26.4 Z"
+                transform="translate(100 0) scale(-1 1) rotate(-7 13.7 26.4)"></path>
+        </g>
+      </svg>
+      <b>Brotinho</b>
+    </div>
+
+    <h1>Política de privacidade</h1>
+
+    <div class="meta">
+      <span>Versão 1.0</span>
+      <span>·</span>
+      <span>agosto de 2026</span>
+    </div>
+  </header>
+
+  <div class="resumo">
+    <h2>O resumo</h2>
+    <p>O Brotinho guarda tudo no seu próprio aparelho. Não há cadastro, não há servidor nosso, e não enviamos seus registros para lugar nenhum.</p>
+    <p>A única exceção está descrita em <a href="#s4">“Quando o áudio sai do aparelho”</a>, e depende de uma configuração que quem instala o app precisa ativar de propósito.</p>
+  </div>
+
+  <nav aria-label="Seções desta política">
+    <h2>Nesta página</h2>
+    <ol>
+      <li><a href="#s1">O que o app guarda</a></li>
+      <li><a href="#s2">O que o app não faz</a></li>
+      <li><a href="#s3">Microfone</a></li>
+      <li><a href="#s4">Quando o áudio sai do aparelho</a></li>
+      <li><a href="#s5">Cópia de segurança do seu aparelho</a></li>
+      <li><a href="#s6">Análise dos seus textos</a></li>
+      <li><a href="#s7">Biometria</a></li>
+      <li><a href="#s8">Notificações</a></li>
+      <li><a href="#s9">Seus direitos</a></li>
+      <li><a href="#s10">Crianças e adolescentes</a></li>
+      <li><a href="#s11">Isto não é tratamento</a></li>
+      <li><a href="#s12">Mudanças nesta política</a></li>
+    </ol>
+  </nav>
+
+  <main>
+    <section>
+      <h2 id="s1"><span class="n">01</span>O que o app guarda</h2>
+      <p>As respostas que você dá no início: como se chama, faixa etária, como se identifica, como tem se sentido, o que já tentou, seus horários e os valores que escolheu.</p>
+      <p>O que você registra depois: humor de cada dia, textos do diário, pensamentos compostados e as práticas que fez.</p>
+      <p>Suas preferências: lembretes, bloqueio do app e análise dos registros.</p>
+      <p>Tudo isso fica no armazenamento local do aplicativo, no seu aparelho — e na cópia de segurança que o próprio sistema do seu celular faz, descrita mais adiante.</p>
+    </section>
+
+    <section>
+      <h2 id="s2"><span class="n">02</span>O que o app não faz</h2>
+      <p>Não pedimos cadastro, e-mail ou senha.</p>
+      <p>Não usamos serviços de análise de uso, rastreadores ou publicidade.</p>
+      <p>Não vendemos nem compartilhamos dados com terceiros.</p>
+      <p>Não mantemos servidor nem banco de dados com os seus registros. Nós não temos acesso ao que você escreve.</p>
+    </section>
+
+    <section>
+      <h2 id="s3"><span class="n">03</span>Microfone</h2>
+      <p>A prática Composta usa o microfone apenas como sensor: ela mede se há som de voz para confirmar que você está repetindo a frase em voz alta. Esse áudio não é salvo nem enviado.</p>
+      <p>No diário, você pode ditar em vez de escrever. Por padrão, a transcrição é feita pelo reconhecimento de fala do próprio sistema do seu aparelho, e o áudio não sai dele.</p>
+      <p>O microfone só liga quando você toca no botão correspondente, e desliga quando a prática termina.</p>
+    </section>
+
+    <section>
+      <h2 id="s4"><span class="n">04</span>Quando o áudio sai do aparelho</h2>
+      <p>Em aparelhos onde o reconhecimento de fala do sistema não está disponível, o app pode enviar o áudio ditado para um serviço de transcrição, se quem instalou o app tiver configurado um endereço para isso.</p>
+      <p>Nesse caso, o áudio da sua fala é transmitido para esse serviço e volta como texto. Nada além do áudio é enviado: nem seu nome, nem seus outros registros.</p>
+      <p>Quando não há endereço configurado, esse envio não acontece, e o app avisa na própria tela que o texto inserido é de demonstração.</p>
+    </section>
+
+    <section>
+      <h2 id="s5"><span class="n">05</span>Cópia de segurança do seu aparelho</h2>
+      <p>O Brotinho permite que o sistema do seu celular inclua os dados do app na cópia de segurança que ele já faz: o backup automático do Android, guardado no seu Google Drive, e o backup do iCloud no iPhone.</p>
+      <p>Isso existe para você não perder seu diário ao trocar de aparelho ou reinstalar o app. A cópia fica na sua conta Google ou Apple, protegida por ela — não passa por nós e não temos como acessá-la.</p>
+      <p>Se preferir que não haja cópia alguma, desative o backup do Brotinho nas configurações do seu celular: no Android, em Google › Backup; no iPhone, em Ajustes › seu nome › iCloud.</p>
+      <p>Vale saber: por causa dessa cópia, reinstalar o app pode trazer seus registros de volta. Para apagar de verdade, use <strong>“Apagar meus dados”</strong> dentro do app antes de desinstalar.</p>
+    </section>
+
+    <section>
+      <h2 id="s6"><span class="n">06</span>Análise dos seus textos</h2>
+      <p>O app procura palavras nos seus registros para sugerir valores e temas. Essa leitura acontece inteiramente dentro do aparelho: nenhum texto é enviado para análise em outro lugar, e não há inteligência artificial remota envolvida.</p>
+      <p>Você pode desligar isso em <strong>Privacidade › Análise dos meus registros</strong>. Desligado, o app para de ler o conteúdo dos seus textos.</p>
+    </section>
+
+    <section>
+      <h2 id="s7"><span class="n">07</span>Biometria</h2>
+      <p>Se você ativar o bloqueio do app, a verificação é feita pelo sistema do seu aparelho. O Brotinho recebe apenas a resposta de que a verificação deu certo ou não. Sua digital ou seu rosto nunca chegam ao aplicativo.</p>
+    </section>
+
+    <section>
+      <h2 id="s8"><span class="n">08</span>Notificações</h2>
+      <p>Os lembretes são agendados localmente pelo seu aparelho. Não passam por servidor nosso e não carregam conteúdo dos seus registros.</p>
+    </section>
+
+    <section>
+      <h2 id="s9"><span class="n">09</span>Seus direitos</h2>
+      <p>Você pode ver e corrigir o que informou em <strong>Configurações › Meus dados</strong>.</p>
+      <p>Você pode apagar tudo em <strong>Privacidade › Apagar meus dados</strong>. A exclusão no aparelho é imediata e definitiva. Se você usa a cópia de segurança do sistema, apague os dados pelo app antes de desinstalar, para que a cópia também fique vazia.</p>
+      <p>A Lei Geral de Proteção de Dados (Lei 13.709/2018) garante a você acesso, correção, portabilidade e eliminação dos seus dados. Como todo o tratamento acontece no seu aparelho e sob seu controle, esses direitos se exercem pelas próprias telas do app.</p>
+    </section>
+
+    <section>
+      <h2 id="s10"><span class="n">10</span>Crianças e adolescentes</h2>
+      <p>O Brotinho não é destinado a menores de 13 anos. Se você tem menos de 18, converse com um responsável antes de usar.</p>
+    </section>
+
+    <section>
+      <h2 id="s11"><span class="n">11</span>Isto não é tratamento</h2>
+      <p>As práticas do app são de autocuidado e apoio, baseadas em técnicas conhecidas. Elas não substituem acompanhamento psicológico ou médico.</p>
+      <p>Se você estiver em sofrimento intenso ou pensando em se machucar, procure ajuda: o CVV atende de graça, 24 horas, pelo telefone <strong>188</strong> e em <a href="https://cvv.org.br">cvv.org.br</a>.</p>
+    </section>
+
+    <section>
+      <h2 id="s12"><span class="n">12</span>Mudanças nesta política</h2>
+      <p>Se o funcionamento do app mudar de um jeito que afete seus dados, este texto muda junto e a data no fim da página é atualizada.</p>
+    </section>
+  </main>
+
+  <footer>
+    <div class="quem">Responsável: Pedro Henrique de Brito Pinto Ferreira</div>
+    <div>Contato: <a href="mailto:brotinho.suporte@gmail.com">brotinho.suporte@gmail.com</a></div>
+    <div>Versão 1.0 · agosto de 2026</div>
+  </footer>
+
+</div>
