@@ -6,4 +6,5 @@ export type SubScreen =
   | 'composta'
   | 'praticas'
   | 'valores'
-  | 'lembretes';
+  | 'lembretes'
+  | 'jardim';

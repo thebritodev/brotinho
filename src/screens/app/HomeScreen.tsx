@@ -1,20 +1,22 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { ScrollView, Text, useWindowDimensions, View } from 'react-native';
+import { Modal, Pressable, ScrollView, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import {
   AnimatedSprout,
+  Button,
   Card,
   GrowthNotice,
   Icon,
   IconButton,
   InsightCard,
+  MemoryCard,
   MoodSelector,
   StatRow,
   type IconName,
 } from '../../components';
 import { useAppState } from '../../state/AppStateProvider';
-import { dayKey, daysCaredFor, patterns, sproutStage, stats } from '../../state/derived';
+import { colheita, dayKey, daysCaredFor, lembranca, patterns, prontoParaColher, sproutStage, stats } from '../../state/derived';
 import { colors, palette, radius, fonts } from '../../theme';
 
 type Props = {
@@ -24,6 +26,7 @@ type Props = {
   onOpenPractices: () => void;
   onOpenValues: () => void;
   onOpenReminders: () => void;
+  onOpenGarden: () => void;
 };
 
 export function HomeScreen({
@@ -33,10 +36,11 @@ export function HomeScreen({
   onOpenPractices,
   onOpenValues,
   onOpenReminders,
+  onOpenGarden,
 }: Props) {
   const insets = useSafeAreaInsets();
   const { width, height } = useWindowDimensions();
-  const { data, setTodayMood, markStageSeen } = useAppState();
+  const { data, setTodayMood, markStageSeen, colherPlanta } = useAppState();
 
   /**
    * O broto domina a tela: sangra até as bordas, ignorando a margem lateral
@@ -51,6 +55,8 @@ export function HomeScreen({
 
   const growth = useMemo(() => stats(data), [data]);
   const insights = useMemo(() => patterns(data), [data]);
+  const memoria = useMemo(() => lembranca(data), [data]);
+  const [lendoMemoria, setLendoMemoria] = useState(false);
 
   const stage = sproutStage(data);
   const [celebrando, setCelebrando] = useState(false);
@@ -65,6 +71,16 @@ export function HomeScreen({
     }
     if (stage > data.stageSeen) setCelebrando(true);
   }, [stage, data.stageSeen]);
+
+  /**
+   * Planta madura vai para o jardim e um broto novo começa.
+   *
+   * Acontece aqui e não no provider porque depende de a pessoa abrir o app:
+   * colher em segundo plano faria o broto "sumir" sem ela ver acontecer.
+   */
+  useEffect(() => {
+    if (prontoParaColher(data)) colherPlanta(colheita(data));
+  }, [data]);
 
   const fecharCelebracao = () => {
     setCelebrando(false);
@@ -112,9 +128,15 @@ export function HomeScreen({
 
       <View style={{ alignItems: 'center', gap: 12 }}>
         {/* Margem negativa: o desenho encosta nas bordas da tela. */}
-        <View style={{ marginHorizontal: -20 }}>
+        {/* O broto é a porta do próprio histórico: tocar nele abre o jardim. */}
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel="Ver meu jardim"
+          onPress={onOpenGarden}
+          style={{ marginHorizontal: -20 }}
+        >
           <AnimatedSprout mood={mood} stage={stage} size={sproutSize} breathe />
-        </View>
+        </Pressable>
         <Text style={{ fontFamily: fonts.body.bold, fontSize: 16 }}>
           Como você está se sentindo hoje?
         </Text>
@@ -186,6 +208,10 @@ export function HomeScreen({
         </View>
       </Card>
 
+      {/* Só aparece quando existe registro antigo o bastante; sem isso a
+          Home ficaria com um espaço vazio nos primeiros meses. */}
+      {!!memoria && <MemoryCard lembranca={memoria} onPress={() => setLendoMemoria(true)} />}
+
       {/* Práticas e Valores saíram da barra de baixo e viram atalhos daqui. */}
       <View style={{ flexDirection: 'row', gap: 12 }}>
         <Shortcut
@@ -224,6 +250,52 @@ export function HomeScreen({
         </View>
       )}
     </ScrollView>
+
+      <Modal
+        visible={lendoMemoria}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setLendoMemoria(false)}
+      >
+        <View style={{ flex: 1, justifyContent: 'center', padding: 22 }}>
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel="Fechar"
+            onPress={() => setLendoMemoria(false)}
+            style={[StyleSheet.absoluteFill, { backgroundColor: 'rgba(58,54,48,0.45)' }]}
+          />
+          <View
+            style={{
+              backgroundColor: colors.bg,
+              borderRadius: radius.lg,
+              padding: 20,
+              gap: 14,
+              maxHeight: '80%',
+            }}
+          >
+            <Text
+              style={{ fontFamily: fonts.display.semiBold, fontSize: 18, color: colors.primaryStrong }}
+            >
+              {memoria?.quando}, você escreveu
+            </Text>
+            <ScrollView style={{ flexShrink: 1 }} showsVerticalScrollIndicator={false}>
+              <Text
+                style={{
+                  fontFamily: fonts.body.regular,
+                  fontSize: 16,
+                  lineHeight: 16 * 1.6,
+                  color: palette.brown900,
+                }}
+              >
+                {memoria?.texto}
+              </Text>
+            </ScrollView>
+            <Button variant="ghost" style={{ width: '100%' }} onPress={() => setLendoMemoria(false)}>
+              Fechar
+            </Button>
+          </View>
+        </View>
+      </Modal>
 
       {celebrando && stage !== 1 && (
         <GrowthNotice stage={stage} days={daysCaredFor(data)} onClose={fecharCelebracao} />

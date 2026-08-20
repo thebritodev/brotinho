@@ -1,5 +1,5 @@
 import { renomear } from '../data/onboarding';
-import type { AppData, Compost, JournalEntry, MoodLog, Profile, Settings } from './types';
+import type { AppData, Compost, JournalEntry, MoodLog, PracticeDone, Plant, Profile, Settings } from './types';
 import { INITIAL_APP_DATA, INITIAL_PROFILE, INITIAL_SETTINGS } from './types';
 
 /**
@@ -130,6 +130,34 @@ function humoresLimpos(v: unknown): MoodLog[] {
   });
 }
 
+/** Plantas do jardim. Uma entrada torta é descartada; o jardim continua. */
+function jardimLimpo(v: unknown): Plant[] {
+  if (!ehLista(v)) return [];
+  return v.flatMap((item) => {
+    const g = (item ?? {}) as Record<string, unknown>;
+    if (typeof g.maturedAt !== 'string' || !DIA.test(g.maturedAt)) return [];
+    const dias = typeof g.dias === 'number' && g.dias > 0 ? Math.floor(g.dias) : 0;
+    if (!dias) return [];
+    return [{
+      id: typeof g.id === 'string' ? g.id : `${g.maturedAt}-${dias}`,
+      maturedAt: g.maturedAt,
+      dias,
+      valor: typeof g.valor === 'string' ? g.valor : null,
+      mood: ehMood(g.mood) ? g.mood : null,
+    }];
+  });
+}
+
+function praticasLimpas(v: unknown): PracticeDone[] {
+  if (!ehLista(v)) return [];
+  return v.flatMap((item) => {
+    const p = (item ?? {}) as Record<string, unknown>;
+    if (typeof p.topic !== 'string' || typeof p.practice !== 'string') return [];
+    const at = typeof p.at === 'number' && Number.isFinite(p.at) ? p.at : Date.now();
+    return [{ topic: p.topic, practice: p.practice, at }];
+  });
+}
+
 export function sanitizarDados(guardado: unknown, hoje: string): AppData {
   const g = (guardado ?? {}) as Record<string, unknown>;
   const stageSeen =
@@ -143,6 +171,8 @@ export function sanitizarDados(guardado: unknown, hoje: string): AppData {
     composts: compostasLimpas(g.composts),
     moodHistory: humoresLimpos(g.moodHistory),
     startedAt: typeof g.startedAt === 'string' && DIA.test(g.startedAt) ? g.startedAt : hoje,
+    garden: jardimLimpo(g.garden),
+    practicesDone: praticasLimpas(g.practicesDone),
     stageSeen,
   };
 }

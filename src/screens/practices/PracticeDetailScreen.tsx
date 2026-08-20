@@ -5,21 +5,37 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Button, Icon, ScreenTransition, Sprout, TopBar } from '../../components';
 import { PracticeIllustration } from '../../components/brand/PracticeIllustration';
 import type { Practice } from '../../data/practices';
+import { useAppState } from '../../state/AppStateProvider';
+import { vezesPorPratica } from '../../state/derived';
 import { colors, palette, radius, shadows, fonts } from '../../theme';
 import { BreathingGuide } from './BreathingGuide';
 import { StepGuide } from './StepGuide';
 
 type Props = {
   practice: Practice;
+  /** Chave do tema, para registrar a prática concluída. */
+  topicKey: string;
   tint: string;
   onBack: () => void;
 };
 
 type Mode = 'read' | 'guide' | 'finished';
 
-export function PracticeDetailScreen({ practice, tint, onBack }: Props) {
+export function PracticeDetailScreen({ practice, topicKey, tint, onBack }: Props) {
   const insets = useSafeAreaInsets();
+  const { data, registrarPratica } = useAppState();
   const [mode, setMode] = useState<Mode>('read');
+
+  const jaFeita = vezesPorPratica(data)[`${topicKey}/${practice.key}`] ?? 0;
+
+  /**
+   * Só conta quando o guia chega ao fim. Abrir e desistir não é ter feito, e
+   * inflar essa contagem tiraria justamente o valor dela.
+   */
+  const concluir = () => {
+    registrarPratica(topicKey, practice.key);
+    setMode('finished');
+  };
 
   // --- Guia em andamento ---------------------------------------------------
 
@@ -33,13 +49,13 @@ export function PracticeDetailScreen({ practice, tint, onBack }: Props) {
           <BreathingGuide
             phases={guide.phases}
             cycles={guide.cycles}
-            onDone={() => setMode('finished')}
+            onDone={concluir}
             onCancel={() => setMode('read')}
           />
         ) : (
           <StepGuide
             steps={guide.steps}
-            onDone={() => setMode('finished')}
+            onDone={concluir}
             onCancel={() => setMode('read')}
           />
         )}
@@ -86,6 +102,20 @@ export function PracticeDetailScreen({ practice, tint, onBack }: Props) {
         >
           Repare como você está agora, sem cobrar que seja diferente de antes. Fazer já conta.
         </Text>
+        {/* Sem contar troféu: só devolve à pessoa que ela já voltou aqui. A
+            contagem inclui esta, por isso a comparação é com 1. */}
+        {jaFeita > 1 && (
+          <Text
+            style={{
+              fontFamily: fonts.body.bold,
+              fontSize: 14,
+              color: colors.primaryStrong,
+              textAlign: 'center',
+            }}
+          >
+            Esta é a {jaFeita}ª vez que você faz esta prática.
+          </Text>
+        )}
         <View style={{ width: '100%', gap: 10, marginTop: 8 }}>
           <Button variant="primary" style={{ width: '100%' }} onPress={onBack}>
             Voltar às práticas

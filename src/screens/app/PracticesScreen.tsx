@@ -5,10 +5,14 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Icon, PracticeTopicCard, ScreenTransition, TopBar } from '../../components';
 import { PracticeIllustration } from '../../components/brand/PracticeIllustration';
 import { PRACTICE_TOPICS, findPractice, findTopic } from '../../data/practices';
+import { useAppState } from '../../state/AppStateProvider';
+import { vezesPorPratica } from '../../state/derived';
 import { colors, palette, radius, shadows, fonts } from '../../theme';
 import { PracticeDetailScreen } from '../practices/PracticeDetailScreen';
 
 export function PracticesScreen({ onBack }: { onBack: () => void }) {
+  const { data } = useAppState();
+  const feitas = vezesPorPratica(data);
   const insets = useSafeAreaInsets();
   const [topicKey, setTopicKey] = useState<string | null>(null);
   const [practiceKey, setPracticeKey] = useState<string | null>(null);
@@ -23,6 +27,7 @@ export function PracticesScreen({ onBack }: { onBack: () => void }) {
       <ScreenTransition transitionKey={practice.key} mode="forward">
         <PracticeDetailScreen
           practice={practice}
+          topicKey={topic.key}
           tint={topic.tint}
           onBack={() => setPracticeKey(null)}
         />
@@ -115,6 +120,22 @@ export function PracticesScreen({ onBack }: { onBack: () => void }) {
                         }}
                       >
                         guiada
+                      </Text>
+                    </>
+                  )}
+                  {/* O app passa a lembrar o que já foi feito: antes eram 31
+                      exercícios soltos e ninguém sabia onde tinha parado. */}
+                  {!!feitas[`${topic.key}/${p.key}`] && (
+                    <>
+                      <Text style={{ color: palette.brown200 }}>·</Text>
+                      <Text
+                        style={{
+                          fontFamily: fonts.body.bold,
+                          fontSize: 12,
+                          color: palette.brown400,
+                        }}
+                      >
+                        feita {feitas[`${topic.key}/${p.key}`]}×
                       </Text>
                     </>
                   )}

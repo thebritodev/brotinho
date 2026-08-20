@@ -13,6 +13,7 @@ import {
   TopBar,
 } from '../../components';
 import { useAppState } from '../../state/AppStateProvider';
+import { vezesQueVoltou } from '../../state/derived';
 import { colors, palette, radius, shadows, fonts } from '../../theme';
 import { FallingWords } from './FallingWords';
 import { useCompostSession } from './useCompostSession';
@@ -35,9 +36,17 @@ export function CompostaScreen({ onClose }: { onClose: () => void }) {
   const [thought, setThought] = useState('');
   const [result, setResult] = useState({ reps: 0, secs: 0 });
 
+  /**
+   * Quantas vezes um pensamento parecido já foi compostado, contando este.
+   * Calculado antes de salvar, para o número não incluir a sessão em curso
+   * duas vezes.
+   */
+  const [jaVoltou, setJaVoltou] = useState(0);
+
   const session = useCompostSession({
     targetSeconds: TARGET_SECONDS,
     onFinish: ({ reps, secs }) => {
+      setJaVoltou(vezesQueVoltou(data, thought.trim()) + 1);
       setResult({ reps, secs });
       addCompost({ thought: thought.trim(), reps, secs: Math.round(secs) });
       setStep('done');
@@ -520,6 +529,24 @@ export function CompostaScreen({ onClose }: { onClose: () => void }) {
           Você repetiu {result.reps} vezes em {Math.round(result.secs)} segundos. A frase perdeu o
           significado e virou adubo.
         </Text>
+
+        {/* Reconhecer o pensamento que volta é a coisa mais inteligente que o
+            app pode dizer aqui. A comparação roda no aparelho, por palavras em
+            comum — "nunca vou dar conta" e "não vou dar conta disso" são a
+            mesma dor voltando. Sem julgamento e sem alarme: só o fato. */}
+        {jaVoltou > 1 && (
+          <Text
+            style={{
+              fontFamily: fonts.body.bold,
+              fontSize: 15,
+              lineHeight: 15 * 1.5,
+              color: colors.primaryStrong,
+              textAlign: 'center',
+            }}
+          >
+            Esse pensamento já voltou {jaVoltou} vezes. Reparar nisso também é cuidado.
+          </Text>
+        )}
 
         <View
           style={{

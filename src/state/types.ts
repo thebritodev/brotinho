@@ -46,6 +46,29 @@ export type Settings = {
 /** Um humor por dia; `date` no formato YYYY-MM-DD. */
 export type MoodLog = { date: string; mood: Mood };
 
+/**
+ * Uma planta que amadureceu e foi para o jardim.
+ *
+ * O broto crescia até o estágio 3 e parava para sempre — dez dias de
+ * crescimento numa assinatura anual. Agora cada broto amadurece, vira planta
+ * guardada e um novo começa. O que se acumula é memória de um período, não
+ * pontuação: cada planta carrega o valor e o humor que marcaram os dias dela.
+ */
+export type Plant = {
+  id: string;
+  /** Dia em que amadureceu (YYYY-MM-DD). */
+  maturedAt: string;
+  /** Dias cuidados que essa planta levou para crescer. */
+  dias: number;
+  /** O valor mais vivido no período, se houve algum. */
+  valor: string | null;
+  /** O humor predominante no período. */
+  mood: Mood | null;
+};
+
+/** Uma prática concluída, para o app lembrar o que já foi feito. */
+export type PracticeDone = { topic: string; practice: string; at: number };
+
 export type AppData = {
   profile: Profile;
   /** Histórico de humor, mais recente primeiro. */
@@ -55,6 +78,10 @@ export type AppData = {
   settings: Settings;
   /** Data (YYYY-MM-DD) do primeiro uso — base para "cuidando de si desde...". */
   startedAt: string | null;
+  /** Plantas que já amadureceram, da mais antiga para a mais nova. */
+  garden: Plant[];
+  /** Práticas concluídas, da mais antiga para a mais nova. */
+  practicesDone: PracticeDone[];
   /**
    * Último estágio do broto que a pessoa já viu comemorado. Serve só para não
    * repetir a comemoração; o estágio de verdade é calculado dos registros.
@@ -93,5 +120,7 @@ export const INITIAL_APP_DATA: AppData = {
   composts: [],
   settings: INITIAL_SETTINGS,
   startedAt: null,
+  garden: [],
+  practicesDone: [],
   stageSeen: null,
 };

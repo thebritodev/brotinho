@@ -3,6 +3,7 @@ import { View } from 'react-native';
 
 import { BottomNav, ScreenTransition, type TabKey } from '../components';
 import { HomeScreen } from '../screens/app/HomeScreen';
+import { GardenScreen } from '../screens/app/GardenScreen';
 import { JournalScreen } from '../screens/app/JournalScreen';
 import { PracticesScreen } from '../screens/app/PracticesScreen';
 import { PrivacyScreen } from '../screens/app/PrivacyScreen';
@@ -57,6 +58,8 @@ export function MainTabs() {
         return <ValuesScreen onBack={closeSub} />;
       case 'lembretes':
         return <RemindersScreen onBack={closeSub} />;
+      case 'jardim':
+        return <GardenScreen onBack={closeSub} />;
       default:
         return null;
     }
@@ -78,6 +81,7 @@ export function MainTabs() {
             onOpenPractices={() => setSub('praticas')}
             onOpenValues={() => setSub('valores')}
             onOpenReminders={() => setSub('lembretes')}
+            onOpenGarden={() => setSub('jardim')}
           />
         );
     }

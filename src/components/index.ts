@@ -15,6 +15,7 @@ export { GrowingSprout } from './brand/GrowingSprout';
 export { GrowthNotice } from './brand/GrowthNotice';
 export { ProgressStem } from './brand/ProgressStem';
 export { InsightCard } from './brand/InsightCard';
+export { MemoryCard } from './brand/MemoryCard';
 export { MoodFace } from './brand/MoodFace';
 export { MoodSelector, MOODS } from './brand/MoodSelector';
 export { PracticeTopicCard } from './brand/PracticeTopicCard';

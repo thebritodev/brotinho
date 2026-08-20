@@ -20,6 +20,7 @@ import { clearAppData, loadAppData, saveAppData } from '../storage/appStorage';
 import type { Mood } from '../theme';
 import { dayKey } from './derived';
 import { sanitizarDados } from './sanitize';
+import type { Plant } from './types';
 import {
   INITIAL_APP_DATA,
   INITIAL_PROFILE,
@@ -44,6 +45,10 @@ type AppStateValue = {
   addCompost: (entry: Omit<Compost, 'id' | 'createdAt'>) => void;
   /** Registra que a pessoa já viu a comemoração deste estágio. */
   markStageSeen: (stage: number) => void;
+  /** Guarda a planta madura no jardim e começa um broto novo. */
+  colherPlanta: (planta: Plant) => void;
+  /** Anota uma prática concluída. */
+  registrarPratica: (topic: string, practice: string) => void;
   reset: () => void;
 };
 
@@ -110,6 +115,22 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
     setData((prev) => ({ ...prev, settings: { ...prev.settings, ...patch } }));
   }, []);
 
+  const colherPlanta = useCallback((planta: Plant) => {
+    setData((prev) =>
+      // Colher zera o ciclo, então o estágio visto volta ao começo junto.
+      prev.garden.some((p) => p.id === planta.id)
+        ? prev
+        : { ...prev, garden: [...prev.garden, planta], stageSeen: 1 },
+    );
+  }, []);
+
+  const registrarPratica = useCallback((topic: string, practice: string) => {
+    setData((prev) => ({
+      ...prev,
+      practicesDone: [...prev.practicesDone, { topic, practice, at: Date.now() }],
+    }));
+  }, []);
+
   const markStageSeen = useCallback((stage: number) => {
     setData((prev) => (prev.stageSeen === stage ? prev : { ...prev, stageSeen: stage }));
   }, []);
@@ -165,6 +186,8 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
       removeJournalEntry,
       addCompost,
       markStageSeen,
+      colherPlanta,
+      registrarPratica,
       reset,
     }),
     [
@@ -178,6 +201,8 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
       removeJournalEntry,
       addCompost,
       markStageSeen,
+      colherPlanta,
+      registrarPratica,
       reset,
     ],
   );
