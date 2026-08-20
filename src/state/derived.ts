@@ -363,3 +363,22 @@ export function ultimaPratica(data: AppData) {
   if (!data.practicesDone.length) return null;
   return data.practicesDone.reduce((a, b) => (a.at >= b.at ? a : b));
 }
+
+/**
+ * As práticas que a pessoa mais repete.
+ *
+ * O app não pergunta quais são as favoritas: ele repara. Marcar favorito com
+ * uma estrelinha é mais um pedido de trabalho para quem já está cansado — e o
+ * que se repete diz a mesma coisa, sem precisar perguntar.
+ */
+export function praticasMaisFeitas(data: AppData, quantas = 3) {
+  const conta = vezesPorPratica(data);
+  return Object.entries(conta)
+    .filter(([, n]) => n >= 2)
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, quantas)
+    .map(([chave, vezes]) => {
+      const [topic, practice] = chave.split('/');
+      return { topic, practice, vezes };
+    });
+}

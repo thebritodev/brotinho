@@ -13,6 +13,7 @@ export { AskingSprout } from './brand/AskingSprout';
 export { BrotinhoMark, MARK_GREEN, MARK_PEACH } from './brand/BrotinhoMark';
 export { GrowingSprout } from './brand/GrowingSprout';
 export { GrowthNotice } from './brand/GrowthNotice';
+export { HarvestNotice } from './brand/HarvestNotice';
 export { ProgressStem } from './brand/ProgressStem';
 export { InsightCard } from './brand/InsightCard';
 export { MemoryCard } from './brand/MemoryCard';

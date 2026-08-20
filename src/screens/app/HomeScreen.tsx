@@ -7,6 +7,7 @@ import {
   Button,
   Card,
   GrowthNotice,
+  HarvestNotice,
   Icon,
   IconButton,
   InsightCard,
@@ -16,6 +17,7 @@ import {
   type IconName,
 } from '../../components';
 import { useAppState } from '../../state/AppStateProvider';
+import type { Plant } from '../../state/types';
 import { colheita, dayKey, daysCaredFor, lembranca, patterns, prontoParaColher, sproutStage, stats } from '../../state/derived';
 import { colors, palette, radius, fonts } from '../../theme';
 
@@ -73,14 +75,23 @@ export function HomeScreen({
   }, [stage, data.stageSeen]);
 
   /**
-   * Planta madura vai para o jardim e um broto novo começa.
+   * Planta madura: mostra o momento ANTES de guardar.
    *
-   * Acontece aqui e não no provider porque depende de a pessoa abrir o app:
-   * colher em segundo plano faria o broto "sumir" sem ela ver acontecer.
+   * Colher em silêncio fazia o broto de três semanas virar uma mudinha sem
+   * explicação — lê como perda de dado, não como conquista. A planta só vai
+   * para o jardim quando a pessoa fecha o aviso, então ela vê acontecer.
    */
+  const [colhendo, setColhendo] = useState<Plant | null>(null);
+
   useEffect(() => {
-    if (prontoParaColher(data)) colherPlanta(colheita(data));
-  }, [data]);
+    if (prontoParaColher(data) && !colhendo) setColhendo(colheita(data));
+  }, [data, colhendo]);
+
+  const guardarNoJardim = () => {
+    if (colhendo) colherPlanta(colhendo);
+    setColhendo(null);
+    onOpenGarden();
+  };
 
   const fecharCelebracao = () => {
     setCelebrando(false);
@@ -297,8 +308,14 @@ export function HomeScreen({
         </View>
       </Modal>
 
-      {celebrando && stage !== 1 && (
-        <GrowthNotice stage={stage} days={daysCaredFor(data)} onClose={fecharCelebracao} />
+      {/* A colheita tem precedência: é o momento maior, e mostrar os dois
+          avisos empilhados atropelaria os dois. */}
+      {colhendo ? (
+        <HarvestNotice planta={colhendo} onClose={guardarNoJardim} />
+      ) : (
+        celebrando && stage !== 1 && (
+          <GrowthNotice stage={stage} days={daysCaredFor(data)} onClose={fecharCelebracao} />
+        )
       )}
     </View>
   );

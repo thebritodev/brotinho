@@ -6,13 +6,25 @@ import { Icon, PracticeTopicCard, ScreenTransition, TopBar } from '../../compone
 import { PracticeIllustration } from '../../components/brand/PracticeIllustration';
 import { PRACTICE_TOPICS, findPractice, findTopic } from '../../data/practices';
 import { useAppState } from '../../state/AppStateProvider';
-import { vezesPorPratica } from '../../state/derived';
+import { praticasMaisFeitas, ultimaPratica, vezesPorPratica } from '../../state/derived';
 import { colors, palette, radius, shadows, fonts } from '../../theme';
 import { PracticeDetailScreen } from '../practices/PracticeDetailScreen';
 
 export function PracticesScreen({ onBack }: { onBack: () => void }) {
   const { data } = useAppState();
   const feitas = vezesPorPratica(data);
+
+  /**
+   * Retomar de onde parou. Sem isto, 31 exercícios viravam uma biblioteca em
+   * que ninguém lembrava onde tinha ficado — e o app já sabia a resposta.
+   */
+  const ultima = ultimaPratica(data);
+  const retomar = ultima ? findPractice(ultima.topic, ultima.practice) : undefined;
+  const temaDaUltima = ultima ? findTopic(ultima.topic) : undefined;
+
+  const repetidas = praticasMaisFeitas(data)
+    .map((r) => ({ ...r, pratica: findPractice(r.topic, r.practice), tema: findTopic(r.topic) }))
+    .filter((r) => r.pratica && r.tema);
   const insets = useSafeAreaInsets();
   const [topicKey, setTopicKey] = useState<string | null>(null);
   const [practiceKey, setPracticeKey] = useState<string | null>(null);
@@ -172,6 +184,100 @@ export function PracticesScreen({ onBack }: { onBack: () => void }) {
         }}
         showsVerticalScrollIndicator={false}
       >
+        {!!retomar && !!temaDaUltima && (
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel={`Retomar ${retomar.title}`}
+            onPress={() => {
+              setTopicKey(temaDaUltima.key);
+              setPracticeKey(retomar.key);
+            }}
+            style={({ pressed }) => ({
+              flexDirection: 'row',
+              alignItems: 'center',
+              gap: 14,
+              backgroundColor: colors.primarySoft,
+              borderRadius: radius.lg,
+              padding: 14,
+              opacity: pressed ? 0.9 : 1,
+            })}
+          >
+            <View
+              style={{
+                width: 44,
+                height: 44,
+                borderRadius: 22,
+                backgroundColor: colors.surface,
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}
+            >
+              <Icon name="check" size={22} color={colors.primaryStrong} />
+            </View>
+            <View style={{ flex: 1, gap: 2 }}>
+              <Text
+                style={{ fontFamily: fonts.body.bold, fontSize: 12, color: colors.primaryStrong }}
+              >
+                A última que você fez
+              </Text>
+              <Text style={{ fontFamily: fonts.body.extraBold, fontSize: 16 }}>
+                {retomar.title}
+              </Text>
+            </View>
+            <Icon name="chevronRight" color={colors.primaryStrong} />
+          </Pressable>
+        )}
+
+        {/* Quem se repete são as favoritas. O app repara em vez de pedir para
+            a pessoa marcar estrelinha — é menos uma tarefa para quem já está
+            cansado, e o comportamento diz a mesma coisa. */}
+        {repetidas.length > 0 && (
+          <View style={{ gap: 8, marginTop: 2 }}>
+            <Text
+              style={{
+                fontFamily: fonts.body.bold,
+                fontSize: 12,
+                letterSpacing: 0.6,
+                color: colors.textSecondary,
+              }}
+            >
+              AS QUE VOCÊ MAIS REPETE
+            </Text>
+            <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
+              {repetidas.map((r) => (
+                <Pressable
+                  key={`${r.topic}/${r.practice}`}
+                  accessibilityRole="button"
+                  accessibilityLabel={`${r.pratica!.title}, feita ${r.vezes} vezes`}
+                  onPress={() => {
+                    setTopicKey(r.topic);
+                    setPracticeKey(r.practice);
+                  }}
+                  style={{
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    gap: 7,
+                    paddingVertical: 8,
+                    paddingHorizontal: 12,
+                    borderRadius: radius.pill,
+                    backgroundColor: colors.surface,
+                    ...shadows.sm,
+                  }}
+                >
+                  <Text style={{ fontFamily: fonts.body.bold, fontSize: 13 }}>
+                    {r.pratica!.title}
+                  </Text>
+                  <Text
+                    style={{ fontFamily: fonts.body.extraBold, fontSize: 12, color: palette.brown400 }}
+                  >
+                    {r.vezes}×
+                  </Text>
+                </Pressable>
+              ))}
+            </View>
+          </View>
+        )}
+
         {PRACTICE_TOPICS.map((t) => (
           <PracticeTopicCard
             key={t.key}
