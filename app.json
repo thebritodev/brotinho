@@ -100,7 +100,8 @@
         {
           "faceIDPermission": "O Brotinho usa reconhecimento facial para proteger seu diário."
         }
-      ]
+      ],
+      "expo-asset"
     ]
   }
 }
