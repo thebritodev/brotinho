@@ -48,13 +48,46 @@ export function startNativeSpeech(): void {
   });
 }
 
+/**
+ * Escuta voltada para conferir a repetição de **uma frase conhecida**, na
+ * Composta. É diferente do ditado do diário em três pontos, e cada um tem um
+ * motivo:
+ *
+ * - **`requiresOnDeviceRecognition`** obriga o reconhecimento a acontecer dentro
+ *   do aparelho. A Composta é a pessoa dizendo em voz alta o pensamento que mais
+ *   a machuca; esse áudio não vai para servidor de ninguém. Se o aparelho não
+ *   tiver o modelo do português instalado, o reconhecimento falha — e quem chama
+ *   cai no portão acústico, que é pior mas não expõe nada.
+ *
+ * - **`contextualStrings`** entrega a própria frase ao reconhecedor como pista.
+ *   É o que mais aumenta a chance de ele escrever exatamente aquelas palavras,
+ *   e a conferência depende disso.
+ *
+ * - **`volumeChangeEventOptions`** devolve o nível do som. Sem isso seria preciso
+ *   rodar o gravador do `expo-audio` em paralelo, e dois donos para o mesmo
+ *   microfone dá conflito nas duas plataformas.
+ *
+ * Sem pontuação de propósito: aqui o texto não é lido por ninguém, só comparado.
+ */
+export function startPhraseSpeech(frase: string, intervaloDoVolumeMs: number): void {
+  speechModule?.start({
+    lang: 'pt-BR',
+    interimResults: true,
+    continuous: true,
+    addsPunctuation: false,
+    requiresOnDeviceRecognition: true,
+    contextualStrings: [frase],
+    volumeChangeEventOptions: { enabled: true, intervalMillis: intervaloDoVolumeMs },
+  });
+}
+
 export function stopNativeSpeech(): void {
   speechModule?.stop();
 }
 
 /** Assina um evento nativo. Devolve a função de cancelamento. */
 export function subscribeSpeech(
-  event: 'result' | 'end' | 'error',
+  event: 'result' | 'end' | 'error' | 'volumechange',
   listener: (payload: never) => void,
 ): () => void {
   if (!speechModule) return () => {};

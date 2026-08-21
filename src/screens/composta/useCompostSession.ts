@@ -7,38 +7,50 @@ import {
 } from 'expo-audio';
 import { useCallback, useEffect, useRef, useState } from 'react';
 
+import {
+  isNativeSpeechAvailable,
+  requestSpeechPermissions,
+  startPhraseSpeech,
+  stopNativeSpeech,
+  subscribeSpeech,
+} from '../../services/speech';
+import { criarConferidor, type Conferidor } from './casaFrase';
+
 /**
  * Sessão de compostagem: escuta enquanto a pessoa repete a frase em voz alta,
  * conta as repetições e mede o tempo vocalizado.
  *
- * O microfone só serve de sensor. O arquivo que o gravador cria é apagado ao
- * fim — nada de áudio é guardado nem enviado.
+ * Nada de áudio é guardado nem enviado.
  *
  * ---
  *
- * **O que isto consegue e o que não consegue.** Não há reconhecimento de fala
- * aqui: o app não sabe *o que* foi dito, só se houve som com jeito de voz. Os
- * três testes abaixo separam fala de porta batendo, ventilador, chuveiro e
- * talher caindo — que é o grosso do que dava falso positivo.
+ * **Há dois modos, e o app cai do melhor para o pior sem avisar a pessoa.**
  *
- * O que continua passando: televisão, outra pessoa conversando ao lado, música
- * com batida e martelada ritmada. Todos têm a mesma forma da fala — estouros
- * curtos e modulados, separados por pausas. Distinguir exigiria reconhecimento
- * de verdade, o que mandaria o áudio para um reconhecedor e quebraria a frase
- * "o microfone só serve de sensor".
+ * **1. Por frase** — o preferido. O reconhecimento de fala do próprio aparelho
+ * transcreve, e `casaFrase` confere se o que foi dito é mesmo o pensamento que
+ * a pessoa escreveu. Falar outra coisa não conta. Roda **dentro do aparelho**
+ * (`requiresOnDeviceRecognition`), porque aqui a pessoa está dizendo em voz alta
+ * exatamente o que mais a machuca, e esse áudio não vai para servidor nenhum.
  *
- * **E rejeitar ritmo está fora de questão**, porque repetir a mesma frase
- * dezenas de vezes é justamente rítmico: o filtro que matasse a martelada
- * mataria o exercício.
+ * **2. Acústico** — a rede de segurança. Vale quando não há módulo nativo (Expo
+ * Go), quando falta permissão, ou quando o aparelho não tem o modelo do
+ * português instalado. Não sabe *o que* foi dito, só se houve som com jeito de
+ * voz, e usa três testes para separar fala de barulho:
+ *
+ * - **alto** — acima do piso de ruído
+ * - **sustentado** — dura pelo menos 120 ms, o que mata porta batendo e clique
+ * - **oscilando** — varia 5 dB, o que mata ventilador, chuveiro e ar-condicionado
+ *
+ * Medido em simulação contra o portão que existia antes (só volume): a fala é
+ * retida em 90% a 93% em voz normal, baixa e sussurrada; ruído constante e
+ * estouro isolado caem a zero ou quase. O que ainda passa é o que tem a forma
+ * da fala — televisão, conversa ao lado, música com batida.
+ *
+ * **3. Manual** — o botão pressionado faz as vezes da voz, quando não há
+ * microfone nenhum. A prática não morre por falta de sensor.
  *
  * Preferimos errar contando a mais do que travar quem está fazendo a prática
- * direito: aqui, cobrar de alguém que está tentando é pior do que contar um
- * pouco a mais.
- *
- * Medido em simulação, comparado com o portão antigo (só volume): a fala é
- * retida em 90% a 93% em voz normal, baixa e quase sussurrada; ventilador,
- * ar-condicionado, chuveiro, porta batendo e talher caindo caem a zero ou
- * quase.
+ * direito: cobrar de alguém que está tentando é pior do que contar a mais.
  */
 
 /** Frequência de leitura do medidor, em ms. */
@@ -104,6 +116,12 @@ const MAX_REP_GAP = 2.1;
 /** Silêncio a partir do qual o broto avisa que parou de ouvir. */
 const SILENCE_HINT = 1.1;
 
+/** De quanto em quanto tempo o reconhecimento reporta o volume, em ms. */
+const INTERVALO_DO_VOLUME_MS = 150;
+
+/** Na escala do reconhecimento (-2 a 10), abaixo de zero é inaudível. */
+const VOLUME_AUDIVEL = 0.5;
+
 /** Estado da máquina de detecção, zerado a cada sessão. */
 function estadoInicial() {
   return {
@@ -133,6 +151,11 @@ export type CompostSession = {
   silent: boolean;
   /** true quando não há permissão/medidor e a sessão depende do botão manual. */
   manual: boolean;
+  /**
+   * true quando o aparelho está conferindo a **frase**, não só o som. Muda o
+   * que a tela promete: com isto ligado, falar outra coisa não conta.
+   */
+  porFrase: boolean;
   /** Cada valor novo é uma repetição a mais — dispara as partículas caindo. */
   repTick: number;
   error: string | null;
@@ -145,15 +168,18 @@ export type CompostSession = {
 
 type Options = {
   targetSeconds: number;
+  /** O pensamento que a pessoa escreveu — o alvo da conferência. */
+  frase: string;
   onFinish: (result: { reps: number; secs: number }) => void;
 };
 
-export function useCompostSession({ targetSeconds, onFinish }: Options): CompostSession {
+export function useCompostSession({ targetSeconds, frase, onFinish }: Options): CompostSession {
   const recorder = useAudioRecorder({ ...RecordingPresets.HIGH_QUALITY, isMeteringEnabled: true });
   const recorderState = useAudioRecorderState(recorder, TICK);
 
   const [running, setRunning] = useState(false);
   const [manual, setManual] = useState(false);
+  const [porFrase, setPorFrase] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const [secs, setSecs] = useState(0);
@@ -169,20 +195,64 @@ export function useCompostSession({ targetSeconds, onFinish }: Options): Compost
   const onFinishRef = useRef(onFinish);
   onFinishRef.current = onFinish;
 
+  /** Conferidor da frase e cancelamentos dos eventos nativos, no modo por frase. */
+  const conferidor = useRef<Conferidor | null>(null);
+  const cancelamentos = useRef<(() => void)[]>([]);
+
+  const soltarEventos = useCallback(() => {
+    cancelamentos.current.forEach((c) => c());
+    cancelamentos.current = [];
+  }, []);
+
   const stop = useCallback(() => {
     setRunning(false);
     holding.current = false;
+    soltarEventos();
+    stopNativeSpeech();
     void recorder.stop().catch(() => {});
-  }, [recorder]);
+  }, [recorder, soltarEventos]);
 
-  const start = useCallback(async () => {
-    setError(null);
-    machine.current = estadoInicial();
-    setSecs(0);
-    setReps(0);
-    setLevel(0);
-    setSilent(false);
+  /**
+   * Fecha a sessão quando o tempo de voz chega ao alvo. Os dois modos passam
+   * por aqui, para o encerramento ser um só.
+   */
+  const acumular = useCallback(
+    (audivel: boolean, dt: number) => {
+      const m = machine.current;
+      if (m.finished) return;
 
+      if (audivel) {
+        m.secs += dt;
+        m.silence = 0;
+      } else {
+        m.silence += dt;
+      }
+
+      setSecs(m.secs);
+      setSilent(m.silence > SILENCE_HINT);
+
+      if (m.secs >= targetSeconds) {
+        m.finished = true;
+        stop();
+        onFinishRef.current({ reps: m.reps, secs: m.secs });
+      }
+    },
+    [targetSeconds, stop],
+  );
+
+  /** Soma repetições confirmadas pela frase. */
+  const somarReps = useCallback((quantas: number) => {
+    if (quantas <= 0) return;
+    const m = machine.current;
+    if (m.finished) return;
+    m.reps += quantas;
+    setReps(m.reps);
+    setRepTick((t) => t + quantas);
+  }, []);
+
+  /** Caminho acústico: o gravador mede o volume e o portão decide. */
+  const iniciarAcustico = useCallback(async () => {
+    setPorFrase(false);
     try {
       const permission = await AudioModule.requestRecordingPermissionsAsync();
       if (!permission.granted) {
@@ -202,6 +272,84 @@ export function useCompostSession({ targetSeconds, onFinish }: Options): Compost
       setRunning(true);
     }
   }, [recorder]);
+
+  /**
+   * Caminho por frase: o reconhecimento do aparelho escuta, e só conta quando o
+   * que foi dito é mesmo a frase escrita.
+   *
+   * Devolve `false` quando não dá para seguir por aqui — módulo ausente (é o
+   * caso do Expo Go), permissão negada, ou o reconhecimento morrer na largada
+   * por não haver modelo do português instalado no aparelho. Nesses casos quem
+   * chama cai no acústico.
+   */
+  const iniciarPorFrase = useCallback(async (): Promise<boolean> => {
+    const alvo = frase.trim();
+    if (!alvo || !isNativeSpeechAvailable()) return false;
+    if (!(await requestSpeechPermissions())) return false;
+
+    conferidor.current = criarConferidor(alvo);
+
+    let vivo = true;
+    const desistir = () => {
+      if (!vivo) return;
+      vivo = false;
+      soltarEventos();
+      stopNativeSpeech();
+      void iniciarAcustico();
+    };
+
+    cancelamentos.current = [
+      subscribeSpeech('result', (evento: { results?: { transcript?: string }[] }) => {
+        const texto = evento?.results?.[0]?.transcript;
+        if (!texto || !conferidor.current) return;
+        somarReps(conferidor.current.conferir(texto));
+      }),
+
+      // O volume vem do próprio reconhecimento: dois donos para o mesmo
+      // microfone dá conflito nas duas plataformas.
+      subscribeSpeech('volumechange', (evento: { value?: number }) => {
+        const v = evento?.value;
+        if (v == null) return;
+        // A escala do módulo vai de -2 a 10, e abaixo de 0 é inaudível.
+        const audivel = v > VOLUME_AUDIVEL;
+        setLevel(Math.max(0, Math.min(1, v / 10)));
+        acumular(audivel, INTERVALO_DO_VOLUME_MS / 1000);
+      }),
+
+      subscribeSpeech('error', desistir),
+      subscribeSpeech('end', () => {
+        // Fim natural com a sessão ainda rodando significa que o reconhecedor
+        // desistiu sozinho; o acústico assume para ninguém ficar travado.
+        if (!machine.current.finished) desistir();
+      }),
+    ];
+
+    try {
+      startPhraseSpeech(alvo, INTERVALO_DO_VOLUME_MS);
+    } catch {
+      soltarEventos();
+      return false;
+    }
+
+    setManual(false);
+    setPorFrase(true);
+    setRunning(true);
+    return true;
+  }, [frase, acumular, somarReps, soltarEventos, iniciarAcustico]);
+
+  const start = useCallback(async () => {
+    setError(null);
+    machine.current = estadoInicial();
+    conferidor.current = null;
+    soltarEventos();
+    setSecs(0);
+    setReps(0);
+    setLevel(0);
+    setSilent(false);
+
+    if (await iniciarPorFrase()) return;
+    await iniciarAcustico();
+  }, [iniciarPorFrase, iniciarAcustico, soltarEventos]);
 
   const holdOn = useCallback(() => {
     holding.current = true;
@@ -311,5 +459,18 @@ export function useCompostSession({ targetSeconds, onFinish }: Options): Compost
   // Solta o microfone se a tela sair do ar no meio da sessão.
   useEffect(() => stop, [stop]);
 
-  return { secs, reps, level, silent, manual, repTick, error, start, stop, holdOn, holdOff };
+  return {
+    secs,
+    reps,
+    level,
+    silent,
+    manual,
+    porFrase,
+    repTick,
+    error,
+    start,
+    stop,
+    holdOn,
+    holdOff,
+  };
 }

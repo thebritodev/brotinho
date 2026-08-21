@@ -46,6 +46,7 @@ export function CompostaScreen({ onClose }: { onClose: () => void }) {
 
   const session = useCompostSession({
     targetSeconds: TARGET_SECONDS,
+    frase: thought.trim() || SUGESTOES[0],
     onFinish: ({ reps, secs }) => {
       setJaVoltou(vezesQueVoltou(data, thought.trim()) + 1);
       setResult({ reps, secs });
@@ -327,11 +328,22 @@ export function CompostaScreen({ onClose }: { onClose: () => void }) {
   if (step === 'record') {
     const humor = progresso > 0.8 ? 'feliz' : progresso > 0.4 ? 'leve' : 'ansioso';
     const estágio = progresso > 0.66 ? 3 : 2;
+    /**
+     * Quando o aparelho confere a frase, existe um jeito novo de a pessoa ficar
+     * parada: falando bastante e não batendo com o que escreveu. Antes disso o
+     * status diria "Compostando" enquanto o contador não anda, e ela não teria
+     * como adivinhar o motivo. Seis segundos de voz sem nenhuma repetição é
+     * tempo suficiente para saber que não é hesitação.
+     */
+    const naoEstaCasando = session.porFrase && session.reps === 0 && session.secs > 6;
+
     const status = session.silent
       ? 'Continue falando'
-      : progresso > 0.66
-        ? 'Quase compostado'
-        : 'Compostando';
+      : naoEstaCasando
+        ? 'Repita a frase que você escreveu'
+        : progresso > 0.66
+          ? 'Quase compostado'
+          : 'Compostando';
 
     return (
       <ScreenTransition transitionKey="record" mode="forward">
