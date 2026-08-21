@@ -185,6 +185,27 @@
   strong { font-weight: 700; }
   a { color: var(--accent); }
 
+  /* Ver o script no fim do arquivo: dentro de um visualizador que bloqueia
+     navegação, estes links passam a copiar em vez de abrir. */
+  .dica { display: none; font-size: 14px; color: var(--ink-muted); margin: 0; }
+  body.enquadrado .dica { display: block; }
+
+  .copiado {
+    position: fixed;
+    left: 50%;
+    bottom: 28px;
+    transform: translateX(-50%);
+    background: var(--ink);
+    color: var(--ground);
+    font-size: 15px;
+    font-weight: 700;
+    padding: 12px 20px;
+    border-radius: 999px;
+    z-index: 10;
+    max-width: calc(100% - 48px);
+    text-align: center;
+  }
+
   :focus-visible {
     outline: 2px solid var(--accent);
     outline-offset: 3px;
@@ -330,7 +351,7 @@
     <section>
       <h2 id="s11"><span class="n">11</span>Isto não é tratamento</h2>
       <p>As práticas do app são de autocuidado e apoio, baseadas em técnicas conhecidas. Elas não substituem acompanhamento psicológico ou médico.</p>
-      <p>Se você estiver em sofrimento intenso ou pensando em se machucar, procure ajuda: o CVV atende de graça, 24 horas, pelo telefone <strong>188</strong> e em <a href="https://cvv.org.br">cvv.org.br</a>.</p>
+      <p>Se você estiver em sofrimento intenso ou pensando em se machucar, procure ajuda: o CVV atende de graça, 24 horas, pelo telefone <strong>188</strong> e em <a href="https://cvv.org.br" data-copiar="https://cvv.org.br">cvv.org.br</a>.</p>
     </section>
 
     <section>
@@ -341,8 +362,102 @@
 
   <footer>
     <div class="quem">Responsável: Pedro Henrique de Brito Pinto Ferreira</div>
-    <div>Contato: <a href="mailto:brotinho.suporte@gmail.com">brotinho.suporte@gmail.com</a></div>
+    <div>Contato: <a href="mailto:brotinho.suporte@gmail.com" data-copiar="brotinho.suporte@gmail.com">brotinho.suporte@gmail.com</a></div>
+    <div class="dica">Toque no endereço para copiá-lo.</div>
     <div>Versão 1.0 · agosto de 2026</div>
   </footer>
 
 </div>
+<script>
+  /**
+   * Plano B para os links.
+   *
+   * Esta página é publicada dentro de um visualizador que a serve num iframe
+   * com sandbox "allow-scripts allow-same-origin allow-forms". Sem
+   * allow-popups nem allow-top-navigation, o navegador BLOQUEIA mailto:,
+   * tel: e links externos: o toque não faz absolutamente nada.
+   *
+   * Numa página de suporte isso é ruim; numa que traz o telefone do CVV, é
+   * inaceitável — o link mais importante daqui é justamente o que quebra.
+   *
+   * Então, quando a página está dentro de um quadro, o toque copia o valor em
+   * vez de tentar navegar. Fora de um quadro (domínio próprio, um dia), os
+   * links funcionam como sempre e este script não faz nada.
+   */
+  (function () {
+    var enquadrado = window.self !== window.top;
+    if (!enquadrado) return;
+
+    document.body.classList.add('enquadrado');
+
+    function copiarNaMarra(texto) {
+      try {
+        var t = document.createElement('textarea');
+        t.value = texto;
+        t.setAttribute('readonly', '');
+        t.style.position = 'fixed';
+        t.style.top = '0';
+        t.style.opacity = '0';
+        document.body.appendChild(t);
+        t.select();
+        t.setSelectionRange(0, texto.length);
+        var ok = document.execCommand('copy');
+        document.body.removeChild(t);
+        return ok;
+      } catch (e) {
+        return false;
+      }
+    }
+
+    var aviso;
+    var relogio;
+    function avisar(texto) {
+      if (!aviso) {
+        aviso = document.createElement('div');
+        aviso.className = 'copiado';
+        aviso.setAttribute('role', 'status');
+        document.body.appendChild(aviso);
+      }
+      aviso.textContent = texto;
+      aviso.style.display = 'block';
+      clearTimeout(relogio);
+      relogio = setTimeout(function () { aviso.style.display = 'none'; }, 3200);
+    }
+
+    function aoTocar(e) {
+      var valor = this.getAttribute('data-copiar');
+      e.preventDefault();
+
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        var self = this;
+        navigator.clipboard.writeText(valor).then(
+          function () { avisar('Copiado: ' + valor); },
+          function () { terminar(self, valor); }
+        );
+        return;
+      }
+      terminar(this, valor);
+    }
+
+    function terminar(el, valor) {
+      if (copiarNaMarra(valor)) {
+        avisar('Copiado: ' + valor);
+        return;
+      }
+      // Última saída: seleciona o texto na página para a pessoa copiar à mão.
+      try {
+        var faixa = document.createRange();
+        faixa.selectNodeContents(el);
+        var sel = window.getSelection();
+        sel.removeAllRanges();
+        sel.addRange(faixa);
+      } catch (e2) {}
+      avisar('Copie manualmente: ' + valor);
+    }
+
+    var links = document.querySelectorAll('a[data-copiar]');
+    for (var i = 0; i < links.length; i++) {
+      links[i].addEventListener('click', aoTocar);
+    }
+  })();
+</script>

@@ -168,6 +168,32 @@
   }
 
   a { color: var(--accent); }
+
+  /* Quando a página roda dentro de um visualizador que bloqueia navegação,
+     os links viram "toque para copiar" — ver o script no fim do arquivo. */
+  .dica {
+    display: none;
+    font-size: 14px;
+    color: var(--ink-muted);
+    margin: 0;
+  }
+  body.enquadrado .dica { display: block; }
+
+  .copiado {
+    position: fixed;
+    left: 50%;
+    bottom: 28px;
+    transform: translateX(-50%);
+    background: var(--ink);
+    color: var(--ground);
+    font-size: 15px;
+    font-weight: 700;
+    padding: 12px 20px;
+    border-radius: 999px;
+    z-index: 10;
+    max-width: calc(100% - 48px);
+    text-align: center;
+  }
   strong { font-weight: 700; }
 
   :focus-visible {
@@ -217,14 +243,16 @@
   <div class="crise">
     <h2>Se você precisa de ajuda agora</h2>
     <p>Este canal é de suporte técnico e não é atendimento de emergência. Não há ninguém de plantão aqui.</p>
-    <p>Se você estiver em sofrimento intenso ou pensando em se machucar, procure o <strong>CVV</strong>: atendimento gratuito, 24 horas por dia, pelo telefone <a href="tel:188">188</a> ou em <a href="https://cvv.org.br">cvv.org.br</a>.</p>
+    <p>Se você estiver em sofrimento intenso ou pensando em se machucar, procure o <strong>CVV</strong>: atendimento gratuito, 24 horas por dia, pelo telefone <a href="tel:188" data-copiar="188">188</a> ou em <a href="https://cvv.org.br" data-copiar="https://cvv.org.br">cvv.org.br</a>.</p>
+    <p class="dica">Toque no número ou no endereço para copiá-lo.</p>
   </div>
 
   <div class="contato">
     <h2>Falar com a gente</h2>
-    <div class="email"><a href="mailto:brotinho.suporte@gmail.com">brotinho.suporte@gmail.com</a></div>
+    <div class="email"><a href="mailto:brotinho.suporte@gmail.com" data-copiar="brotinho.suporte@gmail.com">brotinho.suporte@gmail.com</a></div>
     <p>O Brotinho é feito por uma pessoa só. A resposta costuma levar alguns dias, e toda mensagem é lida.</p>
     <p>Ajuda muito dizer qual aparelho você usa e a versão do app — ela aparece em <span class="caminho">Configurações › Sobre o Brotinho</span>.</p>
+    <p class="dica">Toque no endereço para copiá-lo.</p>
   </div>
 
   <h2 class="secao">Perguntas frequentes</h2>
@@ -232,7 +260,7 @@
   <div class="q">
     <h3>O que eu escrevo fica guardado onde?</h3>
     <p>No seu próprio aparelho. O Brotinho não tem cadastro nem servidor, e seus registros não são enviados para lugar nenhum — nem para nós.</p>
-    <p>Os detalhes estão na <a href="https://claude.ai/code/artifact/233e5a2a-0e5b-4ef9-b870-3789a54de19b">política de privacidade</a>.</p>
+    <p>Os detalhes estão na <a href="https://claude.ai/code/artifact/233e5a2a-0e5b-4ef9-b870-3789a54de19b" data-copiar="https://claude.ai/code/artifact/233e5a2a-0e5b-4ef9-b870-3789a54de19b">política de privacidade</a>.</p>
   </div>
 
   <div class="q">
@@ -279,7 +307,101 @@
 
   <footer>
     <div class="quem">Responsável: Pedro Henrique de Brito Pinto Ferreira</div>
-    <div>Contato: <a href="mailto:brotinho.suporte@gmail.com">brotinho.suporte@gmail.com</a></div>
+    <div>Contato: <a href="mailto:brotinho.suporte@gmail.com" data-copiar="brotinho.suporte@gmail.com">brotinho.suporte@gmail.com</a></div>
   </footer>
 
 </div>
+
+<script>
+  /**
+   * Plano B para os links.
+   *
+   * Esta página é publicada dentro de um visualizador que a serve num iframe
+   * com sandbox "allow-scripts allow-same-origin allow-forms". Sem
+   * allow-popups nem allow-top-navigation, o navegador BLOQUEIA mailto:,
+   * tel: e links externos: o toque não faz absolutamente nada.
+   *
+   * Numa página de suporte isso é ruim; numa que traz o telefone do CVV, é
+   * inaceitável — o link mais importante daqui é justamente o que quebra.
+   *
+   * Então, quando a página está dentro de um quadro, o toque copia o valor em
+   * vez de tentar navegar. Fora de um quadro (domínio próprio, um dia), os
+   * links funcionam como sempre e este script não faz nada.
+   */
+  (function () {
+    var enquadrado = window.self !== window.top;
+    if (!enquadrado) return;
+
+    document.body.classList.add('enquadrado');
+
+    function copiarNaMarra(texto) {
+      try {
+        var t = document.createElement('textarea');
+        t.value = texto;
+        t.setAttribute('readonly', '');
+        t.style.position = 'fixed';
+        t.style.top = '0';
+        t.style.opacity = '0';
+        document.body.appendChild(t);
+        t.select();
+        t.setSelectionRange(0, texto.length);
+        var ok = document.execCommand('copy');
+        document.body.removeChild(t);
+        return ok;
+      } catch (e) {
+        return false;
+      }
+    }
+
+    var aviso;
+    var relogio;
+    function avisar(texto) {
+      if (!aviso) {
+        aviso = document.createElement('div');
+        aviso.className = 'copiado';
+        aviso.setAttribute('role', 'status');
+        document.body.appendChild(aviso);
+      }
+      aviso.textContent = texto;
+      aviso.style.display = 'block';
+      clearTimeout(relogio);
+      relogio = setTimeout(function () { aviso.style.display = 'none'; }, 3200);
+    }
+
+    function aoTocar(e) {
+      var valor = this.getAttribute('data-copiar');
+      e.preventDefault();
+
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        var self = this;
+        navigator.clipboard.writeText(valor).then(
+          function () { avisar('Copiado: ' + valor); },
+          function () { terminar(self, valor); }
+        );
+        return;
+      }
+      terminar(this, valor);
+    }
+
+    function terminar(el, valor) {
+      if (copiarNaMarra(valor)) {
+        avisar('Copiado: ' + valor);
+        return;
+      }
+      // Última saída: seleciona o texto na página para a pessoa copiar à mão.
+      try {
+        var faixa = document.createRange();
+        faixa.selectNodeContents(el);
+        var sel = window.getSelection();
+        sel.removeAllRanges();
+        sel.addRange(faixa);
+      } catch (e2) {}
+      avisar('Copie manualmente: ' + valor);
+    }
+
+    var links = document.querySelectorAll('a[data-copiar]');
+    for (var i = 0; i < links.length; i++) {
+      links[i].addEventListener('click', aoTocar);
+    }
+  })();
+</script>
