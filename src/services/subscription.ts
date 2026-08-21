@@ -32,6 +32,15 @@ export type PlanoDaLoja = {
   id: string;
   /** Preço já formatado pela loja, na moeda e no idioma do aparelho. */
   preco: string;
+  /**
+   * O mesmo preço diluído por mês, já formatado — "R$ 14,95" para um plano
+   * anual de R$ 179,40.
+   *
+   * Vem pronto da loja de propósito: dividir por 12 aqui daria um número sem
+   * moeda, sem o arredondamento da região e errado em qualquer país que não
+   * use vírgula decimal. `null` em produto que não é assinatura.
+   */
+  precoMensal: string | null;
   /** O pacote do RevenueCat. Opaco de propósito para quem chama. */
   pacote: unknown;
 };
@@ -52,7 +61,14 @@ type Sdk = {
 
 type CustomerInfo = { entitlements: { active: Record<string, unknown> } };
 type Offering = { availablePackages: PacoteBruto[] };
-type PacoteBruto = { product: { identifier: string; priceString: string } };
+type PacoteBruto = {
+  product: {
+    identifier: string;
+    priceString: string;
+    /** Já diluído por mês pela própria loja. Nulo em produto avulso. */
+    pricePerMonthString?: string | null;
+  };
+};
 
 let sdkResolvido: Sdk | null | undefined;
 
@@ -161,6 +177,7 @@ export async function listarPlanos(): Promise<PlanoDaLoja[]> {
     return current.availablePackages.map((p) => ({
       id: p.product.identifier,
       preco: p.product.priceString,
+      precoMensal: p.product.pricePerMonthString ?? null,
       pacote: p,
     }));
   } catch {

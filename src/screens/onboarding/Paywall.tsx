@@ -55,8 +55,21 @@ export function Paywall({ plan, onSelectPlan }: Props) {
    * quando não houve resposta da loja — no Expo Go, por exemplo — para a tela
    * não ficar vazia durante o desenvolvimento.
    */
-  const preco = (chave: PlanKey) =>
-    planos.find((p) => p.id === PRODUTO_DO_PLANO[chave])?.preco ?? PLANS[chave].price;
+  const daLoja = (chave: PlanKey) => planos.find((p) => p.id === PRODUTO_DO_PLANO[chave]);
+
+  const preco = (chave: PlanKey) => daLoja(chave)?.preco ?? PLANS[chave].price;
+
+  /**
+   * O mesmo plano visto por mês.
+   *
+   * O cartão do anual mostrava o total do ano com a legenda "por mês": lia-se
+   * "R$ 179,40 por mês", quase seis vezes o plano mensal ao lado. Num cartão
+   * que existe para parecer o mais barato, o erro dizia o contrário.
+   *
+   * A loja já entrega esse valor diluído e formatado, então ele vem de lá.
+   */
+  const precoPorMes = (chave: PlanKey) =>
+    daLoja(chave)?.precoMensal ?? PLANS[chave].precoMensal ?? PLANS[chave].price;
 
   return (
     <View style={{ gap: 22, paddingTop: 14, paddingBottom: 4 }}>
@@ -128,7 +141,7 @@ export function Paywall({ plan, onSelectPlan }: Props) {
           </Text>
           <View style={{ height: 1, backgroundColor: palette.brown100, marginVertical: 14 }} />
           <Text style={{ fontFamily: fonts.body.regular, fontSize: 13, color: palette.brown700 }}>
-            {`${PLANS.mensal.price} × 12 ao ano`}
+            {`${preco('mensal')} × 12 ao ano`}
           </Text>
         </Pressable>
 
@@ -171,7 +184,7 @@ export function Paywall({ plan, onSelectPlan }: Props) {
               marginTop: 8,
             }}
           >
-            {preco('anual')}
+            {precoPorMes('anual')}
           </Text>
           <Text
             style={{ fontFamily: fonts.body.regular, fontSize: 13, color: palette.brown400, marginTop: 4 }}
@@ -180,9 +193,9 @@ export function Paywall({ plan, onSelectPlan }: Props) {
           </Text>
           <View style={{ height: 1, backgroundColor: palette.green100, marginVertical: 14 }} />
           <Text style={{ fontFamily: fonts.body.regular, fontSize: 13, color: palette.brown700 }}>
-            {`${PLANS.anual.price} ao ano`}{'\n'}
+            {`${preco('anual')} ao ano`}{'\n'}
             <Text style={{ color: palette.brown400, textDecorationLine: 'line-through' }}>
-              {`${PLANS.mensal.price} × 12`}
+              {`${preco('mensal')} × 12`}
             </Text>
           </Text>
         </Pressable>

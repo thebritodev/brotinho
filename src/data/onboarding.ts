@@ -75,7 +75,18 @@ export const PRODUTO_DO_PLANO: Record<PlanKey, string> = {
 
 export const PLANS: Record<
   PlanKey,
-  { name: string; price: string; note: string; cta: string; fine: string }
+  {
+    name: string;
+    price: string;
+    /**
+     * O preço diluído por mês, quando o plano não é cobrado mensalmente.
+     * Só existe reserva; o valor da loja tem precedência.
+     */
+    precoMensal?: string;
+    note: string;
+    cta: string;
+    fine: string;
+  }
 > = {
   semanal: {
     name: 'Semanal',
@@ -94,6 +105,7 @@ export const PLANS: Record<
   anual: {
     name: 'Anual',
     price: 'R$ 179,40',
+    precoMensal: 'R$ 14,95',
     note: 'R$ 14,95 por mês · economize 50%',
     cta: 'Assinar por R$ 14,95/mês',
     fine: 'Cobrança única de R$ 179,40 por 12 meses. Cancele quando quiser.',
