@@ -26,6 +26,8 @@ export function ProfileScreen({ name, onNavigate }: Props) {
     screen: SubScreen,
   ) => (
     <Pressable
+      accessibilityRole="button"
+      accessibilityLabel={label}
       onPress={() => onNavigate(screen)}
       style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}
     >
@@ -58,7 +60,7 @@ export function ProfileScreen({ name, onNavigate }: Props) {
 
         <StatRow stats={growth} />
 
-        <Card onPress={() => onNavigate('terapia')}>
+        <Card onPress={() => onNavigate('terapia')} label="Para minha terapia">
           <Text style={{ fontFamily: fonts.body.extraBold, fontSize: 15, marginBottom: 4 }}>
             Para minha terapia
           </Text>
@@ -92,6 +94,7 @@ export function ProfileScreen({ name, onNavigate }: Props) {
                 Lembretes diários
               </Text>
               <Switch
+                label="Lembretes diários"
                 checked={data.settings.reminders}
                 onChange={(reminders) => updateSettings({ reminders })}
               />

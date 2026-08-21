@@ -159,6 +159,7 @@ export function HomeScreen({
 
       <Card
         onPress={onOpenComposta}
+        label="Composta: repita em voz alta um pensamento que incomoda"
         padding={18}
         style={{ backgroundColor: colors.primarySoft, gap: 12 }}
       >

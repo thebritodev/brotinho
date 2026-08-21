@@ -81,6 +81,7 @@ export function TimeField({ label, value, onChange }: TimeFieldProps) {
   return (
     <>
       <Pressable
+        accessibilityRole="button"
         onPress={() => setOpen(true)}
         style={{
           ...cardStyle,

@@ -114,7 +114,7 @@ export function PaywallGate() {
           {detalhes.fine}
         </Text>
 
-        <Pressable onPress={recuperar} disabled={!!ocupado} style={{ padding: 8 }}>
+        <Pressable accessibilityRole="button" onPress={recuperar} disabled={!!ocupado} style={{ padding: 8 }}>
           {ocupado === 'restaurando' ? (
             <ActivityIndicator color={colors.primaryStrong} />
           ) : (

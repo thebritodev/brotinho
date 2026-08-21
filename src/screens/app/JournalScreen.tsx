@@ -247,6 +247,7 @@ export function JournalScreen() {
 
         <View style={{ gap: 8 }}>
           <Pressable
+            accessibilityRole="button"
             onPress={voice.toggle}
             disabled={voice.state === 'transcribing'}
             style={{
@@ -362,7 +363,7 @@ export function JournalScreen() {
                   }}
                 />
                 {!!busca && (
-                  <Pressable accessibilityLabel="Limpar busca" onPress={() => setBusca('')}>
+                  <Pressable accessibilityRole="button" accessibilityLabel="Limpar busca" onPress={() => setBusca('')}>
                     <Icon name="close" size={18} color={palette.brown400} />
                   </Pressable>
                 )}
@@ -378,6 +379,7 @@ export function JournalScreen() {
                     dependia de descobrir que tocar de novo no humor aceso o
                     desliga — uma saída que ninguém adivinha. */}
                 <Pressable
+                  accessibilityRole="button"
                   accessibilityLabel="Mostrar todos os humores"
                   accessibilityState={{ selected: !filtroHumor }}
                   onPress={() => setFiltroHumor(null)}
@@ -408,6 +410,7 @@ export function JournalScreen() {
                   const ativo = filtroHumor === m.key;
                   return (
                     <Pressable
+                      accessibilityRole="button"
                       key={m.key}
                       accessibilityLabel={`Filtrar por ${m.label}`}
                       accessibilityState={{ selected: ativo }}

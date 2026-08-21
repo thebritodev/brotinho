@@ -651,6 +651,7 @@ export function OnboardingScreen() {
 
         {showSecondary && (
           <Pressable
+            accessibilityRole="button"
             onPress={() => go(step + 1)}
             style={{ padding: 6 }}
           >

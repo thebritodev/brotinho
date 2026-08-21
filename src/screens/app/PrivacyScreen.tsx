@@ -31,7 +31,14 @@ function PrivRow({
 }) {
   const Container = onPress ? Pressable : View;
   return (
-    <Container onPress={onPress} style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
+    <Container
+      onPress={onPress}
+      // A linha só vira botão quando de fato leva a algum lugar; as que apenas
+      // seguram uma chave continuam sendo texto, e quem anuncia é a chave.
+      accessibilityRole={onPress ? 'button' : undefined}
+      accessibilityLabel={onPress ? label : undefined}
+      style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}
+    >
       <Icon name={icon} color={palette.brown700} />
       <View style={{ flex: 1 }}>
         <Text style={{ fontFamily: fonts.body.bold, fontSize: 15 }}>{label}</Text>
@@ -109,14 +116,22 @@ export function PrivacyScreen({ onBack }: { onBack: () => void }) {
               label="Bloqueio do app"
               hint="Pedir biometria ou senha ao abrir"
             >
-              <Switch checked={s.appLock} onChange={(appLock) => updateSettings({ appLock })} />
+              <Switch
+                label="Bloqueio do app"
+                checked={s.appLock}
+                onChange={(appLock) => updateSettings({ appLock })}
+              />
             </PrivRow>
             <PrivRow
               icon="sparkle"
               label="Análise dos meus registros"
               hint="Permite que o broto identifique padrões nos seus textos"
             >
-              <Switch checked={s.analysis} onChange={(analysis) => updateSettings({ analysis })} />
+              <Switch
+                label="Análise dos meus registros"
+                checked={s.analysis}
+                onChange={(analysis) => updateSettings({ analysis })}
+              />
             </PrivRow>
           </View>
         </Card>
@@ -135,6 +150,7 @@ export function PrivacyScreen({ onBack }: { onBack: () => void }) {
 
         <Card
           onPress={() => setConfirmandoExclusao(true)}
+          label="Apagar meus dados"
           style={{ borderWidth, borderColor: palette.terracotta100 }}
         >
           <Text

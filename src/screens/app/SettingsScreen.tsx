@@ -49,7 +49,7 @@ function Row({
 
   const style = { flexDirection: 'row' as const, alignItems: 'center' as const, gap: 12 };
   return onPress ? (
-    <Pressable onPress={onPress} style={style}>
+    <Pressable accessibilityRole="button" onPress={onPress} style={style}>
       {content}
     </Pressable>
   ) : (

@@ -424,6 +424,7 @@ export function CompostaScreen({ onClose }: { onClose: () => void }) {
                 Sem acesso ao microfone. Segure o botão enquanto repete em voz alta.
               </Text>
               <Pressable
+                accessibilityRole="button"
                 onPressIn={session.holdOn}
                 onPressOut={session.holdOff}
                 style={{

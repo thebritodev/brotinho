@@ -57,6 +57,7 @@ export function AboutScreen({ onBack, onOpenPolicy }: Props) {
         ))}
 
         <Pressable
+          accessibilityRole="button"
           onPress={onOpenPolicy}
           style={({ pressed }) => ({
             flexDirection: 'row',

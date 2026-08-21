@@ -208,6 +208,7 @@ export function ExperimentoComposta({ thought, onChangeThought, reps, onRep }: P
         </Text>
       ) : (
         <Pressable
+          accessibilityRole="button"
           onPress={onRep}
           style={({ pressed }) => ({
             flexDirection: 'row',

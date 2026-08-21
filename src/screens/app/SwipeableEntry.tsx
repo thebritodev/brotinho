@@ -49,6 +49,7 @@ export function SwipeableEntry({ id, date, text, onEdit, onRead, onDelete, openI
     aoTocar: () => void,
   ) => (
     <Pressable
+      accessibilityRole="button"
       onPress={() => {
         ref.current?.close();
         aoTocar();

@@ -60,7 +60,7 @@ export function MyDataScreen({ onBack }: { onBack: () => void }) {
     };
 
     return aoTocar ? (
-      <Pressable key={rotulo} onPress={aoTocar} style={estilo}>
+      <Pressable accessibilityRole="button" key={rotulo} onPress={aoTocar} style={estilo}>
         {conteudo}
       </Pressable>
     ) : (

@@ -58,7 +58,11 @@ export function RemindersScreen({ onBack }: { onBack: () => void }) {
                 {s.reminders ? `Todos os dias às ${data.profile.reminder}` : 'Desligado'}
               </Text>
             </View>
-            <Switch checked={s.reminders} onChange={(reminders) => updateSettings({ reminders })} />
+            <Switch
+              label="Lembrete diário"
+              checked={s.reminders}
+              onChange={(reminders) => updateSettings({ reminders })}
+            />
           </View>
         </Card>
 
@@ -88,6 +92,7 @@ export function RemindersScreen({ onBack }: { onBack: () => void }) {
               </Text>
             </View>
             <Switch
+              label="Resumo semanal"
               checked={s.weeklySummary}
               onChange={(weeklySummary) => updateSettings({ weeklySummary })}
             />

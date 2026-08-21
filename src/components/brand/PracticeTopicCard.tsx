@@ -16,6 +16,7 @@ type Props = {
 export function PracticeTopicCard({ title, icon, tint, onPress, style }: Props) {
   return (
     <Pressable
+      accessibilityRole="button"
       onPress={onPress}
       style={({ pressed }) => [
         {

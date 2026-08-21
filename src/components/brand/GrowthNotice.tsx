@@ -63,6 +63,7 @@ export function GrowthNotice({ stage, days, onClose }: Props) {
     >
       {/* Fechar tocando fora, como em qualquer folha solta na tela. */}
       <Pressable
+        accessibilityRole="button"
         accessibilityLabel="Fechar"
         onPress={onClose}
         style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }}

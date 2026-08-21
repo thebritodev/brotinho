@@ -2,7 +2,8 @@ import * as Print from 'expo-print';
 import * as Sharing from 'expo-sharing';
 
 import { VALUES } from '../components';
-import { livedValues, moodWeek, patterns, ventThemes } from '../state/derived';
+import { findPractice, findTopic } from '../data/practices';
+import { daysCaredFor, livedValues, moodWeek, patterns, ventThemes } from '../state/derived';
 import type { AppData } from '../state/types';
 import { moodColors, palette } from '../theme';
 
@@ -75,6 +76,43 @@ function buildHtml(data: AppData): string {
         .join('')
     : '';
 
+  /**
+   * Quais técnicas a pessoa usou, e quantas vezes.
+   *
+   * Provavelmente a parte mais útil da folha para quem atende: mostra o que ela
+   * de fato pratica entre as sessões, não só como se sentiu. O app já tinha o
+   * dado e já o mostrava na tela de Práticas — faltava chegar aqui.
+   *
+   * O tema vai junto do título porque "Respiração 4-7-8" diz pouco sem saber
+   * que veio de ansiedade, e não de insônia.
+   */
+  const usoDasPraticas = Object.entries(
+    data.practicesDone.reduce<Record<string, number>>((conta, p) => {
+      const chave = `${p.topic}/${p.practice}`;
+      conta[chave] = (conta[chave] ?? 0) + 1;
+      return conta;
+    }, {}),
+  )
+    .map(([chave, vezes]) => {
+      const [topico, pratica] = chave.split('/');
+      return { titulo: findPractice(topico, pratica)?.title, tema: findTopic(topico)?.title, vezes };
+    })
+    .filter((p) => p.titulo && p.tema)
+    .sort((a, b) => b.vezes - a.vezes);
+
+  const praticasHtml = usoDasPraticas.length
+    ? `<ul>${usoDasPraticas
+        .map(
+          (p) =>
+            `<li>${escape(p.titulo!)} <span style="color:${palette.brown400}">(${escape(
+              p.tema!,
+            )})</span> — ${p.vezes} vez${p.vezes === 1 ? '' : 'es'}</li>`,
+        )
+        .join('')}</ul>`
+    : '';
+
+  const diasCuidados = daysCaredFor(data);
+
   const humores = data.moodHistory.length
     ? `<p>${data.moodHistory.length} registro${data.moodHistory.length === 1 ? '' : 's'} de humor. Mais recente: ${
         MOOD_LABEL[data.moodHistory[0].mood] ?? data.moodHistory[0].mood
@@ -102,11 +140,13 @@ function buildHtml(data: AppData): string {
   ${secao('Padrões identificados', padroesHtml)}
   ${secao('Valores mais presentes', valoresHtml)}
   ${secao('Temas dos registros', temasHtml)}
+  ${secao('Práticas utilizadas', praticasHtml)}
   ${secao(
     'Registros',
     `<p>${data.journal.length} registro${data.journal.length === 1 ? '' : 's'} no diário${
       data.startedAt ? `, desde ${new Date(`${data.startedAt}T12:00:00`).toLocaleDateString('pt-BR')}` : ''
-    }.</p>`,
+    }.</p>
+     <p>${diasCuidados} dia${diasCuidados === 1 ? '' : 's'} com algum registro no app.</p>`,
   )}
 
   <footer>

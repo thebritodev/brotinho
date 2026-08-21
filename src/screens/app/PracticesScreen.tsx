@@ -72,6 +72,7 @@ export function PracticesScreen({ onBack }: { onBack: () => void }) {
 
           {topic.practices.map((p) => (
             <Pressable
+              accessibilityRole="button"
               key={p.key}
               onPress={() => setPracticeKey(p.key)}
               style={({ pressed }) => ({

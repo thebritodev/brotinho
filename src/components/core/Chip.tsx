@@ -35,7 +35,14 @@ export function Chip({
     : { paddingVertical: 12, paddingHorizontal: 18 };
 
   return (
-    <Pressable onPress={onPress} style={[base, layout, style]}>
+    <Pressable
+      accessibilityRole="button"
+      // O chip marca escolha (humor, resposta do onboarding). Sem o estado,
+      // quem usa leitor de tela não tem como saber qual está selecionada.
+      accessibilityState={{ selected }}
+      onPress={onPress}
+      style={[base, layout, style]}
+    >
       {typeof children === 'string' ? (
         <Text
           style={[

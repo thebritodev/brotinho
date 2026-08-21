@@ -60,6 +60,7 @@ export function WelcomeScreen({ onStart }: { onStart: () => void }) {
             Começar
           </Button>
           <Pressable
+            accessibilityRole="button"
             onPress={() => setExplicando(true)}
             style={{ paddingVertical: 12, alignItems: 'center' }}
           >

@@ -104,6 +104,7 @@ export function Paywall({ plan, onSelectPlan }: Props) {
 
       <View style={{ flexDirection: 'row', gap: 12, alignItems: 'stretch' }}>
         <Pressable
+          accessibilityRole="button"
           onPress={() => onSelectPlan('mensal')}
           style={[planCardStyle(plan === 'mensal', false), { flex: 1 }]}
         >
@@ -132,6 +133,7 @@ export function Paywall({ plan, onSelectPlan }: Props) {
         </Pressable>
 
         <Pressable
+          accessibilityRole="button"
           onPress={() => onSelectPlan('anual')}
           style={[planCardStyle(plan === 'anual', true), { flex: 1 }]}
         >
@@ -199,7 +201,7 @@ export function Paywall({ plan, onSelectPlan }: Props) {
         </Text>
         <View style={{ gap: 8 }}>
           {(['semanal', 'vitalicio'] as PlanKey[]).map((key) => (
-            <Pressable key={key} onPress={() => onSelectPlan(key)} style={planRowStyle(plan === key)}>
+            <Pressable accessibilityRole="button" key={key} onPress={() => onSelectPlan(key)} style={planRowStyle(plan === key)}>
               <View style={{ gap: 2 }}>
                 <Text
                   style={{ fontFamily: fonts.display.bold, fontSize: 15, color: palette.brown900 }}

@@ -42,6 +42,10 @@ export function Button({
 
   return (
     <Pressable
+      accessibilityRole="button"
+      // Sem isto o leitor de tela anuncia um botão desabilitado como se
+      // estivesse disponível, e a pessoa fica tentando.
+      accessibilityState={{ disabled }}
       onPress={disabled ? undefined : onPress}
       disabled={disabled}
       style={({ pressed }) => [
