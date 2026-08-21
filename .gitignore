@@ -44,3 +44,6 @@ yarn-error.*
 .env
 .env.local
 server/.env
+
+# Capturas geradas para a App Store (podem ser refeitas com scripts/capturas.js)
+capturas/
