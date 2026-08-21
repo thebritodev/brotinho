@@ -64,11 +64,15 @@ Conta ativa. Time `4PKPYM4M6J`.
 ### 2.2 Contrato, banco e impostos — ⚠️ **quase**
 
 - [x] **Acordo de apps gratuitos** — Ativo
-- [x] **Acordo de apps pagos** — assinado, hoje em *Informações do usuário pendentes*
+- [x] **Acordo de apps pagos** — assinado, hoje em *Processando*
 - [x] **Conta bancária** — Banco Topazio SA (9001), Brasil, USD — em *Processando*
-- [x] **Formulário fiscal do Brasil** — Ativo
-- [ ] **U.S. Certificate of Foreign Status of Beneficial Owner** — faltam informações
-- [ ] **U.S. Form W-8BEN** — faltam informações
+- [x] **Formulário fiscal do Brasil** — **Ativo**
+- [x] **U.S. Certificate of Foreign Status of Beneficial Owner** — **Ativo**
+- [x] **U.S. Form W-8BEN** — **Ativo**
+
+Os três formulários foram enviados em 21 de agosto de 2026. O aviso de "formulários
+fiscais pendentes" sumiu do topo da página. Agora é esperar a Apple processar o
+acordo e a conta bancária — ela mesma pede 24 horas.
 
 Em <https://appstoreconnect.apple.com/business> → **Formulários fiscais**.
 
@@ -295,8 +299,23 @@ hoje: entra sem cobrar. É isso que permite continuar testando no Expo Go.
 
 ## FASE 6 — Compilar, testar e publicar
 
+- [x] **Projeto validado para build.** `npx expo-doctor` passa nas 18 checagens.
+      Ele tinha achado um defeito que só apareceria depois de publicado — ver
+      abaixo.
 - [ ] **`eas build`** — precisa do login na sua conta Expo. Senha eu não digito;
       rode `npx eas login` uma vez e depois eu toco a build.
+
+> **O defeito que o expo-doctor pegou.** O `expo-audio` declara o `expo-asset`
+> como dependência com curinga `*`, e o npm instalou a versão **57.0.12**, de um
+> SDK muito mais novo, enquanto o SDK 54 quer a **12.0.13**. Ficaram duas versões
+> do mesmo módulo nativo na árvore.
+>
+> No Expo Go isso não aparece, porque o cliente já embute o `expo-asset` e o som
+> da respiração funciona. Numa build de verdade só uma versão é compilada — seria
+> descoberto com o app no ar, no exercício de respiração.
+>
+> **Rode `npx expo-doctor` antes de cada build.** É o tipo de coisa que uma
+> atualização de dependência traz de volta sem avisar.
 - [ ] Testar no iPhone com a conta sandbox
 - [ ] Testar no Android com o e-mail de teste de licença
 - [ ] Testar: assinar, cancelar, **restaurar em outro aparelho**
