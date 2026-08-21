@@ -33,8 +33,8 @@ export type PlanoDaLoja = {
   /** Preço já formatado pela loja, na moeda e no idioma do aparelho. */
   preco: string;
   /**
-   * O mesmo preço diluído por mês, já formatado — "R$ 14,95" para um plano
-   * anual de R$ 179,40.
+   * O mesmo preço diluído por mês, já formatado — "R$ 14,99" para um plano
+   * anual de R$ 179,90.
    *
    * Vem pronto da loja de propósito: dividir por 12 aqui daria um número sem
    * moeda, sem o arredondamento da região e errado em qualquer país que não
