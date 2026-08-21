@@ -143,7 +143,36 @@ notas de revisão — é o motivo nº 1 de reprovação boba.
 testar no iPhone com os ajustes do sistema ligados, e declarar sem testar é pior
 do que não declarar.
 
-### 2.9 Conta de teste (sandbox) — ⚠️ **sua**
+### 2.9 TestFlight ✅ FEITO, esperando a compilação
+
+- Descrição da versão beta, e-mail para comentários, URL de marketing e de
+  privacidade preenchidos
+- Contato e notas para a revisão dos apps beta preenchidos
+- Grupo interno **Time do Brotinho** criado, com **distribuição automática**
+  ligada e você já dentro como tester
+
+Quando a build subir, ela cai no seu iPhone sozinha, sem mais nenhum clique aqui.
+
+### 2.10 Indicação para destaque ✅ RASCUNHO PRONTO — falta você enviar
+
+Distribuição → **Indicações** → *Lançamento do Brotinho*.
+
+Escrevi o texto para a equipe editorial da Apple: o que o app é, o que ele
+deliberadamente não faz, e por que isso importa. Plataforma iPhone, país Brasil,
+idioma português do Brasil, período de publicação **outubro de 2026**.
+
+Duas coisas suas:
+
+- [ ] **Confirmar o período.** Outubro é um chute meu, calculado de trás para a
+      frente: formulários fiscais + build + revisão da Apple dão umas 4 a 6
+      semanas, e a Apple pede que a indicação chegue com pelo menos 4 semanas de
+      antecedência. Ajuste se você tem outra data em mente.
+- [ ] **Clicar em "Enviar indicação".** É a sua voz falando com a Apple; quem
+      manda é você.
+
+> Não custa nada e não atrapalha nada. Na pior hipótese ninguém responde.
+
+### 2.11 Conta de teste (sandbox) — ⚠️ **sua**
 
 - [ ] **Usuários e acesso** → **Sandbox** → criar um testador
 - [ ] Use um e-mail que **não seja** seu Apple ID normal
@@ -257,11 +286,16 @@ hoje: entra sem cobrar. É isso que permite continuar testando no Expo Go.
 ## Ainda em aberto, fora da cobrança
 
 - [ ] **Tirar as páginas de suporte e privacidade do endereço provisório.**
-      Hoje a política de privacidade registrada na Apple aponta para um artefato do
-      Claude. Funciona, mas não é um endereço seu e não é feito para durar. O plano
-      é o GitHub Pages: o repositório precisa ficar **público**, e o GitHub pede uma
-      verificação de identidade por e-mail que só você pode concluir. Depois disso
-      eu troco as duas URLs.
+      Hoje elas apontam para artefatos do Claude. Funciona, mas não é um endereço
+      seu e não é feito para durar. O plano é o GitHub Pages: o repositório precisa
+      ficar **público**, e o GitHub pede uma verificação de identidade por e-mail
+      que só você pode concluir. Depois disso eu troco as URLs.
+
+      **São quatro lugares para trocar**, e vale anotar porque é fácil esquecer um:
+      1. Distribuição → Privacidade do app → URL da Política de privacidade
+      2. Distribuição → versão 1.0 → URL de suporte
+      3. Distribuição → versão 1.0 → URL de marketing
+      4. TestFlight → Informações de teste → URL de marketing **e** de privacidade
 - [ ] **Criar de fato o `brotinho.suporte@gmail.com`** e ligar a resposta automática
       (o texto está em `docs/resposta-automatica.md`). Esse e-mail já está publicado
       na ficha da App Store e na política de privacidade.
