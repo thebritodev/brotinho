@@ -77,8 +77,36 @@ Em <https://appstoreconnect.apple.com/business> → **Formulários fiscais**.
 > empresarial nos EUA?" é **Não** no seu caso — você não tem funcionários,
 > equipamentos nem ativos lá.
 >
-> **O Brasil não tem acordo de bitributação com os EUA.** Isso muda quanto sobra
-> no fim. Vale meia hora de um contador antes de o dinheiro começar a entrar.
+> **Não marque a Part II.** Ela pede para certificar que existe um acordo de imposto
+> de renda entre Brasil e Estados Unidos. Esse acordo **não existe** — os dois países
+> nunca assinaram tratado de bitributação sobre renda. Marcar ali seria declaração
+> falsa sob pena de perjúrio. Caixa 9 desmarcada, campo 10 vazio.
+>
+> **O campo 8 usa `MM-DD-YYYY`**, mês antes do dia. É onde mais se erra.
+>
+> **A consequência:** sem tratado, a Apple retém **30% na fonte** sobre o que vier de
+> vendas nos Estados Unidos, além da comissão dela. Os EUA estão entre os 133 países
+> onde o app vai vender, então isso é real. As vendas brasileiras não sofrem essa
+> retenção. Não dá para escapar disso pelo formulário; o que um contador resolve é a
+> parte de cá — se compensa PF ou CNPJ, e como declarar o que foi retido lá fora.
+
+### 2.2.1 Uma pendência pequena: o CEP do cadastro
+
+O endereço em `developer.apple.com/account` → **Informações da assinatura** está com o
+CEP de **7 dígitos** (`14808-26` em vez de `14808-264`).
+
+Esse endereço é a origem do **campo 3 do W-8BEN**, que por isso não tem "Editar" — a
+Receita americana exige que o endereço de residência venha do cadastro, não digitado
+na hora. O campo 4 (Mailing Address) é o único que dá para sobrescrever.
+
+- [ ] Corrigir em **Informações da assinatura → Atualizar suas informações → Alterar
+      dados de contato**
+
+> **Não bloqueia o W-8BEN.** Um dígito de CEP não invalida o formulário: a rua, o
+> número, a cidade, o estado e o país identificam o endereço. Mas vale corrigir com
+> calma depois, porque **o mesmo endereço está no contrato e no cadastro de
+> pagamento** — e a Apple avisa que mudanças ali "precisam ser comprovadas e
+> verificadas", ou seja, é um pedido com verificação, não um campo que se salva.
 
 > Enquanto o acordo de apps pagos não estiver **Ativo**, seus produtos não carregam
 > nem no teste. O app mostra a tela de preços vazia e parece quebrado. Se isso
