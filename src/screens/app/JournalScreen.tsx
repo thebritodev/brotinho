@@ -261,7 +261,7 @@ export function JournalScreen() {
               paddingHorizontal: 18,
               borderRadius: radius.md,
               opacity: voice.state === 'transcribing' ? 0.6 : 1,
-              backgroundColor: isRecording ? palette.terracotta400 : colors.primarySoft,
+              backgroundColor: isRecording ? colors.danger : colors.primarySoft,
             }}
           >
             {voice.state === 'transcribing' ? (

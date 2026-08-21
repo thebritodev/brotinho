@@ -4,9 +4,21 @@ Passo a passo para sair do paywall de mentira (o de hoje) para cobrança de verd
 
 Marque os itens conforme for fazendo. **Faça na ordem** — vários passos dependem do anterior.
 
-> **O que é meu e o que é seu.** Criar contas, informar dados bancários e assinar
-> contratos com Apple e Google só você pode fazer. O código é comigo: quando você
-> terminar a FASE 4, me avise que eu faço a FASE 5.
+> **O que é meu e o que é seu.** Criar contas, informar dados bancários e fiscais e
+> assinar contratos com Apple e Google só você pode fazer. O resto da configuração
+> e o código são comigo.
+
+**Atualizado em 21 de agosto de 2026.** O que está marcado abaixo foi conferido
+na tela naquele dia, não é lembrança.
+
+---
+
+## Onde estamos hoje, em uma frase
+
+O lado da Apple está **inteiro configurado**, com os 4 produtos prontos para envio.
+Falta: os **dois formulários fiscais dos EUA**, a **compilação** do app, e as
+páginas de suporte e privacidade saírem do endereço provisório. O Google ainda
+não foi começado.
 
 ---
 
@@ -25,92 +37,124 @@ enquanto você faz o resto.
 
 ---
 
-## FASE 1 — Decidir os nomes dos produtos
+## FASE 1 — Nomes e preços dos produtos ✅ FEITO
 
-Antes de mexer em qualquer site, decida os **identificadores** dos 4 planos. São
-códigos internos que aparecem nas duas lojas e no código. Precisam ser **iguais
-nas duas lojas**.
+Identificadores definidos e criados na Apple. **Na Apple, um identificador nunca
+pode ser reaproveitado, nem se você apagar o produto.** Estes já estão gravados:
 
-Sugestão (pode manter):
+| Plano | Identificador | Preço |
+|---|---|---|
+| Semanal | `brotinho_semanal` | R$ 9,90 |
+| Mensal | `brotinho_mensal` | R$ 29,90 |
+| Anual | `brotinho_anual` | R$ 179,90 |
+| Vitalício | `brotinho_vitalicio` | R$ 399,90 |
 
-- [ ] `brotinho_semanal`
-- [ ] `brotinho_mensal`
-- [ ] `brotinho_anual`
-- [ ] `brotinho_vitalicio`
-
-**Cuidado:** na Apple, um identificador nunca pode ser reaproveitado, nem se você
-apagar o produto. Escolha e não mude.
-
-Confirme também os preços que já estão no app:
-
-| Plano | Preço |
-|---|---|
-| Semanal | R$ 9,90 |
-| Mensal | R$ 29,90 |
-| Anual | R$ 179,40 |
-| Vitalício | R$ 399,90 |
+> O anual era R$ 179,40 no plano original. Esse valor **não existe** como faixa de
+> preço da Apple; o mais próximo é R$ 179,90. O app foi ajustado para anunciar
+> exatamente o que a loja cobra.
 
 ---
 
 ## FASE 2 — Apple (iPhone)
 
-### 2.1 Criar a conta
-- [ ] Entre em <https://developer.apple.com/programs/enroll/>
-- [ ] Escolha entre **pessoa física** ou **empresa**. Empresa exige um número
-      D-U-N-S e demora mais. Pessoa física é bem mais rápido.
-- [ ] Pague os US$ 99 e aguarde a aprovação por e-mail.
+### 2.1 Criar a conta ✅ FEITO
 
-### 2.2 Contrato e dados bancários — **este é o passo que todo mundo esquece**
-- [ ] Em <https://appstoreconnect.apple.com> → **Business** (ou "Acordos").
-- [ ] Aceite o **Paid Applications Agreement**.
-- [ ] Preencha os dados **bancários** e os **fiscais**.
+Conta ativa. Time `4PKPYM4M6J`.
 
-> Enquanto esse contrato não estiver com o status **Ativo**, seus produtos não
-> carregam nem no teste. O app mostra a tela de preços vazia e parece quebrado.
-> Se isso acontecer com você, é quase sempre aqui.
+### 2.2 Contrato, banco e impostos — ⚠️ **quase**
 
-### 2.3 Registrar o app
-- [ ] App Store Connect → **Meus Apps** → **+** → **Novo App**
-- [ ] Plataforma: iOS
-- [ ] Nome: Brotinho
-- [ ] Bundle ID: `com.brotinho.app` *(já é o que está no projeto)*
+- [x] **Acordo de apps gratuitos** — Ativo
+- [x] **Acordo de apps pagos** — assinado, hoje em *Informações do usuário pendentes*
+- [x] **Conta bancária** — Banco Topazio SA (9001), Brasil, USD — em *Processando*
+- [x] **Formulário fiscal do Brasil** — Ativo
+- [ ] **U.S. Certificate of Foreign Status of Beneficial Owner** — faltam informações
+- [ ] **U.S. Form W-8BEN** — faltam informações
 
-### 2.4 Criar as 3 assinaturas
-- [ ] Dentro do app → **Assinaturas** → crie um **Grupo de Assinaturas**
-      (pode chamar de "Brotinho Premium")
-- [ ] Dentro do grupo, crie os três: `brotinho_semanal`, `brotinho_mensal`,
-      `brotinho_anual`
-- [ ] Em cada um: duração, preço em Reais, nome de exibição e descrição
+Em <https://appstoreconnect.apple.com/business> → **Formulários fiscais**.
 
-> Os três precisam ficar **no mesmo grupo**. É isso que permite a pessoa trocar
-> de mensal para anual sem pagar duas vezes.
+> **Sobre o W-8BEN.** Ele declara que você não é contribuinte dos EUA, para a Apple
+> não reter imposto americano na fonte. A pergunta "você exerce alguma atividade
+> empresarial nos EUA?" é **Não** no seu caso — você não tem funcionários,
+> equipamentos nem ativos lá.
+>
+> **O Brasil não tem acordo de bitributação com os EUA.** Isso muda quanto sobra
+> no fim. Vale meia hora de um contador antes de o dinheiro começar a entrar.
 
-### 2.5 Criar o vitalício
-- [ ] Ainda no app → **Compras no App** → **+**
-- [ ] Tipo: **Não consumível** (não é assinatura — é compra única, para sempre)
-- [ ] Identificador: `brotinho_vitalicio`, preço R$ 399,90
+> Enquanto o acordo de apps pagos não estiver **Ativo**, seus produtos não carregam
+> nem no teste. O app mostra a tela de preços vazia e parece quebrado. Se isso
+> acontecer com você, é quase sempre aqui.
 
-### 2.6 Conta de teste
-- [ ] App Store Connect → **Usuários e Acesso** → **Sandbox** → criar um testador
+### 2.3 Registrar o app ✅ FEITO
+
+Brotinho · `com.brotinho.app` · ID Apple **6803963494** · SKU `BROTINHO-IOS-001`
+
+### 2.4 As 3 assinaturas ✅ FEITO
+
+Grupo **Brotinho Premium** (`22326032`), os três dentro dele, cada um com duração,
+preço, nome e descrição em português, e a captura do paywall anexada para a revisão.
+Todos em *Preparar para envio*.
+
+Ordem dos níveis: anual (1), mensal (2), semanal (3). É essa ordem que faz trocar
+de semanal para anual valer como **upgrade** — troca na hora, sem pagar duas vezes.
+
+### 2.5 O vitalício ✅ FEITO
+
+`brotinho_vitalicio`, não consumível, R$ 399,90, em *Preparar para envio*.
+
+### 2.6 Período de tolerância — ⚠️ **falta um clique seu**
+
+Assinaturas → **Configurar período de tolerância** → 16 dias, todas as renovações,
+**Ambiente de produção e Sandbox** → Ativar.
+
+Deixei tudo escolhido; a última tela é um aceite ("você concorda em fornecer
+serviços pagos durante o período de tolerância"), e acordo eu não assino por você.
+
+> O que isso faz: se o cartão da pessoa falhar na renovação, ela continua com acesso
+> por 16 dias enquanto a Apple tenta cobrar de novo. Quando a cobrança entra, a
+> assinatura segue como se nada tivesse acontecido. Sem isso, um cartão vencido
+> vira cancelamento — e quem cancelou sem querer raramente volta.
+
+### 2.7 Ficha da App Store ✅ FEITO
+
+Nome, subtítulo, descrição, palavras-chave, texto promocional, copyright, categoria,
+classificação etária (+12), direitos de conteúdo, contato da revisão, notas para a
+equipe de revisão, 5 capturas de tela em 1242 × 2688, lançamento **manual**.
+
+O app **não pede login**, e isso está dito em letras maiúsculas na primeira linha das
+notas de revisão — é o motivo nº 1 de reprovação boba.
+
+### 2.8 Privacidade e acessibilidade ✅ FEITO
+
+- Privacidade publicada: 3 tipos de dados, nenhum vinculado à identidade da pessoa
+- Acessibilidade: **Movimento reduzido** (rascunho — só publica depois que houver
+  uma versão no ar)
+- Declarado **não** ser dispositivo médico regulamentado
+- Declarado não usar criptografia não isenta
+
+### 2.9 Conta de teste (sandbox) — ⚠️ **sua**
+
+- [ ] **Usuários e acesso** → **Sandbox** → criar um testador
 - [ ] Use um e-mail que **não seja** seu Apple ID normal
+      (`pedrohbpferreira+sandbox@gmail.com` serve e cai na sua caixa de sempre)
+
+Precisa definir uma senha, e senha eu não digito.
 
 ---
 
-## FASE 3 — Google (Android)
+## FASE 3 — Google (Android) — não começado
 
 ### 3.1 Criar a conta
+
 - [ ] <https://play.google.com/console/signup> — US$ 25, uma vez só
 - [ ] Faça a verificação de identidade que eles pedem
 
 ### 3.2 Perfil de pagamentos
+
 - [ ] Play Console → **Configurações** → **Perfil de pagamentos**
 - [ ] Preencha dados bancários e fiscais
 
-> **Converse com seu contador** sobre receber de Apple e Google no Brasil — se
-> vale pessoa física ou CNPJ, e como declarar. Isso eu não sei responder por
-> você, e é melhor acertar antes de o dinheiro começar a entrar.
-
 ### 3.3 Criar o app
+
 - [ ] Play Console → **Criar app**
 - [ ] Nome: Brotinho · Tipo: App · **Pago ou gratuito: Gratuito**
 
@@ -119,52 +163,47 @@ Confirme também os preços que já estão no app:
 > compras.
 
 ### 3.4 Subir uma primeira versão — **obrigatório antes dos produtos**
-- [ ] Você vai precisar de um arquivo `.aab` do app. **Esse arquivo sou eu que
-      gero** com `eas build`. Me avise quando chegar aqui.
+
+- [ ] Precisa de um `.aab`, que sai do `eas build`
 - [ ] Suba na trilha **Teste interno**
 
 > No Google, os produtos só ficam ativos depois que existe uma versão enviada.
 > É o contrário da Apple, e trava muita gente.
 
 ### 3.5 Criar os produtos
-- [ ] **Monetizar** → **Assinaturas** → criar as três (`brotinho_semanal`,
-      `brotinho_mensal`, `brotinho_anual`)
-- [ ] Em cada uma, crie um **plano base** com a duração e o preço
-- [ ] **Monetizar** → **Produtos avulsos** → criar `brotinho_vitalicio`
+
+- [ ] **Monetizar** → **Assinaturas** → as três, com um **plano base** cada
+- [ ] **Monetizar** → **Produtos avulsos** → `brotinho_vitalicio`
+
+Use os **mesmos identificadores** da Apple.
 
 ### 3.6 Testadores
+
 - [ ] **Configurações** → **Teste de licença** → adicione seu e-mail do Google
 - [ ] Adicione o mesmo e-mail na lista da trilha de Teste interno
 
 ---
 
-## FASE 4 — RevenueCat
+## FASE 4 — RevenueCat — não começado
 
-O RevenueCat conversa com as duas lojas por nós: recibo, renovação,
-cancelamento, restauração. Sem ele, tudo isso é escrito e mantido duas vezes.
+O RevenueCat conversa com as duas lojas por nós: recibo, renovação, cancelamento,
+restauração. Sem ele, tudo isso é escrito e mantido duas vezes.
 
 - [ ] Criar conta em <https://app.revenuecat.com>
 - [ ] Criar um projeto chamado **Brotinho**
 - [ ] Adicionar o app **iOS** (bundle `com.brotinho.app`) e conectar à Apple
-      seguindo o passo a passo que eles mostram
 - [ ] Adicionar o app **Android** (pacote `com.brotinho.app`) e conectar ao Google
 - [ ] Em **Products**, cadastrar os 4 identificadores
-- [ ] Em **Entitlements**, criar **um** chamado `premium` e marcar os 4 produtos
-      dentro dele
+- [ ] Em **Entitlements**, criar **um** chamado `premium` com os 4 produtos dentro
 - [ ] Em **Offerings**, criar uma oferta com os 4 planos
 - [ ] Copiar as duas **chaves públicas** (uma de iOS, uma de Android)
 
-> **Não me mande as chaves por aqui.** Quando chegarmos na fase de código, eu te
-> digo em qual arquivo colar. São chaves públicas, mas o hábito certo é esse.
-
-Confira o plano gratuito atual do RevenueCat no site deles — era grátis até um
-certo volume de receita mensal, mas isso muda com o tempo.
+> **Não me mande as chaves por aqui.** Cole direto no `.env` — instruções na FASE 5.
+> São chaves públicas, mas o hábito certo é esse.
 
 ---
 
 ## FASE 5 — Código ✅ FEITO
-
-Já está no projeto, esperando só as chaves:
 
 - [x] SDK do RevenueCat instalado, carregado com proteção para não quebrar o Expo Go
 - [x] Preços vindos da loja, com o texto fixo só como reserva
@@ -173,26 +212,29 @@ Já está no projeto, esperando só as chaves:
 - [x] Tela para quem perdeu a assinatura, com restaurar
 - [x] Verificação a cada abertura do app e ao voltar para ele
 
-**O que falta aqui:** criar um arquivo `.env` na raiz do projeto com as duas
-chaves públicas do RevenueCat:
+**O que falta aqui:** criar um `.env` na raiz do projeto com as duas chaves:
 
 ```
 EXPO_PUBLIC_REVENUECAT_IOS=appl_xxxxxxxx
 EXPO_PUBLIC_REVENUECAT_ANDROID=goog_xxxxxxxx
 ```
 
-O `.env` já está no `.gitignore`, então não vai parar em lugar nenhum.
-**Não me mande as chaves por aqui** — cole direto no arquivo.
+O `.env` já está no `.gitignore`. Enquanto não houver chave, o app se comporta como
+hoje: entra sem cobrar. É isso que permite continuar testando no Expo Go.
 
-Enquanto não houver chave, o app se comporta como hoje: entra sem cobrar. É
-isso que permite continuar testando no Expo Go.
+---
 
-## FASE 6 — Testar e publicar
+## FASE 6 — Compilar, testar e publicar
 
+- [ ] **`eas build`** — precisa do login na sua conta Expo. Senha eu não digito;
+      rode `npx eas login` uma vez e depois eu toco a build.
 - [ ] Testar no iPhone com a conta sandbox
 - [ ] Testar no Android com o e-mail de teste de licença
-- [ ] Testar: assinar, cancelar, restaurar em outro aparelho
+- [ ] Testar: assinar, cancelar, **restaurar em outro aparelho**
 - [ ] Enviar para revisão nas duas lojas
+
+> Na Apple, a primeira assinatura e a primeira compra dentro do app têm de ser
+> enviadas **junto com a versão**. Não dá para mandar antes.
 
 > A Apple reprova com frequência por dois motivos bobos: o botão **Restaurar**
 > não funcionar, e a tela não deixar claro **preço, duração e renovação
@@ -200,24 +242,27 @@ isso que permite continuar testando no Expo Go.
 
 ---
 
-## Duas coisas que ainda ficam pendentes
+## Ainda em aberto, fora da cobrança
 
-Independentes da cobrança, mas necessárias para publicar:
-
-- [ ] **Preencher `OPERADOR` e `CONTATO`** em `src/data/privacyPolicy.ts`. Hoje
-      aparecem literalmente como `[nome da pessoa ou empresa responsável]` na
-      política de privacidade e na tela Sobre, e o e-mail de suporte não tem
-      destinatário. As duas lojas exigem política de privacidade e um contato.
-- [ ] **Revisão das práticas por um psicólogo.** São 31 textos sobre saúde
-      mental. Estão escritos como autocuidado e nunca como tratamento, mas vale
-      alguém da área ler antes de ir ao público.
+- [ ] **Tirar as páginas de suporte e privacidade do endereço provisório.**
+      Hoje a política de privacidade registrada na Apple aponta para um artefato do
+      Claude. Funciona, mas não é um endereço seu e não é feito para durar. O plano
+      é o GitHub Pages: o repositório precisa ficar **público**, e o GitHub pede uma
+      verificação de identidade por e-mail que só você pode concluir. Depois disso
+      eu troco as duas URLs.
+- [ ] **Criar de fato o `brotinho.suporte@gmail.com`** e ligar a resposta automática
+      (o texto está em `docs/resposta-automatica.md`). Esse e-mail já está publicado
+      na ficha da App Store e na política de privacidade.
+- [ ] **Revisão das práticas por um psicólogo.** São 31 textos sobre saúde mental.
+      Estão escritos como autocuidado e nunca como tratamento, mas vale alguém da
+      área ler antes de ir ao público.
 
 ---
 
-## Resumindo, se você só tem 5 minutos hoje
+## Se você só tem 10 minutos hoje
 
-1. Criar a conta Apple Developer (demora para aprovar — comece já)
-2. Criar a conta Google Play Console
-3. Preencher dados bancários e fiscais nas duas
+1. Os **dois formulários fiscais dos EUA** (Negócios → Formulários fiscais)
+2. O **período de tolerância** (Assinaturas → um clique)
+3. A **verificação por e-mail do GitHub**, para eu poder publicar as páginas
 
-O resto só anda depois disso.
+Os três destravam coisas que estão paradas esperando só por eles.

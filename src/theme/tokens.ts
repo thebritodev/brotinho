@@ -18,7 +18,13 @@ export const palette = {
 
   brown900: '#3A3630',
   brown700: '#5B5548',
-  brown400: '#8A8375',
+  /**
+   * Era `#8A8375`, que dava 3,49 de contraste sobre o creme — abaixo dos 4,5
+   * exigidos para texto. É o tom de quase todo texto de apoio do app, então a
+   * falha aparecia em dezenas de telas. Escurecido mantendo matiz e saturação:
+   * agora 4,91 sobre o creme e 5,28 sobre o branco.
+   */
+  brown400: '#716B60',
   brown200: '#D9D1BF',
   brown100: '#E9E2D2',
 
@@ -26,6 +32,15 @@ export const palette = {
   amber100: '#FBEFD4',
 
   terracotta400: '#D98866',
+  /**
+   * O terracota escuro, para quando a cor precisa ser *lida* e não só vista.
+   *
+   * O `terracotta400` continua existindo porque é a cor do vaso do broto e do
+   * telhado da casinha — escurecer aquilo mudaria o desenho. Mas como texto ele
+   * dá 2,74 sobre o branco, e como fundo de botão com texto branco dá os mesmos
+   * 2,74. Este tom resolve os dois lados de uma vez: 5,26 nas duas direções.
+   */
+  terracotta600: '#AD512B',
   terracotta100: '#F7E2D8',
 
   blue300: '#A9C4D6',
@@ -53,12 +68,24 @@ export const colors = {
   border: palette.brown200,
   borderStrong: palette.brown400,
 
-  primary: palette.green500,
+  /**
+   * O verde de *preencher*: fundo de botão, chave ligada, bolinha de progresso.
+   *
+   * Era o `green500`, e o texto branco em cima dele dava 3,94 — o botão
+   * principal do app, aquele que a pessoa precisa enxergar para fazer qualquer
+   * coisa, era o pior contraste da tela. O `green600` já existia na paleta e
+   * resolve com 4,86, sem inventar tom novo e sem encostar no `green700`, que
+   * continua sendo o verde de escrever.
+   *
+   * O `green500` segue na paleta: é a cor das folhas do broto, e ali ele é
+   * forma, não texto.
+   */
+  primary: palette.green600,
   primaryStrong: palette.green700,
   primarySoft: palette.green100,
 
   accentWarm: palette.amber400,
-  danger: palette.terracotta400,
+  danger: palette.terracotta600,
   dangerSoft: palette.terracotta100,
 } as const;
 

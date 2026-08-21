@@ -155,7 +155,7 @@ export function Paywall({ plan, onSelectPlan }: Props) {
               position: 'absolute',
               top: -11,
               alignSelf: 'center',
-              backgroundColor: palette.green500,
+              backgroundColor: colors.primary,
               paddingVertical: 5,
               paddingHorizontal: 12,
               borderRadius: 999,
