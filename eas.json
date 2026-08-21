@@ -25,6 +25,12 @@
     }
   },
   "submit": {
-    "production": {}
+    "production": {
+      "ios": {
+        "appleId": "pedrohbpferreira@gmail.com",
+        "ascAppId": "6803963494",
+        "appleTeamId": "4PKPYM4M6J"
+      }
+    }
   }
 }
