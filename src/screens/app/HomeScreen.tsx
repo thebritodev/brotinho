@@ -14,11 +14,24 @@ import {
   MemoryCard,
   MoodSelector,
   StatRow,
+  VoltaCard,
   type IconName,
 } from '../../components';
+import { toqueLeve } from '../../services/toque';
 import { useAppState } from '../../state/AppStateProvider';
 import type { Plant } from '../../state/types';
-import { colheita, dayKey, daysCaredFor, lembranca, patterns, prontoParaColher, sproutStage, stats } from '../../state/derived';
+import {
+  AUSENCIA_LONGA,
+  colheita,
+  dayKey,
+  daysCaredFor,
+  diasSemAparecer,
+  lembranca,
+  patterns,
+  prontoParaColher,
+  sproutStage,
+  stats,
+} from '../../state/derived';
 import { colors, palette, radius, fonts } from '../../theme';
 
 type Props = {
@@ -54,6 +67,13 @@ export function HomeScreen({
   // tamanho negativo — que no SVG é inválido, não apenas feio. O piso segura
   // esse quadro; do segundo em diante a largura real assume.
   const faceSize = Math.max(36, Math.min(54, (width - 40) / 6.2));
+
+  /**
+   * Quem sumiu por dias vê o reencontro antes de qualquer outra coisa. Some
+   * sozinho no instante em que ela registra algo — sem estado guardado.
+   */
+  const ausente = diasSemAparecer(data);
+  const voltando = ausente !== null && ausente >= AUSENCIA_LONGA;
 
   const today = dayKey();
   const mood = data.moodHistory.find((m) => m.date === today)?.mood ?? 'neutro';
@@ -140,6 +160,8 @@ export function HomeScreen({
         </View>
       </View>
 
+      {voltando && <VoltaCard dias={ausente} />}
+
       <View style={{ alignItems: 'center', gap: 12 }}>
         {/* Margem negativa: o desenho encosta nas bordas da tela. */}
         {/* O broto é a porta do próprio histórico: tocar nele abre o jardim. */}
@@ -154,7 +176,14 @@ export function HomeScreen({
         <Text style={{ fontFamily: fonts.body.bold, fontSize: 16 }}>
           Como você está se sentindo hoje?
         </Text>
-        <MoodSelector value={mood} onChange={setTodayMood} faceSize={faceSize} />
+        <MoodSelector
+          value={mood}
+          onChange={(m) => {
+            toqueLeve(data.settings.vibracao);
+            setTodayMood(m);
+          }}
+          faceSize={faceSize}
+        />
       </View>
 
       <Card

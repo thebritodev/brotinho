@@ -83,6 +83,8 @@ function ajustesLimpos(v: unknown): Settings {
     weeklySummary: booleano(s.weeklySummary, INITIAL_SETTINGS.weeklySummary),
     appLock: booleano(s.appLock, INITIAL_SETTINGS.appLock),
     analysis: booleano(s.analysis, INITIAL_SETTINGS.analysis),
+    vibracao: booleano(s.vibracao, INITIAL_SETTINGS.vibracao),
+    somDaRespiracao: booleano(s.somDaRespiracao, INITIAL_SETTINGS.somDaRespiracao),
   };
 }
 

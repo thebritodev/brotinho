@@ -1,8 +1,11 @@
+import { setAudioModeAsync, useAudioPlayer } from 'expo-audio';
 import React, { useEffect, useRef, useState } from 'react';
 import { Animated, Easing, Text, View } from 'react-native';
 
 import { Button } from '../../components';
 import type { BreathingPhase } from '../../data/practices';
+import { toqueMedio } from '../../services/toque';
+import { useAppState } from '../../state/AppStateProvider';
 import { colors, palette, fonts } from '../../theme';
 
 /**
@@ -13,6 +16,22 @@ import { colors, palette, fonts } from '../../theme';
 const SMALL = 0.55;
 const LARGE = 1;
 
+/**
+ * Um tom por fase, para o exercício funcionar de olhos fechados.
+ *
+ * São três notas descendo — inspirar mais agudo, segurar no meio, soltar mais
+ * grave — para o ouvido saber em que fase está sem precisar contar.
+ *
+ * O som obedece ao botão de silencioso do aparelho (`playsInSilentMode: false`)
+ * de propósito: num app usado na cama e no ônibus, quem silenciou o telefone
+ * está dizendo algo, e o app não tem por que discordar.
+ */
+const TONS = {
+  in: require('../../../assets/sons/respira-inspira.wav'),
+  hold: require('../../../assets/sons/respira-segura.wav'),
+  out: require('../../../assets/sons/respira-solta.wav'),
+} as const;
+
 type Props = {
   phases: BreathingPhase[];
   cycles: number;
@@ -21,6 +40,13 @@ type Props = {
 };
 
 export function BreathingGuide({ phases, cycles, onDone, onCancel }: Props) {
+  const { data } = useAppState();
+  const comSom = data.settings.somDaRespiracao;
+
+  const tomInspira = useAudioPlayer(TONS.in);
+  const tomSegura = useAudioPlayer(TONS.hold);
+  const tomSolta = useAudioPlayer(TONS.out);
+
   const [index, setIndex] = useState(0);
   const [cycle, setCycle] = useState(1);
   const [left, setLeft] = useState(phases[0].seconds);
@@ -30,6 +56,21 @@ export function BreathingGuide({ phases, cycles, onDone, onCancel }: Props) {
 
   // Anima o círculo para o tamanho que corresponde à fase atual.
   useEffect(() => {
+    /**
+     * A virada de fase vibra porque este exercício pede olhos fechados, e até
+     * agora ele era só visual: para seguir o ritmo era preciso encarar a tela,
+     * que é justamente o contrário do que a prática pede.
+     */
+    toqueMedio(data.settings.vibracao);
+
+    if (comSom) {
+      const tom =
+        phase.motion === 'in' ? tomInspira : phase.motion === 'out' ? tomSolta : tomSegura;
+      // Voltar ao início antes de tocar: fases curtas se atropelam, e sem isto
+      // a segunda repetição sairia do ponto onde a primeira parou.
+      void tom.seekTo(0).then(() => tom.play());
+    }
+
     const target = phase.motion === 'in' ? LARGE : phase.motion === 'out' ? SMALL : null;
     if (target === null) return; // "segure" mantém o tamanho de propósito
 
@@ -40,6 +81,11 @@ export function BreathingGuide({ phases, cycles, onDone, onCancel }: Props) {
       useNativeDriver: true,
     }).start();
   }, [index]);
+
+  useEffect(() => {
+    if (!comSom) return;
+    void setAudioModeAsync({ playsInSilentMode: false }).catch(() => {});
+  }, [comSom]);
 
   // Conta regressiva da fase e avanço para a próxima.
   useEffect(() => {

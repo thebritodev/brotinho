@@ -17,6 +17,7 @@ export { HarvestNotice } from './brand/HarvestNotice';
 export { ProgressStem } from './brand/ProgressStem';
 export { InsightCard } from './brand/InsightCard';
 export { MemoryCard } from './brand/MemoryCard';
+export { VoltaCard } from './brand/VoltaCard';
 export { MoodFace } from './brand/MoodFace';
 export { MoodSelector, MOODS } from './brand/MoodSelector';
 export { PracticeTopicCard } from './brand/PracticeTopicCard';

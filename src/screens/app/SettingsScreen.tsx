@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Pressable, ScrollView, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { Card, Icon, ScreenTransition, TopBar, type IconName } from '../../components';
+import { Card, Icon, ScreenTransition, Switch, TopBar, type IconName } from '../../components';
 import { useAppState } from '../../state/AppStateProvider';
 import { palette, fonts } from '../../theme';
 import { AboutScreen, APP_VERSION } from './AboutScreen';
@@ -82,7 +82,7 @@ type Detalhe = 'dados' | 'valores' | 'sobre' | 'politica' | 'lembretes';
 
 export function SettingsScreen({ onBack }: { onBack: () => void }) {
   const insets = useSafeAreaInsets();
-  const { data } = useAppState();
+  const { data, updateSettings } = useAppState();
   const s = data.settings;
 
   const [detalhe, setDetalhe] = useState<Detalhe | null>(null);
@@ -133,6 +133,31 @@ export function SettingsScreen({ onBack }: { onBack: () => void }) {
             onPress={() => setDetalhe('lembretes')}
           >
             {chevron}
+          </Row>
+        </Section>
+
+        <Section title="Sinais do app">
+          <Row
+            icon="sparkle"
+            label="Vibração"
+            hint="Confirma o humor escolhido, cada repetição da Composta e o fim de um ciclo"
+          >
+            <Switch
+              label="Vibração"
+              checked={data.settings.vibracao}
+              onChange={(vibracao) => updateSettings({ vibracao })}
+            />
+          </Row>
+          <Row
+            icon="bell"
+            label="Som na respiração"
+            hint="Um tom marca as fases, para você fechar os olhos. Respeita o silencioso do aparelho"
+          >
+            <Switch
+              label="Som na respiração"
+              checked={data.settings.somDaRespiracao}
+              onChange={(somDaRespiracao) => updateSettings({ somDaRespiracao })}
+            />
           </Row>
         </Section>
 

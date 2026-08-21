@@ -41,6 +41,15 @@ export type Settings = {
   weeklySummary: boolean;
   appLock: boolean;
   analysis: boolean;
+  /** Vibração curta nos momentos que confirmam algo. */
+  vibracao: boolean;
+  /**
+   * Tom suave marcando as fases da respiração guiada.
+   *
+   * Só toca dentro do exercício, e obedece ao botão de silencioso do aparelho:
+   * quem está no ônibus ou com alguém dormindo do lado não é surpreendido.
+   */
+  somDaRespiracao: boolean;
 };
 
 /** Um humor por dia; `date` no formato YYYY-MM-DD. */
@@ -111,6 +120,8 @@ export const INITIAL_SETTINGS: Settings = {
   weeklySummary: false,
   appLock: true,
   analysis: true,
+  vibracao: true,
+  somDaRespiracao: true,
 };
 
 export const INITIAL_APP_DATA: AppData = {

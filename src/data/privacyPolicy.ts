@@ -107,7 +107,7 @@ export const PRIVACY_POLICY: PolicySection[] = [
     paragraphs: [
       'Você pode ver e corrigir o que informou em Configurações › Meus dados.',
       'Você pode apagar tudo em Privacidade › Apagar meus dados. A exclusão no aparelho é imediata e definitiva. Se você usa a cópia de segurança do sistema, apague os dados pelo app antes de desinstalar, para que a cópia também fique vazia.',
-      'A Lei Geral de Proteção de Dados (Lei 13.709/2018) garante a você acesso, correção, portabilidade e eliminação dos seus dados. Como todo o tratamento acontece no seu aparelho e sob seu controle, esses direitos se exercem pelas próprias telas do app.',
+      'A Lei Geral de Proteção de Dados (Lei 13.709/2018) garante a você acesso, correção, portabilidade e eliminação dos seus dados. Como todo o tratamento acontece no seu aparelho e sob seu controle, esses direitos se exercem pelas próprias telas do app: os registros estão no Diário, onde também dá para editá-los e apagá-los um a um, e em Privacidade você encontra “Baixar meus dados”, que gera um arquivo com tudo, e “Apagar meus dados”.',
     ],
   },
   {

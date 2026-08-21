@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Pressable, ScrollView, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -12,6 +12,7 @@ import {
   StatRow,
   TopBar,
 } from '../../components';
+import { toqueLeve } from '../../services/toque';
 import { useAppState } from '../../state/AppStateProvider';
 import { vezesQueVoltou } from '../../state/derived';
 import { colors, palette, radius, shadows, fonts } from '../../theme';
@@ -52,6 +53,21 @@ export function CompostaScreen({ onClose }: { onClose: () => void }) {
       setStep('done');
     },
   });
+
+  /**
+   * Cada repetição que o app conta devolve uma vibração.
+   *
+   * Aqui a pessoa está falando em voz alta, quase sempre sem olhar para a
+   * tela — a confirmação era só visual, e chegava para quem não estava
+   * olhando. A vibração diz "ouvi" sem exigir os olhos nem fazer barulho por
+   * cima da própria voz.
+   */
+  const ultimoTick = useRef(0);
+  useEffect(() => {
+    if (session.repTick === ultimoTick.current) return;
+    ultimoTick.current = session.repTick;
+    if (session.repTick > 0) toqueLeve(data.settings.vibracao);
+  }, [session.repTick, data.settings.vibracao]);
 
   const começar = async () => {
     setStep('record');

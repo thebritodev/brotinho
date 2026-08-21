@@ -33,6 +33,47 @@ export function daysCaredFor(data: AppData): number {
 }
 
 /**
+ * Há quantos dias a pessoa não aparece.
+ *
+ * `null` para quem nunca registrou nada — ali não houve ausência, houve
+ * começo, e são coisas diferentes.
+ *
+ * Este é o número mais importante do app para quem quase desistiu. Voltar
+ * depois de nove dias era idêntico a voltar amanhã: o app não dizia nada, e o
+ * silêncio no reencontro é exatamente onde a pessoa conclui que falhou e
+ * desinstala. O app já é generoso por dentro — a contagem só soma os dias em
+ * que ela apareceu, e o broto nunca regride nem morre de abandono. Faltava
+ * contar isso a ela.
+ */
+export function diasSemAparecer(data: AppData, hoje = new Date()): number | null {
+  const marcos: number[] = [];
+  data.journal.forEach((e) => marcos.push(e.createdAt));
+  data.composts.forEach((c) => marcos.push(c.createdAt));
+  data.practicesDone.forEach((p) => marcos.push(p.at));
+  // O humor é guardado por dia, não por instante; meio-dia evita que fuso
+  // horário jogue a data para a véspera.
+  data.moodHistory.forEach((m) => {
+    const t = new Date(`${m.date}T12:00:00`).getTime();
+    if (!Number.isNaN(t)) marcos.push(t);
+  });
+
+  if (!marcos.length) return null;
+
+  const ultimo = new Date(Math.max(...marcos));
+  const inicioDoDia = (d: Date) => new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime();
+  const dias = Math.round((inicioDoDia(hoje) - inicioDoDia(ultimo)) / 86400000);
+
+  return Math.max(0, dias);
+}
+
+/**
+ * A partir de quantos dias sumidos vale dizer alguma coisa.
+ *
+ * Dois dias é vida normal — comentar seria cobrança disfarçada de acolhimento.
+ */
+export const AUSENCIA_LONGA = 3;
+
+/**
  * Dias cuidados que abrem cada estágio do broto.
  *
  * A conta é por DIA, não por registro: quem escreve dez vezes numa terça

@@ -1,6 +1,8 @@
 import React, { useEffect, useRef } from 'react';
 import { AccessibilityInfo, Animated, Easing, Pressable, Text, View } from 'react-native';
 
+import { toqueDeConclusao } from '../../services/toque';
+import { useAppState } from '../../state/AppStateProvider';
 import { colors, moodColors, palette, radius, shadows, fonts } from '../../theme';
 import type { Plant } from '../../state/types';
 import { Button } from '../core/Button';
@@ -25,7 +27,14 @@ export function HarvestNotice({
   planta: Plant;
   onClose: () => void;
 }) {
+  const { data } = useAppState();
   const entrada = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    // Três semanas de cuidado terminando: se algo merece a vibração de
+    // conclusão neste app, é isto.
+    toqueDeConclusao(data.settings.vibracao);
+  }, []);
 
   useEffect(() => {
     void AccessibilityInfo.isReduceMotionEnabled().then((menosMovimento) => {

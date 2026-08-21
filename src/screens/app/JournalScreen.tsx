@@ -18,6 +18,7 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Button, Card, Icon, MoodFace, MOODS, Sprout, TopBar } from '../../components';
+import { toqueDeConclusao } from '../../services/toque';
 import { useAppState } from '../../state/AppStateProvider';
 import { dayKey, normalize } from '../../state/derived';
 import { colors, palette, radius, borderWidth, fonts, type Mood } from '../../theme';
@@ -165,6 +166,7 @@ export function JournalScreen() {
     // O registro é gravado ANTES da animação, nunca depois: um desabafo não pode
     // se perder porque um efeito visual não terminou.
     addJournalEntry(content);
+    toqueDeConclusao(data.settings.vibracao);
     setText('');
 
     // Quem pediu menos movimento no sistema não leva uma página girando na cara.

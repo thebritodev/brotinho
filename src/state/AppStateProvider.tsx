@@ -18,7 +18,7 @@ import {
 } from '../services/notifications';
 import { clearAppData, loadAppData, saveAppData } from '../storage/appStorage';
 import type { Mood } from '../theme';
-import { dayKey } from './derived';
+import { dayKey, diasSemAparecer } from './derived';
 import { sanitizarDados } from './sanitize';
 import type { Plant } from './types';
 import {
@@ -95,11 +95,20 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
   const { reminders, weeklySummary } = data.settings;
   const { reminder, onboarded } = data.profile;
 
+  /**
+   * Fica fora do efeito para não entrar `data` inteiro na lista de
+   * dependências: ali, cada humor marcado cancelaria e reagendaria a
+   * notificação. Este número muda no máximo uma vez por dia.
+   */
+  const ausencia = diasSemAparecer(data);
+
   useEffect(() => {
     if (!hydrated || Platform.OS === 'web' || !onboarded) return;
-    if (reminders) void scheduleDailyReminder(reminder);
+    // O texto do aviso muda conforme o tempo de ausência — ver o porquê em
+    // `mensagemDoLembrete`.
+    if (reminders) void scheduleDailyReminder(reminder, ausencia);
     else void cancelDailyReminder();
-  }, [hydrated, onboarded, reminders, reminder]);
+  }, [hydrated, onboarded, reminders, reminder, ausencia]);
 
   useEffect(() => {
     if (!hydrated || Platform.OS === 'web' || !onboarded) return;

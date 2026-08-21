@@ -12,6 +12,7 @@ import {
   TopBar,
   type IconName,
 } from '../../components';
+import { exportarDados } from '../../services/exportarDados';
 import { useAppState } from '../../state/AppStateProvider';
 import { colors, palette, radius, borderWidth, fonts } from '../../theme';
 import { PrivacyPolicyScreen } from './PrivacyPolicyScreen';
@@ -67,6 +68,23 @@ export function PrivacyScreen({ onBack }: { onBack: () => void }) {
   const s = data.settings;
 
   const [vendoPolitica, setVendoPolitica] = useState(false);
+  const [exportando, setExportando] = useState(false);
+  const [avisoExport, setAvisoExport] = useState<string | null>(null);
+
+  const baixar = async () => {
+    setAvisoExport(null);
+    setExportando(true);
+    try {
+      const r = await exportarDados(data);
+      if (r === 'sem-compartilhamento') {
+        setAvisoExport('Este aparelho não oferece onde salvar o arquivo.');
+      }
+    } catch {
+      setAvisoExport('Não consegui gerar o arquivo. Tente de novo.');
+    } finally {
+      setExportando(false);
+    }
+  };
   const [confirmandoExclusao, setConfirmandoExclusao] = useState(false);
 
   const chevron = <Icon name="chevronRight" color={palette.brown400} />;
@@ -146,6 +164,44 @@ export function PrivacyScreen({ onBack }: { onBack: () => void }) {
               {chevron}
             </PrivRow>
           </View>
+        </Card>
+
+        {/* Vem antes do apagar de propósito: a ordem sugere levar a cópia
+            embora primeiro, e só então apagar, se for isso que a pessoa quer. */}
+        <Card onPress={exportando ? undefined : baixar} label="Baixar meus dados">
+          <Text
+            style={{
+              fontFamily: fonts.body.extraBold,
+              fontSize: 15,
+              color: colors.textPrimary,
+              marginBottom: 4,
+            }}
+          >
+            {exportando ? 'Preparando o arquivo…' : 'Baixar meus dados'}
+          </Text>
+          <Text
+            style={{
+              fontFamily: fonts.body.regular,
+              fontSize: 13,
+              lineHeight: 13 * 1.5,
+              color: palette.brown700,
+            }}
+          >
+            Gera um arquivo com tudo o que está guardado aqui — seu diário, seus humores, suas
+            compostagens e suas práticas — para você salvar onde quiser.
+          </Text>
+          {!!avisoExport && (
+            <Text
+              style={{
+                fontFamily: fonts.body.bold,
+                fontSize: 13,
+                color: colors.danger,
+                marginTop: 8,
+              }}
+            >
+              {avisoExport}
+            </Text>
+          )}
         </Card>
 
         <Card

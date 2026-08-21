@@ -24,12 +24,35 @@ export const DESTINO_KEY = 'destino';
 const WEEKLY_WEEKDAY = 1;
 const WEEKLY_HOUR = 9;
 
-const MENSAGENS = [
-  'Como foi seu dia?',
-  'Seu brotinho está te esperando.',
-  'Um minuto pra você. Vamos?',
-  'Que tal registrar como você está?',
-];
+/**
+ * O texto do lembrete, escolhido pelo horário e pelo tempo de ausência.
+ *
+ * Duas regras que não são estilo, são correção:
+ *
+ * 1. **Nada do que a pessoa escreveu entra aqui.** Notificação aparece na tela
+ *    bloqueada, à vista de quem estiver por perto. Um app cuja promessa é que
+ *    o diário não sai do aparelho não pode publicá-lo no aviso.
+ *
+ * 2. **Nenhum número de dias.** O texto é decidido na hora de agendar e repete
+ *    todo dia até o app ser aberto de novo. "Faz 3 dias" nasceria certo e
+ *    estaria mentindo na manhã seguinte. As frases de ausência são vagas de
+ *    propósito, para continuarem verdadeiras enquanto durarem.
+ */
+function mensagemDoLembrete(hora: number, diasSemAparecer: number | null): string {
+  // Sumiu faz tempo: acolher, nunca cobrar. Quem voltou de uma semana ruim não
+  // precisa de um app dizendo que falhou com ele.
+  if (diasSemAparecer !== null && diasSemAparecer >= 7) {
+    return 'Seu broto continua aqui, do mesmo jeito que você deixou.';
+  }
+  if (diasSemAparecer !== null && diasSemAparecer >= 2) {
+    return 'Sem pressa. Quando quiser, ele está aqui.';
+  }
+
+  if (hora >= 5 && hora < 12) return 'Como você está começando o dia?';
+  if (hora >= 12 && hora < 18) return 'Uma pausa no meio do dia?';
+  if (hora >= 18 && hora < 24) return 'Como foi seu dia?';
+  return 'Se estiver difícil dormir, escrever ajuda a esvaziar a cabeça.';
+}
 
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
@@ -70,9 +93,14 @@ export async function cancelDailyReminder(): Promise<void> {
 /**
  * Agenda (ou reagenda) o lembrete diário.
  * @param time horário no formato "HH:MM"
+ * @param diasSemAparecer há quantos dias a pessoa não registra nada; `null`
+ *   para quem nunca registrou. Só muda o texto do aviso.
  * @returns true se ficou agendado
  */
-export async function scheduleDailyReminder(time: string): Promise<boolean> {
+export async function scheduleDailyReminder(
+  time: string,
+  diasSemAparecer: number | null = null,
+): Promise<boolean> {
   const [hour, minute] = time.split(':').map(Number);
   if (Number.isNaN(hour) || Number.isNaN(minute)) return false;
 
@@ -87,7 +115,7 @@ export async function scheduleDailyReminder(time: string): Promise<boolean> {
     identifier: IDENTIFIER,
     content: {
       title: 'Brotinho',
-      body: MENSAGENS[Math.floor(Math.random() * MENSAGENS.length)],
+      body: mensagemDoLembrete(hour, diasSemAparecer),
       data: { [DESTINO_KEY]: 'diario' satisfies DestinoDeNotificacao },
       ...(Platform.OS === 'android' ? { channelId: CHANNEL_ID } : null),
     },
