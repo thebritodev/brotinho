@@ -45,6 +45,21 @@ export function startNativeSpeech(): void {
     // Desabafo tem pausas; sem isto o reconhecimento encerra no primeiro silêncio.
     continuous: true,
     addsPunctuation: true,
+    /**
+     * **O ditado não sai do aparelho.**
+     *
+     * Sem esta linha, o padrão do pacote é `false`, e aí o reconhecedor do
+     * sistema manda o áudio para os servidores do Google ou da Apple. A tela de
+     * Privacidade afirmava que "o áudio não sai dele" — e não era verdade.
+     *
+     * O preço é real: em aparelho sem o modelo do português instalado, o
+     * reconhecimento falha com `service-not-allowed` ou `language-not-supported`.
+     * A escolha foi deliberada. Num diário de saúde mental, mandar a voz da
+     * pessoa para um servidor sem ela saber é pior do que ela ter de escrever
+     * em vez de ditar — e quem chama trata esses erros dizendo o que aconteceu
+     * e como resolver.
+     */
+    requiresOnDeviceRecognition: true,
   });
 }
 

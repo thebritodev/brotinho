@@ -4,6 +4,7 @@ import {
   setAudioModeAsync,
   useAudioRecorder,
 } from 'expo-audio';
+import { File } from 'expo-file-system';
 import { useCallback, useEffect, useRef, useState } from 'react';
 
 import {
@@ -77,6 +78,24 @@ export function useVoiceNote({ onText }: Options) {
         setState('idle');
         // "no-speech" só significa que ninguém falou; não é falha digna de alarme.
         if (event.error === 'no-speech') return;
+
+        /**
+         * O ditado roda só dentro do aparelho, para o áudio não sair dele. Em
+         * celular sem o pacote de voz do português instalado, isso falha com um
+         * destes dois códigos — e é a falha mais provável de todas.
+         *
+         * Um código cru na tela não ajuda ninguém: a pessoa precisa saber que
+         * não é defeito do app, que pode continuar escrevendo, e onde resolver
+         * se quiser ditar.
+         */
+        if (event.error === 'service-not-allowed' || event.error === 'language-not-supported') {
+          setError(
+            'Este aparelho não tem o reconhecimento de voz em português para funcionar sem internet. ' +
+              'Você pode escrever normalmente. Para ditar, instale o idioma nas configurações de voz do seu celular.',
+          );
+          return;
+        }
+
         setError(`Não consegui entender o áudio (${event.error}).`);
       }),
     ];
@@ -111,6 +130,18 @@ export function useVoiceNote({ onText }: Options) {
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Não consegui transcrever o áudio.');
     } finally {
+      /**
+       * A gravação já cumpriu o papel dela. Deixá-la no cache guardaria a voz da
+       * pessoa desabafando, sem que nada no app fosse usar aquilo de novo.
+       *
+       * No `finally` de propósito: precisa sumir mesmo quando a transcrição
+       * falha, que é justamente quando ninguém lembraria de limpar.
+       */
+      try {
+        if (recorder.uri) new File(recorder.uri).delete();
+      } catch {
+        // sem drama: é cache
+      }
       setState('idle');
     }
   }, [recorder, onText]);
