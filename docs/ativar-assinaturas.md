@@ -126,10 +126,22 @@ notas de revisão — é o motivo nº 1 de reprovação boba.
 ### 2.8 Privacidade e acessibilidade ✅ FEITO
 
 - Privacidade publicada: 3 tipos de dados, nenhum vinculado à identidade da pessoa
-- Acessibilidade: **Movimento reduzido** (rascunho — só publica depois que houver
-  uma versão no ar)
+- Acessibilidade: **Contraste suficiente** e **Movimento reduzido** (rascunho — só
+  publica depois que houver uma versão no ar)
 - Declarado **não** ser dispositivo médico regulamentado
 - Declarado não usar criptografia não isenta
+- Distribuição só para **iPhone**: iPad, Mac com chip Apple e Apple Vision Pro
+  desmarcados, porque o layout foi desenhado para uma tela de celular e não há
+  como testar as outras aqui
+
+> "Contraste suficiente" só pôde ser declarado depois que as cores foram
+> corrigidas — três combinações estavam abaixo de 4,5. Se um dia alguém mexer na
+> paleta, essa declaração precisa ser reconferida junto.
+
+**Dois itens de acessibilidade ficaram de fora de propósito:** "Texto maior" e
+"Diferenciação sem usar apenas cor". Os dois provavelmente valem, mas exigem
+testar no iPhone com os ajustes do sistema ligados, e declarar sem testar é pior
+do que não declarar.
 
 ### 2.9 Conta de teste (sandbox) — ⚠️ **sua**
 
