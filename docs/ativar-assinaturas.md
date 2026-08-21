@@ -356,9 +356,14 @@ hoje: entra sem cobrar. É isso que permite continuar testando no Expo Go.
       > **cvv.org.br** viraram links de verdade. No visualizador de artefato eles
       > não navegavam — numa página de saúde mental, isso era o pior lugar
       > possível para um link morto.
-- [ ] **Criar de fato o `brotinho.suporte@gmail.com`** e ligar a resposta automática
-      (o texto está em `docs/resposta-automatica.md`). Esse e-mail já está publicado
-      na ficha da App Store e na política de privacidade.
+- [x] ~~Criar o `brotinho.suporte@gmail.com`.~~ A conta existe.
+- [ ] **Ligar a resposta automática** nessa conta — o texto está pronto em
+      `docs/resposta-automatica.md`.
+
+      > Não é firula. Esse endereço está publicado em quatro lugares, e num app de
+      > saúde mental chegam mensagens pesadas e fora de hora. A resposta precisa
+      > dizer duas coisas na hora: que ali **não** é atendimento de emergência, e
+      > que existe o CVV no 188.
 - [ ] **Revisão das práticas por um psicólogo.** São 31 textos sobre saúde mental.
       Estão escritos como autocuidado e nunca como tratamento, mas vale alguém da
       área ler antes de ir ao público.

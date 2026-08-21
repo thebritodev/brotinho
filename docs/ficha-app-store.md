@@ -222,8 +222,8 @@ adicione você mesmo.
 
 ## Resumo do que falta de você
 
-1. Criar de fato a conta `brotinho.suporte@gmail.com` e ligar a resposta
-   automática — o texto está pronto em `docs/resposta-automatica.md`
+1. Ligar a resposta automática do `brotinho.suporte@gmail.com` — a conta já
+   existe, e o texto está pronto em `docs/resposta-automatica.md`
 2. Revisar os textos acima
 3. Tirar as capturas de tela
 4. Confirmar a declaração de criptografia

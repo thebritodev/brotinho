@@ -1,7 +1,7 @@
 # Resposta automática do suporte
 
-Texto pronto para colar no Gmail assim que a conta `brotinho.suporte@gmail.com`
-existir.
+Texto pronto para colar no Gmail. A conta `brotinho.suporte@gmail.com` já existe;
+falta ligar a resposta.
 
 **Onde configurar:** Gmail → engrenagem → *Ver todas as configurações* → aba
 *Geral* → *Resposta automática*. Deixe **ligada o tempo todo**, sem data de fim.
