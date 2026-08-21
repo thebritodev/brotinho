@@ -104,11 +104,11 @@ export const PLANS: Record<
   },
   anual: {
     name: 'Anual',
-    price: 'R$ 179,40',
-    precoMensal: 'R$ 14,95',
-    note: 'R$ 14,95 por mês · economize 50%',
-    cta: 'Assinar por R$ 14,95/mês',
-    fine: 'Cobrança única de R$ 179,40 por 12 meses. Cancele quando quiser.',
+    price: 'R$ 179,90',
+    precoMensal: 'R$ 14,99',
+    note: 'R$ 14,99 por mês · economize 50%',
+    cta: 'Assinar por R$ 179,90/ano',
+    fine: 'Cobrança única de R$ 179,90 por 12 meses. Cancele quando quiser.',
   },
   vitalicio: {
     name: 'Vitalício',
