@@ -22,8 +22,9 @@ próprio, e os três formulários fiscais ativos.
 **O que falta é uma coisa só: a compilação.** Ela precisa de `npx eas login`, que só
 você pode rodar. Depois disso o caminho até a loja é a fila da revisão da Apple.
 
-Em segundo plano, sem depender de ninguém: a Apple está processando o acordo de apps
-pagos e a conta bancária. O Google ainda não foi começado.
+O contrato de apps pagos, a conta bancária e os três formulários fiscais estão
+todos **ativos** — o lado do dinheiro não depende mais de nada. O Google ainda não
+foi começado.
 
 ---
 
@@ -66,18 +67,18 @@ pode ser reaproveitado, nem se você apagar o produto.** Estes já estão gravad
 
 Conta ativa. Time `4PKPYM4M6J`.
 
-### 2.2 Contrato, banco e impostos — ⚠️ **quase**
+### 2.2 Contrato, banco e impostos ✅ FEITO
 
-- [x] **Acordo de apps gratuitos** — Ativo
-- [x] **Acordo de apps pagos** — assinado, hoje em *Processando*
-- [x] **Conta bancária** — Banco Topazio SA (9001), Brasil, USD — em *Processando*
+- [x] **Acordo de apps gratuitos** — **Ativo**
+- [x] **Acordo de apps pagos** — **Ativo**
+- [x] **Conta bancária** — Banco Topazio SA (9001), Brasil, USD — **Ativa**
 - [x] **Formulário fiscal do Brasil** — **Ativo**
 - [x] **U.S. Certificate of Foreign Status of Beneficial Owner** — **Ativo**
 - [x] **U.S. Form W-8BEN** — **Ativo**
 
-Os três formulários foram enviados em 21 de agosto de 2026. O aviso de "formulários
-fiscais pendentes" sumiu do topo da página. Agora é esperar a Apple processar o
-acordo e a conta bancária — ela mesma pede 24 horas.
+Tudo enviado em 21 de agosto de 2026 e processado pela Apple no mesmo dia. A página
+de Negócios não mostra mais nenhum aviso. **O lado do dinheiro está de pé:** quando
+houver uma versão no ar, os produtos carregam e a venda acontece.
 
 Em <https://appstoreconnect.apple.com/business> → **Formulários fiscais**.
 
