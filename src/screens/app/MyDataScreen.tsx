@@ -182,6 +182,41 @@ export function MyDataScreen({ onBack }: { onBack: () => void }) {
           </>,
         )}
 
+        {/* Ninguém sabia que isto existia. O backup do sistema já está ligado
+            desde sempre, e é o que faz o diário voltar sozinho quando a pessoa
+            reinstala o app — mas em lugar nenhum isso estava dito. Quem não
+            sabe, acha que vai perder tudo, e quem acha que vai perder tudo
+            escreve com menos verdade. */}
+        {secao(
+          'Se você trocar de celular',
+          <>
+            <Text
+              style={{
+                fontFamily: fonts.body.regular,
+                fontSize: 14,
+                lineHeight: 14 * 1.55,
+                color: colors.textSecondary,
+              }}
+            >
+              Seus registros entram na cópia de segurança que o seu próprio celular já faz — no
+              Google Drive, no Android, e no iCloud, no iPhone. Ao reinstalar o Brotinho com a
+              mesma conta, seu diário volta sozinho.
+            </Text>
+            <Text
+              style={{
+                fontFamily: fonts.body.regular,
+                fontSize: 14,
+                lineHeight: 14 * 1.55,
+                color: colors.textSecondary,
+              }}
+            >
+              Essa cópia é sua, guardada pela sua conta Google ou Apple. Ela não passa por nós e
+              não temos como abrir. Para mudar de Android para iPhone, ou se preferir não depender
+              disso, baixe seus dados em Privacidade e guarde o arquivo.
+            </Text>
+          </>,
+        )}
+
         <Text
           style={{
             fontFamily: fonts.body.regular,
