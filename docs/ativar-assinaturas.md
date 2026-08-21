@@ -15,10 +15,15 @@ na tela naquele dia, não é lembrança.
 
 ## Onde estamos hoje, em uma frase
 
-O lado da Apple está **inteiro configurado**, com os 4 produtos prontos para envio.
-Falta: os **dois formulários fiscais dos EUA**, a **compilação** do app, e as
-páginas de suporte e privacidade saírem do endereço provisório. O Google ainda
-não foi começado.
+O lado da Apple está **inteiro configurado**: 4 produtos prontos para envio, ficha
+completa, TestFlight preparado, páginas de suporte e privacidade no ar em endereço
+próprio, e os três formulários fiscais ativos.
+
+**O que falta é uma coisa só: a compilação.** Ela precisa de `npx eas login`, que só
+você pode rodar. Depois disso o caminho até a loja é a fila da revisão da Apple.
+
+Em segundo plano, sem depender de ninguém: a Apple está processando o acordo de apps
+pagos e a conta bancária. O Google ainda não foi começado.
 
 ---
 
