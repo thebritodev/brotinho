@@ -11,7 +11,8 @@
       "supportsTablet": true,
       "bundleIdentifier": "com.brotinho.app",
       "infoPlist": {
-        "RCTAsyncStorageExcludeFromBackup": false
+        "RCTAsyncStorageExcludeFromBackup": false,
+        "ITSAppUsesNonExemptEncryption": false
       },
       "buildNumber": "1",
       "privacyManifests": {
