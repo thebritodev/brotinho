@@ -285,17 +285,25 @@ hoje: entra sem cobrar. É isso que permite continuar testando no Expo Go.
 
 ## Ainda em aberto, fora da cobrança
 
-- [ ] **Tirar as páginas de suporte e privacidade do endereço provisório.**
-      Hoje elas apontam para artefatos do Claude. Funciona, mas não é um endereço
-      seu e não é feito para durar. O plano é o GitHub Pages: o repositório precisa
-      ficar **público**, e o GitHub pede uma verificação de identidade por e-mail
-      que só você pode concluir. Depois disso eu troco as URLs.
+- [x] ~~Tirar as páginas de suporte e privacidade do endereço provisório.~~ ✅ FEITO
 
-      **São quatro lugares para trocar**, e vale anotar porque é fácil esquecer um:
-      1. Distribuição → Privacidade do app → URL da Política de privacidade
-      2. Distribuição → versão 1.0 → URL de suporte
-      3. Distribuição → versão 1.0 → URL de marketing
-      4. TestFlight → Informações de teste → URL de marketing **e** de privacidade
+      Estão no ar em <https://thebritodev.github.io/brotinho/>, servidas do
+      `/docs` do repositório na branch `main`. Editar o HTML e dar push republica.
+
+      | | endereço |
+      |---|---|
+      | Entrada | `thebritodev.github.io/brotinho/` |
+      | Suporte | `.../suporte.html` |
+      | Privacidade | `.../privacidade.html` |
+
+      Os cinco campos na Apple foram trocados e conferidos com recarga completa:
+      Privacidade do app, URL de suporte e de marketing da versão 1.0, e as duas
+      do TestFlight. Não sobrou nenhuma referência a artefato do Claude.
+
+      > Um ganho que só aparece agora: o telefone do **CVV (188)** e o
+      > **cvv.org.br** viraram links de verdade. No visualizador de artefato eles
+      > não navegavam — numa página de saúde mental, isso era o pior lugar
+      > possível para um link morto.
 - [ ] **Criar de fato o `brotinho.suporte@gmail.com`** e ligar a resposta automática
       (o texto está em `docs/resposta-automatica.md`). Esse e-mail já está publicado
       na ficha da App Store e na política de privacidade.
@@ -307,8 +315,10 @@ hoje: entra sem cobrar. É isso que permite continuar testando no Expo Go.
 
 ## Se você só tem 10 minutos hoje
 
-1. Os **dois formulários fiscais dos EUA** (Negócios → Formulários fiscais)
-2. O **período de tolerância** (Assinaturas → um clique)
-3. A **verificação por e-mail do GitHub**, para eu poder publicar as páginas
+1. Os **dois formulários fiscais dos EUA** (Negócios → Formulários fiscais).
+   É o único item que ainda trava a cobrança.
+2. O **período de tolerância** (Assinaturas → um clique, é só o aceite).
+3. `npx eas login` no terminal, para eu poder tocar a build.
 
-Os três destravam coisas que estão paradas esperando só por eles.
+Depois desses três, o que separa o app da loja é uma compilação e a fila da
+revisão da Apple.
