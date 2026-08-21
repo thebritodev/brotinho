@@ -12,7 +12,7 @@ import {
   TopBar,
   type IconName,
 } from '../../components';
-import { exportarDados } from '../../services/exportarDados';
+import { exportarJson, exportarLegivel } from '../../services/exportarDados';
 import { useAppState } from '../../state/AppStateProvider';
 import { colors, palette, radius, borderWidth, fonts } from '../../theme';
 import { PrivacyPolicyScreen } from './PrivacyPolicyScreen';
@@ -71,11 +71,11 @@ export function PrivacyScreen({ onBack }: { onBack: () => void }) {
   const [exportando, setExportando] = useState(false);
   const [avisoExport, setAvisoExport] = useState<string | null>(null);
 
-  const baixar = async () => {
+  const baixar = async (comoTexto: boolean) => {
     setAvisoExport(null);
     setExportando(true);
     try {
-      const r = await exportarDados(data);
+      const r = comoTexto ? await exportarLegivel(data) : await exportarJson(data);
       if (r === 'sem-compartilhamento') {
         setAvisoExport('Este aparelho não oferece onde salvar o arquivo.');
       }
@@ -168,7 +168,7 @@ export function PrivacyScreen({ onBack }: { onBack: () => void }) {
 
         {/* Vem antes do apagar de propósito: a ordem sugere levar a cópia
             embora primeiro, e só então apagar, se for isso que a pessoa quer. */}
-        <Card onPress={exportando ? undefined : baixar} label="Baixar meus dados">
+        <Card onPress={exportando ? undefined : () => void baixar(true)} label="Baixar meus dados">
           <Text
             style={{
               fontFamily: fonts.body.extraBold,
@@ -187,8 +187,8 @@ export function PrivacyScreen({ onBack }: { onBack: () => void }) {
               color: palette.brown700,
             }}
           >
-            Gera um arquivo com tudo o que está guardado aqui — seu diário, seus humores, suas
-            compostagens e suas práticas — para você salvar onde quiser.
+            Gera um arquivo de texto com tudo o que está guardado aqui — seu diário por extenso,
+            seus humores, suas compostagens e suas práticas — para você ler e guardar onde quiser.
           </Text>
           {!!avisoExport && (
             <Text
@@ -203,6 +203,23 @@ export function PrivacyScreen({ onBack }: { onBack: () => void }) {
             </Text>
           )}
         </Card>
+
+        {/* Fora do cartão de propósito. Dentro dele isto virava um botão
+            aninhado noutro: no celular o toque aqui dispararia também o cartão,
+            e a pessoa receberia o texto justamente ao pedir o JSON. */}
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel="Baixar em formato técnico, JSON"
+          onPress={exportando ? undefined : () => void baixar(false)}
+          hitSlop={10}
+          style={{ alignSelf: 'flex-start', marginTop: -8 }}
+        >
+          <Text
+            style={{ fontFamily: fonts.body.bold, fontSize: 13, color: colors.primaryStrong }}
+          >
+            Prefiro o formato técnico (JSON)
+          </Text>
+        </Pressable>
 
         <Card
           onPress={() => setConfirmandoExclusao(true)}
