@@ -371,6 +371,10 @@ hoje: entra sem cobrar. É isso que permite continuar testando no Expo Go.
 
 ---
 
+> **Depois que a build terminar**, o passo a passo até a loja está em
+> `docs/da-build-ate-a-loja.md`: o que testar no `.apk`, como enviar, o que só dá
+> para conferir num iPhone de verdade, e o que fazer se a Apple reprovar.
+
 ## Se você só tem 10 minutos hoje
 
 1. Os **dois formulários fiscais dos EUA** (Negócios → Formulários fiscais).
