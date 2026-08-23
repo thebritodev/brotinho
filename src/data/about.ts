@@ -25,8 +25,9 @@ export const ABOUT: AboutSection[] = [
   {
     title: 'Seus registros são seus',
     paragraphs: [
-      'Não há cadastro, não há servidor, e o que você escreve não sai do seu aparelho. Até a análise que sugere seus valores e temas roda aqui dentro.',
-      'Isso tem um custo que preferimos assumir: sem conta, não dá para você acessar de outro celular. Em troca, ninguém além de você lê o seu diário — nem nós.',
+      'Não há cadastro e não há servidor nosso. O que você escreve fica no seu aparelho, e nunca chega até nós. Até a análise que sugere seus valores e temas roda aqui dentro.',
+      'Isso tem um custo que preferimos assumir: sem conta, ninguém pode recuperar seu diário para você. Em troca, ninguém além de você o lê — nem nós.',
+      'Trocar de celular não é problema: seus registros entram na cópia de segurança que o próprio aparelho já faz, no Google Drive ou no iCloud, e voltam quando você reinstala o app com a mesma conta.',
     ],
   },
   {
