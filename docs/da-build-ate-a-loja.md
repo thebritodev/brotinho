@@ -139,6 +139,41 @@ e corrijo.
 
 ---
 
+## Verificado no `.apk` de 23 de agosto
+
+Abri a build de Android e conferi o que ela realmente contém, porque "compilou"
+não é o mesmo que "levou junto":
+
+| | |
+|---|---|
+| Sons da respiração | os três `.wav` presentes |
+| `expo-speech-recognition` | 122 referências no código compilado |
+| `expo-audio` | 326 |
+| `expo-notifications` | 435 |
+| `expo-haptics` | 35 |
+| `expo-local-authentication` | 41 |
+| `expo-print` | 57 |
+| RevenueCat | 6.457 |
+| Tipo de build | **release** — o bundle é bytecode Hermes, não JavaScript de debug |
+
+O último item importa mais do que parece: numa build de debug o `__DEV__` seria
+verdadeiro, e o app se comportaria diferente do que vai para a loja — o ditado
+devolveria texto de exemplo em vez de falhar honestamente.
+
+> **Um alerta que não se confirmou, anotado para o Google Play.** Lendo as
+> permissões do manifesto binário apareceram `SYSTEM_ALERT_WINDOW` e `DUMP`, que
+> não fazem sentido aqui. Investigando, quem declara a primeira é o source set de
+> **debug** do React Native, e o próprio arquivo diz que serve só para isso.
+>
+> A leitura que fiz extrai o *pool de strings* do manifesto, que contém palavras
+> não necessariamente declaradas — então o mais provável é que seja resíduo. Não
+> dá para afirmar nem desmentir sem `aapt dump permissions`, que precisa do SDK
+> do Android. **Antes de publicar no Google Play, confira**: uma permissão de
+> desenhar sobre outros apps exige justificativa e fica péssima na ficha de um
+> app que promete privacidade.
+
+---
+
 ## O que ainda depende só de você
 
 - [ ] `npx eas login`
