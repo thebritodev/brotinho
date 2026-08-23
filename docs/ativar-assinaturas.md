@@ -8,23 +8,26 @@ Marque os itens conforme for fazendo. **Faça na ordem** — vários passos depe
 > assinar contratos com Apple e Google só você pode fazer. O resto da configuração
 > e o código são comigo.
 
-**Atualizado em 21 de agosto de 2026.** O que está marcado abaixo foi conferido
-na tela naquele dia, não é lembrança.
+**Atualizado em 23 de agosto de 2026.** O que está marcado abaixo foi conferido
+na tela, não é lembrança.
 
 ---
 
 ## Onde estamos hoje, em uma frase
 
-O lado da Apple está **inteiro configurado**: 4 produtos prontos para envio, ficha
-completa, TestFlight preparado, páginas de suporte e privacidade no ar em endereço
-próprio, e os três formulários fiscais ativos.
+**As duas builds saíram e o iOS já foi entregue à Apple.** O que falta agora não é
+configuração: é **testar**. Nada do que foi feito nos últimos dias — a Composta
+conferindo a frase, o ditado local, o apagar das gravações — jamais rodou em
+aparelho.
 
-**O que falta é uma coisa só: a compilação.** Ela precisa de `npx eas login`, que só
-você pode rodar. Depois disso o caminho até a loja é a fila da revisão da Apple.
+O `.apk` de Android existe e instala direto. Para o iOS falta um iPhone.
 
 O contrato de apps pagos, a conta bancária e os três formulários fiscais estão
 todos **ativos** — o lado do dinheiro não depende mais de nada. O Google ainda não
 foi começado.
+
+> O caminho detalhado do que testar e do que fazer depois está em
+> `docs/da-build-ate-a-loja.md`.
 
 ---
 
@@ -308,8 +311,9 @@ hoje: entra sem cobrar. É isso que permite continuar testando no Expo Go.
 - [x] **Projeto validado para build.** `npx expo-doctor` passa nas 18 checagens.
       Ele tinha achado um defeito que só apareceria depois de publicado — ver
       abaixo.
-- [ ] **`eas build`** — precisa do login na sua conta Expo. Senha eu não digito;
-      rode `npx eas login` uma vez e depois eu toco a build.
+- [x] **Build de Android** — perfil `preview`, `.apk`, pronta.
+- [x] **Build de iOS** — perfil `production`, build 3, pronta.
+- [x] **Envio ao App Store Connect** — concluído.
 
 > **O defeito que o expo-doctor pegou.** O `expo-audio` declara o `expo-asset`
 > como dependência com curinga `*`, e o npm instalou a versão **57.0.12**, de um
@@ -377,10 +381,10 @@ hoje: entra sem cobrar. É isso que permite continuar testando no Expo Go.
 
 ## Se você só tem 10 minutos hoje
 
-1. Os **dois formulários fiscais dos EUA** (Negócios → Formulários fiscais).
-   É o único item que ainda trava a cobrança.
+1. **Instalar o `.apk` e testar a Composta** — falar outra coisa e conferir que o
+   contador não anda. É o defeito que motivou o trabalho todo, e continua sem
+   nenhum teste em aparelho.
 2. O **período de tolerância** (Assinaturas → um clique, é só o aceite).
-3. `npx eas login` no terminal, para eu poder tocar a build.
+3. O **Programa para Pequenas Empresas** — 15% de comissão em vez de 30%.
 
-Depois desses três, o que separa o app da loja é uma compilação e a fila da
-revisão da Apple.
+Depois disso, o que separa o app da loja é um iPhone e a fila da revisão.
