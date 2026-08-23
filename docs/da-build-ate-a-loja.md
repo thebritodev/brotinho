@@ -1,52 +1,43 @@
 # Da build até a loja
 
-O que fazer depois que a compilação terminar, na ordem. Escrito antes de precisar,
-para nada ser decidido no susto.
-
-**Estado quando isto foi escrito (22 de agosto de 2026):** tudo do lado da Apple
-está configurado e ativo. Falta a compilação, que depende de um `npx eas login`.
+**Atualizado em 23 de agosto de 2026, depois que as duas builds saíram.**
 
 ---
 
-## O que trava, e por quê
+## O que já aconteceu
 
-| trava | quem resolve |
+| | |
 |---|---|
-| `npx eas login` | você — é senha |
-| Senha da Apple e código de dois fatores, na build de iOS | você — é senha |
-| O resto | eu |
+| Projeto ligado ao EAS | `92636786-e023-4e58-bcfb-38aaa061c374`, conta `pedrodevtheone` |
+| Build Android | `preview`, `.apk`, **finished** |
+| Build iOS | `production`, build **3**, **finished** |
+| Envio ao App Store Connect | **finished** |
 
-A build de **Android não pede senha nenhuma**: o EAS gera a chave de assinatura
-sozinho. Essa dá para tocar inteira sem você.
+O `.ipa` está com a Apple. Depois de processado, ele aparece em **TestFlight** e o
+grupo **Time do Brotinho** distribui sozinho.
+
+**O `.apk` para testar:**
+
+```
+https://expo.dev/artifacts/eas/gJLR3H3p4JV_lbfqIm7bcNrdwxPG3KRMjUKgbI6GVGo.apk
+```
+
+> **Da próxima vez é mais curto.** O EAS guardou o certificado de distribuição, o
+> perfil de provisionamento, a chave do Android e a chave de API do App Store
+> Connect. Uma build nova não pergunta mais nada — nem senha da Apple, nem código
+> de dois fatores.
+>
+> ```
+> npx eas build --platform ios --profile production
+> npx eas submit --platform ios --profile production
+> ```
+>
+> O `autoIncrement` sobe o número da build sozinho, e quem manda é o servidor do
+> EAS, não o `app.json`. Não mexa em versão na mão.
 
 ---
 
-## Passo 1 — Disparar
-
-Um comando de cada vez. As duas rodam em paralelo na fila do Expo.
-
-```
-npx eas login
-npx eas build --platform ios --profile production
-npx eas build --platform android --profile preview
-```
-
-A primeira build vai perguntar se pode criar o projeto no EAS. **Sim.** Ela grava um
-`extra.eas.projectId` no `app.json` — é esperado, e deve ser commitado.
-
-Depois pede Apple ID, senha e o código de dois fatores. O EAS cria sozinho o
-certificado de distribuição e o perfil de provisionamento, e guarda os dois. Da
-segunda build em diante não pergunta mais.
-
-> **`autoIncrement` está ligado** no perfil de produção, e o `appVersionSource` é
-> `remote`. O número da build sobe sozinho a cada compilação, e quem manda é o
-> servidor do EAS, não o `app.json`. Não mexa em versão na mão.
-
-Cada build leva de 10 a 30 minutos, contando fila.
-
----
-
-## Passo 2 — O `.apk` do Android, que dá para testar hoje
+## O que testar no `.apk` — e ainda não foi testado
 
 O perfil `preview` entrega um `.apk` com link para baixar. Instala direto no
 aparelho, sem loja.
@@ -71,7 +62,7 @@ percorrer esta lista, porque nada disso funciona no Expo Go:
 
 ---
 
-## Passo 3 — Enviar o iOS
+## Se precisar enviar de novo
 
 ```
 npx eas submit --platform ios --profile production
@@ -89,7 +80,7 @@ ligada.
 
 ---
 
-## Passo 4 — Testar no iPhone
+## Testar no iPhone
 
 Precisa de um **iPhone de verdade**. Um MacBook não serve para isto: o simulador não
 tem microfone, não vibra, e o reconhecimento de fala nele é irregular — justamente
@@ -97,7 +88,7 @@ o que precisa de teste.
 
 No iPhone: baixe o **TestFlight** na App Store, aceite o convite, instale.
 
-Refaça a lista do passo 2, e mais estas, que só existem no iOS:
+Refaça a lista de cima, e mais estas, que só existem no iOS:
 
 - [ ] O **Taptic Engine** é diferente do vibrador do Android. A vibração ficou
       discreta demais ou forte demais?
@@ -108,7 +99,7 @@ Refaça a lista do passo 2, e mais estas, que só existem no iOS:
 
 ---
 
-## Passo 5 — Mandar para revisão
+## Mandar para revisão
 
 Na página da versão 1.0, o botão **Adicionar para revisão**.
 
@@ -129,7 +120,7 @@ Não é fracasso, é rotina. Os motivos mais comuns, e o que já está feito con
 | motivo | como está |
 |---|---|
 | Pedem login e não deram conta | as notas de revisão começam com **"NÃO É NECESSÁRIO LOGIN"** em maiúsculas |
-| Botão Restaurar não funciona | implementado; **teste no passo 4** |
+| Botão Restaurar não funciona | implementado; **teste no iPhone** |
 | Preço e renovação pouco claros | o paywall mostra preço, duração e renovação automática |
 | Faltou a captura do paywall | anexada nos quatro produtos |
 | App de saúde sem aviso | a política e a tela Sobre dizem que não é tratamento, e trazem o CVV |
@@ -176,7 +167,6 @@ devolveria texto de exemplo em vez de falhar honestamente.
 
 ## O que ainda depende só de você
 
-- [ ] `npx eas login`
 - [ ] **Programa para Pequenas Empresas** — 15% de comissão em vez de 30%
 - [ ] **Período de tolerância** nas assinaturas
 - [ ] **Resposta automática** do `brotinho.suporte@gmail.com`
