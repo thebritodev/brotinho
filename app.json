@@ -16,7 +16,6 @@
         "NSSpeechRecognitionUsageDescription": "O Brotinho usa o reconhecimento de fala do próprio aparelho para escrever o que você falar.",
         "NSMicrophoneUsageDescription": "O Brotinho usa o microfone para transformar seu desabafo em texto."
       },
-      "buildNumber": "1",
       "privacyManifests": {
         "NSPrivacyAccessedAPITypes": [
           {
@@ -58,7 +57,6 @@
       },
       "predictiveBackGestureEnabled": false,
       "allowBackup": true,
-      "versionCode": 1,
       "permissions": [
         "android.permission.RECORD_AUDIO",
         "android.permission.MODIFY_AUDIO_SETTINGS",
