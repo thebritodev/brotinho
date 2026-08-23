@@ -1,7 +1,7 @@
 {
   "expo": {
     "name": "Brotinho",
-    "slug": "brotinho",
+    "slug": "brotinho-app",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
@@ -12,7 +12,9 @@
       "bundleIdentifier": "com.brotinho.app",
       "infoPlist": {
         "RCTAsyncStorageExcludeFromBackup": false,
-        "ITSAppUsesNonExemptEncryption": false
+        "ITSAppUsesNonExemptEncryption": false,
+        "NSSpeechRecognitionUsageDescription": "O Brotinho usa o reconhecimento de fala do próprio aparelho para escrever o que você falar.",
+        "NSMicrophoneUsageDescription": "O Brotinho usa o microfone para transformar seu desabafo em texto."
       },
       "buildNumber": "1",
       "privacyManifests": {
@@ -56,7 +58,13 @@
       },
       "predictiveBackGestureEnabled": false,
       "allowBackup": true,
-      "versionCode": 1
+      "versionCode": 1,
+      "permissions": [
+        "android.permission.RECORD_AUDIO",
+        "android.permission.MODIFY_AUDIO_SETTINGS",
+        "android.permission.USE_BIOMETRIC",
+        "android.permission.USE_FINGERPRINT"
+      ]
     },
     "web": {
       "favicon": "./assets/favicon.png"
@@ -102,6 +110,12 @@
         }
       ],
       "expo-asset"
-    ]
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "92636786-e023-4e58-bcfb-38aaa061c374"
+      }
+    },
+    "owner": "pedrodevtheone"
   }
 }
