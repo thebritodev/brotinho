@@ -5,7 +5,6 @@ import {
   useAudioRecorder,
   useAudioRecorderState,
 } from 'expo-audio';
-import { File } from 'expo-file-system';
 import { useCallback, useEffect, useRef, useState } from 'react';
 
 import {
@@ -15,6 +14,7 @@ import {
   stopNativeSpeech,
   subscribeSpeech,
 } from '../../services/speech';
+import { pararEApagar } from '../../services/apagarGravacao';
 import { criarConferidor, type Conferidor } from './casaFrase';
 
 /**
@@ -211,27 +211,9 @@ export function useCompostSession({ targetSeconds, frase, onFinish }: Options): 
     soltarEventos();
     stopNativeSpeech();
 
-    /**
-     * O gravador do modo acústico escreve um arquivo no cache do app, e ninguém
-     * o apagava. Ficava lá o áudio da pessoa dizendo em voz alta o pensamento
-     * que mais a machuca — para nada, porque o modo acústico só usa o medidor de
-     * volume e nunca abre o arquivo.
-     *
-     * Falhar em apagar não pode derrubar a tela, então o erro é engolido: no
-     * pior caso o sistema limpa o cache sozinho depois.
-     */
-    const gravacao = recorder.uri;
-    void recorder
-      .stop()
-      .catch(() => {})
-      .finally(() => {
-        if (!gravacao) return;
-        try {
-          new File(gravacao).delete();
-        } catch {
-          // sem drama: é cache
-        }
-      });
+    // Para o gravador e apaga o arquivo que ele deixou no cache — ver o porquê
+    // em `pararEApagar`.
+    void pararEApagar(recorder);
   }, [recorder, soltarEventos]);
 
   /**

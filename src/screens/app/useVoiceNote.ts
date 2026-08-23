@@ -4,7 +4,6 @@ import {
   setAudioModeAsync,
   useAudioRecorder,
 } from 'expo-audio';
-import { File } from 'expo-file-system';
 import { useCallback, useEffect, useRef, useState } from 'react';
 
 import {
@@ -14,6 +13,7 @@ import {
   stopNativeSpeech,
   subscribeSpeech,
 } from '../../services/speech';
+import { pararEApagar } from '../../services/apagarGravacao';
 import { transcribeAudio } from '../../services/transcription';
 
 export type VoiceState = 'idle' | 'recording' | 'transcribing';
@@ -130,18 +130,9 @@ export function useVoiceNote({ onText }: Options) {
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Não consegui transcrever o áudio.');
     } finally {
-      /**
-       * A gravação já cumpriu o papel dela. Deixá-la no cache guardaria a voz da
-       * pessoa desabafando, sem que nada no app fosse usar aquilo de novo.
-       *
-       * No `finally` de propósito: precisa sumir mesmo quando a transcrição
-       * falha, que é justamente quando ninguém lembraria de limpar.
-       */
-      try {
-        if (recorder.uri) new File(recorder.uri).delete();
-      } catch {
-        // sem drama: é cache
-      }
+      // No `finally` de propósito: a gravação precisa sumir mesmo quando a
+      // transcrição falha, que é justamente quando ninguém lembraria de limpar.
+      await pararEApagar(recorder);
       setState('idle');
     }
   }, [recorder, onText]);
