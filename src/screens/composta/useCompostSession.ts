@@ -123,6 +123,15 @@ const INTERVALO_DO_VOLUME_MS = 150;
 /** Na escala do reconhecimento (-2 a 10), abaixo de zero é inaudível. */
 const VOLUME_AUDIVEL = 0.5;
 
+/**
+ * Quantas vezes religar o reconhecimento antes de cair para o acústico.
+ *
+ * Uma sessão dura 30 a 40 segundos e o reconhecedor encerra depois de alguns
+ * segundos de silêncio. Seis religadas cobrem uma prática inteira feita com
+ * pausas longas, e ainda param rápido se o problema for outro.
+ */
+const MAX_REINICIOS = 6;
+
 /** Estado da máquina de detecção, zerado a cada sessão. */
 function estadoInicial() {
   return {
@@ -294,6 +303,7 @@ export function useCompostSession({ targetSeconds, frase, onFinish }: Options): 
     conferidor.current = criarConferidor(alvo);
 
     let vivo = true;
+    let reinicios = 0;
     const desistir = () => {
       if (!vivo) return;
       vivo = false;
@@ -320,11 +330,46 @@ export function useCompostSession({ targetSeconds, frase, onFinish }: Options): 
         acumular(audivel, INTERVALO_DO_VOLUME_MS / 1000);
       }),
 
-      subscribeSpeech('error', desistir),
+      subscribeSpeech('error', (evento: { error?: string }) => {
+        /**
+         * Nem todo erro significa que o reconhecimento não serve.
+         *
+         * `no-speech` é só silêncio — a pessoa pausou para respirar, ou parou
+         * de falar antes de terminar. `aborted` é o próprio app encerrando.
+         * Cair para o acústico nesses dois desligaria a conferência da frase
+         * pelo motivo mais banal que existe numa prática que **tem** pausas.
+         *
+         * O resto — sem modelo offline, microfone ocupado, falha de captura —
+         * é motivo real para desistir.
+         */
+        if (evento?.error === 'no-speech' || evento?.error === 'aborted') return;
+        desistir();
+      }),
       subscribeSpeech('end', () => {
-        // Fim natural com a sessão ainda rodando significa que o reconhecedor
-        // desistiu sozinho; o acústico assume para ninguém ficar travado.
-        if (!machine.current.finished) desistir();
+        if (machine.current.finished || !vivo) return;
+
+        /**
+         * O reconhecedor encerra sozinho depois de um tanto de silêncio, mesmo
+         * com `continuous`. Numa prática que **tem** pausas — a pessoa respira,
+         * pensa, se emociona — isso é rotina, não falha.
+         *
+         * Então religa em vez de desistir. Só depois de insistir algumas vezes
+         * sem sucesso é que o acústico assume, para ninguém ficar preso num
+         * ciclo de religar que nunca funciona.
+         */
+        reinicios += 1;
+        if (reinicios > MAX_REINICIOS) {
+          desistir();
+          return;
+        }
+        try {
+          // A transcrição recomeça vazia, então o conferidor precisa recomeçar
+          // junto: ele guarda até onde já contou, e esse índice não vale mais.
+          conferidor.current = criarConferidor(alvo);
+          startPhraseSpeech(alvo, INTERVALO_DO_VOLUME_MS);
+        } catch {
+          desistir();
+        }
       }),
     ];
 
