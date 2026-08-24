@@ -16,24 +16,33 @@
 O `.ipa` está com a Apple. Depois de processado, ele aparece em **TestFlight** e o
 grupo **Time do Brotinho** distribui sozinho.
 
-**O `.apk` que existe hoje está velho — gere outro antes de testar.**
+**O `.apk` para testar** — build de 23/08 às 23h, commit `b1808cf`:
 
 ```
-npx eas-cli build --platform android --profile preview
+https://expo.dev/artifacts/eas/B1qBlOgvIA9zxi6ok1fbLhSDxFOdUucnhhB0QGjJMaU.apk
 ```
 
-> **Por que não serve o link antigo.** A build de Android começou por volta das
-> 20h de 23 de agosto. Dois consertos entraram depois: às 20h22 o apagar da
-> gravação, e às 20h25 o que impede que **uma pausa desligue a conferência da
-> frase**.
+Abra esse link **pelo celular**. O Android vai avisar que é um app de fora da
+Play Store; é preciso permitir a instalação uma vez.
+
+> **Não use o `.apk` anterior**
+> (`gJLR3H3p4JV_lbfqIm7bcNrdwxPG3KRMjUKgbI6GVGo`). Ele foi compilado por volta
+> das 20h, e dois consertos entraram depois: às 20h22 o apagar da gravação, e às
+> 20h25 o que impede que **uma pausa desligue a conferência da frase**.
 >
 > O segundo é justamente o que se quer testar. Naquele `.apk`, ficar dois
 > segundos calado no meio da prática derruba a conferência para o modo acústico —
 > e aí qualquer barulho volta a contar. Testar nele levaria à conclusão errada
 > sobre o trabalho todo.
 >
-> O `.apk` velho, para registro:
-> `https://expo.dev/artifacts/eas/gJLR3H3p4JV_lbfqIm7bcNrdwxPG3KRMjUKgbI6GVGo.apk`
+> Esta build nova carrega os dois consertos, mais o aviso "Este aparelho não
+> confere a frase" para quando o reconhecimento não estiver disponível.
+
+Para gerar outra, quando precisar:
+
+```
+npx eas-cli build --platform android --profile preview
+```
 
 > **Da próxima vez é mais curto.** O EAS guardou o certificado de distribuição, o
 > perfil de provisionamento, a chave do Android e a chave de API do App Store
