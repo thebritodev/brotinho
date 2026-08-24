@@ -10,11 +10,20 @@
 |---|---|
 | Projeto ligado ao EAS | `92636786-e023-4e58-bcfb-38aaa061c374`, conta `pedrodevtheone` |
 | Build Android | `preview`, `.apk`, **finished** |
-| Build iOS | `production`, build **3**, **finished** |
-| Envio ao App Store Connect | **finished** |
+| Build iOS | `production`, build **4**, **finished** |
+| Envio ao App Store Connect | **finished** — 24/08/2026, 13h |
 
 O `.ipa` está com a Apple. Depois de processado, ele aparece em **TestFlight** e o
 grupo **Time do Brotinho** distribui sozinho.
+
+> **A build 3 não serve para testar.** Ela foi compilada antes dos consertos da
+> Composta. A **4** é a primeira que tem dentro tudo o que foi feito: o apagar da
+> gravação, a pausa que não derruba mais a conferência da frase, o aviso quando o
+> aparelho não consegue conferir, e o plano que o Android não achava.
+>
+> As duas continuam sem cobrar — falta a chave do RevenueCat, ver
+> `a-build-3-nao-cobra.md`. No TestFlight isso não atrapalha o teste: você entra
+> com tudo liberado.
 
 **O `.apk` para testar** — build de 23/08 às 23h, commit `b1808cf`:
 
