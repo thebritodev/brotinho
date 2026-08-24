@@ -62,28 +62,45 @@ também pode ser lido como propaganda enganosa.
 
 Só uma coisa: **as chaves públicas do RevenueCat**, e uma build nova.
 
-1. Criar a conta e o projeto em <https://app.revenuecat.com> — o passo a passo
-   está na FASE 4 de `ativar-assinaturas.md`
-2. Ligar o app iOS (`com.brotinho.app`) à Apple, cadastrar os 4 identificadores,
-   criar o direito `premium` e a oferta
+A conta foi criada em 23 de agosto. Falta a configuração, e ela está detalhada na
+FASE 4 de `ativar-assinaturas.md`:
+
+1. Projeto **Brotinho** e app iOS (`com.brotinho.app`) ligado à Apple
+2. Os 4 identificadores, o direito `premium`, e uma oferta marcada como **current**
 3. Guardar as duas chaves públicas no EAS, que é onde a build as lê:
 
 ```
-eas env:create --environment production --name EXPO_PUBLIC_REVENUECAT_IOS --value appl_xxx --visibility sensitive
-eas env:create --environment production --name EXPO_PUBLIC_REVENUECAT_ANDROID --value goog_xxx --visibility sensitive
+npx eas-cli env:create --environment production --name EXPO_PUBLIC_REVENUECAT_IOS --value appl_xxx --visibility sensitive
 ```
 
-4. Compilar de novo e enviar. O EAS já guardou o certificado, o perfil e a chave
+4. Conferir antes de gastar uma build — o script existe justamente por causa
+   deste episódio:
+
+```
+npm run confere-cobranca
+```
+
+5. Compilar de novo e enviar. O EAS já guardou o certificado, o perfil e a chave
    de API — não pergunta mais senha nenhuma:
 
 ```
-eas build --platform ios --profile production
-eas submit --platform ios --profile production
+npx eas-cli build --platform ios --profile production
 ```
 
 > **Guardar no EAS, não no `.env`.** O `.env` não sobe para a nuvem de build: foi
 > exatamente por isso que a build 3 saiu sem chave. E `--visibility sensitive`
 > impede que o valor apareça nos registros da compilação.
+
+### Uma segunda causa, encontrada depois
+
+Guardar a variável no EAS não bastava. Um perfil de build só recebe as variáveis
+do ambiente que ele **declara**, e nenhum dos três perfis declarava nada — as
+chaves poderiam ficar guardadas no lugar certo e mesmo assim não chegar à build.
+
+O `eas.json` agora tem `"environment"` em cada perfil, e o `confere-cobranca`
+checa isso primeiro. De propósito, o `preview` aponta para um ambiente **sem**
+chaves: o `.apk` de teste continua entrando sem cobrar, que é o que o torna
+testável.
 
 ---
 

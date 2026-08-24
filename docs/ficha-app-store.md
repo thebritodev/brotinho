@@ -227,7 +227,6 @@ adicione você mesmo.
 2. Revisar os textos acima
 3. Tirar as capturas de tela
 4. Confirmar a declaração de criptografia
-5. Uma revisão das 31 práticas por um psicólogo, antes de publicar
 
 ## O que já está pronto do lado técnico
 

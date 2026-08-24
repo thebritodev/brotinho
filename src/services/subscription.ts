@@ -28,7 +28,10 @@ export type EstadoDaAssinatura =
   | 'indisponivel';
 
 export type PlanoDaLoja = {
-  /** Identificador do produto, igual nas duas lojas. */
+  /**
+   * Identificador do produto, já normalizado para ser igual nas duas lojas —
+   * ver `semOPlanoBase`. É por ele que o app acha o plano em `PRODUTO_DO_PLANO`.
+   */
   id: string;
   /** Preço já formatado pela loja, na moeda e no idioma do aparelho. */
   preco: string;
@@ -161,6 +164,27 @@ export function observarAssinatura(aoMudar: (estado: EstadoDaAssinatura) => void
 // --- Planos ---------------------------------------------------------------
 
 /**
+ * O identificador do produto sem o sufixo do Google.
+ *
+ * A Apple devolve `brotinho_anual`. O Google Play, desde a cobrança versão 5,
+ * devolve `brotinho_anual:anual` — o identificador da assinatura, dois pontos,
+ * e o do plano base. São strings diferentes para o mesmo produto.
+ *
+ * O app procura o plano por igualdade exata contra `PRODUTO_DO_PLANO`. Sem
+ * cortar aqui, no Android nenhum plano seria encontrado, e o botão de assinar
+ * responderia "não consegui falar com a loja" para todo mundo, sempre — com a
+ * loja funcionando perfeitamente do outro lado.
+ *
+ * Cortar é seguro porque cada assinatura nossa tem **um** plano base. Se algum
+ * dia houver dois, os dois viram o mesmo `id` e o primeiro ganha; nesse dia
+ * este é o lugar de decidir qual.
+ */
+function semOPlanoBase(identificador: string): string {
+  const corte = identificador.indexOf(':');
+  return corte === -1 ? identificador : identificador.slice(0, corte);
+}
+
+/**
  * Os planos como a loja os devolve.
  *
  * O preço TEM que vir daqui, e não do texto escrito no app: Apple e Google
@@ -175,7 +199,7 @@ export async function listarPlanos(): Promise<PlanoDaLoja[]> {
     const { current } = await obterSdk()!.getOfferings();
     if (!current) return [];
     return current.availablePackages.map((p) => ({
-      id: p.product.identifier,
+      id: semOPlanoBase(p.product.identifier),
       preco: p.product.priceString,
       precoMensal: p.product.pricePerMonthString ?? null,
       pacote: p,

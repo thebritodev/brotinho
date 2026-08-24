@@ -74,5 +74,9 @@ Não inventar defeito é parte do trabalho. Estes foram checados e passaram:
   como código lido, simulado e revisado.
 - **As permissões do manifesto Android**, com ferramenta adequada — ver a
   ressalva em `da-build-ate-a-loja.md`.
-- **Os 31 textos das práticas**, por um psicólogo. Nenhuma leitura minha
-  substitui isso.
+
+> **Revisão das práticas por um profissional: descartada em 23 de agosto**, por
+> decisão do dono do app. Fica registrado aqui porque um relatório de auditoria
+> que perde de vista o que ficou sem verificar deixa de servir para o que existe.
+> Os 31 textos estão escritos como autocuidado e nunca como tratamento, e a tela
+> Sobre e a política dizem isso — foi o que levou à decisão.

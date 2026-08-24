@@ -275,22 +275,63 @@ Use os **mesmos identificadores** da Apple.
 
 ---
 
-## FASE 4 — RevenueCat — não começado
+## FASE 4 — RevenueCat — conta criada, falta configurar
 
 O RevenueCat conversa com as duas lojas por nós: recibo, renovação, cancelamento,
 restauração. Sem ele, tudo isso é escrito e mantido duas vezes.
 
-- [ ] Criar conta em <https://app.revenuecat.com>
-- [ ] Criar um projeto chamado **Brotinho**
-- [ ] Adicionar o app **iOS** (bundle `com.brotinho.app`) e conectar à Apple
-- [ ] Adicionar o app **Android** (pacote `com.brotinho.app`) e conectar ao Google
-- [ ] Em **Products**, cadastrar os 4 identificadores
-- [ ] Em **Entitlements**, criar **um** chamado `premium` com os 4 produtos dentro
-- [ ] Em **Offerings**, criar uma oferta com os 4 planos
-- [ ] Copiar as duas **chaves públicas** (uma de iOS, uma de Android)
+**A conta existe desde 23 de agosto.** O que falta é a configuração — e ela é o
+único item entre o estado de hoje e uma versão que pode ser revisada, porque a
+build que está com a Apple entrega o app de graça (`a-build-3-nao-cobra.md`).
 
-> **Não me mande as chaves por aqui.** Cole direto no `.env` — instruções na FASE 5.
-> São chaves públicas, mas o hábito certo é esse.
+### 4.1 O projeto e o app iOS
+
+- [ ] Criar um projeto chamado **Brotinho**
+- [ ] Adicionar o app **iOS**, bundle `com.brotinho.app`
+
+O RevenueCat vai pedir uma **In-App Purchase Key** da Apple: um trio de
+*Issuer ID*, *Key ID* e um arquivo `.p8`. Ele é obrigatório aqui — o app usa
+`react-native-purchases` **10.7.1**, que valida por StoreKit 2, e o antigo
+*app-specific shared secret* só serve para StoreKit 1, hoje descontinuado.
+
+> **Não é a mesma chave que o EAS já usa.** O EAS guardou uma chave de API do App
+> Store Connect para *enviar* builds. Esta é outra, de outra seção, e serve para
+> *validar compras*. Gere uma nova em vez de tentar reaproveitar.
+>
+> Ela fica em App Store Connect → **Usuários e acesso** → **Integrações** →
+> **Chave de compra no app**. O `.p8` só pode ser baixado **uma vez**.
+
+### 4.2 Os produtos, o direito e a oferta
+
+Nesta ordem — cada camada depende da anterior:
+
+- [ ] **Products** — importar da Apple. Os quatro identificadores, exatamente
+      assim, porque o app procura por igualdade:
+
+      brotinho_semanal · brotinho_mensal · brotinho_anual · brotinho_vitalicio
+
+- [ ] **Entitlements** — criar **um só**, chamado `premium`, com os quatro
+      produtos dentro. Esse nome está escrito em `src/services/subscription.ts`;
+      se divergir, todo mundo vira "não assinante"
+- [ ] **Offerings** — uma oferta marcada como **current**, com os quatro planos.
+      O app pede `getOfferings().current`; sem oferta atual a lista chega vazia e
+      o botão responde "não consegui falar com a loja"
+
+### 4.3 As duas chaves públicas
+
+- [ ] Copiar a chave de iOS (`appl_…`) e a de Android (`goog_…`) em
+      **Project settings → API keys**
+
+São as chaves **públicas** do SDK, não a secreta.
+
+> **Não me mande as chaves por aqui.** Elas vão direto para o EAS, no passo
+> abaixo — e é aí que mora o erro que já custou uma build.
+
+### 4.4 Android — pode ficar para depois
+
+O app Android exige o Google Play Console configurado (FASE 3), que ainda não
+está. **Não é bloqueio para o iOS:** faça o projeto e o app iOS agora, e volte
+aqui quando o Play estiver de pé.
 
 ---
 
@@ -303,15 +344,33 @@ restauração. Sem ele, tudo isso é escrito e mantido duas vezes.
 - [x] Tela para quem perdeu a assinatura, com restaurar
 - [x] Verificação a cada abertura do app e ao voltar para ele
 
-**O que falta aqui:** criar um `.env` na raiz do projeto com as duas chaves:
+**O que falta aqui: guardar as duas chaves no EAS.**
 
 ```
-EXPO_PUBLIC_REVENUECAT_IOS=appl_xxxxxxxx
-EXPO_PUBLIC_REVENUECAT_ANDROID=goog_xxxxxxxx
+npx eas-cli env:create --environment production --name EXPO_PUBLIC_REVENUECAT_IOS --value appl_xxx --visibility sensitive
+npx eas-cli env:create --environment production --name EXPO_PUBLIC_REVENUECAT_ANDROID --value goog_xxx --visibility sensitive
 ```
 
-O `.env` já está no `.gitignore`. Enquanto não houver chave, o app se comporta como
-hoje: entra sem cobrar. É isso que permite continuar testando no Expo Go.
+> **No EAS, não no `.env`** — e esta é a lição mais cara deste projeto. O `.env`
+> vale na sua máquina; ele não sobe para a nuvem que compila. Foi exatamente por
+> isso que a build 3 saiu sem chave nenhuma e se deu de presente.
+>
+> `--visibility sensitive` impede que o valor apareça nos registros da compilação.
+
+Para conferir antes de gastar uma build:
+
+```
+npm run confere-cobranca
+```
+
+Ele checa as três coisas que precisam ser verdade juntas: o perfil de build lê o
+ambiente certo, as duas chaves existem lá, e os identificadores do código não
+mudaram. Se qualquer uma falhar, ele diz qual e o que fazer.
+
+Enquanto não houver chave, o app se comporta como hoje: entra sem cobrar. É isso
+que permite continuar testando no Expo Go — e é por isso que o perfil `preview`
+aponta para o ambiente `preview`, que **não** tem as chaves. O `.apk` de teste
+segue aberto de propósito.
 
 ---
 
@@ -378,9 +437,6 @@ hoje: entra sem cobrar. É isso que permite continuar testando no Expo Go.
       > saúde mental chegam mensagens pesadas e fora de hora. A resposta precisa
       > dizer duas coisas na hora: que ali **não** é atendimento de emergência, e
       > que existe o CVV no 188.
-- [ ] **Revisão das práticas por um psicólogo.** São 31 textos sobre saúde mental.
-      Estão escritos como autocuidado e nunca como tratamento, mas vale alguém da
-      área ler antes de ir ao público.
 
 ---
 

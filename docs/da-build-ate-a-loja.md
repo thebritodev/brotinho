@@ -16,11 +16,24 @@
 O `.ipa` está com a Apple. Depois de processado, ele aparece em **TestFlight** e o
 grupo **Time do Brotinho** distribui sozinho.
 
-**O `.apk` para testar:**
+**O `.apk` que existe hoje está velho — gere outro antes de testar.**
 
 ```
-https://expo.dev/artifacts/eas/gJLR3H3p4JV_lbfqIm7bcNrdwxPG3KRMjUKgbI6GVGo.apk
+npx eas-cli build --platform android --profile preview
 ```
+
+> **Por que não serve o link antigo.** A build de Android começou por volta das
+> 20h de 23 de agosto. Dois consertos entraram depois: às 20h22 o apagar da
+> gravação, e às 20h25 o que impede que **uma pausa desligue a conferência da
+> frase**.
+>
+> O segundo é justamente o que se quer testar. Naquele `.apk`, ficar dois
+> segundos calado no meio da prática derruba a conferência para o modo acústico —
+> e aí qualquer barulho volta a contar. Testar nele levaria à conclusão errada
+> sobre o trabalho todo.
+>
+> O `.apk` velho, para registro:
+> `https://expo.dev/artifacts/eas/gJLR3H3p4JV_lbfqIm7bcNrdwxPG3KRMjUKgbI6GVGo.apk`
 
 > **Da próxima vez é mais curto.** O EAS guardou o certificado de distribuição, o
 > perfil de provisionamento, a chave do Android e a chave de API do App Store
@@ -178,5 +191,3 @@ devolveria texto de exemplo em vez de falhar honestamente.
 - [ ] **Programa para Pequenas Empresas** — 15% de comissão em vez de 30%
 - [ ] **Período de tolerância** nas assinaturas
 - [ ] **Resposta automática** do `brotinho.suporte@gmail.com`
-- [ ] **Revisão das 31 práticas por um psicólogo** — a única que não tem prazo, e a
-      única que ninguém além de um profissional pode fazer
