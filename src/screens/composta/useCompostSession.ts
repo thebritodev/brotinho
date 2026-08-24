@@ -159,6 +159,14 @@ export type CompostSession = {
   level: number;
   /** true quando a pessoa parou de falar. */
   silent: boolean;
+  /**
+   * true depois que a sessão escolheu por onde vai escutar.
+   *
+   * Existe porque `porFrase` e `manual` são os dois falsos **antes** dessa
+   * escolha — enquanto a permissão está sendo pedida, por exemplo. Sem isto,
+   * quem olhasse só os dois concluiria "acústico" durante a espera.
+   */
+  running: boolean;
   /** true quando não há permissão/medidor e a sessão depende do botão manual. */
   manual: boolean;
   /**
@@ -513,6 +521,7 @@ export function useCompostSession({ targetSeconds, frase, onFinish }: Options): 
     reps,
     level,
     silent,
+    running,
     manual,
     porFrase,
     repTick,

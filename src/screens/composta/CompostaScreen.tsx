@@ -336,6 +336,17 @@ export function CompostaScreen({ onClose }: { onClose: () => void }) {
      * tempo suficiente para saber que não é hesitação.
      */
     const naoEstaCasando = session.porFrase && session.reps === 0 && session.secs > 6;
+    /**
+     * O aparelho não conseguiu conferir a frase, e a contagem voltou a ser só
+     * pelo som — falta do português offline, erro do reconhecedor, ou ele
+     * desistindo depois de religar seis vezes.
+     *
+     * Sem dizer isso, a tela fica idêntica à de quem tem a conferência: mesmo
+     * broto, mesmo texto, mesmo anel pulsando. A diferença é que agora qualquer
+     * barulho conta — que é exatamente a queixa que originou este trabalho todo.
+     * Calar sobre isso faria o conserto parecer um defeito.
+     */
+    const soPeloSom = session.running && !session.porFrase && !session.manual;
 
     const status = session.silent
       ? 'Continue falando'
@@ -509,6 +520,22 @@ export function CompostaScreen({ onClose }: { onClose: () => void }) {
               </Text>
             </View>
           )}
+
+          {soPeloSom ? (
+            <Text
+              style={{
+                marginTop: 10,
+                fontFamily: fonts.body.regular,
+                fontSize: 12,
+                lineHeight: 12 * 1.45,
+                color: colors.textSecondary,
+                textAlign: 'center',
+              }}
+            >
+              Este aparelho não confere a frase — estou contando pelo som da sua voz.
+              Procure um lugar quieto.
+            </Text>
+          ) : null}
         </View>
       </View>
       </ScreenTransition>
