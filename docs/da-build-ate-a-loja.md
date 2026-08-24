@@ -64,6 +64,14 @@ percorrer esta lista, porque nada disso funciona no Expo Go:
       dizer "Repita a frase que você escreveu".
 - [ ] **Composta com barulho:** deixe um ventilador ligado, bata na mesa, feche uma
       porta. Nada disso pode contar.
+- [ ] **Se aparecer "Este aparelho não confere a frase"**, a conferência não está
+      disponível nesse celular e a contagem voltou a ser pelo som — aí o teste de
+      cima vai falhar de propósito, e não é defeito.
+
+      No Android, isso quase sempre é a falta do português offline:
+      **Configurações → Google → Configurações de apps do Google → Pesquisa e
+      Assistente → Voz → Reconhecimento de fala offline → Português (Brasil)**.
+      Instale e refaça o teste.
 - [ ] **Ditado do diário:** o texto aparece enquanto você fala. Se o aparelho não
       tiver o português offline, aparece a mensagem explicando — e isso é o
       comportamento certo, não um defeito.

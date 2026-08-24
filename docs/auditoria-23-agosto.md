@@ -75,6 +75,26 @@ sintoma, por outro caminho.
 que checa as três condições antes de gastar uma build. O `preview` aponta de
 propósito para um ambiente **sem** chaves, para o `.apk` de teste seguir aberto.
 
+### A queda da conferência era muda
+
+Quando o reconhecimento não dava para usar — falta do português offline, erro do
+serviço, ou desistir depois de religar seis vezes — a Composta voltava a contar
+só pelo som **sem dizer nada**. Mesmo broto, mesmo texto, mesmo anel pulsando; a
+única diferença invisível é que qualquer barulho voltava a contar.
+
+Ou seja: no aparelho onde o conserto não funciona, a tela promete exatamente o
+que ele conserta. Quem testasse ali concluiria que o trabalho todo falhou.
+
+→ uma linha discreta explicando o modo, e o `da-build-ate-a-loja.md` diz como
+instalar o idioma offline no Android.
+
+> **Um defeito que eu mesmo escrevi e peguei antes de commitar.** A primeira
+> versão do aviso olhava só para "não é por frase e não é manual" — mas os dois
+> são falsos **antes** de a sessão escolher, enquanto o diálogo de permissão está
+> na tela. O aviso apareceria por cima dele, na primeira vez que alguém abre a
+> prática. Passou a depender de `running`, que só fica verdadeiro depois da
+> escolha.
+
 ---
 
 ## O que foi verificado e estava certo
@@ -92,6 +112,7 @@ Não inventar defeito é parte do trabalho. Estes foram checados e passaram:
 | **Escape no PDF** | tudo que é texto da pessoa passa por `escape`. Os dois valores sem escape (`p.topic`, `p.practice`) são só chaves de busca e nunca chegam ao HTML — e o relatório **não contém texto do diário**, só padrões |
 | **Microfone ao sair da tela** | `useEffect(() => stop, [stop])` só dispara ao desmontar: `useAudioRecorder` depende de `JSON.stringify(options)`, não da identidade do objeto, então o `recorder` é estável entre renders |
 | **Dimensão negativa em SVG** | classe fechada. Só duas subtrações de largura no projeto, as duas com `Math.max`. Multiplicação e divisão dão zero, que é tamanho válido |
+| **Sessão de áudio do iOS** | a suspeita era o clássico: gravar deixa a sessão em `playAndRecord`, que no iPhone joga o som seguinte no fone de ouvido do telefone em vez do alto-falante — a respiração ficaria quase inaudível depois da Composta. Fui ao Swift do `expo-audio`: o modo é um `Record` com padrões, então cada chamada **substitui** em vez de somar, e o guia da respiração define o seu na montagem. Não vaza |
 | **Ciclos de animação** | os oito `setInterval`/`setTimeout`/`Animated.loop` do projeto têm limpeza no `return` do efeito. As partículas do FallingWords se removem sozinhas ao fim da queda |
 | **Permissão de notificação** | pedida em `scheduleDailyReminder` antes de agendar, e o canal do Android é criado. No Android 13+ isso é o que separa "agendou" de "nunca apareceu" |
 | **`android.permissions` no app.json** | é **aditivo**, confirmado na documentação do Expo — não limita o que os plugins acrescentam. O `POST_NOTIFICATIONS` do expo-notifications entra na build |
