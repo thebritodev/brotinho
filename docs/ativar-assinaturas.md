@@ -13,6 +13,15 @@ na tela, não é lembrança.
 
 ---
 
+> ## ⚠️ A build que está com a Apple não cobra de ninguém
+>
+> Falta a chave do RevenueCat, então o botão "Assinar" entra no app de graça —
+> e o revisor da Apple não consegue chegar em compra nenhuma. As quatro compras
+> foram enviadas junto com esta versão, e é provável que sejam reprovadas por
+> isso.
+>
+> **O que resolve está em `docs/a-build-3-nao-cobra.md`.**
+
 ## Onde estamos hoje, em uma frase
 
 **As duas builds saíram e o iOS já foi entregue à Apple.** O que falta agora não é

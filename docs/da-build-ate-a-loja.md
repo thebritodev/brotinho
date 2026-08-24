@@ -99,6 +99,14 @@ Refaça a lista de cima, e mais estas, que só existem no iOS:
 
 ---
 
+## Antes de mandar para revisão, leia isto
+
+**A build 3 não cobra de ninguém** — falta a chave do RevenueCat, e o botão
+"Assinar" entra no app de graça. O revisor não chega em compra nenhuma, e as
+quatro compras foram enviadas junto com esta versão.
+
+Detalhes e a saída em `docs/a-build-3-nao-cobra.md`.
+
 ## Mandar para revisão
 
 Na página da versão 1.0, o botão **Adicionar para revisão**.
