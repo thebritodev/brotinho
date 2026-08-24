@@ -46,6 +46,35 @@ acha que vai perder tudo escreve com menos verdade.
 
 O achado mais grave. Está em `a-build-3-nao-cobra.md`.
 
+### No Android, nenhum plano seria encontrado
+
+A Apple devolve `brotinho_anual`. O Google Play, desde a cobrança versão 5,
+devolve `brotinho_anual:<plano base>` — o identificador da assinatura, dois
+pontos, e o do plano base. O app procura o plano por **igualdade exata** contra
+`PRODUTO_DO_PLANO`, nos três lugares onde alguém pode comprar.
+
+Resultado no Android: nenhum plano encontrado, e o botão de assinar respondendo
+"não consegui falar com a loja" para todo mundo, sempre — com a loja funcionando
+perfeitamente do outro lado. O preço também cairia para o texto de reserva, que
+é o que Apple e Google reprovam.
+
+Não apareceria em nenhum teste de iOS, nem no Expo Go, que não tem compra.
+
+→ `semOPlanoBase` em `services/subscription.ts`, que corta o sufixo antes de
+comparar.
+
+### Guardar a chave no EAS não bastava
+
+Ao consertar a build que não cobra, encontrei a segunda metade do mesmo
+problema: um perfil de build só recebe as variáveis do ambiente que ele
+**declara**, e nenhum dos três perfis declarava nada. As chaves poderiam estar
+guardadas no lugar certo e mesmo assim não chegar à compilação — o mesmo
+sintoma, por outro caminho.
+
+→ `"environment"` em cada perfil do `eas.json`, e `npm run confere-cobranca`,
+que checa as três condições antes de gastar uma build. O `preview` aponta de
+propósito para um ambiente **sem** chaves, para o `.apk` de teste seguir aberto.
+
 ---
 
 ## O que foi verificado e estava certo
@@ -63,6 +92,11 @@ Não inventar defeito é parte do trabalho. Estes foram checados e passaram:
 | **Escape no PDF** | tudo que é texto da pessoa passa por `escape`. Os dois valores sem escape (`p.topic`, `p.practice`) são só chaves de busca e nunca chegam ao HTML — e o relatório **não contém texto do diário**, só padrões |
 | **Microfone ao sair da tela** | `useEffect(() => stop, [stop])` só dispara ao desmontar: `useAudioRecorder` depende de `JSON.stringify(options)`, não da identidade do objeto, então o `recorder` é estável entre renders |
 | **Dimensão negativa em SVG** | classe fechada. Só duas subtrações de largura no projeto, as duas com `Math.max`. Multiplicação e divisão dão zero, que é tamanho válido |
+| **Ciclos de animação** | os oito `setInterval`/`setTimeout`/`Animated.loop` do projeto têm limpeza no `return` do efeito. As partículas do FallingWords se removem sozinhas ao fim da queda |
+| **Permissão de notificação** | pedida em `scheduleDailyReminder` antes de agendar, e o canal do Android é criado. No Android 13+ isso é o que separa "agendou" de "nunca apareceu" |
+| **`android.permissions` no app.json** | é **aditivo**, confirmado na documentação do Expo — não limita o que os plugins acrescentam. O `POST_NOTIFICATIONS` do expo-notifications entra na build |
+| **Acentos do `app.json`** | os bytes são UTF-8 corretos; o embaralhado que eu via era do console do Windows, não do arquivo |
+| **Microfone negado na Composta** | não trava: sem permissão de fala cai no acústico, sem permissão de gravação cai no botão manual. Não existe caminho sem saída |
 | **Conteúdo do `.apk`** | os três `.wav` e os sete módulos nativos presentes; build é **release** (bundle em bytecode Hermes) |
 
 ---
