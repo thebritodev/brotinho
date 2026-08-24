@@ -52,7 +52,9 @@ let listagem = null;
 try {
   listagem = execFileSync(
     process.platform === 'win32' ? 'npx.cmd' : 'npx',
-    ['eas-cli@latest', 'env:list', AMBIENTE, '--non-interactive'],
+    // Sem `--non-interactive`: este subcomando não aceita esse flag, e passá-lo
+    // fazia o script falhar sempre — um guarda que sempre grita é ignorado.
+    ['eas-cli@latest', 'env:list', AMBIENTE],
     { cwd: RAIZ, encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'], shell: process.platform === 'win32' },
   );
 } catch (e) {
