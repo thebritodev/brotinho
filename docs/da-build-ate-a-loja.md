@@ -10,16 +10,35 @@
 |---|---|
 | Projeto ligado ao EAS | `92636786-e023-4e58-bcfb-38aaa061c374`, conta `pedrodevtheone` |
 | Build Android | `preview`, `.apk`, **finished** |
-| Build iOS | `production`, build **4**, **finished** |
-| Envio ao App Store Connect | **finished** — 24/08/2026, 13h |
+| Build iOS | `production`, build **5**, no TestFlight |
+| Envio ao App Store Connect | aceito em 25/08/2026 |
 
 O `.ipa` está com a Apple. Depois de processado, ele aparece em **TestFlight** e o
 grupo **Time do Brotinho** distribui sozinho.
 
-> **A build 3 não serve para testar.** Ela foi compilada antes dos consertos da
-> Composta. A **4** é a primeira que tem dentro tudo o que foi feito: o apagar da
-> gravação, a pausa que não derruba mais a conferência da frase, o aviso quando o
-> aparelho não consegue conferir, e o plano que o Android não achava.
+> **"Enviado" não quer dizer "aceito".** As builds **3 e 4 falharam** no
+> processamento da Apple, as duas com o mesmo erro, e ninguém percebeu por um dia
+> inteiro: o `eas submit` responde *"Submitted your app to App Store Connect!"*
+> assim que o arquivo **sobe**. A validação da Apple vem depois, e o resultado só
+> aparece em **TestFlight → Uploads de compilações**.
+>
+> ```
+> 90683: Missing purpose string in Info.plist
+> ... should contain a NSPhotoLibraryUsageDescription key
+> ```
+>
+> A Apple exige o texto **mesmo que o app nunca abra a galeria** — basta alguma
+> biblioteca referenciar a API. Aqui é a tela de compartilhar, que permite salvar
+> o resumo da terapia nas fotos. Está no `app.json`, em `ios.infoPlist`.
+>
+> **Confira o status no TestFlight depois de cada envio.** Enquanto as duas
+> estiveram em "Falha", a versão 1.0.0 não tinha compilação nenhuma anexada — ela
+> não poderia ter ido para revisão nem se alguém tentasse.
+
+A **build 5** é a primeira que existe de verdade no TestFlight, e a primeira com
+tudo dentro: o apagar da gravação, a pausa que não derruba mais a conferência da
+frase, o aviso quando o aparelho não consegue conferir, e o plano que o Android
+não achava.
 >
 > As duas continuam sem cobrar — falta a chave do RevenueCat, ver
 > `a-build-3-nao-cobra.md`. No TestFlight isso não atrapalha o teste: você entra
