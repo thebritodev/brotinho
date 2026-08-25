@@ -14,7 +14,8 @@
         "RCTAsyncStorageExcludeFromBackup": false,
         "ITSAppUsesNonExemptEncryption": false,
         "NSSpeechRecognitionUsageDescription": "O Brotinho usa o reconhecimento de fala do próprio aparelho para escrever o que você falar.",
-        "NSMicrophoneUsageDescription": "O Brotinho usa o microfone para transformar seu desabafo em texto."
+        "NSMicrophoneUsageDescription": "O Brotinho usa o microfone para transformar seu desabafo em texto.",
+        "NSPhotoLibraryUsageDescription": "A tela de compartilhar do iPhone permite salvar o resumo para a terapia ou a cópia dos seus dados nas suas fotos. O Brotinho não abre nem lê a sua galeria."
       },
       "privacyManifests": {
         "NSPrivacyAccessedAPITypes": [
