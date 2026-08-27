@@ -151,13 +151,10 @@ de semanal para anual valer como **upgrade** — troca na hora, sem pagar duas v
 
 `brotinho_vitalicio`, não consumível, R$ 399,90, em *Preparar para envio*.
 
-### 2.6 Período de tolerância — ⚠️ **falta um clique seu**
+### 2.6 Período de tolerância ✅ FEITO
 
-Assinaturas → **Configurar período de tolerância** → 16 dias, todas as renovações,
-**Ambiente de produção e Sandbox** → Ativar.
-
-Deixei tudo escolhido; a última tela é um aceite ("você concorda em fornecer
-serviços pagos durante o período de tolerância"), e acordo eu não assino por você.
+Conferido na tela em 25/08/2026: **16 dias**, **todas as renovações**, **ambiente
+de produção e Sandbox**. Ativo.
 
 > O que isso faz: se o cartão da pessoa falhar na renovação, ela continua com acesso
 > por 16 dias enquanto a Apple tenta cobrar de novo. Quando a cobrança entra, a

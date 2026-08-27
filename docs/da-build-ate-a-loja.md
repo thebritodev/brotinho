@@ -167,11 +167,25 @@ Detalhes e a saída em `docs/a-build-3-nao-cobra.md`.
 
 ## Mandar para revisão
 
-Na página da versão 1.0, o botão **Adicionar para revisão**.
+**Antes do botão, falta anexar a compilação.** A versão 1.0 está sem nenhuma:
+na seção **Compilação** aparece "Adicionar compilação", e sem isso não há o que
+revisar. Conferido na tela em 25/08/2026 — a build 5 processou e ficou no
+TestFlight, mas processar não anexa.
 
-> **A primeira assinatura e a primeira compra dentro do app têm de ir junto com a
-> versão.** Não dá para enviar antes nem depois. Confira que os quatro produtos
-> estão marcados no envio.
+> **Não anexe a build 5.** Ela não cobra (ver `a-build-3-nao-cobra.md`).
+> Anexar agora só criaria a sensação de que está pronto. A build a anexar é a
+> primeira que sair depois das chaves do RevenueCat.
+
+Depois disso, na página da versão 1.0, o botão **Adicionar para revisão**.
+
+> **A Apple mudou como as compras entram na revisão.** A própria tela avisa:
+> agora as compras e assinaturas são enviadas **das seções Compras dentro do app
+> e Assinaturas**, e você inclui a versão no envio para que sejam revisadas em
+> conjunto. **Não existe mais a lista de produtos para marcar na página da
+> versão** — a instrução antiga daqui está morta.
+>
+> A regra de fundo continua: a primeira assinatura e a primeira compra dentro do
+> app têm de ir **junto** com uma versão do app.
 
 O lançamento está em **manual**: mesmo aprovado, o app só entra no ar quando você
 clicar. Isso é de propósito — dá tempo de conferir a página antes de existir para o
@@ -234,5 +248,4 @@ devolveria texto de exemplo em vez de falhar honestamente.
 ## O que ainda depende só de você
 
 - [ ] **Programa para Pequenas Empresas** — 15% de comissão em vez de 30%
-- [ ] **Período de tolerância** nas assinaturas
 - [ ] **Resposta automática** do `brotinho.suporte@gmail.com`

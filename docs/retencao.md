@@ -62,7 +62,9 @@ Escolhas que estão no código desde antes desta pesquisa, e que ela valida:
 
 O único item aqui que mexe em dinheiro sem tocar em design:
 
-- **Período de tolerância** (grace period): a Apple e o Google seguem tentando
+- **Período de tolerância** (grace period) — ✅ **ativo desde antes desta
+  pesquisa; conferido em 25/08/2026: 16 dias, todas as renovações, produção e
+  Sandbox.** A Apple e o Google seguem tentando
   cobrar por até 30 dias e a assinatura continua ativa. O RevenueCat detecta e
   trata sozinho.
 - **Campanhas de recuperação** disparam no evento de **expiração**, não no de
