@@ -8,14 +8,16 @@ import {
   Icon,
   Input,
   ScreenTransition,
+  GrowingSprout,
   Sprout,
   StatRow,
   TopBar,
 } from '../../components';
-import { toqueLeve } from '../../services/toque';
+import { toqueDeConclusao, toqueLeve } from '../../services/toque';
 import { useAppState } from '../../state/AppStateProvider';
 import { vezesQueVoltou } from '../../state/derived';
 import { colors, palette, radius, shadows, fonts } from '../../theme';
+import { AduboAssentando } from './AduboAssentando';
 import { FallingWords } from './FallingWords';
 import { useCompostSession } from './useCompostSession';
 
@@ -51,6 +53,10 @@ export function CompostaScreen({ onClose }: { onClose: () => void }) {
       setJaVoltou(vezesQueVoltou(data, thought.trim()) + 1);
       setResult({ reps, secs });
       addCompost({ thought: thought.trim(), reps, secs: Math.round(secs) });
+      // A prática inteira devolvia uma vibração leve a cada repetição e depois
+      // terminava no silêncio: dez batidinhas construindo um crescendo sem
+      // resolução. Esta é uma conclusão de verdade, das poucas que o app tem.
+      toqueDeConclusao(data.settings.vibracao);
       setStep('done');
     },
   });
@@ -560,7 +566,19 @@ export function CompostaScreen({ onClose }: { onClose: () => void }) {
         }}
         showsVerticalScrollIndicator={false}
       >
-        <Sprout mood="feliz" stage={3} size={160} />
+        {/*
+          O fim da prática, encenado.
+
+          Antes era um desenho parado entrando por fade: o broto aparecia já
+          crescido e já feliz. Agora ele cresce, e as palavras que estavam
+          caindo durante a prática descem uma última vez e assentam no pé do
+          vaso — que é literalmente o que a frase abaixo promete. As duas coisas
+          respeitam "reduzir movimento" e aparecem prontas para quem pediu isso.
+        */}
+        <View style={{ width: '100%', height: 200, alignItems: 'center', justifyContent: 'flex-end' }}>
+          <AduboAssentando frase={thought.trim() || SUGESTOES[0]} />
+          <GrowingSprout size={160} />
+        </View>
 
         <Text
           style={{

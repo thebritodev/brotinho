@@ -2,10 +2,11 @@ import React, { useState } from 'react';
 import { ScrollView, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { Button, Icon, ScreenTransition, Sprout, TopBar } from '../../components';
+import { Button, GrowingSprout, Icon, ScreenTransition, Sprout, TopBar } from '../../components';
 import { PracticeIllustration } from '../../components/brand/PracticeIllustration';
 import type { Practice } from '../../data/practices';
 import { useAppState } from '../../state/AppStateProvider';
+import { toqueDeConclusao } from '../../services/toque';
 import { vezesPorPratica } from '../../state/derived';
 import { colors, palette, radius, shadows, fonts } from '../../theme';
 import { BreathingGuide } from './BreathingGuide';
@@ -34,6 +35,9 @@ export function PracticeDetailScreen({ practice, topicKey, tint, onBack }: Props
    */
   const concluir = () => {
     registrarPratica(topicKey, practice.key);
+    // Na respiração, cada virada de fase já vibra; faltava o ponto final. Nas
+    // outras práticas, era a única resposta tátil da tela inteira.
+    toqueDeConclusao(data.settings.vibracao);
     setMode('finished');
   };
 
@@ -80,7 +84,7 @@ export function PracticeDetailScreen({ practice, topicKey, tint, onBack }: Props
           gap: 22,
         }}
       >
-        <Sprout mood="feliz" stage={2} size={150} />
+        <GrowingSprout size={150} ate={2} />
         <Text
           style={{
             fontFamily: fonts.display.bold,
