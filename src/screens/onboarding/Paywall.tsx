@@ -237,19 +237,37 @@ export function Paywall({ plan, onSelectPlan }: Props) {
         </View>
       </View>
 
-      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
-        <Icon name="lock" size={18} color={colors.primary} />
-        <Text
-          style={{
-            flex: 1,
-            fontFamily: fonts.body.regular,
-            fontSize: 13,
-            lineHeight: 13 * 1.4,
-            color: palette.brown700,
-          }}
-        >
-          Cancele quando quiser. Sem multa, sem burocracia.
-        </Text>
+      {/*
+        As duas garantias, na ordem em que pesam.
+
+        A privacidade vem primeiro porque preocupação com dados é uma das causas
+        nomeadas de abandono em app de saúde mental — e porque aqui ela é
+        verdade rara: não existe servidor para onde mandar o diário. Isso estava
+        dito só na tela de Privacidade, que quase ninguém abre antes de decidir
+        pagar. Ver `docs/retencao.md`.
+      */}
+      <View style={{ gap: 12 }}>
+        {(
+          [
+            ['lock', 'O que você escreve fica no seu aparelho. Não existe conta, nem servidor nosso: nem nós conseguimos ler.'],
+            ['check', 'Cancele quando quiser. Sem multa, sem burocracia.'],
+          ] as const
+        ).map(([icone, texto]) => (
+          <View key={texto} style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
+            <Icon name={icone} size={18} color={colors.primary} />
+            <Text
+              style={{
+                flex: 1,
+                fontFamily: fonts.body.regular,
+                fontSize: 13,
+                lineHeight: 13 * 1.4,
+                color: palette.brown700,
+              }}
+            >
+              {texto}
+            </Text>
+          </View>
+        ))}
       </View>
     </View>
   );

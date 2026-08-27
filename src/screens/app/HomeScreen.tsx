@@ -13,6 +13,7 @@ import {
   InsightCard,
   MemoryCard,
   MoodSelector,
+  CrossedCard,
   StatRow,
   VoltaCard,
   type IconName,
@@ -26,6 +27,7 @@ import {
   dayKey,
   daysCaredFor,
   diasSemAparecer,
+  atravessou,
   lembranca,
   patterns,
   prontoParaColher,
@@ -81,6 +83,7 @@ export function HomeScreen({
   const growth = useMemo(() => stats(data), [data]);
   const insights = useMemo(() => patterns(data), [data]);
   const memoria = useMemo(() => lembranca(data), [data]);
+  const passou = useMemo(() => atravessou(data), [data]);
   const [lendoMemoria, setLendoMemoria] = useState(false);
 
   const stage = sproutStage(data);
@@ -252,9 +255,22 @@ export function HomeScreen({
         </View>
       </Card>
 
-      {/* Só aparece quando existe registro antigo o bastante; sem isso a
-          Home ficaria com um espaço vazio nos primeiros meses. */}
-      {!!memoria && <MemoryCard lembranca={memoria} onPress={() => setLendoMemoria(true)} />}
+      {/*
+        Um reencontro por vez, e nunca os dois juntos.
+
+        Os dois cartões olham para trás, e empilhados viram uma seção de
+        nostalgia que rouba a tela de hoje. O pensamento atravessado tem
+        precedência porque é o mais raro: ele só existe quando a Composta
+        cumpriu o que promete, e é a única coisa aqui que prova isso.
+
+        Os dois só aparecem quando há registro antigo o bastante — sem isso a
+        Home ficaria com um espaço vazio nos primeiros meses.
+      */}
+      {passou ? (
+        <CrossedCard atravessado={passou} />
+      ) : (
+        !!memoria && <MemoryCard lembranca={memoria} onPress={() => setLendoMemoria(true)} />
+      )}
 
       {/* Práticas e Valores saíram da barra de baixo e viram atalhos daqui. */}
       <View style={{ flexDirection: 'row', gap: 12 }}>

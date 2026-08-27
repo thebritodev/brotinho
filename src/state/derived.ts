@@ -371,20 +371,91 @@ const assinatura = (texto: string) =>
  * exata: "nunca vou dar conta" e "não vou dar conta disso" são a mesma dor
  * voltando, e é isso que vale reconhecer.
  */
+/**
+ * Duas escritas são a mesma dor? Metade das palavras significativas em comum
+ * já basta: "nunca vou dar conta" e "não vou dar conta disso" são a mesma coisa
+ * voltando.
+ */
+function mesmaDor(alvo: Set<string>, texto: string): boolean {
+  const outra = assinatura(texto);
+  if (!outra.size) return false;
+  let comuns = 0;
+  alvo.forEach((p) => {
+    if (outra.has(p)) comuns += 1;
+  });
+  return comuns / Math.min(alvo.size, outra.size) >= 0.5;
+}
+
 export function vezesQueVoltou(data: AppData, texto: string): number {
   const alvo = assinatura(texto);
   if (alvo.size < 2) return 0;
 
-  return data.composts.filter((c) => {
-    const outra = assinatura(c.thought);
-    if (!outra.size) return false;
-    let comuns = 0;
-    alvo.forEach((p) => {
-      if (outra.has(p)) comuns += 1;
-    });
-    // Metade das palavras significativas em comum já é o mesmo assunto.
-    return comuns / Math.min(alvo.size, outra.size) >= 0.5;
-  }).length;
+  return data.composts.filter((c) => mesmaDor(alvo, c.thought)).length;
+}
+
+// --- Pensamentos que não voltaram ----------------------------------------
+
+export type Atravessado = { texto: string; quando: string; diasAtras: number };
+
+/** Antes disso é cedo demais para dizer que passou. */
+const DIAS_PARA_ATRAVESSAR = 30;
+
+const HA_QUANTO_TEMPO = (dias: number): string => {
+  const meses = Math.round(dias / 30);
+  if (meses >= 12) return 'Há cerca de um ano';
+  if (meses >= 6) return 'Há uns seis meses';
+  if (meses >= 2) return `Há uns ${meses} meses`;
+  return 'Há cerca de um mês';
+};
+
+/**
+ * Um pensamento que a pessoa compostou e que **não voltou desde então**.
+ *
+ * É a promessa da Composta sendo verificada com o dado da própria pessoa. O app
+ * já sabia dizer "esta é a terceira vez que isto volta" — o contrário, que é a
+ * notícia boa, ele tinha como saber e nunca dizia.
+ *
+ * Três cuidados que não são estilo:
+ *
+ * 1. **Só afirma o que dá para verificar.** Vale se o mesmo assunto não
+ *    reaparece em nenhuma composta nem em nenhum registro do diário posteriores.
+ *    Se voltou uma vez que seja, este pensamento não entra.
+ * 2. **Nunca no sentido contrário.** O app não diz "isto voltou mais vezes" nem
+ *    "você piorou". Quando não há notícia boa verificável, ele fica calado.
+ * 3. **Respeita o interruptor de análise**, como toda leitura de texto no app.
+ *
+ * A escolha é estável dentro do mesmo dia, pela mesma razão da lembrança:
+ * reabrir o app não pode sortear outra coisa.
+ */
+export function atravessou(data: AppData, hoje = new Date()): Atravessado | null {
+  if (!data.settings.analysis) return null;
+
+  const limite = hoje.getTime() - DIAS_PARA_ATRAVESSAR * 24 * 60 * 60 * 1000;
+  // Do mais antigo para o mais novo: "há seis meses" é prova mais forte de
+  // travessia do que "há um mês".
+  const antigos = data.composts
+    .filter((c) => c.createdAt <= limite)
+    .sort((a, b) => a.createdAt - b.createdAt);
+
+  for (const c of antigos) {
+    const alvo = assinatura(c.thought);
+    if (alvo.size < 2) continue;
+
+    const voltouNaComposta = data.composts.some(
+      (o) => o.createdAt > c.createdAt && mesmaDor(alvo, o.thought),
+    );
+    if (voltouNaComposta) continue;
+
+    const voltouNoDiario = data.journal.some(
+      (e) => e.createdAt > c.createdAt && mesmaDor(alvo, e.text),
+    );
+    if (voltouNoDiario) continue;
+
+    const dias = Math.round((hoje.getTime() - c.createdAt) / (24 * 60 * 60 * 1000));
+    return { texto: c.thought, quando: HA_QUANTO_TEMPO(dias), diasAtras: dias };
+  }
+
+  return null;
 }
 
 // --- Práticas feitas ------------------------------------------------------
