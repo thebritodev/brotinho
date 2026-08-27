@@ -8,7 +8,7 @@ import React, {
   useState,
 } from 'react';
 
-import { Platform } from 'react-native';
+import { AppState, Platform } from 'react-native';
 
 import {
   cancelDailyReminder,
@@ -18,7 +18,7 @@ import {
 } from '../services/notifications';
 import { clearAppData, loadAppData, saveAppData } from '../storage/appStorage';
 import type { Mood } from '../theme';
-import { dayKey, diasSemAparecer } from './derived';
+import { dayKey, daysCaredFor, diasSemAparecer } from './derived';
 import { sanitizarDados } from './sanitize';
 import type { Plant } from './types';
 import {
@@ -101,14 +101,31 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
    * notificação. Este número muda no máximo uma vez por dia.
    */
   const ausencia = diasSemAparecer(data);
+  const cuidados = daysCaredFor(data);
+
+  /**
+   * Muda quando o app volta do segundo plano, para a fila de lembretes ser
+   * recomposta a partir de hoje.
+   *
+   * Sem isto, um app que fica semanas em segundo plano sem ser morto pelo
+   * sistema continuaria tocando a fila antiga — que, a essa altura, já teria
+   * entrado no espaçamento de quem sumiu, com a pessoa ali usando o app.
+   */
+  const [voltou, setVoltou] = useState(0);
+  useEffect(() => {
+    const sub = AppState.addEventListener('change', (estado) => {
+      if (estado === 'active') setVoltou((n) => n + 1);
+    });
+    return () => sub.remove();
+  }, []);
 
   useEffect(() => {
     if (!hydrated || Platform.OS === 'web' || !onboarded) return;
-    // O texto do aviso muda conforme o tempo de ausência — ver o porquê em
-    // `mensagemDoLembrete`.
-    if (reminders) void scheduleDailyReminder(reminder, ausencia);
+    // Não é um agendamento só: é uma fila de dias, cada um com o seu texto.
+    // O plano inteiro está em `data/lembretes.ts`.
+    if (reminders) void scheduleDailyReminder(reminder, ausencia, cuidados);
     else void cancelDailyReminder();
-  }, [hydrated, onboarded, reminders, reminder, ausencia]);
+  }, [hydrated, onboarded, reminders, reminder, ausencia, cuidados, voltou]);
 
   useEffect(() => {
     if (!hydrated || Platform.OS === 'web' || !onboarded) return;

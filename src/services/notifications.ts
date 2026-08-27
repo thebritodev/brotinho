@@ -1,6 +1,8 @@
 import * as Notifications from 'expo-notifications';
 import { Platform } from 'react-native';
 
+import { planejarLembretes } from '../data/lembretes';
+
 /**
  * Lembrete diário — o app promete no onboarding "ele vai te esperar todo dia às X".
  * Cumprir essa promessa é o que este módulo faz.
@@ -8,8 +10,25 @@ import { Platform } from 'react-native';
 
 const CHANNEL_ID = 'lembrete-diario';
 
-/** Identificadores fixos: reagendar substitui o anterior, nunca acumula. */
-const IDENTIFIER = 'brotinho-lembrete-diario';
+/**
+ * Identificadores fixos: reagendar substitui o anterior, nunca acumula.
+ *
+ * O lembrete deixou de ser um agendamento só e virou uma fila — um aviso por
+ * dia, cada um com o seu texto. Por isso o prefixo: cancelar significa varrer
+ * tudo que começa com ele. O identificador antigo, de instalações que já
+ * existiam, começa com o prefixo de propósito, para ser varrido junto.
+ */
+const PREFIXO = 'brotinho-lembrete-diario';
+
+/**
+ * Quantos avisos ficam agendados de uma vez.
+ *
+ * O iOS guarda no máximo 64 notificações locais pendentes por app; passar disso
+ * faz o sistema descartar as mais distantes em silêncio. Vinte e quatro deixa
+ * folga larga para o resumo de domingo e, com o espaçamento de quem some,
+ * cobre uns quatro meses sem o app precisar ser aberto.
+ */
+const QUANTOS_AVISOS = 24;
 const WEEKLY_IDENTIFIER = 'brotinho-resumo-semanal';
 
 /**
@@ -23,36 +42,6 @@ export const DESTINO_KEY = 'destino';
 /** Domingo de manhã — 1 = domingo na contagem do expo-notifications. */
 const WEEKLY_WEEKDAY = 1;
 const WEEKLY_HOUR = 9;
-
-/**
- * O texto do lembrete, escolhido pelo horário e pelo tempo de ausência.
- *
- * Duas regras que não são estilo, são correção:
- *
- * 1. **Nada do que a pessoa escreveu entra aqui.** Notificação aparece na tela
- *    bloqueada, à vista de quem estiver por perto. Um app cuja promessa é que
- *    o diário não sai do aparelho não pode publicá-lo no aviso.
- *
- * 2. **Nenhum número de dias.** O texto é decidido na hora de agendar e repete
- *    todo dia até o app ser aberto de novo. "Faz 3 dias" nasceria certo e
- *    estaria mentindo na manhã seguinte. As frases de ausência são vagas de
- *    propósito, para continuarem verdadeiras enquanto durarem.
- */
-function mensagemDoLembrete(hora: number, diasSemAparecer: number | null): string {
-  // Sumiu faz tempo: acolher, nunca cobrar. Quem voltou de uma semana ruim não
-  // precisa de um app dizendo que falhou com ele.
-  if (diasSemAparecer !== null && diasSemAparecer >= 7) {
-    return 'Seu broto continua aqui, do mesmo jeito que você deixou.';
-  }
-  if (diasSemAparecer !== null && diasSemAparecer >= 2) {
-    return 'Sem pressa. Quando quiser, ele está aqui.';
-  }
-
-  if (hora >= 5 && hora < 12) return 'Como você está começando o dia?';
-  if (hora >= 12 && hora < 18) return 'Uma pausa no meio do dia?';
-  if (hora >= 18 && hora < 24) return 'Como foi seu dia?';
-  return 'Se estiver difícil dormir, escrever ajuda a esvaziar a cabeça.';
-}
 
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
@@ -84,22 +73,34 @@ export async function requestNotificationPermission(): Promise<boolean> {
 
 export async function cancelDailyReminder(): Promise<void> {
   try {
-    await Notifications.cancelScheduledNotificationAsync(IDENTIFIER);
+    const agendadas = await Notifications.getAllScheduledNotificationsAsync();
+    await Promise.all(
+      agendadas
+        .filter((n) => n.identifier.startsWith(PREFIXO))
+        .map((n) => Notifications.cancelScheduledNotificationAsync(n.identifier)),
+    );
   } catch {
-    // Nada agendado com esse id — nada a fazer.
+    // Nada agendado, ou o sistema não deixou perguntar. Nada a fazer.
   }
 }
 
 /**
- * Agenda (ou reagenda) o lembrete diário.
+ * Agenda (ou reagenda) a fila de lembretes.
+ *
+ * Um aviso por dia enquanto a pessoa está por perto, cada vez mais espaçados
+ * conforme a ausência cresce — o plano inteiro está em `data/lembretes.ts`.
+ *
  * @param time horário no formato "HH:MM"
  * @param diasSemAparecer há quantos dias a pessoa não registra nada; `null`
- *   para quem nunca registrou. Só muda o texto do aviso.
+ *   para quem nunca registrou
+ * @param diasCuidados dias em que ela apareceu, para o tom de quem já tem
+ *   história por aqui
  * @returns true se ficou agendado
  */
 export async function scheduleDailyReminder(
   time: string,
   diasSemAparecer: number | null = null,
+  diasCuidados = 0,
 ): Promise<boolean> {
   const [hour, minute] = time.split(':').map(Number);
   if (Number.isNaN(hour) || Number.isNaN(minute)) return false;
@@ -108,31 +109,43 @@ export async function scheduleDailyReminder(
   if (!granted) return false;
 
   await ensureAndroidChannel();
-  // Sem cancelar antes, trocar de horário deixaria os dois agendamentos vivos.
+  // Sem cancelar antes, reagendar deixaria as duas filas vivas ao mesmo tempo.
   await cancelDailyReminder();
 
-  await Notifications.scheduleNotificationAsync({
-    identifier: IDENTIFIER,
-    content: {
-      title: 'Brotinho',
-      body: mensagemDoLembrete(hour, diasSemAparecer),
-      data: { [DESTINO_KEY]: 'diario' satisfies DestinoDeNotificacao },
-      ...(Platform.OS === 'android' ? { channelId: CHANNEL_ID } : null),
-    },
-    trigger: {
-      type: Notifications.SchedulableTriggerInputTypes.DAILY,
-      hour,
-      minute,
-    },
+  const plano = planejarLembretes({
+    agora: new Date(),
+    hora: hour,
+    minuto: minute,
+    ausenciaHoje: diasSemAparecer,
+    diasCuidados,
+    quantidade: QUANTOS_AVISOS,
   });
 
-  return true;
+  for (const [i, aviso] of plano.entries()) {
+    await Notifications.scheduleNotificationAsync({
+      // O índice mantém o identificador único dentro da fila, e o prefixo faz
+      // o cancelamento varrer todos de uma vez.
+      identifier: `${PREFIXO}-${i}`,
+      content: {
+        title: 'Brotinho',
+        body: aviso.texto,
+        data: { [DESTINO_KEY]: 'diario' satisfies DestinoDeNotificacao },
+        ...(Platform.OS === 'android' ? { channelId: CHANNEL_ID } : null),
+      },
+      trigger: {
+        type: Notifications.SchedulableTriggerInputTypes.DATE,
+        date: aviso.quando,
+      },
+    });
+  }
+
+  return plano.length > 0;
 }
 
 /** Reflete o estado real do sistema, não o que o app acha que agendou. */
 export async function isDailyReminderScheduled(): Promise<boolean> {
   const scheduled = await Notifications.getAllScheduledNotificationsAsync();
-  return scheduled.some((n) => n.identifier === IDENTIFIER);
+  return scheduled.some((n) => n.identifier.startsWith(PREFIXO));
 }
 
 // --- Resumo semanal -------------------------------------------------------
