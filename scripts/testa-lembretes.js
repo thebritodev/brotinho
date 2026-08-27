@@ -60,7 +60,7 @@ const COBRANCA = [
   };
 
   const alvo = achar('lembretes.js');
-  const { planejarLembretes, TODAS_AS_FRASES } = await import(
+  const { planejarLembretes, planejarResumos, TODAS_AS_FRASES } = await import(
     'file://' + alvo.split(path.sep).join('/')
   );
 
@@ -156,6 +156,26 @@ const COBRANCA = [
   });
   checa('horário já vencido pula para amanhã', passou[0].quando.getDate() === 26);
   checa('nenhum aviso é agendado no passado', passou.every((l) => l.quando > agora));
+
+  // --- O resumo de domingo -------------------------------------------------
+  // A conta do dia da semana mudou de convenção quando isto deixou de usar o
+  // gatilho WEEKLY (onde domingo é 1) para montar datas com getDay (domingo é
+  // 0). Um engano ali move o resumo para segunda sem erro de compilação.
+  const resumos = planejarResumos({ agora, diaDaSemana: 0, hora: 9, quantidade: 12 });
+  checa('agenda os domingos pedidos', resumos.length === 12, `${resumos.length}`);
+  checa('todos caem mesmo no domingo', resumos.every((r) => r.quando.getDay() === 0));
+  checa('todos às nove da manhã', resumos.every((r) => r.quando.getHours() === 9));
+  checa(
+    'de sete em sete dias',
+    resumos.every((r, i) =>
+      i === 0 ? true : Math.round((r.quando - resumos[i - 1].quando) / 86400000) === 7,
+    ),
+  );
+  checa('nenhum resumo no passado', resumos.every((r) => r.quando > agora));
+  checa(
+    'as dez primeiras semanas não repetem frase',
+    new Set(resumos.slice(0, 10).map((r) => r.texto)).size === 10,
+  );
 
   fs.rmSync(saida, { recursive: true, force: true });
 

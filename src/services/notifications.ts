@@ -1,7 +1,7 @@
 import * as Notifications from 'expo-notifications';
 import { Platform } from 'react-native';
 
-import { planejarLembretes } from '../data/lembretes';
+import { planejarLembretes, planejarResumos } from '../data/lembretes';
 
 /**
  * Lembrete diário — o app promete no onboarding "ele vai te esperar todo dia às X".
@@ -29,7 +29,10 @@ const PREFIXO = 'brotinho-lembrete-diario';
  * cobre uns quatro meses sem o app precisar ser aberto.
  */
 const QUANTOS_AVISOS = 24;
-const WEEKLY_IDENTIFIER = 'brotinho-resumo-semanal';
+const PREFIXO_SEMANAL = 'brotinho-resumo-semanal';
+
+/** Uns três meses de domingos. Somados aos diários, fica bem abaixo dos 64. */
+const QUANTOS_RESUMOS = 12;
 
 /**
  * Para onde cada notificação leva quando tocada. Viaja no `data` da própria
@@ -39,8 +42,16 @@ const WEEKLY_IDENTIFIER = 'brotinho-resumo-semanal';
 export type DestinoDeNotificacao = 'diario' | 'resumo';
 export const DESTINO_KEY = 'destino';
 
-/** Domingo de manhã — 1 = domingo na contagem do expo-notifications. */
-const WEEKLY_WEEKDAY = 1;
+/**
+ * Domingo de manhã — **0 = domingo**, que é a contagem do `getDay()` do
+ * JavaScript.
+ *
+ * Era 1 enquanto isto usava o gatilho `WEEKLY` do expo-notifications, onde
+ * domingo é 1. Agora quem monta as datas é `planejarResumos`, com `getDay()`.
+ * Manter o 1 aqui teria mudado o resumo para segunda-feira sem nenhum erro de
+ * compilação e sem ninguém notar até a primeira semana em aparelho.
+ */
+const WEEKLY_WEEKDAY = 0;
 const WEEKLY_HOUR = 9;
 
 Notifications.setNotificationHandler({
@@ -152,16 +163,26 @@ export async function isDailyReminderScheduled(): Promise<boolean> {
 
 export async function cancelWeeklySummary(): Promise<void> {
   try {
-    await Notifications.cancelScheduledNotificationAsync(WEEKLY_IDENTIFIER);
+    const agendadas = await Notifications.getAllScheduledNotificationsAsync();
+    await Promise.all(
+      agendadas
+        .filter((n) => n.identifier.startsWith(PREFIXO_SEMANAL))
+        .map((n) => Notifications.cancelScheduledNotificationAsync(n.identifier)),
+    );
   } catch {
-    // Nada agendado com esse id.
+    // Nada agendado com esse prefixo.
   }
 }
 
 /**
  * Convida a pessoa a olhar a semana que passou, domingo de manhã.
- * Não resume nada na própria notificação: o resumo depende dos registros,
- * que só existem dentro do app.
+ *
+ * Não resume nada na própria notificação: o resumo depende dos registros, que
+ * só existem dentro do app.
+ *
+ * Também é uma fila, e pelo mesmo motivo do lembrete diário: era um gatilho
+ * `WEEKLY` com **uma** frase, então todo domingo da vida da pessoa trazia
+ * exatamente o mesmo texto. Um convite que nunca muda vira mobília.
  */
 export async function scheduleWeeklySummary(): Promise<boolean> {
   const granted = await requestNotificationPermission();
@@ -170,23 +191,30 @@ export async function scheduleWeeklySummary(): Promise<boolean> {
   await ensureAndroidChannel();
   await cancelWeeklySummary();
 
-  await Notifications.scheduleNotificationAsync({
-    identifier: WEEKLY_IDENTIFIER,
-    content: {
-      title: 'Sua semana no Brotinho',
-      body: 'Que tal olhar como foram seus últimos sete dias?',
-      data: { [DESTINO_KEY]: 'resumo' satisfies DestinoDeNotificacao },
-      ...(Platform.OS === 'android' ? { channelId: CHANNEL_ID } : null),
-    },
-    trigger: {
-      type: Notifications.SchedulableTriggerInputTypes.WEEKLY,
-      weekday: WEEKLY_WEEKDAY,
-      hour: WEEKLY_HOUR,
-      minute: 0,
-    },
+  const plano = planejarResumos({
+    agora: new Date(),
+    diaDaSemana: WEEKLY_WEEKDAY,
+    hora: WEEKLY_HOUR,
+    quantidade: QUANTOS_RESUMOS,
   });
 
-  return true;
+  for (const [i, aviso] of plano.entries()) {
+    await Notifications.scheduleNotificationAsync({
+      identifier: `${PREFIXO_SEMANAL}-${i}`,
+      content: {
+        title: 'Sua semana no Brotinho',
+        body: aviso.texto,
+        data: { [DESTINO_KEY]: 'resumo' satisfies DestinoDeNotificacao },
+        ...(Platform.OS === 'android' ? { channelId: CHANNEL_ID } : null),
+      },
+      trigger: {
+        type: Notifications.SchedulableTriggerInputTypes.DATE,
+        date: aviso.quando,
+      },
+    });
+  }
+
+  return plano.length > 0;
 }
 
 /**

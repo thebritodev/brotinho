@@ -239,6 +239,67 @@ export function planejarLembretes({
   return plano;
 }
 
+// --- O resumo da semana ---------------------------------------------------
+
+/**
+ * O convite de domingo de manhã.
+ *
+ * Tinha o mesmo defeito do lembrete diário, e pior: era um gatilho `WEEKLY` com
+ * **uma** frase, então todo domingo da vida da pessoa trazia exatamente o mesmo
+ * texto. Um convite que nunca muda deixa de ser convite e vira mobília.
+ */
+const RESUMO = [
+  'Que tal olhar como foram seus últimos sete dias?',
+  'A semana passou. Quer ver o que ficou dela?',
+  'Sete dias de você, guardados aqui.',
+  'Domingo de manhã é bom para olhar para trás sem pressa.',
+  'O que se repetiu na sua semana?',
+  'Uma olhada na semana, antes de a próxima começar.',
+  'Sua semana está aqui, esperando ser lida.',
+  'Nem toda semana tem conclusão. Mas tem registro.',
+  'O que você atravessou nesses últimos dias?',
+  'Antes de a semana virar, um olhar para a que passou.',
+];
+
+/**
+ * Monta a fila de domingos, um texto por semana, sem repetir enquanto houver
+ * frase nova. Mesma ideia da fila diária, e pelo mesmo motivo.
+ */
+export function planejarResumos({
+  agora,
+  diaDaSemana,
+  hora,
+  quantidade,
+}: {
+  agora: Date;
+  /** 0 = domingo. */
+  diaDaSemana: number;
+  hora: number;
+  quantidade: number;
+}): Lembrete[] {
+  const plano: Lembrete[] = [];
+
+  // Quantos dias faltam até o próximo dia da semana desejado.
+  let ate = (diaDaSemana - agora.getDay() + 7) % 7;
+  const primeiro = new Date(
+    agora.getFullYear(), agora.getMonth(), agora.getDate() + ate, hora, 0, 0, 0,
+  );
+  // Já passou da hora hoje: o próximo é só daqui a uma semana.
+  if (primeiro.getTime() <= agora.getTime()) ate += 7;
+
+  const inicio = agora.getDate() % RESUMO.length;
+  for (let i = 0; i < quantidade; i += 1) {
+    plano.push({
+      quando: new Date(
+        agora.getFullYear(), agora.getMonth(), agora.getDate() + ate + i * 7, hora, 0, 0, 0,
+      ),
+      texto: RESUMO[(inicio + i) % RESUMO.length],
+    });
+  }
+
+  return plano;
+}
+
 /** Só para o teste conferir que nenhuma frase quebra as regras. */
 export const TODAS_AS_FRASES: string[] = [
   ...MANHA,
@@ -248,4 +309,5 @@ export const TODAS_AS_FRASES: string[] = [
   ...VETERANO,
   ...Object.values(POR_DIA_DA_SEMANA).flat(),
   ...Object.values(AUSENCIA).flat(),
+  ...RESUMO,
 ];
