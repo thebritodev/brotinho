@@ -19,6 +19,7 @@ import {
   type IconName,
 } from '../../components';
 import { toqueLeve } from '../../services/toque';
+import { saudacaoDoDia } from '../../data/saudacao';
 import { useAppState } from '../../state/AppStateProvider';
 import type { Plant } from '../../state/types';
 import {
@@ -81,6 +82,24 @@ export function HomeScreen({
   const mood = data.moodHistory.find((m) => m.date === today)?.mood ?? 'neutro';
 
   const growth = useMemo(() => stats(data), [data]);
+
+  /**
+   * A frase da saudação, escolhida pelo dia — ver `data/saudacao.ts`.
+   *
+   * Depende de `growth` porque o tom muda para quem já tem estrada. Não depende
+   * do relógio a cada render: a escolha é estável dentro do mesmo dia.
+   */
+  const saudacao = useMemo(
+    () => saudacaoDoDia({ agora: new Date(), diasCuidados: growth[0].value }),
+    [growth],
+  );
+
+  /**
+   * No primeiro dia os três números são zero, e "Seu crescimento" vira um
+   * placar vazio no exato momento em que devia dar as boas-vindas. Enquanto não
+   * há o que contar, a seção diz o que vem a seguir.
+   */
+  const semNadaAindaParaContar = growth.every((s) => s.value === 0);
   const insights = useMemo(() => patterns(data), [data]);
   const memoria = useMemo(() => lembranca(data), [data]);
   const passou = useMemo(() => atravessou(data), [data]);
@@ -146,7 +165,7 @@ export function HomeScreen({
               marginTop: 4,
             }}
           >
-            Vamos cuidar de você hoje?
+            {saudacao}
           </Text>
         </View>
         <View style={{ flexDirection: 'row', gap: 4 }}>
@@ -294,9 +313,25 @@ export function HomeScreen({
 
       <View>
         <Text style={{ fontFamily: fonts.display.semiBold, fontSize: 19, marginBottom: 12 }}>
-          Seu crescimento
+          {semNadaAindaParaContar ? 'Seu broto' : 'Seu crescimento'}
         </Text>
-        <StatRow stats={growth} />
+        {semNadaAindaParaContar ? (
+          <Card>
+            <Text
+              style={{
+                fontFamily: fonts.body.regular,
+                fontSize: 15,
+                lineHeight: 15 * 1.55,
+                color: palette.brown700,
+              }}
+            >
+              Ele começa hoje. Registre um humor, escreva o que veio à cabeça ou
+              composte um pensamento — qualquer um dos três já faz o dia contar.
+            </Text>
+          </Card>
+        ) : (
+          <StatRow stats={growth} />
+        )}
       </View>
 
       {/* Só aparece quando há registros suficientes — inventar um "padrão"

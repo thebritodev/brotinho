@@ -42,7 +42,8 @@ const COBRANCA = [
     process.execPath,
     [tsc, '--outDir', saida, '--module', 'esnext', '--target', 'es2020',
       '--moduleResolution', 'bundler', '--skipLibCheck',
-      path.join(RAIZ, 'src', 'data', 'lembretes.ts')],
+      path.join(RAIZ, 'src', 'data', 'lembretes.ts'),
+      path.join(RAIZ, 'src', 'data', 'saudacao.ts')],
     { stdio: 'inherit', cwd: RAIZ },
   );
 
@@ -62,6 +63,10 @@ const COBRANCA = [
   const alvo = achar('lembretes.js');
   const { planejarLembretes, planejarResumos, TODAS_AS_FRASES } = await import(
     'file://' + alvo.split(path.sep).join('/')
+  );
+  const saud = achar('saudacao.js');
+  const { saudacaoDoDia, TODAS_AS_SAUDACOES } = await import(
+    'file://' + saud.split(path.sep).join('/')
   );
 
   let falhas = 0;
@@ -175,6 +180,48 @@ const COBRANCA = [
   checa(
     'as dez primeiras semanas não repetem frase',
     new Set(resumos.slice(0, 10).map((r) => r.texto)).size === 10,
+  );
+
+  // --- A saudação da Home segue as mesmas regras --------------------------
+  // Ela era uma constante: "Vamos cuidar de você hoje?", para sempre. Agora que
+  // varia, passa a valer o mesmo contrato do lembrete.
+  const comNumeroS = TODAS_AS_SAUDACOES.filter((f) => /\d/.test(f));
+  checa('nenhuma saudação contém número', comNumeroS.length === 0, comNumeroS.join(' | '));
+  const cobrandoS = TODAS_AS_SAUDACOES.filter((f) =>
+    COBRANCA.some((c) => f.toLowerCase().includes(c)),
+  );
+  checa('nenhuma saudação cobra', cobrandoS.length === 0, cobrandoS.join(' | '));
+  checa(
+    'nenhuma saudação repetida',
+    new Set(TODAS_AS_SAUDACOES).size === TODAS_AS_SAUDACOES.length,
+  );
+  const longasS = TODAS_AS_SAUDACOES.filter((f) => f.length > 60);
+  checa('nenhuma saudação passa de 60 caracteres', longasS.length === 0, longasS.join(' | '));
+
+  const manha = new Date(2026, 7, 27, 9, 0, 0);
+  const noite = new Date(2026, 7, 27, 21, 0, 0);
+  checa(
+    'a mesma data devolve sempre a mesma frase',
+    saudacaoDoDia({ agora: manha, diasCuidados: 3 }) ===
+      saudacaoDoDia({ agora: new Date(2026, 7, 27, 10, 30, 0), diasCuidados: 3 }),
+  );
+  checa(
+    'manhã e noite falam coisas diferentes',
+    saudacaoDoDia({ agora: manha, diasCuidados: 3 }) !==
+      saudacaoDoDia({ agora: noite, diasCuidados: 3 }),
+  );
+  checa(
+    'dias diferentes trocam a frase',
+    saudacaoDoDia({ agora: manha, diasCuidados: 3 }) !==
+      saudacaoDoDia({ agora: new Date(2026, 7, 28, 9, 0, 0), diasCuidados: 3 }),
+  );
+  const trintaDias = [...Array(30)].map((_, i) =>
+    saudacaoDoDia({ agora: new Date(2026, 7, 1 + i, 20, 0, 0), diasCuidados: 40 }),
+  );
+  checa(
+    'um mês inteiro não repete demais',
+    new Set(trintaDias).size >= 5,
+    `${new Set(trintaDias).size} frases distintas`,
   );
 
   fs.rmSync(saida, { recursive: true, force: true });

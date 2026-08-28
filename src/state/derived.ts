@@ -265,11 +265,23 @@ export function patterns(data: AppData): string[] {
   return found;
 }
 
+/**
+ * Os três números da Home.
+ *
+ * O rótulo concorda com o número: "1 dia cuidado", não "1 dias cuidados". Com
+ * um só registro — que é o estado de todo mundo no primeiro dia — os três
+ * rótulos ficavam no plural, e um app que erra o português na primeira tela
+ * perde confiança antes de ganhar.
+ */
 export function stats(data: AppData) {
+  const dias = daysCaredFor(data);
+  const compostas = data.composts.length;
+  const padroes = patterns(data).length;
+
   return [
-    { value: daysCaredFor(data), label: 'dias cuidados' },
-    { value: data.composts.length, label: 'compostagens' },
-    { value: patterns(data).length, label: 'padrões' },
+    { value: dias, label: dias === 1 ? 'dia cuidado' : 'dias cuidados' },
+    { value: compostas, label: compostas === 1 ? 'compostagem' : 'compostagens' },
+    { value: padroes, label: padroes === 1 ? 'padrão' : 'padrões' },
   ];
 }
 

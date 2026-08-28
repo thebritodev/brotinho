@@ -354,7 +354,19 @@ export function CompostaScreen({ onClose }: { onClose: () => void }) {
      */
     const soPeloSom = session.running && !session.porFrase && !session.manual;
 
-    const status = session.silent
+    /**
+     * Quem acabou de abrir a prática ainda não parou de falar — nunca começou.
+     *
+     * O silêncio vira aviso depois de 1,1 segundo, então a tela dizia
+     * "Continue falando" e "o broto parou de te ouvir" para alguém que ainda
+     * estava respirando fundo antes da primeira frase. O app cobrava a volta de
+     * algo que não teve ida.
+     */
+    const aindaNaoComecou = session.reps === 0 && session.secs === 0;
+
+    const status = aindaNaoComecou
+      ? 'Pode começar'
+      : session.silent
       ? 'Continue falando'
       : naoEstaCasando
         ? 'Repita a frase que você escreveu'
@@ -520,9 +532,11 @@ export function CompostaScreen({ onClose }: { onClose: () => void }) {
                   color: palette.brown700,
                 }}
               >
-                {session.silent
-                  ? 'O broto parou de te ouvir. Volte a repetir a frase.'
-                  : 'Estou te ouvindo. Repita rápido, sem parar.'}
+                {aindaNaoComecou
+                  ? 'Estou aqui, ouvindo. Diga a frase em voz alta.'
+                  : session.silent
+                    ? 'O broto parou de te ouvir. Volte a repetir a frase.'
+                    : 'Estou te ouvindo. Repita rápido, sem parar.'}
               </Text>
             </View>
           )}
