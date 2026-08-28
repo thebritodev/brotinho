@@ -272,63 +272,67 @@ Use os **mesmos identificadores** da Apple.
 
 ---
 
-## FASE 4 — RevenueCat — conta criada, falta configurar
+## FASE 4 — RevenueCat — projeto criado, travado na chave da Apple
 
-O RevenueCat conversa com as duas lojas por nós: recibo, renovação, cancelamento,
-restauração. Sem ele, tudo isso é escrito e mantido duas vezes.
+**Estado em 28 de agosto de 2026**, conferido na tela.
 
-**A conta existe desde 23 de agosto.** O que falta é a configuração — e ela é o
-único item entre o estado de hoje e uma versão que pode ser revisada, porque a
-build que está com a Apple entrega o app de graça (`a-build-3-nao-cobra.md`).
+### O que já existe
 
-### 4.1 O projeto e o app iOS
+| | |
+|---|---|
+| Projeto | **Brotinho** — id `b4c10115` · categoria Health · plataforma React Native |
+| Direito | **`premium`** — identifier confirmado na tabela de Entitlements |
+| App iOS | formulário preenchido (`Brotinho iOS` · `com.brotinho.app`), **não salvo** |
 
-- [ ] Criar um projeto chamado **Brotinho**
-- [ ] Adicionar o app **iOS**, bundle `com.brotinho.app`
+O nome do direito era o ponto mais fácil de errar: o assistente sugeria
+"Brotinho Pro". Qualquer coisa diferente de `premium` faria **todo mundo virar
+não-assinante** — a compra funcionaria e o app negaria o acesso, porque
+`subscription.ts` procura essa palavra exata.
 
-O RevenueCat vai pedir uma **In-App Purchase Key** da Apple: um trio de
-*Issuer ID*, *Key ID* e um arquivo `.p8`. Ele é obrigatório aqui — o app usa
-`react-native-purchases` **10.7.1**, que valida por StoreKit 2, e o antigo
-*app-specific shared secret* só serve para StoreKit 1, hoje descontinuado.
+### O que trava tudo: a chave `.p8`
 
-> **Não é a mesma chave que o EAS já usa.** O EAS guardou uma chave de API do App
-> Store Connect para *enviar* builds. Esta é outra, de outra seção, e serve para
-> *validar compras*. Gere uma nova em vez de tentar reaproveitar.
->
-> Ela fica em App Store Connect → **Usuários e acesso** → **Integrações** →
-> **Chave de compra no app**. O `.p8` só pode ser baixado **uma vez**.
+O RevenueCat **não salva o app iOS sem ela**, e explica na própria tela:
 
-### 4.2 Os produtos, o direito e a oferta
+> *When using Purchases v5.x+ (i.e., StoreKit 2), transactions will fail to be
+> recorded without this key being set. This can result in users not accessing
+> the purchases they are entitled to.*
 
-Nesta ordem — cada camada depende da anterior:
+O app usa `react-native-purchases` **10.7.1**, que é StoreKit 2. Sem a chave,
+quem pagar não recebe acesso.
 
-- [ ] **Products** — importar da Apple. Os quatro identificadores, exatamente
-      assim, porque o app procura por igualdade:
+**Onde gerar:** App Store Connect → **Usuários e acesso** → **Integrações** →
+**Chave de compra no app**. O `.p8` baixa **uma vez só**; anote o **Key ID** e o
+**Issuer ID** que aparecem na mesma tela.
 
-      brotinho_semanal · brotinho_mensal · brotinho_anual · brotinho_vitalicio
+> Não é a chave que o EAS já tem. Aquela é de API do App Store Connect, para
+> *enviar* builds. Esta é de outra seção e serve para *validar compras*.
 
-- [ ] **Entitlements** — criar **um só**, chamado `premium`, com os quatro
-      produtos dentro. Esse nome está escrito em `src/services/subscription.ts`;
-      se divergir, todo mundo vira "não assinante"
-- [ ] **Offerings** — uma oferta marcada como **current**, com os quatro planos.
-      O app pede `getOfferings().current`; sem oferta atual a lista chega vazia e
-      o botão responde "não consegui falar com a loja"
+### O que fica bloqueado até lá
 
-### 4.3 As duas chaves públicas
+Nada de produto da App Store pode ser criado antes: em **Products → New
+product**, o único app disponível é o Test Store. Confirmado na tela.
 
-- [ ] Copiar a chave de iOS (`appl_…`) e a de Android (`goog_…`) em
-      **Project settings → API keys**
+### Resíduo do assistente, para limpar depois
 
-São as chaves **públicas** do SDK, não a secreta.
+O guia inicial criou três produtos de **Test Store** (`monthly`, `yearly`,
+`lifetime`) e uma oferta padrão com eles. São inofensivos e úteis para teste,
+mas **não são os nossos**: os quatro identificadores reais continuam sendo
+`brotinho_semanal`, `brotinho_mensal`, `brotinho_anual` e `brotinho_vitalicio`,
+e a oferta terá de ser refeita com eles — a sugerida tem três planos, o app tem
+quatro.
 
-> **Não me mande as chaves por aqui.** Elas vão direto para o EAS, no passo
-> abaixo — e é aí que mora o erro que já custou uma build.
+### Uma pendência pequena
 
-### 4.4 Android — pode ficar para depois
+O painel avisa que **o e-mail da conta ainda não foi confirmado**. Vale clicar
+no link do e-mail do RevenueCat antes de seguir.
 
-O app Android exige o Google Play Console configurado (FASE 3), que ainda não
-está. **Não é bloqueio para o iOS:** faça o projeto e o app iOS agora, e volte
-aqui quando o Play estiver de pé.
+### Depois da chave
+
+1. Salvar o app iOS → isso gera a **chave pública `appl_…`**
+2. Criar os quatro produtos com os identificadores exatos
+3. Ligar os quatro ao direito `premium`
+4. Refazer a oferta com os quatro, marcada como **current**
+5. Guardar a chave no EAS e conferir com `npm run confere-cobranca` — FASE 5
 
 ---
 
