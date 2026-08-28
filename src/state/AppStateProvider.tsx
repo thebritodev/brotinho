@@ -16,6 +16,7 @@ import {
   scheduleDailyReminder,
   scheduleWeeklySummary,
 } from '../services/notifications';
+import { limparExportacoes } from '../services/limparExportacoes';
 import { clearAppData, loadAppData, saveAppData } from '../storage/appStorage';
 import type { Mood } from '../theme';
 import { dayKey, daysCaredFor, diasComRegistro, diasSemAparecer } from './derived';
@@ -100,6 +101,19 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
    */
   const ausencia = diasSemAparecer(data);
   const cuidados = daysCaredFor(data);
+
+  /**
+   * Varre as exportações que ficaram no cache da vez passada.
+   *
+   * "Baixar meus dados" deixa um arquivo com o diário por extenso, e o resumo
+   * para a terapia deixa um PDF. Apagar logo depois de compartilhar entregaria
+   * arquivo vazio ao app de destino no Android; então a limpeza é aqui, na
+   * abertura. Ver `services/limparExportacoes.ts`.
+   */
+  useEffect(() => {
+    if (!hydrated || Platform.OS === 'web') return;
+    limparExportacoes();
+  }, [hydrated]);
 
   /**
    * Guarda o recorde de dias cuidados, para a contagem nunca descer.

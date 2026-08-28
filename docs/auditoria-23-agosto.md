@@ -142,6 +142,30 @@ Junto, uma assimetria sem justificativa: práticas contavam como **aparecer** e
 não como **cuidar**, então quem usasse o app só pelas práticas nunca via o broto
 crescer.
 
+### O diário exportado ficava no cache para sempre
+
+"Baixar meus dados" escreve o **diário inteiro em texto puro** num arquivo, e o
+resumo para a terapia escreve um PDF. Os dois iam para o cache, eram entregues à
+tela de compartilhar — e ficavam lá, indefinidamente.
+
+Num app cuja promessa é que o que a pessoa escreve não sai do aparelho, uma
+cópia legível de tudo esquecida no disco é o oposto do que ele diz fazer. É o
+mesmo erro da gravação da Composta, corrigido dias antes.
+
+→ `services/limparExportacoes.ts`. A limpeza roda **na abertura seguinte do app**
+e **antes de exportar de novo**, e não logo após compartilhar: no Android o
+`shareAsync` devolve o controle quando o outro app é chamado, não quando ele
+terminou de ler — apagar ali entregaria arquivo vazio ao WhatsApp. Só apaga o
+que tem o prefixo do próprio app; o cache é do Brotinho, mas bibliotecas também
+escrevem ali.
+
+### Tocar fora descartava a edição de um registro
+
+O modal de editar fechava no toque fora do cartão, **sem perguntar**, perdendo
+tudo o que tinha sido reescrito — enquanto excluir um registro, que é menos
+grave, tem tela de confirmação. Agora, com alteração pendente, o toque fora não
+fecha, e o botão passa a dizer "Descartar alterações": sair vira uma escolha.
+
 ---
 
 ## O que foi verificado e estava certo

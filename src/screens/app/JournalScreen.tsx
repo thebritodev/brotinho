@@ -112,7 +112,18 @@ export function JournalScreen() {
 
   /** Linha do histórico com as ações abertas — só uma por vez. */
   const [linhaAberta, setLinhaAberta] = useState<string | null>(null);
-  const [editando, setEditando] = useState<{ id: string; text: string } | null>(null);
+  /**
+   * `original` existe para saber se a edição mexeu em alguma coisa.
+   *
+   * Tocar fora do cartão fechava o modal e descartava a edição **em silêncio**.
+   * Quem estivesse reescrevendo um registro longo e encostasse um dedo dois
+   * centímetros fora perdia tudo, sem pergunta e sem volta — enquanto excluir um
+   * registro, que é menos grave, tem tela de confirmação.
+   */
+  const [editando, setEditando] = useState<
+    { id: string; text: string; original: string } | null
+  >(null);
+  const edicaoMexida = !!editando && editando.text !== editando.original;
   const [lendo, setLendo] = useState<{ id: string; date: string; text: string } | null>(null);
   const [excluindo, setExcluindo] = useState<{ id: string; date: string } | null>(null);
 
@@ -545,7 +556,7 @@ export function JournalScreen() {
                 openId={linhaAberta}
                 onOpen={setLinhaAberta}
                 onRead={() => setLendo({ id: e.id, date: e.date, text: e.text })}
-                onEdit={() => setEditando({ id: e.id, text: e.text })}
+                onEdit={() => setEditando({ id: e.id, text: e.text, original: e.text })}
                 onDelete={() => setExcluindo({ id: e.id, date: e.date })}
               />
             ))}
@@ -608,7 +619,7 @@ export function JournalScreen() {
                 style={{ width: '100%' }}
                 onPress={() => {
                   if (!lendo) return;
-                  setEditando({ id: lendo.id, text: lendo.text });
+                  setEditando({ id: lendo.id, text: lendo.text, original: lendo.text });
                   setLendo(null);
                 }}
               >
@@ -630,10 +641,12 @@ export function JournalScreen() {
         onRequestClose={() => setEditando(null)}
       >
         <View style={{ flex: 1, justifyContent: 'center', padding: 22 }}>
+          {/* Com alteração pendente, o toque fora não fecha: sair passa a ser
+              uma escolha, feita no botão que diz o que vai acontecer. */}
           <Pressable
             accessibilityRole="button"
             accessibilityLabel="Fechar"
-            onPress={() => setEditando(null)}
+            onPress={() => !edicaoMexida && setEditando(null)}
             style={[StyleSheet.absoluteFill, { backgroundColor: 'rgba(58,54,48,0.45)' }]}
           />
           <View style={{ backgroundColor: colors.bg, borderRadius: radius.lg, padding: 20, gap: 14 }}>
@@ -674,7 +687,7 @@ export function JournalScreen() {
                 Salvar alterações
               </Button>
               <Button variant="ghost" style={{ width: '100%' }} onPress={() => setEditando(null)}>
-                Cancelar
+                {edicaoMexida ? 'Descartar alterações' : 'Cancelar'}
               </Button>
             </View>
           </View>

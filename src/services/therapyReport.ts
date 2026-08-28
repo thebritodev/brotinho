@@ -6,6 +6,7 @@ import { findPractice, findTopic } from '../data/practices';
 import { daysCaredFor, livedValues, moodWeek, patterns, ventThemes } from '../state/derived';
 import type { AppData } from '../state/types';
 import { moodColors, palette } from '../theme';
+import { comNomeDoBrotinho, limparExportacoes } from './limparExportacoes';
 
 const escape = (s: string) =>
   s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
@@ -159,11 +160,14 @@ function buildHtml(data: AppData): string {
 /** Gera o PDF e devolve o caminho do arquivo. */
 export async function generateTherapyPdf(data: AppData): Promise<string> {
   const { uri } = await Print.printToFileAsync({ html: buildHtml(data) });
-  return uri;
+  // O PDF fica no cache até a próxima abertura do app — ver limparExportacoes.
+  return comNomeDoBrotinho(uri, `resumo-${new Date().toISOString().slice(0, 10)}.pdf`);
 }
 
 /** Gera e abre a folha de compartilhamento do sistema. */
 export async function shareTherapyPdf(data: AppData): Promise<void> {
+  // Varre o que sobrou de uma exportação anterior antes de criar mais uma.
+  limparExportacoes();
   const uri = await generateTherapyPdf(data);
 
   if (!(await Sharing.isAvailableAsync())) {

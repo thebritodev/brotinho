@@ -1,4 +1,6 @@
 import { File, Paths } from 'expo-file-system';
+
+import { limparExportacoes } from './limparExportacoes';
 import * as Sharing from 'expo-sharing';
 
 import { findPractice, findTopic } from '../data/practices';
@@ -157,6 +159,10 @@ function json(data: AppData): string {
 }
 
 async function entregar(nome: string, conteudo: string, tipo: string, uti: string) {
+  // Varre o que sobrou de uma exportação anterior antes de criar mais uma. O
+  // arquivo abaixo tem o diário por extenso; ver `limparExportacoes`.
+  limparExportacoes();
+
   const arquivo = new File(Paths.cache, nome);
   // Reexportar no mesmo dia cai no mesmo nome, e `create` reclama de arquivo
   // existente — sobrescrever é o comportamento certo aqui.
