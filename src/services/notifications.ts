@@ -153,10 +153,28 @@ export async function scheduleDailyReminder(
   return plano.length > 0;
 }
 
-/** Reflete o estado real do sistema, não o que o app acha que agendou. */
-export async function isDailyReminderScheduled(): Promise<boolean> {
-  const scheduled = await Notifications.getAllScheduledNotificationsAsync();
-  return scheduled.some((n) => n.identifier.startsWith(PREFIXO));
+/**
+ * O sistema está deixando o app avisar?
+ *
+ * Existe porque a tela de Lembretes mostrava "Todos os dias às 21:00" olhando
+ * apenas para a chave interna do app. Quem negasse a permissão do sistema via o
+ * interruptor ligado, o horário escrito, e **nunca recebia nada** — com o app
+ * tendo prometido no onboarding que ia esperar naquele horário.
+ *
+ * Pergunta pela permissão, e não pela fila agendada, de propósito: a fila é
+ * escrita por um efeito que roda depois da troca do interruptor, então
+ * consultá-la logo após ligar acusaria um problema que não existe. A permissão
+ * é a causa de verdade e não tem essa corrida.
+ */
+export async function notificacoesPermitidas(): Promise<boolean> {
+  if (Platform.OS === 'web') return false;
+  try {
+    const atual = await Notifications.getPermissionsAsync();
+    return atual.granted;
+  } catch {
+    // Não deu para perguntar: não vale acusar bloqueio sem ter certeza.
+    return true;
+  }
 }
 
 // --- Resumo semanal -------------------------------------------------------

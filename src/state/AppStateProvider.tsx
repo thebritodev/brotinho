@@ -23,8 +23,6 @@ import { sanitizarDados } from './sanitize';
 import type { Plant } from './types';
 import {
   INITIAL_APP_DATA,
-  INITIAL_PROFILE,
-  INITIAL_SETTINGS,
   type AppData,
   type Compost,
   type JournalEntry,

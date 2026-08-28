@@ -2,7 +2,7 @@ import React, { useMemo, useState } from 'react';
 import { ActivityIndicator, Pressable, ScrollView, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { Badge, Button, Card, Icon, TopBar, ValueBadge } from '../../components';
+import { Button, Card, Icon, TopBar, ValueBadge } from '../../components';
 import { useAppState } from '../../state/AppStateProvider';
 import { livedValues, moodRange, moodWeek, patterns, ventThemes } from '../../state/derived';
 import { shareTherapyPdf } from '../../services/therapyReport';

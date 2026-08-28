@@ -1,5 +1,5 @@
 import React, { useEffect, useRef } from 'react';
-import { AccessibilityInfo, Animated, Easing, Pressable, Text, View } from 'react-native';
+import { AccessibilityInfo, Animated, Easing, Pressable, Text } from 'react-native';
 
 import { colors, palette, radius, shadows, fonts } from '../../theme';
 import type { SproutStage } from './Sprout';

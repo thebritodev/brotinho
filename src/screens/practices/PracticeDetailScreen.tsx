@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { ScrollView, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { Button, GrowingSprout, Icon, ScreenTransition, Sprout, TopBar } from '../../components';
+import { Button, GrowingSprout, Icon, ScreenTransition, TopBar } from '../../components';
 import { PracticeIllustration } from '../../components/brand/PracticeIllustration';
 import type { Practice } from '../../data/practices';
 import { useAppState } from '../../state/AppStateProvider';

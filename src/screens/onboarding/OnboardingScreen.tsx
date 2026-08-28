@@ -34,7 +34,6 @@ import {
   TOTAL,
   VALORES,
   espelhoDoTentou,
-  horaFalada,
   planoDe,
   type PlanKey,
 } from '../../data/onboarding';

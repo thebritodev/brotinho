@@ -17,7 +17,7 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { Button, Card, Icon, MoodFace, MOODS, Sprout, TopBar } from '../../components';
+import { Button, Icon, MoodFace, MOODS, Sprout, TopBar } from '../../components';
 import { toqueDeConclusao } from '../../services/toque';
 import { useAppState } from '../../state/AppStateProvider';
 import { dayKey, normalize } from '../../state/derived';

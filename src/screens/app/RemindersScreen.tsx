@@ -1,8 +1,9 @@
-import React from 'react';
-import { ScrollView, Text, View } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { Linking, Pressable, ScrollView, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Card, Icon, Switch, TopBar } from '../../components';
+import { notificacoesPermitidas } from '../../services/notifications';
 import { useAppState } from '../../state/AppStateProvider';
 import { colors, palette, fonts } from '../../theme';
 import { TimeWheel } from '../onboarding/TimeWheel';
@@ -21,6 +22,26 @@ export function RemindersScreen({ onBack }: { onBack: () => void }) {
   const insets = useSafeAreaInsets();
   const { data, updateProfile, updateSettings } = useAppState();
   const s = data.settings;
+
+  /**
+   * O sistema está bloqueando, mesmo com o interruptor ligado?
+   *
+   * Esta tela dizia "Todos os dias às 21:00" olhando só para a chave interna do
+   * app. Quem tivesse negado a permissão via o horário escrito e nunca recebia
+   * nada — sem nenhuma pista de por quê, e depois de o onboarding ter prometido
+   * exatamente aquele horário.
+   */
+  const [bloqueado, setBloqueado] = useState(false);
+  const querAviso = s.reminders || s.weeklySummary;
+
+  useEffect(() => {
+    if (!querAviso) return setBloqueado(false);
+    let vivo = true;
+    void notificacoesPermitidas().then((ok) => vivo && setBloqueado(!ok));
+    return () => {
+      vivo = false;
+    };
+  }, [querAviso]);
 
   return (
     <View style={{ flex: 1, paddingTop: insets.top }}>
@@ -42,6 +63,36 @@ export function RemindersScreen({ onBack }: { onBack: () => void }) {
           você não abrir.
         </Text>
 
+        {bloqueado && (
+          <Card style={{ gap: 10, backgroundColor: palette.amber100 }}>
+            <Text style={{ fontFamily: fonts.body.bold, fontSize: 15, color: palette.brown900 }}>
+              O sistema está bloqueando os avisos
+            </Text>
+            <Text
+              style={{
+                fontFamily: fonts.body.regular,
+                fontSize: 14,
+                lineHeight: 14 * 1.5,
+                color: palette.brown700,
+              }}
+            >
+              As notificações do Brotinho estão desativadas nos ajustes do aparelho,
+              então nada vai chegar no horário escolhido aqui.
+            </Text>
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel="Abrir os ajustes do aparelho"
+              onPress={() => void Linking.openSettings().catch(() => {})}
+            >
+              <Text
+                style={{ fontFamily: fonts.body.bold, fontSize: 14, color: colors.primaryStrong }}
+              >
+                Abrir os ajustes do aparelho
+              </Text>
+            </Pressable>
+          </Card>
+        )}
+
         <Card style={{ gap: 16 }}>
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
             <Icon name="bell" color={palette.brown700} />
@@ -55,7 +106,11 @@ export function RemindersScreen({ onBack }: { onBack: () => void }) {
                   marginTop: 2,
                 }}
               >
-                {s.reminders ? `Todos os dias às ${data.profile.reminder}` : 'Desligado'}
+                {!s.reminders
+                  ? 'Desligado'
+                  : bloqueado
+                    ? `Às ${data.profile.reminder} — se o sistema deixar`
+                    : `Todos os dias às ${data.profile.reminder}`}
               </Text>
             </View>
             <Switch

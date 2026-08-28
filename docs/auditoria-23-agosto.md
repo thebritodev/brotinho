@@ -95,6 +95,23 @@ instalar o idioma offline no Android.
 > prática. Passou a depender de `running`, que só fica verdadeiro depois da
 > escolha.
 
+### A tela de Lembretes prometia o que o sistema estava bloqueando
+
+Ela mostrava "Todos os dias às 21:00" olhando **apenas para a chave interna do
+app**. Quem tivesse negado a permissão do sistema via o interruptor ligado, o
+horário escrito, e nunca recebia nada — depois de o onboarding ter prometido
+exatamente aquele horário.
+
+O mais revelador: `isDailyReminderScheduled` existia desde sempre, comentada
+como *"reflete o estado real do sistema, não o que o app acha que agendou"*, e
+**não era chamada em lugar nenhum**. A ferramenta certa estava escrita e nunca
+foi plugada.
+
+→ virou `notificacoesPermitidas`, e a tela avisa com um caminho para os ajustes
+do aparelho. Pergunta pela permissão e não pela fila agendada de propósito: a
+fila é escrita por um efeito que roda **depois** da troca do interruptor, então
+consultá-la logo após ligar acusaria um problema que não existe.
+
 ---
 
 ## O que foi verificado e estava certo
