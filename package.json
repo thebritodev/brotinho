@@ -44,7 +44,7 @@
     "ios": "expo start --ios",
     "web": "expo start --web",
     "tipos": "tsc --noEmit",
-    "testa": "node scripts/testa-casa-frase.js && node scripts/testa-sanitize.js && node scripts/confere-praticas.js && node scripts/testa-lembretes.js && node scripts/testa-atravessou.js && node scripts/testa-rascunho.js",
+    "testa": "node scripts/testa-casa-frase.js && node scripts/testa-sanitize.js && node scripts/confere-praticas.js && node scripts/testa-lembretes.js && node scripts/testa-atravessou.js && node scripts/testa-rascunho.js && node scripts/testa-colheita.js",
     "confere-cobranca": "node scripts/confere-cobranca.js"
   },
   "private": true

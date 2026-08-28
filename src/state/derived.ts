@@ -135,6 +135,19 @@ export function colheita(data: AppData): Plant {
     ? data.moodHistory.filter((m) => m.date > desde)
     : data.moodHistory;
 
+  /*
+    O valor também precisa ser só do período.
+
+    Ele saía de `livedValues`, que lê o diário **inteiro**. Da segunda planta em
+    diante isso devolvia quase sempre o mesmo valor da primeira: quem escreveu
+    muito sobre conexão no começo carrega esse peso para sempre, e o jardim
+    virava a fileira de troféus iguais que este arquivo diz querer evitar.
+  */
+  const textosDoPeriodo = data.journal
+    .filter((e) => (desde ? dayKey(e.createdAt) > desde : true))
+    .map((e) => e.text);
+  const valorDoPeriodo = data.settings.analysis ? (valoresEm(textosDoPeriodo)[0]?.value ?? null) : null;
+
   const contagem: Partial<Record<Mood, number>> = {};
   noPeriodo.forEach((m) => {
     contagem[m.mood] = (contagem[m.mood] ?? 0) + 1;
@@ -146,7 +159,7 @@ export function colheita(data: AppData): Plant {
     id: `${dayKey()}-${data.garden.length + 1}`,
     maturedAt: dayKey(),
     dias,
-    valor: livedValues(data)[0]?.value ?? null,
+    valor: valorDoPeriodo,
     mood,
   };
 }
@@ -168,11 +181,9 @@ const VALUE_TERMS: Record<ValueKey, string[]> = {
 export const normalize = (s: string) =>
   s.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
 
-export function livedValues(data: AppData): { value: ValueKey; count: number }[] {
-  // O interruptor "Análise dos meus registros" governa toda leitura de texto.
-  if (!data.settings.analysis) return [];
-
-  const texto = data.journal.map((e) => normalize(e.text)).join(' ');
+/** Os valores que aparecem num conjunto de textos. */
+function valoresEm(textos: string[]): { value: ValueKey; count: number }[] {
+  const texto = textos.map(normalize).join(' ');
 
   return (Object.keys(VALUE_TERMS) as ValueKey[])
     .map((value) => {
@@ -184,6 +195,12 @@ export function livedValues(data: AppData): { value: ValueKey; count: number }[]
     })
     .filter((v) => v.count > 0)
     .sort((a, b) => b.count - a.count);
+}
+
+export function livedValues(data: AppData): { value: ValueKey; count: number }[] {
+  // O interruptor "Análise dos meus registros" governa toda leitura de texto.
+  if (!data.settings.analysis) return [];
+  return valoresEm(data.journal.map((e) => e.text));
 }
 
 /** Padrões só aparecem com base suficiente; abaixo disso seria adivinhação. */
