@@ -345,3 +345,53 @@ compra e notificações — nada disso existe no navegador.
 > que perde de vista o que ficou sem verificar deixa de servir para o que existe.
 > Os 31 textos estão escritos como autocuidado e nunca como tratamento, e a tela
 > Sobre e a política dizem isso — foi o que levou à decisão.
+
+## 28 de agosto — o que a tela pegou na volta do arquivo
+
+Três coisas que só apareceram porque a tela foi dirigida, e nenhuma delas o
+typecheck ou os testes teriam pego.
+
+### Modal dentro de modal, duas vezes errado
+
+Na tela de abertura, "Trazer de volta" mora dentro de um modal. A confirmação
+abria um **segundo** modal por cima: os dois transparentes, os textos
+embaralhados, nenhum legível. A captura de tela é que denunciou.
+
+A primeira correção — fechar o modal de baixo quando a pergunta abre — piorou:
+ele é o dono do componente, e fechá-lo **desmontava quem ia mostrar a
+confirmação**. O botão passou a não fazer nada. Só a segunda tentativa acertou:
+a confirmação virou **conteúdo**, e cada lugar a coloca onde cabe — em
+Privacidade dentro de um `Modal`, na abertura como segundo passo do modal que
+já estava aberto.
+
+> A lição, que vale para as próximas: **modal sobre modal é frágil nas três
+> plataformas**, e "fechar o de baixo" não é a saída quando o de baixo é o pai.
+
+### Um falso alarme meu, de novo
+
+O Perfil mostrou "0 dias cuidados · 0 compostagem · 0 padrão" logo depois de
+importar, enquanto a Home mostrava 19 · 1 · 1 — os dois usando a **mesma**
+`stats(data)`. Quase virou investigação de bug.
+
+Era a animação de contagem no meio do caminho. E o próprio texto já dizia: **"0
+compostagem"**, no singular, quando zero pediria "compostagens" — o rótulo vinha
+do dado certo (1) enquanto o número ainda subia de zero. Ler mais um segundo
+depois deu 19 · 1 · 1.
+
+> Terceira lição da mesma família: **um número aparecendo sozinho fora do lugar
+> costuma ser animação, não estado** — e um plural que não combina com o número
+> é o sinal de que os dois vêm de fontes diferentes.
+
+### Os testes eram mais frouxos que o app
+
+O harness de práticas quebrou com um erro de tipo que o `tsc --noEmit` do
+projeto não acusava. A causa: **nenhum dos oito scripts passava `--strict`**,
+enquanto o `tsconfig.json` é `strict: true`. Eles vinham compilando o app com
+regras mais fracas do que as reais — o que faz um teste passar por motivo
+errado e, pior, esconder erro verdadeiro.
+
+Corrigido nos oito. O erro que apareceu era artefato da frouxidão, não do
+código: com `--strict`, a união discriminada estreita como deve.
+
+> **Um teste que compila com regras diferentes das do projeto não está testando
+> o projeto.**

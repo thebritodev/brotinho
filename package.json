@@ -12,6 +12,7 @@
     "expo-audio": "~1.1.1",
     "expo-constants": "~18.0.14",
     "expo-device": "~8.0.10",
+    "expo-document-picker": "~14.0.8",
     "expo-file-system": "~19.0.24",
     "expo-font": "~14.0.12",
     "expo-haptics": "~15.0.8",
@@ -45,7 +46,7 @@
     "ios": "expo start --ios",
     "web": "expo start --web",
     "tipos": "tsc --noEmit",
-    "testa": "node scripts/testa-casa-frase.js && node scripts/testa-sanitize.js && node scripts/confere-praticas.js && node scripts/testa-lembretes.js && node scripts/testa-atravessou.js && node scripts/testa-rascunho.js && node scripts/testa-colheita.js",
+    "testa": "node scripts/testa-casa-frase.js && node scripts/testa-sanitize.js && node scripts/confere-praticas.js && node scripts/testa-lembretes.js && node scripts/testa-atravessou.js && node scripts/testa-rascunho.js && node scripts/testa-colheita.js && node scripts/testa-importacao.js",
     "confere-cobranca": "node scripts/confere-cobranca.js"
   },
   "private": true

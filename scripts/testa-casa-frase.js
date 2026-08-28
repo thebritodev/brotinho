@@ -80,7 +80,7 @@ const GRUPOS = [
   const tsc = path.join(RAIZ, 'node_modules', 'typescript', 'bin', 'tsc');
   execFileSync(
     process.execPath,
-    [tsc, FONTE, '--outDir', saida, '--module', 'esnext', '--target', 'es2020', '--skipLibCheck'],
+    [tsc, FONTE, '--outDir', saida, '--module', 'esnext', '--target', 'es2020', '--strict', '--skipLibCheck'],
     { stdio: 'inherit', cwd: RAIZ },
   );
 

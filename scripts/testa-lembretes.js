@@ -41,7 +41,7 @@ const COBRANCA = [
   execFileSync(
     process.execPath,
     [tsc, '--outDir', saida, '--module', 'esnext', '--target', 'es2020',
-      '--moduleResolution', 'bundler', '--skipLibCheck',
+      '--moduleResolution', 'bundler', '--strict', '--skipLibCheck',
       path.join(RAIZ, 'src', 'data', 'lembretes.ts'),
       path.join(RAIZ, 'src', 'data', 'saudacao.ts'),
       path.join(RAIZ, 'src', 'data', 'comecos.ts'),

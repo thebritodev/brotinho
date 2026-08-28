@@ -166,6 +166,86 @@ enganosos, e num app de saúde mental o dano é maior que o ganho.
 
 ---
 
+## Pesquisa de 28 de agosto — a segunda rodada
+
+Três frentes. Duas fecharam sem nada a fazer, e registrar isso vale tanto
+quanto registrar a que rendeu: sem esta página, alguém volta a "melhorar" o
+horário do lembrete daqui a três meses.
+
+### Horário do lembrete — já estava certo
+
+A evidência sobre notificação em app de saúde mental aponta **tarde e noite**
+como as faixas de maior resposta, e **fim de semana** como a pior janela: sem
+rotina, a notificação se perde. O padrão do Brotinho é **21:00**, e a pessoa
+escolhe o dela. Nada a mudar.
+
+Dois avisos da mesma literatura que o app já respeita: **conteúdo repetitivo
+irrita** (resolvido em 25/08 com as 53 frases em fila) e **quem usa muito para
+de responder a sugestão** — motivo a mais para o lembrete não virar cobrança.
+
+### Acessibilidade — não era a lacuna que eu esperava
+
+43 `accessibilityLabel` e 53 `accessibilityRole` para 52 elementos tocáveis, e
+`allowFontScaling` nunca desligado. Coberto.
+
+### A exportação era uma porta que só abria para fora
+
+Esta rendeu. O comentário de `services/exportarDados.ts` já dizia:
+
+> *"sem conta e sem servidor, se o celular se perder e o backup do sistema
+> estiver desligado, o diário acabou — não existe cópia nossa para devolver.
+> **Este arquivo é a única rede.**"*
+
+E não existia nada no app que lesse esse arquivo de volta. A rede tinha uma
+ponta só.
+
+O backup do sistema está configurado certo — `RCTAsyncStorageExcludeFromBackup:
+false` no iOS, `allowBackup: true` no Android —, então troca de celular pelo
+iCloud preserva tudo. O que ele **não** cobre: apagar o app para liberar
+espaço, iPhone indo para Android, e restaurar de um backup não criptografado,
+que é justamente o caso em que a Apple deixa o diário de fora. Nas reclamações
+de apps de diário, perder as entradas é o que faz a pessoa dizer que não volta
+mais.
+
+→ `services/importarDados.ts` e "Trazer de volta" em Privacidade.
+
+**Três decisões que valem registro:**
+
+1. **`sanitizarDados` sozinho não bastava.** Ele devolve um `AppData` válido
+   para qualquer entrada, inclusive lixo — o que é certo ao ler o disco e
+   perigoso aqui: entregar a ele um arquivo qualquer responderia "importado" e
+   apagaria o diário com um estado vazio. O envelope (`app`, `formato`,
+   `dados`) é conferido **antes**, e é isso que `scripts/testa-importacao.js`
+   verifica nos dois sentidos — nada estranho entra, e o arquivo do próprio app
+   sempre entra. Um teste que só recusasse seria satisfeito por uma função que
+   recusa sempre.
+2. **Substitui, não junta.** Misturar dois diários exigiria decidir sozinho o
+   que fazer com registros do mesmo dia, ajustes conflitantes e dois jardins —
+   decisões invisíveis para quem toca no botão. A tela mostra os dois lados em
+   números ("diário: 12 aqui, 40 no arquivo") antes de perguntar, porque a
+   pessoa pode ter escolhido o arquivo errado.
+3. **A cópia do seletor é apagada.** O seletor duplica o arquivo escolhido para
+   o cache, e ali dentro está o diário inteiro em texto puro. Ela não tem o
+   prefixo que `limparExportacoes` varre, então some no `finally` — inclusive
+   quando a leitura falha. É o mesmo cuidado da gravação da Composta.
+
+O link do JSON passou a dizer **"é o único que volta"**: o download padrão é o
+`.txt`, que é para ler, e ninguém adivinharia que a rede de segurança é o outro.
+
+**E a saída não podia morar só em Privacidade.** Isso apareceu dirigindo a tela:
+Privacidade fica atrás dos catorze passos do onboarding **e** do paywall, e quem
+acabou de reinstalar está na tela de abertura, no "Já usei o Brotinho antes" —
+cujo modal promete "seus registros voltam sozinhos" e não oferecia nada a quem
+o backup do sistema não cobriu. Quem mais precisava da saída era exatamente quem
+menos conseguiria chegar até ela. O mesmo componente aparece nos dois lugares.
+
+### Uma decisão de loja que não é minha
+
+Não há teste grátis configurado. A pesquisa da RevenueCat mostra que trial de 3
+e 7 dias concentra cancelamento no dia 0 e no dia 1 — gente que cancela por
+precaução antes de experimentar. Fica registrado como decisão comercial, não
+como melhoria pendente.
+
 ## Fontes
 
 - [Clinical review of user engagement with mental health smartphone apps](https://pmc.ncbi.nlm.nih.gov/articles/PMC10270395/)
@@ -177,3 +257,9 @@ enganosos, e num app de saúde mental o dano é maior que o ganho.
 - [Implementing iOS Subscription Grace Periods (RevenueCat)](https://www.revenuecat.com/blog/engineering/ios-subscription-grace-periods)
 - [Win-back campaigns (RevenueCat)](https://www.revenuecat.com/win-back)
 - [Why Most Health App Users Churn Within 90 Days (Sahha)](https://sahha.ai/blog/health-app-churn-retention/)
+- [Real-World Receptivity to Adaptive Mental Health Interventions](https://arxiv.org/pdf/2508.02817)
+- [The Effect of Timing and Frequency of Push Notifications (PLOS One)](https://journals.plos.org/plosone/article?id=10.1371%2Fjournal.pone.0169162)
+- [To Prompt or Not to Prompt? A Microrandomized Trial of Push Notifications](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC6293241/)
+- [Back up, export, and print Journal entries on iPhone (Apple)](https://support.apple.com/121822)
+- [Data Loss and Recovery Options (Day One)](https://dayoneapp.com/guides/troubleshooting/data-loss-and-recovery-options/)
+- [State of Subscription Apps 2025 (RevenueCat)](https://www.revenuecat.com/state-of-subscription-apps-2025)

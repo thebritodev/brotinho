@@ -48,6 +48,8 @@ type AppStateValue = {
   colherPlanta: (planta: Plant) => void;
   /** Anota uma prática concluída. */
   registrarPratica: (topic: string, practice: string) => void;
+  /** Põe no lugar de tudo o conteúdo de um arquivo trazido de volta. */
+  trazerDeVolta: (dados: AppData) => void;
   reset: () => void;
 };
 
@@ -222,6 +224,21 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
     setData((prev) => ({ ...prev, composts: [compost, ...prev.composts] }));
   }, []);
 
+  /**
+   * Substitui o estado inteiro pelo que veio do arquivo.
+   *
+   * Quem valida é `services/importarDados`, e o que chega aqui já passou pelo
+   * `sanitizarDados` — o mesmo filtro da leitura normal do disco. A gravação
+   * acontece sozinha, pelo efeito que observa `data`.
+   *
+   * A varredura do cache vem junto porque as cópias que estavam ali eram do
+   * diário anterior, que a partir de agora não é mais o desta pessoa.
+   */
+  const trazerDeVolta = useCallback((dados: AppData) => {
+    setData(dados);
+    limparExportacoes();
+  }, []);
+
   const reset = useCallback(() => {
     setData(INITIAL_APP_DATA);
     void clearAppData();
@@ -245,6 +262,7 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
       markStageSeen,
       colherPlanta,
       registrarPratica,
+      trazerDeVolta,
       reset,
     }),
     [
@@ -260,6 +278,7 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
       markStageSeen,
       colherPlanta,
       registrarPratica,
+      trazerDeVolta,
       reset,
     ],
   );

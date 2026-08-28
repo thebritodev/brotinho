@@ -10,6 +10,7 @@ import {
   Sprout,
   Switch,
   TopBar,
+  TrazerDeVolta,
   type IconName,
 } from '../../components';
 import { exportarJson, exportarLegivel } from '../../services/exportarDados';
@@ -100,7 +101,11 @@ export function PrivacyScreen({ onBack }: { onBack: () => void }) {
     <View style={{ flex: 1, paddingTop: insets.top }}>
       <TopBar title="Privacidade" onBack={onBack} />
       <ScrollView
-        contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 32, gap: 20 }}
+        contentContainerStyle={{
+          paddingHorizontal: 20,
+          paddingBottom: 32,
+          gap: 20,
+        }}
         showsVerticalScrollIndicator={false}
       >
         <View
@@ -129,11 +134,7 @@ export function PrivacyScreen({ onBack }: { onBack: () => void }) {
 
         <Card>
           <View style={{ gap: 18 }}>
-            <PrivRow
-              icon="lock"
-              label="Bloqueio do app"
-              hint="Pedir biometria ou senha ao abrir"
-            >
+            <PrivRow icon="lock" label="Bloqueio do app" hint="Pedir biometria ou senha ao abrir">
               <Switch
                 label="Bloqueio do app"
                 checked={s.appLock}
@@ -209,17 +210,25 @@ export function PrivacyScreen({ onBack }: { onBack: () => void }) {
             e a pessoa receberia o texto justamente ao pedir o JSON. */}
         <Pressable
           accessibilityRole="button"
-          accessibilityLabel="Baixar em formato técnico, JSON"
+          accessibilityLabel="Baixar em formato técnico, JSON, que é o único que volta"
           onPress={exportando ? undefined : () => void baixar(false)}
           hitSlop={10}
           style={{ alignSelf: 'flex-start', marginTop: -8 }}
         >
           <Text
-            style={{ fontFamily: fonts.body.bold, fontSize: 13, color: colors.primaryStrong }}
+            style={{
+              fontFamily: fonts.body.bold,
+              fontSize: 13,
+              color: colors.primaryStrong,
+            }}
           >
-            Prefiro o formato técnico (JSON)
+            Prefiro o formato técnico (JSON) — é o único que volta
           </Text>
         </Pressable>
+
+        {/* Depois de baixar e antes de apagar, que é a ordem em que estas três
+            coisas acontecem na vida de quem troca de celular. */}
+        <TrazerDeVolta aparencia="cartao" />
 
         <Card
           onPress={() => setConfirmandoExclusao(true)}
@@ -271,7 +280,11 @@ export function PrivacyScreen({ onBack }: { onBack: () => void }) {
             }}
           >
             <Text
-              style={{ fontFamily: fonts.display.bold, fontSize: 22, color: colors.textPrimary }}
+              style={{
+                fontFamily: fonts.display.bold,
+                fontSize: 22,
+                color: colors.textPrimary,
+              }}
             >
               Apagar tudo?
             </Text>
@@ -304,7 +317,11 @@ export function PrivacyScreen({ onBack }: { onBack: () => void }) {
               ].map(([quantidade, rotulo]) => (
                 <Text
                   key={String(rotulo)}
-                  style={{ fontFamily: fonts.body.regular, fontSize: 14, color: palette.brown700 }}
+                  style={{
+                    fontFamily: fonts.body.regular,
+                    fontSize: 14,
+                    color: palette.brown700,
+                  }}
                 >
                   <Text style={{ fontFamily: fonts.body.extraBold }}>{quantidade}</Text> {rotulo}
                 </Text>

@@ -32,7 +32,7 @@ function chaveDoDia(t) {
   execFileSync(
     process.execPath,
     [tsc, '--outDir', saida, '--module', 'esnext', '--target', 'es2020',
-      '--moduleResolution', 'bundler', '--skipLibCheck', '--jsx', 'react-jsx',
+      '--moduleResolution', 'bundler', '--strict', '--skipLibCheck', '--jsx', 'react-jsx',
       path.join(RAIZ, 'src', 'state', 'derived.ts')],
     { stdio: 'inherit', cwd: RAIZ },
   );

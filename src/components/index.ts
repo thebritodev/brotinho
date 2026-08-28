@@ -20,6 +20,7 @@ export { AjudaAgora } from './brand/AjudaAgora';
 export { CrossedCard } from './brand/CrossedCard';
 export { MemoryCard } from './brand/MemoryCard';
 export { VoltaCard } from './brand/VoltaCard';
+export { TrazerDeVolta } from './brand/TrazerDeVolta';
 export { MoodFace } from './brand/MoodFace';
 export { MoodSelector, MOODS } from './brand/MoodSelector';
 export { PracticeTopicCard } from './brand/PracticeTopicCard';

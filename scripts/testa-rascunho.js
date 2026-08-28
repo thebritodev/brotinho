@@ -31,7 +31,7 @@ const RAIZ = path.join(__dirname, '..');
     execFileSync(
     process.execPath,
     [tsc, '--outDir', saida, '--module', 'esnext', '--target', 'es2020',
-      '--moduleResolution', 'bundler', '--skipLibCheck', '--jsx', 'react-jsx',
+      '--moduleResolution', 'bundler', '--strict', '--skipLibCheck', '--jsx', 'react-jsx',
       // `__DEV__` é uma global que o Metro injeta; aqui o tsc não a conhece.
       // Compilar mesmo com o erro, que o próprio arquivo já trata em runtime.
       '--noEmitOnError', 'false',
