@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { View } from 'react-native';
 
 import { ScreenTransition } from '../components';
@@ -6,6 +6,7 @@ import { OnboardingScreen } from '../screens/onboarding/OnboardingScreen';
 import { WelcomeScreen } from '../screens/onboarding/WelcomeScreen';
 import { PaywallGate } from '../screens/PaywallGate';
 import { useAppState } from '../state/AppStateProvider';
+import { loadRascunho } from '../storage/appStorage';
 import { precisaAssinar, useAssinatura } from '../state/SubscriptionProvider';
 import { colors } from '../theme';
 import { MainTabs } from './MainTabs';
@@ -20,9 +21,36 @@ export function RootNavigator() {
    */
   const [comecou, setComecou] = useState(false);
 
+  /**
+   * Quem foi interrompido no meio do onboarding volta direto para lá.
+   *
+   * O raciocínio acima continua valendo para quem parou **na porta**. Mas quem
+   * já respondeu alguma coisa contou algo ao Brotinho — e cair de novo na tela
+   * de boas-vindas, com o trabalho salvo escondido atrás dela, parece por um
+   * instante que tudo se perdeu. Apareceu rodando o app, não lendo o código.
+   *
+   * Só vale com progresso de verdade (`step > 0`): um rascunho no passo zero é
+   * um rascunho vazio, e pular a porta ali esconderia o "Já usei o Brotinho
+   * antes" de quem ainda pode precisar dele.
+   */
+  const [retomando, setRetomando] = useState<boolean | null>(null);
+
+  useEffect(() => {
+    let vivo = true;
+    void loadRascunho<{ step?: number }>('onboarding')
+      .then((r) => vivo && setRetomando(typeof r?.step === 'number' && r.step > 0))
+      .catch(() => vivo && setRetomando(false));
+    return () => {
+      vivo = false;
+    };
+  }, []);
+
   // Enquanto o AsyncStorage não responde, mantém a tela na cor de fundo
-  // para não piscar o onboarding para quem já passou por ele.
-  if (!hydrated) return <View style={{ flex: 1, backgroundColor: colors.bg }} />;
+  // para não piscar o onboarding para quem já passou por ele — nem as
+  // boas-vindas para quem está voltando de uma interrupção.
+  if (!hydrated || retomando === null) {
+    return <View style={{ flex: 1, backgroundColor: colors.bg }} />;
+  }
 
   const dentroDoApp = data.profile.onboarded;
 
@@ -37,7 +65,7 @@ export function RootNavigator() {
     ? 'paywall'
     : dentroDoApp
       ? 'app'
-      : comecou
+      : comecou || retomando
         ? 'onboarding'
         : 'boas-vindas';
 
@@ -49,7 +77,7 @@ export function RootNavigator() {
         <PaywallGate />
       ) : dentroDoApp ? (
         <MainTabs />
-      ) : comecou ? (
+      ) : comecou || retomando ? (
         <OnboardingScreen />
       ) : (
         <WelcomeScreen onStart={() => setComecou(true)} />

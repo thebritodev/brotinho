@@ -228,10 +228,19 @@ página — o equivalente ao sistema matar o app — e voltar. O disco tinha
 `{"step":2,"draft":{"name":"..."}}`, e o app retomou em **3/13** com o nome
 preservado.
 
-> **Uma coisa que só apareceu rodando:** depois da interrupção a pessoa cai na
-> tela de boas-vindas de novo, e só ao tocar em "Começar" é levada de volta ao
-> passo onde estava. O trabalho não se perde, mas o reencontro tem um passo a
-> mais do que o necessário. Fica anotado, não consertado.
+> **Uma coisa que só apareceu rodando, e já foi corrigida.** Depois da
+> interrupção a pessoa caía na tela de boas-vindas de novo, com o trabalho salvo
+> escondido atrás dela — por um instante parecia que tudo tinha se perdido.
+> Agora o app abre direto no passo onde ela estava.
+>
+> O raciocínio antigo (*"quem fechou na tela de boas-vindas ainda não contou
+> nada ao Brotinho"*) continua valendo para quem parou **na porta**. Por isso o
+> pulo exige progresso de verdade, `step > 0`: um rascunho no passo zero é um
+> rascunho vazio, e pular a porta ali esconderia o "Já usei o Brotinho antes" de
+> quem ainda pode precisar dele.
+>
+> Os dois caminhos foram conferidos rodando: com rascunho abre em 3/13; sem
+> rascunho, a tela de boas-vindas com os dois botões. Console limpo nos dois.
 
 **O que este teste não cobre:** microfone, reconhecimento de fala, vibração,
 compra e notificações — nada disso existe no navegador. O rascunho do diário
