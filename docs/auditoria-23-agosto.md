@@ -283,6 +283,27 @@ que o quebrava:
 As duas metades: o desabafo não se perde, e não sobra uma segunda cópia dele no
 aparelho. Console sem nenhum erro em todo o percurso.
 
+### O resto do app, dirigido
+
+Numa terceira passada foram percorridas as telas que faltavam. **Nenhum defeito
+novo**, e duas coisas que valem registro:
+
+| tela | o que aconteceu |
+|---|---|
+| **Composta** | sem microfone cai no modo manual, com o aviso certo. Segurando o botão: 18 repetições, o contador andou, as partículas caíram, a tela de conclusão abriu com o adubo assentando |
+| **Jardim** | "1 dia de cuidado. Faltam 2 para o próximo passo" — estado vazio bem resolvido |
+| **Perfil** | contagens corretas |
+| **Terapia** | derivou `Autocuidado 1x`, `Sono 1 registro`, `Saúde 1 registro` de um único desabafo |
+
+> **Um alarme falso meu, anotado porque errar assim é o risco do método.** O
+> gráfico de humor mostrava `S S D S T Q Q` e eu conclui que a ordem dos dias
+> estava trocada. Fui conferir: hoje é **quinta, 27**, e a sequência correta dos
+> últimos sete dias é exatamente essa. Quem estava errado era eu, e a checagem
+> levou trinta segundos.
+
+O cronômetro da Composta conta **segundos de voz**, não tempo de tela — por isso
+fica parado enquanto ninguém fala. É o desenho certo, e foi confirmado.
+
 **O que este teste não cobre:** microfone, reconhecimento de fala, vibração,
 compra e notificações — nada disso existe no navegador.
 

@@ -1,3 +1,5 @@
+import { Platform } from 'react-native';
+
 import { Directory, File, Paths } from 'expo-file-system';
 
 /**
@@ -34,6 +36,10 @@ function nomeDe(uri: string): string {
 }
 
 export function limparExportacoes(): void {
+  // Na web não existe cache de arquivos, e chamar isto ali só rende o aviso
+  // "expo-file-system is not supported on web" a cada tentativa de exportar.
+  if (Platform.OS === 'web') return;
+
   try {
     const cache = new Directory(Paths.cache);
     if (!cache.exists) return;
@@ -60,6 +66,8 @@ export function limparExportacoes(): void {
  * biblioteca no cache.
  */
 export function comNomeDoBrotinho(uri: string, nome: string): string {
+  if (Platform.OS === 'web') return uri;
+
   try {
     const arquivo = new File(uri);
     const destino = new File(Paths.cache, `${PREFIXO}${nome}`);
