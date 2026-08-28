@@ -22,7 +22,17 @@ const fs = require('fs');
 const RAIZ = path.join(__dirname, '..');
 const AMBIENTE = process.argv[2] || 'production';
 
-const CHAVES = ['EXPO_PUBLIC_REVENUECAT_IOS', 'EXPO_PUBLIC_REVENUECAT_ANDROID'];
+/**
+ * As chaves, e se a falta de cada uma trava a build.
+ *
+ * O lançamento é iOS primeiro. Exigir a chave do Android faria este guarda
+ * gritar todo dia por algo que ainda não existe — e guarda que sempre grita é
+ * guarda que se aprende a ignorar. Ela vira aviso até o Google Play entrar.
+ */
+const CHAVES = [
+  { nome: 'EXPO_PUBLIC_REVENUECAT_IOS', trava: true, loja: 'App Store' },
+  { nome: 'EXPO_PUBLIC_REVENUECAT_ANDROID', trava: false, loja: 'Google Play' },
+];
 const PRODUTOS = ['brotinho_semanal', 'brotinho_mensal', 'brotinho_anual', 'brotinho_vitalicio'];
 
 const problemas = [];
@@ -67,14 +77,21 @@ try {
   );
 }
 
+const avisos = [];
+
 if (listagem !== null) {
-  for (const chave of CHAVES) {
-    if (listagem.includes(chave)) ok(`${chave} existe no ambiente ${AMBIENTE}`);
-    else
-      falha(
-        `${chave} NÃO existe no ambiente ${AMBIENTE}`,
-        `npx eas-cli env:create --environment ${AMBIENTE} --name ${chave} --value <a chave> --visibility sensitive`,
-      );
+  for (const { nome, trava, loja } of CHAVES) {
+    if (listagem.includes(nome)) {
+      ok(`${nome} existe no ambiente ${AMBIENTE}`);
+      continue;
+    }
+    const comoResolver = `npx eas-cli env:create --environment ${AMBIENTE} --name ${nome} --value <a chave> --visibility sensitive`;
+    if (trava) {
+      falha(`${nome} NÃO existe no ambiente ${AMBIENTE}`, comoResolver);
+    } else {
+      console.log(`  aviso ${nome} ainda não existe — necessária antes do lançamento na ${loja}`);
+      avisos.push({ nome, comoResolver, loja });
+    }
   }
 }
 
@@ -93,6 +110,11 @@ else falha('o nome do direito mudou no código', 'ele precisa ser igual ao do Re
 console.log('');
 if (!problemas.length) {
   console.log(`Pode compilar: o ambiente "${AMBIENTE}" tem o que a cobrança precisa.`);
+  for (const a of avisos) {
+    console.log(`
+Pendente para a ${a.loja}: ${a.nome}
+  → ${a.comoResolver}`);
+  }
   process.exit(0);
 }
 
