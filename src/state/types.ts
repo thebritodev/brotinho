@@ -98,6 +98,21 @@ export type AppData = {
    * estágio atual em silêncio, sem comemorar um crescimento antigo.
    */
   stageSeen: number | null;
+  /**
+   * O maior número de dias cuidados que a pessoa já alcançou.
+   *
+   * Existe porque a contagem era derivada só do que está guardado agora: apagar
+   * o único registro de um dia derrubava o total, e o broto podia **voltar** do
+   * estágio 3 para o 2, ou deixar de estar pronto para colher.
+   *
+   * Apagar um registro é um ato legítimo — às vezes a pessoa escreveu algo de
+   * que se arrependeu — e não pode vir com a punição de ver a planta encolher.
+   * O app promete que o broto nunca regride; isto é o que torna a promessa
+   * verdadeira também nesse caso.
+   *
+   * Some junto com "apagar meus dados", como todo o resto.
+   */
+  diasCuidadosMax: number;
 };
 
 export const INITIAL_PROFILE: Profile = {
@@ -131,6 +146,7 @@ export const INITIAL_APP_DATA: AppData = {
   composts: [],
   settings: INITIAL_SETTINGS,
   startedAt: null,
+  diasCuidadosMax: 0,
   garden: [],
   practicesDone: [],
   stageSeen: null,

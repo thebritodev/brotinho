@@ -58,7 +58,9 @@ function chaveDoDia(t) {
   }
 
   const alvo = arquivos.find((a) => a.endsWith('derived.js'));
-  const { colheita, livedValues } = await import('file://' + alvo.split(path.sep).join('/'));
+  const { colheita, livedValues, daysCaredFor, diasComRegistro, sproutStage } = await import(
+    'file://' + alvo.split(path.sep).join('/')
+  );
 
   const agora = Date.now();
   const diasAtras = (n) => agora - n * DIA;
@@ -121,8 +123,39 @@ function chaveDoDia(t) {
   checa('ciclo sem texto novo não herda o valor antigo', colheita(semTexto).valor === null,
     String(colheita(semTexto).valor));
 
+  // --- O broto não encolhe ------------------------------------------------
+  // Apagar um registro e ver a planta diminuir puniria um ato legítimo.
+  const comHistoria = {
+    ...dados,
+    diasCuidadosMax: 0,
+    practicesDone: [{ topic: 'ansiedade', practice: 'respiracao-478', at: diasAtras(3) }],
+  };
+  const brutoAntes = diasComRegistro(comHistoria);
+  checa('a prática entra na conta de dias cuidados', brutoAntes >= 7, `${brutoAntes} dias`);
+
+  const comPiso = { ...comHistoria, diasCuidadosMax: brutoAntes };
+  const apagouTudo = { ...comPiso, journal: [], moodHistory: [], practicesDone: [] };
+  checa(
+    'apagar tudo não derruba a contagem',
+    daysCaredFor(apagouTudo) === brutoAntes,
+    `${daysCaredFor(apagouTudo)} contra ${brutoAntes}`,
+  );
+  checa(
+    'e o broto não volta de estágio',
+    sproutStage(apagouTudo) === sproutStage(comPiso),
+    `${sproutStage(apagouTudo)} contra ${sproutStage(comPiso)}`,
+  );
+  checa(
+    'sem piso guardado, a conta é a crua',
+    daysCaredFor({ ...comHistoria, diasCuidadosMax: 0 }) === brutoAntes,
+  );
+  checa(
+    'piso ausente não quebra a conta',
+    daysCaredFor({ ...comHistoria, diasCuidadosMax: undefined }) === brutoAntes,
+  );
+
   fs.rmSync(saida, { recursive: true, force: true });
-  console.log(`\n8 casos · ${falhas} falha(s)`);
+  console.log(`\n13 casos · ${falhas} falha(s)`);
   process.exit(falhas === 0 ? 0 : 1);
 })().catch((e) => {
   console.error('falhou:', e.message);

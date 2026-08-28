@@ -18,7 +18,7 @@ import {
 } from '../services/notifications';
 import { clearAppData, loadAppData, saveAppData } from '../storage/appStorage';
 import type { Mood } from '../theme';
-import { dayKey, daysCaredFor, diasSemAparecer } from './derived';
+import { dayKey, daysCaredFor, diasComRegistro, diasSemAparecer } from './derived';
 import { sanitizarDados } from './sanitize';
 import type { Plant } from './types';
 import {
@@ -100,6 +100,21 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
    */
   const ausencia = diasSemAparecer(data);
   const cuidados = daysCaredFor(data);
+
+  /**
+   * Guarda o recorde de dias cuidados, para a contagem nunca descer.
+   *
+   * Sem isto o piso ficaria em zero para sempre e não protegeria nada. A
+   * condição impede laço: só grava quando há recorde novo, e depois de gravar
+   * os dois números passam a ser iguais.
+   */
+  useEffect(() => {
+    if (!hydrated) return;
+    const bruto = diasComRegistro(data);
+    if (bruto > (data.diasCuidadosMax ?? 0)) {
+      setData((prev) => ({ ...prev, diasCuidadosMax: bruto }));
+    }
+  }, [hydrated, data]);
 
   /**
    * Muda quando o app volta do segundo plano, para a fila de lembretes ser

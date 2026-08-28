@@ -176,5 +176,11 @@ export function sanitizarDados(guardado: unknown, hoje: string): AppData {
     garden: jardimLimpo(g.garden),
     practicesDone: praticasLimpas(g.practicesDone),
     stageSeen,
+    // Um piso corrompido não pode inflar o jardim de ninguém: só vale número
+    // finito e não negativo.
+    diasCuidadosMax:
+      typeof g.diasCuidadosMax === 'number' && Number.isFinite(g.diasCuidadosMax)
+        ? Math.max(0, Math.floor(g.diasCuidadosMax))
+        : 0,
   };
 }

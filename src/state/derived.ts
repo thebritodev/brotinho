@@ -23,12 +23,33 @@ export const dayKey = (d: Date | number = new Date()) => {
   return `${x.getFullYear()}-${mes}-${dia}`;
 };
 
-/** Dias distintos em que houve algum registro (humor, diário ou composta). */
+/**
+ * Dias distintos em que a pessoa apareceu — humor, diário, composta ou prática.
+ *
+ * **Nunca desce.** O piso guardado em `diasCuidadosMax` cobre o caso de alguém
+ * apagar o único registro de um dia: sem ele a conta caía e o broto podia
+ * voltar de estágio, punindo um ato legítimo. Ver o campo em `types.ts`.
+ *
+ * As práticas entram aqui desde 25/08/2026. Antes, fazer uma prática contava
+ * como aparecer (em `diasSemAparecer`) mas não como cuidar — quem usasse o app
+ * só pelas práticas nunca via o broto crescer, e nada justificava a diferença.
+ */
 export function daysCaredFor(data: AppData): number {
+  return Math.max(diasComRegistro(data), data.diasCuidadosMax ?? 0);
+}
+
+/**
+ * A contagem crua, sem o piso — o que existe guardado agora.
+ *
+ * Só quem mantém o piso usa isto: é comparando os dois que se sabe se há um
+ * recorde novo para gravar.
+ */
+export function diasComRegistro(data: AppData): number {
   const dias = new Set<string>();
   data.moodHistory.forEach((m) => dias.add(m.date));
   data.journal.forEach((e) => dias.add(dayKey(e.createdAt)));
   data.composts.forEach((c) => dias.add(dayKey(c.createdAt)));
+  data.practicesDone.forEach((p) => dias.add(dayKey(p.at)));
   return dias.size;
 }
 
