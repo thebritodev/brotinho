@@ -114,6 +114,44 @@ no diário, não navega três telas para achar um telefone.
 > app se denunciar lendo é pior que o alarme. O convite fica sempre visível e
 > sempre igual, e quem decide é ela.
 
+## Pesquisa de 28 de agosto — revisão da Apple e descoberta
+
+### O risco da diretriz 1.4.1
+
+A Apple reprova apps que **pareçam** dar orientação médica sem aprovação
+regulatória, e os relatos de desenvolvedores mostram reprovação **mesmo com
+aviso de "não é tratamento"** — o disclaimer sozinho não salva.
+
+Os textos das práticas afirmavam mecanismos fisiológicos como fato:
+
+> *"reduz a atividade da amígdala"* · *"em estudos de neuroimagem, nomear uma
+> emoção diminui a resposta da amígdala"*
+
+São achados reais, mas o app não tem como sustentá-los se alguém cobrar — e
+menos ainda depois que a revisão por psicólogo foi descartada.
+
+→ os seis textos passaram a descrever a **experiência** em vez do mecanismo. As
+práticas continuam idênticas; mudou só como são justificadas. O nome das
+técnicas e a autoria ficaram: *rotulação afetiva*, *Edmund Jacobson*, *Martin
+Seligman* — isso é atribuição verificável, não afirmação clínica.
+
+A ficha da loja já estava limpa: só menciona "defusão cognitiva, da terapia ACT".
+
+### O app nunca pedia avaliação
+
+Avaliação é o principal motor de descoberta na App Store, e não havia nenhum
+`StoreReview` no código.
+
+A recomendação padrão é pedir "depois de uma ação concluída". **Num app de saúde
+mental isso é insuficiente:** a Composta também termina em conclusão, e ali a
+pessoa acabou de dizer em voz alta o pensamento que mais a machuca. Pedir um
+favor naquele instante trata a dor dela como oportunidade de marketing.
+
+→ o pedido mora **só na colheita**: três semanas de cuidado, a planta amadureceu,
+e é a única boa notícia do app que não depende de algo difícil ter acabado de
+acontecer. É raro por natureza, o que também evita insistir. A Apple mostra no
+máximo três vezes por ano e pode não mostrar nenhuma; nada depende disso.
+
 ## O que fica de fora, de propósito
 
 Táticas que aparecem na literatura de crescimento e que **não** entram aqui:

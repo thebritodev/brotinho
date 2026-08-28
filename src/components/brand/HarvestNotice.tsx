@@ -1,6 +1,7 @@
 import React, { useEffect, useRef } from 'react';
 import { AccessibilityInfo, Animated, Easing, Pressable, Text, View } from 'react-native';
 
+import { pedirAvaliacaoNaColheita } from '../../services/pedirAvaliacao';
 import { toqueDeConclusao } from '../../services/toque';
 import { useAppState } from '../../state/AppStateProvider';
 import { colors, moodColors, palette, radius, shadows, fonts } from '../../theme';
@@ -34,6 +35,19 @@ export function HarvestNotice({
     // Três semanas de cuidado terminando: se algo merece a vibração de
     // conclusão neste app, é isto.
     toqueDeConclusao(data.settings.vibracao);
+
+    /*
+      E é o único lugar do app onde cabe pedir uma avaliação na loja.
+
+      A recomendação padrão — "peça depois de uma ação concluída" — não serve
+      aqui: a Composta também termina em conclusão, e ali a pessoa acabou de
+      dizer em voz alta o pensamento que mais a machuca. O porquê completo está
+      em `services/pedirAvaliacao.ts`.
+
+      Vai com atraso para não competir com a animação da planta chegando.
+    */
+    const id = setTimeout(() => void pedirAvaliacaoNaColheita(), 2600);
+    return () => clearTimeout(id);
   }, []);
 
   useEffect(() => {

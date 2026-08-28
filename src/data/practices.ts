@@ -120,7 +120,7 @@ export const PRACTICE_TOPICS: PracticeTopic[] = [
           { title: 'Diga o que você vai fazer mesmo assim', text: 'Não precisa expulsá-la. Só deixe claro quem decide.' },
           { title: 'Releia no dia seguinte', text: 'Quase sempre parece menor no papel do que parecia na cabeça.' },
         ],
-        why: 'Dar nome e forma a um sentimento reduz a atividade da amígdala — o centro de alarme do cérebro. Escrever cria distância: você deixa de ser a ansiedade e passa a ser quem escreve sobre ela.',
+        why: 'Nomear o que se sente costuma tirar força do sentimento. Escrever cria distância: você deixa de ser a ansiedade e passa a ser quem escreve sobre ela.',
       },
     ],
   },
@@ -144,7 +144,7 @@ export const PRACTICE_TOPICS: PracticeTopic[] = [
           { title: 'Aponte onde isso aparece no corpo', text: 'Peito, garganta, ombros, estômago. A tristeza quase sempre tem endereço.' },
           { title: 'Pergunte o que ela está apontando', text: 'Tristeza costuma marcar uma perda. Do que você sente falta?' },
         ],
-        why: 'Chama-se rotulação afetiva. Pôr um sentimento em palavras específicas reduz a intensidade dele — em estudos de neuroimagem, nomear uma emoção diminui a resposta da amígdala. "Estou mal" não é nome: é um balde onde cabe tudo.',
+        why: 'Chama-se rotulação afetiva. Pôr o sentimento em palavras específicas costuma diminuir o tamanho dele. "Estou mal" não é nome: é um balde onde cabe tudo.',
       },
       {
         key: 'um-passo-pequeno',
@@ -204,7 +204,7 @@ export const PRACTICE_TOPICS: PracticeTopic[] = [
           { title: 'Solte de uma vez e repare na diferença', text: 'Esse contraste é o exercício inteiro. Fique 10 segundos ali.' },
           { title: 'Suba pelo corpo', text: 'Panturrilhas, coxas, barriga, mãos, braços, ombros, rosto. Um de cada vez.' },
         ],
-        why: 'Relaxamento muscular progressivo, criado por Edmund Jacobson nos anos 1920. Um corpo tenso mantém o cérebro em alerta; soltar músculo por músculo desfaz o sinal de perigo pela via mais direta.',
+        why: 'Relaxamento muscular progressivo, criado por Edmund Jacobson nos anos 1920. Tensão e alerta andam juntos, e costuma ser mais fácil soltar o corpo do que convencer a cabeça — por isso a prática começa pelos músculos.',
         guide: {
           kind: 'steps',
           steps: [
@@ -529,7 +529,7 @@ export const PRACTICE_TOPICS: PracticeTopic[] = [
           { title: 'Escreva o que cada uma exigiu de você', text: 'Coragem, paciência, organização. Nomeie.' },
           { title: 'Não compare com o que faltou', text: 'A lista do que não deu tempo é para outro momento. Aqui não entra.' },
         ],
-        why: 'O cérebro registra ameaça e falha com mais força que acerto — é o viés de negatividade, útil para sobreviver e péssimo para se avaliar. Listar deliberadamente reequilibra o que fica na memória do dia.',
+        why: 'A gente lembra do que deu errado com mais força do que do que deu certo — é o viés de negatividade, útil para sobreviver e péssimo para se avaliar. Listar de propósito reequilibra o que fica do dia.',
         guide: {
           kind: 'steps',
           steps: [
@@ -646,7 +646,7 @@ export const PRACTICE_TOPICS: PracticeTopic[] = [
           { title: 'Para cada uma, escreva por que aconteceu', text: 'Esta é a parte que faz efeito. Alguém fez? Você fez? Foi acaso?' },
           { title: 'Repita por uma semana', text: 'O efeito é cumulativo, não imediato.' },
         ],
-        why: 'O exercício "três coisas boas", de Martin Seligman, é dos mais testados da psicologia positiva. O ganho está no "por quê": ele treina a busca por causas de coisas boas, algo que o cérebro faz sozinho com as ruins.',
+        why: 'O exercício "três coisas boas", de Martin Seligman, é dos mais testados da psicologia positiva. O ganho está no "por quê": ele treina a busca por causas de coisas boas, algo que a cabeça faz sozinha com as ruins.',
         guide: {
           kind: 'steps',
           steps: [
@@ -683,7 +683,7 @@ export const PRACTICE_TOPICS: PracticeTopic[] = [
           { title: 'Repare no corpo agora', text: 'Onde a lembrança aparece: peito, ombros, rosto.' },
           { title: 'Fique mais um pouco', text: 'A pressa de seguir em frente é justamente o que se está treinando a soltar.' },
         ],
-        why: 'Chama-se saborear. Experiências boas passam rápido porque a atenção não demora nelas — o cérebro dá prioridade ao que ameaça. Prolongar de propósito uma lembrança boa aumenta o efeito dela sobre o humor, e é uma habilidade que melhora com prática.',
+        why: 'Chama-se saborear. Experiências boas passam rápido porque a atenção não demora nelas — o que ameaça leva prioridade. Demorar de propósito numa lembrança boa costuma fazê-la render mais, e é uma habilidade que melhora com prática.',
         guide: {
           kind: 'steps',
           steps: [
