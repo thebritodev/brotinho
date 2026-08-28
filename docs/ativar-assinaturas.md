@@ -272,67 +272,51 @@ Use os **mesmos identificadores** da Apple.
 
 ---
 
-## FASE 4 — RevenueCat — projeto criado, travado na chave da Apple
+## FASE 4 — RevenueCat — configurado, faltam dois cliques
 
-**Estado em 28 de agosto de 2026**, conferido na tela.
+**Estado em 28 de agosto de 2026**, tudo conferido na tela.
 
-### O que já existe
+### Pronto
 
 | | |
 |---|---|
-| Projeto | **Brotinho** — id `b4c10115` · categoria Health · plataforma React Native |
-| Direito | **`premium`** — identifier confirmado na tabela de Entitlements |
-| App iOS | formulário preenchido (`Brotinho iOS` · `com.brotinho.app`), **não salvo** |
+| Projeto | **Brotinho** — `b4c10115` · Health · React Native |
+| App iOS | **Brotinho iOS** — `app976feefe8d` · `com.brotinho.app` |
+| Chave da Apple | `.p8` aceita · Key ID `XN4R2J2C47` · Issuer `ef07cba4-29ae-4879-9e9e-ac46381ed8e1` |
+| Direito | **`premium`** — identifier, não só nome de exibição |
+| Produtos | os quatro, no app iOS: `brotinho_semanal`, `brotinho_mensal`, `brotinho_anual`, `brotinho_vitalicio` |
+| Vínculo | os quatro ligados ao `premium` |
+| Oferta | **`brotinho`** (`ofrng0396a6ad2d`) com quatro pacotes: `$rc_weekly`, `$rc_monthly`, `$rc_annual`, `$rc_lifetime` |
+| Chave pública | gerada para o app iOS |
 
-O nome do direito era o ponto mais fácil de errar: o assistente sugeria
-"Brotinho Pro". Qualquer coisa diferente de `premium` faria **todo mundo virar
-não-assinante** — a compra funcionaria e o app negaria o acesso, porque
-`subscription.ts` procura essa palavra exata.
+### Os dois cliques que faltam
 
-### O que trava tudo: a chave `.p8`
+**1. Confirmar que a oferta `brotinho` é a padrão.** O app pede
+`getOfferings().current`, e quem responde isso é a oferta marcada como
+**Default**. Cliquei em "Make Default" no menu dela, mas o painel não mostra
+indicador de qual é a atual, e a opção continua aparecendo — então **não dá para
+afirmar que pegou**. Abra Offerings, use o menu **⋮** da linha `brotinho` e
+confirme. Se a opção "Make Default" ainda estiver lá, clique.
 
-O RevenueCat **não salva o app iOS sem ela**, e explica na própria tela:
+**2. A chave pública no EAS.** Copie em **API keys → Brotinho iOS** e rode:
 
-> *When using Purchases v5.x+ (i.e., StoreKit 2), transactions will fail to be
-> recorded without this key being set. This can result in users not accessing
-> the purchases they are entitled to.*
+```
+npx eas-cli env:create --environment production --name EXPO_PUBLIC_REVENUECAT_IOS --value <a chave> --visibility sensitive
+npm run confere-cobranca
+```
 
-O app usa `react-native-purchases` **10.7.1**, que é StoreKit 2. Sem a chave,
-quem pagar não recebe acesso.
+### Resíduo do assistente inicial
 
-**Onde gerar:** App Store Connect → **Usuários e acesso** → **Integrações** →
-**Chave de compra no app**. O `.p8` baixa **uma vez só**; anote o **Key ID** e o
-**Issuer ID** que aparecem na mesma tela.
+A oferta **`default`** e os três produtos de **Test Store** (`monthly`,
+`yearly`, `lifetime`) foram criados pelo guia de boas-vindas. Os produtos de
+teste seguem ligados ao `premium`, o que é **útil** — permite exercitar a
+assinatura sem a loja. A oferta `default`, essa dá para apagar quando a
+`brotinho` estiver confirmada como padrão.
 
-> Não é a chave que o EAS já tem. Aquela é de API do App Store Connect, para
-> *enviar* builds. Esta é de outra seção e serve para *validar compras*.
+### Uma pendência da conta
 
-### O que fica bloqueado até lá
-
-Nada de produto da App Store pode ser criado antes: em **Products → New
-product**, o único app disponível é o Test Store. Confirmado na tela.
-
-### Resíduo do assistente, para limpar depois
-
-O guia inicial criou três produtos de **Test Store** (`monthly`, `yearly`,
-`lifetime`) e uma oferta padrão com eles. São inofensivos e úteis para teste,
-mas **não são os nossos**: os quatro identificadores reais continuam sendo
-`brotinho_semanal`, `brotinho_mensal`, `brotinho_anual` e `brotinho_vitalicio`,
-e a oferta terá de ser refeita com eles — a sugerida tem três planos, o app tem
-quatro.
-
-### Uma pendência pequena
-
-O painel avisa que **o e-mail da conta ainda não foi confirmado**. Vale clicar
-no link do e-mail do RevenueCat antes de seguir.
-
-### Depois da chave
-
-1. Salvar o app iOS → isso gera a **chave pública `appl_…`**
-2. Criar os quatro produtos com os identificadores exatos
-3. Ligar os quatro ao direito `premium`
-4. Refazer a oferta com os quatro, marcada como **current**
-5. Guardar a chave no EAS e conferir com `npm run confere-cobranca` — FASE 5
+O painel avisa que **o e-mail da conta não foi confirmado**. Vale resolver antes
+de depender do RevenueCat em produção.
 
 ---
 
