@@ -1,4 +1,4 @@
-import React, { useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
   KeyboardAvoidingView,
   Platform,
@@ -38,6 +38,7 @@ import {
   type PlanKey,
 } from '../../data/onboarding';
 import { useAppState } from '../../state/AppStateProvider';
+import { descartarRascunho, loadRascunho, saveRascunho } from '../../storage/appStorage';
 import { useAssinatura } from '../../state/SubscriptionProvider';
 import { colors, palette, fonts } from '../../theme';
 import { ExperimentoComposta, REPETICOES_DO_EXPERIMENTO } from './ExperimentoComposta';
@@ -86,6 +87,14 @@ export function OnboardingScreen() {
   const { width: largura, height: altura } = useWindowDimensions();
   const { data, updateProfile } = useAppState();
 
+  /**
+   * O onboarding em andamento, atravessando uma interrupção.
+   *
+   * `null` enquanto o rascunho não foi lido do disco: desenhar o passo zero e
+   * depois pular para o passo nove seria pior do que esperar um instante.
+   */
+  const [restaurado, setRestaurado] = useState(false);
+
   const [step, setStep] = useState(0);
   const [draft, setDraft] = useState<Draft>({
     name: data.profile.name,
@@ -104,6 +113,46 @@ export function OnboardingScreen() {
   /** O experimento vive fora do rascunho: não é resposta, é uma vivência. */
   const [pensamento, setPensamento] = useState('');
   const [repeticoes, setRepeticoes] = useState(0);
+
+  /**
+   * Lê o que ficou de uma sessão interrompida.
+   *
+   * Roda uma vez, antes de a tela virar interativa. O passo é limitado ao
+   * intervalo válido porque um rascunho de uma versão antiga do app pode
+   * apontar para um passo que não existe mais.
+   */
+  useEffect(() => {
+    let vivo = true;
+    void loadRascunho<{
+      step: number;
+      draft: Draft;
+      pensamento: string;
+      repeticoes: number;
+    }>()
+      .then((r) => {
+        if (!vivo) return;
+        if (r?.draft) {
+          setDraft((prev) => ({ ...prev, ...r.draft }));
+          setStep(Math.max(0, Math.min(TOTAL - 1, r.step ?? 0)));
+          setPensamento(typeof r.pensamento === 'string' ? r.pensamento : '');
+          setRepeticoes(Number.isFinite(r.repeticoes) ? r.repeticoes : 0);
+        }
+        setRestaurado(true);
+      })
+      .catch(() => vivo && setRestaurado(true));
+    return () => {
+      vivo = false;
+    };
+  }, []);
+
+  /**
+   * Grava a cada mudança, e só depois de ter lido — senão a primeira gravação
+   * (com o estado vazio) apagaria o rascunho que estava no disco.
+   */
+  useEffect(() => {
+    if (!restaurado) return;
+    void saveRascunho({ step, draft, pensamento, repeticoes });
+  }, [restaurado, step, draft, pensamento, repeticoes]);
 
   const set = (patch: Partial<Draft>) => setDraft((prev) => ({ ...prev, ...patch }));
 
@@ -196,6 +245,9 @@ export function OnboardingScreen() {
 
   /** Sai do onboarding e entra no app. */
   const finish = (assinou: boolean) => {
+    // O rascunho existe para atravessar uma interrupção, não para virar uma
+    // segunda cópia do que a pessoa escreveu. Terminou, some.
+    void descartarRascunho();
     updateProfile({ ...draft, subscribed: assinou, onboarded: true });
   };
 
@@ -512,6 +564,15 @@ export function OnboardingScreen() {
 
     [PASSO.PAYWALL]: <Paywall plan={draft.plan} onSelectPlan={(p) => set({ plan: p })} />,
   };
+
+  /*
+    Enquanto o rascunho não foi lido do disco, a tela não desenha.
+
+    Sem isto ela apareceria no passo zero e pularia para o passo nove um quadro
+    depois — para quem está voltando de uma interrupção, o app pareceria ter
+    perdido tudo e depois se corrigido. A leitura é local e leva um instante.
+  */
+  if (!restaurado) return <View style={{ flex: 1, backgroundColor: colors.bg }} />;
 
   return (
     <KeyboardAvoidingView
