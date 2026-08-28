@@ -150,7 +150,7 @@ const CASOS = [
   }
 
   const alvo = arquivos.find((a) => a.endsWith('derived.js'));
-  const { atravessou } = await import('file://' + alvo.split(path.sep).join('/'));
+  const { atravessou, vezesQueVoltou } = await import('file://' + alvo.split(path.sep).join('/'));
 
   let falhas = 0;
   for (const [nome, dados, esperado] of CASOS) {
@@ -175,8 +175,32 @@ const CASOS = [
     console.log(`  ${veredito === 'ok' ? 'ok   ' : 'FALHA'} ${nome.padEnd(44)} ${veredito}`);
   }
 
+  // --- O interruptor de análise vale para tudo que lê texto ----------------
+  const comVolta = base({
+    composts: [composta('não vou dar conta do trabalho', 60), composta('não dou conta do trabalho', 5)],
+  });
+  const ligado = vezesQueVoltou(comVolta, 'não vou dar conta do trabalho');
+  const desligado = vezesQueVoltou(
+    { ...comVolta, settings: { analysis: false } },
+    'não vou dar conta do trabalho',
+  );
+  let extra = 0;
+  if (ligado < 2) {
+    extra += 1;
+    console.log(`  FALHA com análise ligada deveria contar as voltas       veio ${ligado}`);
+  } else {
+    console.log('  ok    com análise ligada, conta as voltas');
+  }
+  if (desligado !== 0) {
+    extra += 1;
+    console.log(`  FALHA com análise desligada não pode contar             veio ${desligado}`);
+  } else {
+    console.log('  ok    com análise desligada, não conta nada');
+  }
+  falhas += extra;
+
   fs.rmSync(saida, { recursive: true, force: true });
-  console.log(`\n${CASOS.length} casos · ${falhas} falha(s)`);
+  console.log(`\n${CASOS.length + 2} casos · ${falhas} falha(s)`);
   process.exit(falhas === 0 ? 0 : 1);
 })().catch((e) => {
   console.error('falhou:', e.message);

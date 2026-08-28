@@ -166,6 +166,22 @@ tudo o que tinha sido reescrito — enquanto excluir um registro, que é menos
 grave, tem tela de confirmação. Agora, com alteração pendente, o toque fora não
 fecha, e o botão passa a dizer "Descartar alterações": sair vira uma escolha.
 
+### O interruptor de análise tinha um vazamento
+
+Ele promete "permite que o broto identifique padrões nos seus textos". Com ele
+**desligado**, a Composta continuava dizendo *"esta é a terceira vez que esse
+pensamento volta"* — que é, literalmente, um padrão identificado nos textos da
+pessoa. `vezesQueVoltou` era a única leitura de texto do app fora da regra.
+
+`lembranca` fica fora da regra **de propósito**, e agora está escrito por quê:
+mostrar um registro antigo é o diário devolvendo o que a pessoa escreveu,
+escolhido por data. Não há leitura de conteúdo ali, e desligar a análise não
+deveria trancar o próprio diário.
+
+Junto: "apagar tudo" passou a varrer também as cópias exportadas no cache, em
+vez de esperar a abertura seguinte. Quem toca nesse botão costuma estar
+preocupado exatamente com isso.
+
 ---
 
 ## O que foi verificado e estava certo

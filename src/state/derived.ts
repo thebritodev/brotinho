@@ -425,6 +425,21 @@ function mesmaDor(alvo: Set<string>, texto: string): boolean {
 }
 
 export function vezesQueVoltou(data: AppData, texto: string): number {
+  /*
+    Obedece ao interruptor, como toda leitura de texto.
+
+    Ficava de fora: o interruptor promete "permite que o broto identifique
+    padrões nos seus textos", e a Composta continuava dizendo "esta é a terceira
+    vez que isto volta" com ele desligado — que é, literalmente, um padrão
+    identificado nos textos da pessoa.
+
+    `lembranca` continua fora desta regra de propósito: mostrar um registro
+    antigo é o diário devolvendo o que a pessoa escreveu, escolhido por data.
+    Não há leitura de conteúdo ali, e desligar a análise não deveria trancar o
+    próprio diário.
+  */
+  if (!data.settings.analysis) return 0;
+
   const alvo = assinatura(texto);
   if (alvo.size < 2) return 0;
 

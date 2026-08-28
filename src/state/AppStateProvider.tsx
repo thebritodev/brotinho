@@ -225,6 +225,10 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
   const reset = useCallback(() => {
     setData(INITIAL_APP_DATA);
     void clearAppData();
+    // Também as cópias que ficaram no cache de "baixar meus dados" e do resumo
+    // para a terapia. Quem toca em "apagar tudo" costuma estar preocupado
+    // exatamente com isso — esperar a próxima abertura para varrer seria tarde.
+    limparExportacoes();
   }, []);
 
   const value = useMemo(
