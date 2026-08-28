@@ -182,6 +182,27 @@ Junto: "apagar tudo" passou a varrer também as cópias exportadas no cache, em
 vez de esperar a abertura seguinte. Quem toca nesse botão costuma estar
 preocupado exatamente com isso.
 
+### Metade das práticas era um beco sem saída
+
+**Dezessete das trinta e uma práticas não tinham como ser marcadas como
+feitas.** As guiadas registram ao fim do guia; as outras não tinham botão
+nenhum — a tela terminava em "Por que funciona", com um único botão na página
+inteira: "Voltar".
+
+A pessoa lia um exercício de dez minutos, fazia, voltava, e o app agia como se
+ela não tivesse aparecido. Nada entrava em `practicesDone`, então nem "retomar
+de onde parou" nem "mais feitas" a enxergavam — e, depois da mudança que fez as
+práticas contarem como cuidado, o broto também não crescia.
+
+**Só apareceu dirigindo o app.** Ler o código não denunciava: a condição
+`{!!practice.guide && ...}` parece completa até você abrir uma prática sem guia
+e ver que não sobra nada.
+
+→ "Já fiz esta prática", só onde não há guia. O comentário de `concluir` diz que
+abrir e desistir não é ter feito, e continua valendo: aqui a pessoa declara, e
+declarar é o único sinal que existe numa prática que acontece fora da tela. Num
+app sem placar, não há o que inflar.
+
 ---
 
 ## O que foi verificado e estava certo

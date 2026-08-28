@@ -270,9 +270,28 @@ export function PracticeDetailScreen({ practice, topicKey, tint, onBack }: Props
           </Text>
         </View>
 
-        {!!practice.guide && (
+        {practice.guide ? (
           <Button variant="primary" style={{ width: '100%' }} onPress={() => setMode('guide')}>
             Fazer agora com o broto
+          </Button>
+        ) : (
+          /*
+            Sem guia, esta tela não tinha saída nenhuma: só "Voltar".
+
+            Dezessete das trinta e uma práticas são assim — mais da metade do
+            conteúdo era um beco sem saída. A pessoa lia um exercício de dez
+            minutos, fazia, voltava, e o app agia como se ela não tivesse
+            aparecido: nada entrava em `practicesDone`, então nem "retomar de
+            onde parou" nem "mais feitas" a enxergavam, e o broto não crescia.
+
+            O comentário de `concluir` diz que abrir e desistir não é ter feito.
+            Continua valendo: aqui a pessoa declara, e declarar é o único sinal
+            que existe numa prática que acontece fora da tela. Num app sem
+            placar e sem ranking, não há o que inflar — a contagem só serve para
+            ela se reencontrar.
+          */
+          <Button variant="primary" style={{ width: '100%' }} onPress={concluir}>
+            Já fiz esta prática
           </Button>
         )}
       </ScrollView>
