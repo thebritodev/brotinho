@@ -242,9 +242,28 @@ preservado.
 > Os dois caminhos foram conferidos rodando: com rascunho abre em 3/13; sem
 > rascunho, a tela de boas-vindas com os dois botões. Console limpo nos dois.
 
+### O onboarding inteiro, e o rascunho do diário
+
+Numa segunda passada o app foi percorrido **do começo ao fim**: os catorze
+passos, o experimento da Composta (as palavras caem, a tela vira "Repare no que
+sobrou"), o paywall — onde a garantia de privacidade que foi acrescentada
+aparece no lugar certo — e a entrada no app.
+
+Já dentro dele, o conserto mais grave da rodada foi exercitado no gesto exato
+que o quebrava:
+
+| passo | resultado |
+|---|---|
+| Escrever no diário | texto no campo |
+| Trocar para Início | `{"text":"Hoje foi um dia difícil…"}` no disco |
+| Voltar ao Diário | **texto restaurado, intacto** |
+| Salvar o registro | campo limpo, 1 registro gravado, **rascunho apagado** |
+
+As duas metades: o desabafo não se perde, e não sobra uma segunda cópia dele no
+aparelho. Console sem nenhum erro em todo o percurso.
+
 **O que este teste não cobre:** microfone, reconhecimento de fala, vibração,
-compra e notificações — nada disso existe no navegador. O rascunho do diário
-também não foi exercitado, porque exige atravessar os catorze passos primeiro.
+compra e notificações — nada disso existe no navegador.
 
 ## O que ficou sem verificação
 
