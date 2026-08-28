@@ -209,6 +209,34 @@ Não inventar defeito é parte do trabalho. Estes foram checados e passaram:
 
 ---
 
+## O que rodou de verdade — 25 de agosto
+
+Até aqui, tudo neste documento era código lido, simulado e revisado. Nada tinha
+sido **executado**. Isso mudou: o app foi levantado no navegador
+(`npm run web`, o `launch.json` está versionado) e percorrido.
+
+| | |
+|---|---|
+| Bundle | compila — HTTP 200, 5,8 MB, todos os módulos resolvem |
+| Abertura | a tela de boas-vindas renderiza |
+| Console | **nenhum erro**; só avisos esperados de web (notificações e `useNativeDriver`) |
+| Persistência | `leu vazio` → `gravou 453 bytes`, na abertura |
+| **Rascunho do onboarding** | **verificado de ponta a ponta** |
+
+O rascunho foi o teste que valeu a pena: preencher o nome, avançar, recarregar a
+página — o equivalente ao sistema matar o app — e voltar. O disco tinha
+`{"step":2,"draft":{"name":"..."}}`, e o app retomou em **3/13** com o nome
+preservado.
+
+> **Uma coisa que só apareceu rodando:** depois da interrupção a pessoa cai na
+> tela de boas-vindas de novo, e só ao tocar em "Começar" é levada de volta ao
+> passo onde estava. O trabalho não se perde, mas o reencontro tem um passo a
+> mais do que o necessário. Fica anotado, não consertado.
+
+**O que este teste não cobre:** microfone, reconhecimento de fala, vibração,
+compra e notificações — nada disso existe no navegador. O rascunho do diário
+também não foi exercitado, porque exige atravessar os catorze passos primeiro.
+
 ## O que ficou sem verificação
 
 - **Tudo em aparelho.** Nada do que está acima foi exercitado num celular. A
