@@ -309,6 +309,40 @@ const dormeTarde = (hhmm: string) => {
   return h >= 0 && h < 5;
 };
 
+const emMinutos = (hhmm: string) => {
+  const [h, m] = hhmm.split(':').map(Number);
+  return (Number.isFinite(h) ? h : 0) * 60 + (Number.isFinite(m) ? m : 0);
+};
+
+const NOITE_COMECA = 19 * 60;
+const MADRUGADA_TERMINA = 5 * 60;
+
+/**
+ * O lembrete cai na hora em que a pessoa provavelmente está dormindo?
+ *
+ * O onboarding pergunta a que horas ela dorme e, dois passos depois, deixa
+ * escolher o horário do lembrete — sem nunca cruzar as duas respostas. Quem
+ * dorme às 22h e marca o lembrete para 23h nunca vai ver o aviso acordada, e o
+ * app não avisava nada. É o mecanismo central de retenção falhando em silêncio,
+ * por uma informação que a própria pessoa acabou de dar.
+ *
+ * A janela vai da hora de dormir até as cinco da manhã. **Só vale para quem
+ * dorme em horário de noite** (das 19h às 5h): quem dorme às 9h da manhã
+ * trabalha de madrugada, e supor qualquer coisa sobre essa rotina erraria mais
+ * do que acertaria.
+ */
+export function lembreteEnquantoDorme(reminder: string, sleepTime: string): boolean {
+  const dorme = emMinutos(sleepTime);
+  const avisa = emMinutos(reminder);
+
+  const noiteComum = dorme >= NOITE_COMECA || dorme < MADRUGADA_TERMINA;
+  if (!noiteComum) return false;
+
+  // Dormiu antes da meia-noite: a janela cruza o dia.
+  if (dorme >= NOITE_COMECA) return avisa >= dorme || avisa < MADRUGADA_TERMINA;
+  return avisa >= dorme && avisa < MADRUGADA_TERMINA;
+}
+
 /**
  * Transforma o que a pessoa respondeu em compromissos do app.
  *

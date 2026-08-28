@@ -34,6 +34,8 @@ import {
   TOTAL,
   VALORES,
   espelhoDoTentou,
+  horaFalada,
+  lembreteEnquantoDorme,
   planoDe,
   type PlanKey,
 } from '../../data/onboarding';
@@ -427,6 +429,31 @@ export function OnboardingScreen() {
           value={draft.reminder}
           onChange={(reminder) => set({ reminder })}
         />
+
+        {/*
+          O app acabou de perguntar a que horas ela dorme, dois passos atrás, e
+          deixava marcar o lembrete para depois disso sem dizer nada. Quem dorme
+          às 22h e marca 23h nunca veria o aviso acordada — o mecanismo central
+          de retenção falhando em silêncio, por uma informação que ela mesma
+          tinha acabado de dar.
+
+          É um aviso, não um bloqueio: quem quiser marcar assim, marca.
+        */}
+        {lembreteEnquantoDorme(draft.reminder, draft.sleepTime) && (
+          <Text
+            style={{
+              fontFamily: fonts.body.regular,
+              fontSize: 14,
+              lineHeight: 14 * 1.5,
+              color: palette.brown700,
+              textAlign: 'center',
+              paddingHorizontal: 6,
+            }}
+          >
+            Você me disse que costuma dormir por volta das {horaFalada(draft.sleepTime)}. Nesse
+            horário eu provavelmente vou te pegar dormindo — que tal um pouco mais cedo?
+          </Text>
+        )}
       </Centered>
     ),
 

@@ -44,7 +44,8 @@ const COBRANCA = [
       '--moduleResolution', 'bundler', '--skipLibCheck',
       path.join(RAIZ, 'src', 'data', 'lembretes.ts'),
       path.join(RAIZ, 'src', 'data', 'saudacao.ts'),
-      path.join(RAIZ, 'src', 'data', 'comecos.ts')],
+      path.join(RAIZ, 'src', 'data', 'comecos.ts'),
+      path.join(RAIZ, 'src', 'data', 'onboarding.ts')],
     { stdio: 'inherit', cwd: RAIZ },
   );
 
@@ -73,6 +74,8 @@ const COBRANCA = [
   const { comecoDoDia, TODOS_OS_COMECOS } = await import(
     'file://' + com.split(path.sep).join('/')
   );
+  const onb = achar('onboarding.js');
+  const { lembreteEnquantoDorme } = await import('file://' + onb.split(path.sep).join('/'));
 
   let falhas = 0;
   const checa = (nome, condicao, detalhe = '') => {
@@ -266,6 +269,20 @@ const COBRANCA = [
     'valor inexistente não quebra nada',
     typeof comecoDoDia({ agora: noite27, humorDeHoje: null, valores: ['Inventado'] }) === 'string',
   );
+
+  // --- O lembrete que chega com a pessoa dormindo -------------------------
+  // O onboarding pergunta a hora de dormir e depois deixa marcar o lembrete
+  // para depois disso. Sem cruzar as duas respostas, o mecanismo central de
+  // retencao falha em silencio.
+  const dorme = (r, s) => lembreteEnquantoDorme(r, s);
+  checa('lembrete depois de dormir e sinalizado', dorme('23:30', '23:00'));
+  checa('lembrete de madrugada, com sono as 22h', dorme('02:00', '22:00'));
+  checa('lembrete antes de dormir esta ok', !dorme('21:00', '23:00'));
+  checa('lembrete de manha esta ok', !dorme('08:00', '23:00'));
+  checa('quem dorme as 01h e avisado do lembrete as 03h', dorme('03:00', '01:00'));
+  checa('quem dorme as 01h nao e avisado do lembrete as 20h', !dorme('20:00', '01:00'));
+  checa('quem dorme as 09h da manha nao recebe palpite', !dorme('12:00', '09:00'));
+  checa('horario invalido nao quebra', typeof dorme('abc', 'xyz') === 'boolean');
 
   fs.rmSync(saida, { recursive: true, force: true });
 

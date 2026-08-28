@@ -3,6 +3,7 @@ import { Linking, Pressable, ScrollView, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Card, Icon, Switch, TopBar } from '../../components';
+import { horaFalada, lembreteEnquantoDorme } from '../../data/onboarding';
 import { notificacoesPermitidas } from '../../services/notifications';
 import { useAppState } from '../../state/AppStateProvider';
 import { colors, palette, fonts } from '../../theme';
@@ -123,11 +124,29 @@ export function RemindersScreen({ onBack }: { onBack: () => void }) {
 
         {/* Sem o lembrete ligado, escolher horário não faria nada. */}
         {s.reminders && (
-          <TimeWheel
-            value={data.profile.reminder}
-            onChange={(reminder) => updateProfile({ reminder })}
-            icon="bell"
-          />
+          <>
+            <TimeWheel
+              value={data.profile.reminder}
+              onChange={(reminder) => updateProfile({ reminder })}
+              icon="bell"
+            />
+
+            {/* O mesmo aviso do onboarding: aqui é onde o horário é trocado
+                depois, e onde o conflito com a hora de dormir reaparece. */}
+            {lembreteEnquantoDorme(data.profile.reminder, data.profile.sleepTime) && (
+              <Text
+                style={{
+                  fontFamily: fonts.body.regular,
+                  fontSize: 14,
+                  lineHeight: 14 * 1.5,
+                  color: palette.brown700,
+                }}
+              >
+                Você costuma dormir por volta das {horaFalada(data.profile.sleepTime)}. Nesse
+                horário o aviso provavelmente vai chegar com você já dormindo.
+              </Text>
+            )}
+          </>
         )}
 
         <Card style={{ gap: 16 }}>
