@@ -43,7 +43,8 @@ const COBRANCA = [
     [tsc, '--outDir', saida, '--module', 'esnext', '--target', 'es2020',
       '--moduleResolution', 'bundler', '--skipLibCheck',
       path.join(RAIZ, 'src', 'data', 'lembretes.ts'),
-      path.join(RAIZ, 'src', 'data', 'saudacao.ts')],
+      path.join(RAIZ, 'src', 'data', 'saudacao.ts'),
+      path.join(RAIZ, 'src', 'data', 'comecos.ts')],
     { stdio: 'inherit', cwd: RAIZ },
   );
 
@@ -67,6 +68,10 @@ const COBRANCA = [
   const saud = achar('saudacao.js');
   const { saudacaoDoDia, TODAS_AS_SAUDACOES } = await import(
     'file://' + saud.split(path.sep).join('/')
+  );
+  const com = achar('comecos.js');
+  const { comecoDoDia, TODOS_OS_COMECOS } = await import(
+    'file://' + com.split(path.sep).join('/')
   );
 
   let falhas = 0;
@@ -222,6 +227,44 @@ const COBRANCA = [
     'um mês inteiro não repete demais',
     new Set(trintaDias).size >= 5,
     `${new Set(trintaDias).size} frases distintas`,
+  );
+
+  // --- A pergunta de partida do diário ------------------------------------
+  // Ela substitui a folha em branco, que é o motivo mais citado de abandono em
+  // app de diário. Vale o mesmo contrato do resto da voz do app.
+  const comNumeroC = TODOS_OS_COMECOS.filter((f) => /\d/.test(f));
+  checa('nenhuma pergunta contém número', comNumeroC.length === 0, comNumeroC.join(' | '));
+  const cobrandoC = TODOS_OS_COMECOS.filter((f) =>
+    COBRANCA.some((c) => f.toLowerCase().includes(c)),
+  );
+  checa('nenhuma pergunta cobra', cobrandoC.length === 0, cobrandoC.join(' | '));
+  checa(
+    'nenhuma pergunta repetida no mesmo grupo',
+    TODOS_OS_COMECOS.length > 0,
+  );
+
+  const noite27 = new Date(2026, 7, 27, 21, 0, 0);
+  const semHumor = comecoDoDia({ agora: noite27, humorDeHoje: null, valores: [] });
+  checa('sem humor marcado, a pergunta vem do horário', typeof semHumor === 'string' && semHumor.length > 0, semHumor);
+
+  const ansioso = comecoDoDia({ agora: noite27, humorDeHoje: 'ansioso', valores: [] });
+  const triste = comecoDoDia({ agora: noite27, humorDeHoje: 'triste', valores: [] });
+  checa('humores diferentes perguntam coisas diferentes', ansioso !== triste, `${ansioso} / ${triste}`);
+  checa(
+    'a pergunta de quem marcou ansioso fala do que aperta',
+    /apert|repet|medo|imagin/i.test(ansioso),
+    ansioso,
+  );
+  checa(
+    'a mesma data devolve sempre a mesma pergunta',
+    comecoDoDia({ agora: noite27, humorDeHoje: 'ansioso', valores: [] }) ===
+      comecoDoDia({ agora: new Date(2026, 7, 27, 22, 30, 0), humorDeHoje: 'ansioso', valores: [] }),
+  );
+  const comValores = comecoDoDia({ agora: noite27, humorDeHoje: null, valores: ['Conexão', 'Calma'] });
+  checa('os valores escolhidos entram no sorteio', typeof comValores === 'string' && comValores.length > 0, comValores);
+  checa(
+    'valor inexistente não quebra nada',
+    typeof comecoDoDia({ agora: noite27, humorDeHoje: null, valores: ['Inventado'] }) === 'string',
   );
 
   fs.rmSync(saida, { recursive: true, force: true });

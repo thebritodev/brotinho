@@ -17,10 +17,11 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { Button, Icon, MoodFace, MOODS, Sprout, TopBar } from '../../components';
+import { AjudaAgora, Button, Icon, MoodFace, MOODS, Sprout, TopBar } from '../../components';
 import { toqueDeConclusao } from '../../services/toque';
 import { useAppState } from '../../state/AppStateProvider';
 import { descartarRascunho, loadRascunho, saveRascunho } from '../../storage/appStorage';
+import { comecoDoDia } from '../../data/comecos';
 import { dayKey, normalize } from '../../state/derived';
 import { colors, palette, radius, borderWidth, fonts, type Mood } from '../../theme';
 import { LINE_HEIGHT, RuledPaper } from './RuledPaper';
@@ -137,6 +138,28 @@ export function JournalScreen() {
    * Registros com o humor do dia em que foram escritos. O humor não fica no
    * registro: ele é um por dia, então vem do histórico pela data.
    */
+  /**
+   * A pergunta de partida, no lugar da folha em branco.
+   *
+   * A página em branco é o motivo mais citado de abandono em app de diário: a
+   * maioria desiste em um mês porque a caixa vazia vence. A pergunta sai do que
+   * o app já sabe — o humor de hoje, o horário, os valores escolhidos — e está
+   * em `data/comecos.ts`, com o porquê de cada regra.
+   */
+  const humorDeHoje = useMemo(
+    () => data.moodHistory.find((m) => m.date === dayKey())?.mood ?? null,
+    [data.moodHistory],
+  );
+  const comeco = useMemo(
+    () =>
+      comecoDoDia({
+        agora: new Date(),
+        humorDeHoje,
+        valores: data.profile.valores ?? [],
+      }),
+    [humorDeHoje, data.profile.valores],
+  );
+
   const humorPorDia = useMemo(
     () => new Map(data.moodHistory.map((m) => [m.date, m.mood])),
     [data.moodHistory],
@@ -280,7 +303,7 @@ export function JournalScreen() {
         showsVerticalScrollIndicator={false}
         keyboardShouldPersistTaps="handled"
       >
-        <Text style={{ fontFamily: fonts.display.semiBold, fontSize: 19 }}>Como foi o seu dia?</Text>
+        <Text style={{ fontFamily: fonts.display.semiBold, fontSize: 19 }}>{comeco}</Text>
 
         {/* Folha em uso. A folha que acabou de ser salva vira por cima dela. */}
         <View>
@@ -288,7 +311,7 @@ export function JournalScreen() {
             <TextInput
               value={text}
               onChangeText={setText}
-              placeholder="Escreva livremente sobre o seu dia..."
+              placeholder="Escreva o que vier. Ninguém além de você vai ler."
               placeholderTextColor={colors.textSecondary}
               multiline
               textAlignVertical="top"
@@ -400,6 +423,10 @@ export function JournalScreen() {
         >
           Salvar no diário
         </Button>
+
+        {/* Fica logo abaixo de onde a pessoa escreve, e antes do histórico:
+            é o ponto do app em que ela está mais perto do que dói. */}
+        <AjudaAgora />
 
         <View style={{ gap: 10 }}>
           <Text style={{ fontFamily: fonts.display.semiBold, fontSize: 19 }}>

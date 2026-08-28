@@ -70,6 +70,50 @@ O único item aqui que mexe em dinheiro sem tocar em design:
 - **Campanhas de recuperação** disparam no evento de **expiração**, não no de
   cancelamento — a oferta chega a quem de fato perdeu o acesso.
 
+## A dor de quem usa — pesquisa de 28 de agosto
+
+A primeira rodada olhou cancelamento de assinatura. Esta olhou **reclamação de
+usuário**, que é outra coisa.
+
+**A página em branco é o motivo mais citado de abandono em app de diário.** Não
+é falta de assunto: a maioria desiste em um mês porque a caixa vazia vence. O
+Brotinho já dava três frases prontas na Composta e deixava o Diário vazio, com
+"Escreva livremente sobre o seu dia..." — que é instrução, não começo.
+
+→ `data/comecos.ts`. A pergunta sai do que o app já sabe: o humor marcado hoje,
+o horário e os valores escolhidos no onboarding. Uma lista genérica é fácil de
+escrever e fácil de ignorar; esta soa como alguém que estava prestando atenção.
+
+**Onboarding pesado derrubа gente antes do valor.** A literatura clínica aponta
+expectativa não atendida e desconforto no onboarding como causas diretas de
+abandono precoce. O Brotinho tem catorze passos antes do paywall — analisado
+separadamente, sem mexer.
+
+**Portabilidade dos dados** aparece nas reclamações de apps concorrentes ("não
+deixam exportar"). Aqui já é ponto forte: `.txt` e `.json`, sem conta.
+
+### O que verifiquei e estava certo
+
+O app **nunca desliga** `allowFontScaling`. Quem usa fonte a 150% ou 200% — a
+maioria das pessoas acima de cinquenta anos — vê o texto crescer, e há limites
+sensatos nos três lugares onde crescer demais quebraria o layout. Isso costuma
+estar errado nos apps, e aqui está certo.
+
+### A lacuna de segurança
+
+O CVV existia só na tela Sobre e na política de privacidade, ambas atrás de
+Perfil → Configurações. Quem está em sofrimento agudo, de madrugada, escrevendo
+no diário, não navega três telas para achar um telefone.
+
+→ `components/brand/AjudaAgora.tsx`, no Diário e na Composta.
+
+> **O que ele deliberadamente não faz: ler o que a pessoa escreveu.** A tentação
+> óbvia seria detectar palavras de risco e oferecer ajuda sozinho. É onde esse
+> recurso erra feio nos dois sentidos: um alarme falso invade quem estava só
+> desabafando — e num app cuja promessa é que ninguém lê o que ela escreve, o
+> app se denunciar lendo é pior que o alarme. O convite fica sempre visível e
+> sempre igual, e quem decide é ela.
+
 ## O que fica de fora, de propósito
 
 Táticas que aparecem na literatura de crescimento e que **não** entram aqui:

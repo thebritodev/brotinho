@@ -3,6 +3,7 @@ import { Pressable, ScrollView, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import {
+  AjudaAgora,
   Button,
   Chip,
   Icon,
@@ -323,6 +324,10 @@ export function CompostaScreen({ onClose }: { onClose: () => void }) {
           >
             Começar a compostar
           </Button>
+
+          {/* A tela em que a pessoa escreve o pensamento que mais dói. Se há um
+              lugar no app onde o caminho até ajuda precisa ser curto, é este. */}
+          <AjudaAgora />
         </ScrollView>
       </View>
       </ScreenTransition>

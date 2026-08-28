@@ -16,6 +16,7 @@ export { GrowthNotice } from './brand/GrowthNotice';
 export { HarvestNotice } from './brand/HarvestNotice';
 export { ProgressStem } from './brand/ProgressStem';
 export { InsightCard } from './brand/InsightCard';
+export { AjudaAgora } from './brand/AjudaAgora';
 export { CrossedCard } from './brand/CrossedCard';
 export { MemoryCard } from './brand/MemoryCard';
 export { VoltaCard } from './brand/VoltaCard';
