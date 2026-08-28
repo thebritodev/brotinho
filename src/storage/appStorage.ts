@@ -3,7 +3,19 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import type { AppData } from '../state/types';
 
 const KEY = '@brotinho/app-state-v1';
-const KEY_RASCUNHO = '@brotinho/onboarding-rascunho-v1';
+/**
+ * Rascunhos: trabalho em andamento que ainda não virou registro.
+ *
+ * São dois, e existem pelo mesmo motivo. O onboarding tem catorze passos; o
+ * diário é uma tela que o `MainTabs` **desmonta** ao trocar de aba, e o texto
+ * em andamento vivia só na memória do componente.
+ */
+const RASCUNHOS = {
+  onboarding: '@brotinho/onboarding-rascunho-v1',
+  diario: '@brotinho/diario-rascunho-v1',
+} as const;
+
+export type QualRascunho = keyof typeof RASCUNHOS;
 
 /**
  * Falha de persistência não pode ser silenciosa: o usuário perde registros do
@@ -42,8 +54,8 @@ export async function saveAppData(data: AppData): Promise<void> {
 
 export async function clearAppData(): Promise<void> {
   try {
-    // O rascunho vai junto: "apagar meus dados" que deixa sobra não apagou.
-    await AsyncStorage.multiRemove([KEY, KEY_RASCUNHO]);
+    // Os rascunhos vão junto: "apagar meus dados" que deixa sobra não apagou.
+    await AsyncStorage.multiRemove([KEY, ...Object.values(RASCUNHOS)]);
   } catch (error) {
     report('apagar os dados', error);
   }
@@ -52,7 +64,9 @@ export async function clearAppData(): Promise<void> {
 // --- Rascunho do onboarding ----------------------------------------------
 
 /**
- * O onboarding em andamento, guardado a cada passo.
+ * Lê, grava e descarta um rascunho.
+ *
+ * **O onboarding em andamento, guardado a cada passo.**
  *
  * São catorze passos, e no meio deles a pessoa escreve o pensamento que mais a
  * machuca e faz o experimento da Composta. Nada disso era gravado até o fim:
@@ -68,9 +82,9 @@ export async function clearAppData(): Promise<void> {
  * rascunho existe para atravessar uma interrupção, não para virar uma segunda
  * cópia do que a pessoa escreveu.
  */
-export async function loadRascunho<T>(): Promise<T | null> {
+export async function loadRascunho<T>(qual: QualRascunho): Promise<T | null> {
   try {
-    const raw = await AsyncStorage.getItem(KEY_RASCUNHO);
+    const raw = await AsyncStorage.getItem(RASCUNHOS[qual]);
     return raw ? (JSON.parse(raw) as T) : null;
   } catch (error) {
     report('ler o rascunho do onboarding', error);
@@ -78,17 +92,17 @@ export async function loadRascunho<T>(): Promise<T | null> {
   }
 }
 
-export async function saveRascunho(rascunho: unknown): Promise<void> {
+export async function saveRascunho(qual: QualRascunho, rascunho: unknown): Promise<void> {
   try {
-    await AsyncStorage.setItem(KEY_RASCUNHO, JSON.stringify(rascunho));
+    await AsyncStorage.setItem(RASCUNHOS[qual], JSON.stringify(rascunho));
   } catch (error) {
     report('gravar o rascunho do onboarding', error);
   }
 }
 
-export async function descartarRascunho(): Promise<void> {
+export async function descartarRascunho(qual: QualRascunho): Promise<void> {
   try {
-    await AsyncStorage.removeItem(KEY_RASCUNHO);
+    await AsyncStorage.removeItem(RASCUNHOS[qual]);
   } catch (error) {
     report('apagar o rascunho do onboarding', error);
   }

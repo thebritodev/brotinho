@@ -128,7 +128,7 @@ export function OnboardingScreen() {
       draft: Draft;
       pensamento: string;
       repeticoes: number;
-    }>()
+    }>('onboarding')
       .then((r) => {
         if (!vivo) return;
         if (r?.draft) {
@@ -151,7 +151,7 @@ export function OnboardingScreen() {
    */
   useEffect(() => {
     if (!restaurado) return;
-    void saveRascunho({ step, draft, pensamento, repeticoes });
+    void saveRascunho('onboarding', { step, draft, pensamento, repeticoes });
   }, [restaurado, step, draft, pensamento, repeticoes]);
 
   const set = (patch: Partial<Draft>) => setDraft((prev) => ({ ...prev, ...patch }));
@@ -247,7 +247,7 @@ export function OnboardingScreen() {
   const finish = (assinou: boolean) => {
     // O rascunho existe para atravessar uma interrupção, não para virar uma
     // segunda cópia do que a pessoa escreveu. Terminou, some.
-    void descartarRascunho();
+    void descartarRascunho('onboarding');
     updateProfile({ ...draft, subscribed: assinou, onboarded: true });
   };
 

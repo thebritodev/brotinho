@@ -20,6 +20,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Button, Icon, MoodFace, MOODS, Sprout, TopBar } from '../../components';
 import { toqueDeConclusao } from '../../services/toque';
 import { useAppState } from '../../state/AppStateProvider';
+import { descartarRascunho, loadRascunho, saveRascunho } from '../../storage/appStorage';
 import { dayKey, normalize } from '../../state/derived';
 import { colors, palette, radius, borderWidth, fonts, type Mood } from '../../theme';
 import { LINE_HEIGHT, RuledPaper } from './RuledPaper';
@@ -55,6 +56,59 @@ export function JournalScreen() {
   const { data, addJournalEntry, updateJournalEntry, removeJournalEntry } = useAppState();
 
   const [text, setText] = useState('');
+
+  /**
+   * O que está sendo escrito, atravessando a troca de aba e o fim do app.
+   *
+   * O `MainTabs` monta **só a aba ativa**: sair do Diário desmonta esta tela e
+   * levava junto tudo o que estava digitado. Bastava tocar em Início no meio de
+   * um desabafo — ou tocar numa notificação, que troca a aba sozinha — para
+   * perder a página inteira, sem aviso. Num app de diário essa é a pior falha
+   * possível.
+   *
+   * `escrito` guarda o valor atual fora do ciclo de render, para a gravação de
+   * saída poder registrar o último estado sem depender de um novo render.
+   */
+  const [restaurado, setRestaurado] = useState(false);
+  const escrito = useRef('');
+  escrito.current = text;
+
+  useEffect(() => {
+    let vivo = true;
+    void loadRascunho<{ text: string }>('diario')
+      .then((r) => {
+        if (!vivo) return;
+        if (typeof r?.text === 'string' && r.text) setText(r.text);
+        setRestaurado(true);
+      })
+      .catch(() => vivo && setRestaurado(true));
+    return () => {
+      vivo = false;
+    };
+  }, []);
+
+  /**
+   * Grava com atraso, e uma última vez ao sair.
+   *
+   * Sem o atraso seria uma escrita em disco por tecla digitada. Sem a gravação
+   * de saída, os últimos caracteres antes de trocar de aba se perderiam — que é
+   * justamente o instante que este rascunho existe para cobrir.
+   */
+  useEffect(() => {
+    if (!restaurado) return;
+    const id = setTimeout(() => {
+      void (text ? saveRascunho('diario', { text }) : descartarRascunho('diario'));
+    }, 600);
+    return () => clearTimeout(id);
+  }, [restaurado, text]);
+
+  useEffect(() => {
+    if (!restaurado) return;
+    return () => {
+      const ultimo = escrito.current;
+      void (ultimo ? saveRascunho('diario', { text: ultimo }) : descartarRascunho('diario'));
+    };
+  }, [restaurado]);
 
   /** Linha do histórico com as ações abertas — só uma por vez. */
   const [linhaAberta, setLinhaAberta] = useState<string | null>(null);
@@ -168,6 +222,10 @@ export function JournalScreen() {
     addJournalEntry(content);
     toqueDeConclusao(data.settings.vibracao);
     setText('');
+    // Virou registro: o rascunho não tem mais razão de existir, e deixá-lo
+    // seria uma segunda cópia do desabafo esquecida no aparelho.
+    escrito.current = '';
+    void descartarRascunho('diario');
 
     // Quem pediu menos movimento no sistema não leva uma página girando na cara.
     if (reduceMotion) return;

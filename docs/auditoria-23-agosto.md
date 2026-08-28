@@ -112,6 +112,36 @@ do aparelho. Pergunta pela permissão e não pela fila agendada de propósito: a
 fila é escrita por um efeito que roda **depois** da troca do interruptor, então
 consultá-la logo após ligar acusaria um problema que não existe.
 
+### Trocar de aba apagava o desabafo em andamento
+
+O `MainTabs` monta **só a aba ativa** — `renderTab()` é um `switch`. Sair do
+Diário desmonta a tela, e o texto em andamento vivia só em `useState`.
+
+Bastava tocar em Início no meio de um desabafo, ou tocar numa notificação (que
+troca a aba sozinha, pelo `onNotificationTap`), para perder a página inteira sem
+nenhum aviso. Num app de diário, é a pior falha possível.
+
+→ o composer passou a gravar rascunho, com atraso para não escrever em disco a
+cada tecla e uma gravação final na saída da tela — que é justamente o instante
+que o rascunho existe para cobrir.
+
+### O jardim repetia o mesmo valor em todas as plantas
+
+O humor de cada planta era filtrado pelo ciclo dela; o valor saía de
+`livedValues`, que lê o diário **inteiro**. Da segunda planta em diante isso
+devolvia quase sempre o valor da primeira — a "fileira de troféus iguais" que o
+comentário do próprio arquivo diz querer evitar.
+
+### O broto encolhia quando alguém apagava um registro
+
+A contagem de dias cuidados vinha só do que estava guardado. Apagar o único
+registro de um dia derrubava o total, e o broto podia voltar de estágio ou
+deixar de estar pronto para colher — punindo um ato legítimo, às vezes doloroso.
+
+Junto, uma assimetria sem justificativa: práticas contavam como **aparecer** e
+não como **cuidar**, então quem usasse o app só pelas práticas nunca via o broto
+crescer.
+
 ---
 
 ## O que foi verificado e estava certo

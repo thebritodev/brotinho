@@ -101,40 +101,40 @@ globalThis.__DEV__ = false;`,
   };
 
   await checa('sem rascunho gravado, devolve null', async () => {
-    const r = await loadRascunho();
+    const r = await loadRascunho('onboarding');
     return r === null ? 'ok' : `devolveu ${JSON.stringify(r)}`;
   });
 
   await checa('guarda e devolve igual', async () => {
-    await saveRascunho(rascunho);
-    const r = await loadRascunho();
+    await saveRascunho('onboarding', rascunho);
+    const r = await loadRascunho('onboarding');
     return JSON.stringify(r) === JSON.stringify(rascunho) ? 'ok' : `veio ${JSON.stringify(r)}`;
   });
 
   await checa('o passo e o pensamento sobrevivem', async () => {
-    const r = await loadRascunho();
+    const r = await loadRascunho('onboarding');
     if (r.step !== 9) return `passo ${r.step}`;
     if (r.pensamento !== 'não vou dar conta') return `pensamento "${r.pensamento}"`;
     return 'ok';
   });
 
   await checa('descartar apaga de verdade', async () => {
-    await descartarRascunho();
-    const r = await loadRascunho();
+    await descartarRascunho('onboarding');
+    const r = await loadRascunho('onboarding');
     return r === null ? 'ok' : 'sobrou rascunho';
   });
 
   await checa('não é a mesma chave do estado do app', async () => {
-    await saveRascunho(rascunho);
+    await saveRascunho('onboarding', rascunho);
     await saveAppData({ journal: [], composts: [], garden: [], practicesDone: [], moodHistory: [] });
     const chaves = store.__dump();
     return chaves.length === 2 ? 'ok' : `chaves: ${chaves.join(', ')}`;
   });
 
   await checa('"apagar meus dados" leva o rascunho junto', async () => {
-    await saveRascunho(rascunho);
+    await saveRascunho('onboarding', rascunho);
     await clearAppData();
-    const r = await loadRascunho();
+    const r = await loadRascunho('onboarding');
     const chaves = store.__dump();
     if (r !== null) return 'o rascunho sobreviveu ao apagar tudo';
     return chaves.length === 0 ? 'ok' : `sobraram chaves: ${chaves.join(', ')}`;
@@ -142,12 +142,40 @@ globalThis.__DEV__ = false;`,
 
   await checa('rascunho corrompido não derruba a leitura', async () => {
     store.setItem('@brotinho/onboarding-rascunho-v1', '{isso não é json');
-    const r = await loadRascunho();
+    const r = await loadRascunho('onboarding');
     return r === null ? 'ok' : `devolveu ${JSON.stringify(r)}`;
   });
 
+  await checa('o rascunho do diário é independente do onboarding', async () => {
+    await descartarRascunho('onboarding');
+    await descartarRascunho('diario');
+    await saveRascunho('diario', { text: 'hoje foi pesado' });
+    const d = await loadRascunho('diario');
+    const o = await loadRascunho('onboarding');
+    if (o !== null) return 'o do onboarding apareceu';
+    return d && d.text === 'hoje foi pesado' ? 'ok' : `veio ${JSON.stringify(d)}`;
+  });
+
+  await checa('salvar o registro descarta só o rascunho do diário', async () => {
+    await saveRascunho('onboarding', rascunho);
+    await saveRascunho('diario', { text: 'meio escrito' });
+    await descartarRascunho('diario');
+    const d = await loadRascunho('diario');
+    const o = await loadRascunho('onboarding');
+    if (d !== null) return 'o do diário sobreviveu';
+    return o !== null ? 'ok' : 'levou o do onboarding junto';
+  });
+
+  await checa('"apagar meus dados" leva os dois rascunhos', async () => {
+    await saveRascunho('onboarding', rascunho);
+    await saveRascunho('diario', { text: 'meio escrito' });
+    await clearAppData();
+    const chaves = store.__dump();
+    return chaves.length === 0 ? 'ok' : `sobraram: ${chaves.join(', ')}`;
+  });
+
   fs.rmSync(saida, { recursive: true, force: true });
-  console.log(`\n7 casos · ${falhas} falha(s)`);
+  console.log(`\n10 casos · ${falhas} falha(s)`);
   process.exit(falhas === 0 ? 0 : 1);
 })().catch((e) => {
   console.error('falhou:', e.message);
