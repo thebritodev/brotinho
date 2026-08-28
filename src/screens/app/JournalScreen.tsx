@@ -135,10 +135,6 @@ export function JournalScreen() {
   const voice = useVoiceNote({ onText: appendTranscription });
 
   /**
-   * Registros com o humor do dia em que foram escritos. O humor não fica no
-   * registro: ele é um por dia, então vem do histórico pela data.
-   */
-  /**
    * A pergunta de partida, no lugar da folha em branco.
    *
    * A página em branco é o motivo mais citado de abandono em app de diário: a
@@ -160,6 +156,10 @@ export function JournalScreen() {
     [humorDeHoje, data.profile.valores],
   );
 
+  /**
+   * Registros com o humor do dia em que foram escritos. O humor não fica no
+   * registro: ele é um por dia, então vem do histórico pela data.
+   */
   const humorPorDia = useMemo(
     () => new Map(data.moodHistory.map((m) => [m.date, m.mood])),
     [data.moodHistory],

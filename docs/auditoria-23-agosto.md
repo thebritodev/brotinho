@@ -304,6 +304,31 @@ novo**, e duas coisas que valem registro:
 O cronômetro da Composta conta **segundos de voz**, não tempo de tela — por isso
 fica parado enquanto ninguém fala. É o desenho certo, e foi confirmado.
 
+### A edição de registro, e um quase-alarme
+
+O conserto do "tocar fora descartava em silêncio" foi exercitado: mexer no texto
+trocou o botão para **"Descartar alterações"**, e o toque fora **não fechou** o
+modal — o texto reescrito continuou lá.
+
+> **Quase reportei um defeito grave que não existia.** Na primeira tentativa o
+> campo de edição apareceu **vazio**, o que significaria que editar um registro
+> apagaria o texto dele. Fui ao código antes de escrever: `entries` passa
+> `text: e.text` e `onEdit` repassa — estava certo.
+>
+> O problema era o meu teste. `document.querySelector('textarea')` pega a
+> **primeira** da página, que é a folha do diário, não a do modal; eu vinha
+> escrevendo na caixa errada e lendo estado sujo de uma tentativa anterior.
+> Recarregando limpo, o campo trouxe o texto do registro corretamente.
+>
+> Duas lições que valem para as próximas verificações: **recarregue entre
+> cenários**, e **prefira o código à tela quando os dois discordam** — a tela
+> pode estar refletindo o meu erro, não o do app.
+
+Confirmado no mesmo teste: os modais do React Native Web **só existem no DOM
+quando abertos**. O modal de excluir, que eu nunca abri, não aparecia; o de
+ajuda, fechado, também não. Isso valida as verificações anteriores que liam
+conteúdo de modal.
+
 **O que este teste não cobre:** microfone, reconhecimento de fala, vibração,
 compra e notificações — nada disso existe no navegador.
 
