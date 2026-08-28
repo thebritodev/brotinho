@@ -52,7 +52,7 @@ const PAGINA = 5;
 const formatDate = (timestamp: number) =>
   new Date(timestamp).toLocaleDateString('pt-BR', { day: 'numeric', month: 'long' });
 
-export function JournalScreen() {
+export function JournalScreen({ comecoDaPratica }: { comecoDaPratica?: string | null }) {
   const insets = useSafeAreaInsets();
   const { data, addJournalEntry, updateJournalEntry, removeJournalEntry } = useAppState();
 
@@ -146,14 +146,25 @@ export function JournalScreen() {
     () => data.moodHistory.find((m) => m.date === dayKey())?.mood ?? null,
     [data.moodHistory],
   );
+  /**
+   * Quando a pessoa chega de uma prática, a pergunta dela vem no lugar.
+   *
+   * Estado local, e não a prop direto, por causa de um detalhe: o `MainTabs`
+   * monta só a aba ativa, então esta tela nasce com a prop já pronta — e
+   * salvar o registro tem de devolver a pergunta do dia, senão a da prática
+   * ficaria presa na folha pelo resto da sessão.
+   */
+  const [daPratica, setDaPratica] = useState(comecoDaPratica ?? null);
+
   const comeco = useMemo(
     () =>
+      daPratica ??
       comecoDoDia({
         agora: new Date(),
         humorDeHoje,
         valores: data.profile.valores ?? [],
       }),
-    [humorDeHoje, data.profile.valores],
+    [daPratica, humorDeHoje, data.profile.valores],
   );
 
   /**
@@ -260,6 +271,9 @@ export function JournalScreen() {
     // seria uma segunda cópia do desabafo esquecida no aparelho.
     escrito.current = '';
     void descartarRascunho('diario');
+    // A pergunta da prática cumpriu o que veio fazer; a folha seguinte volta a
+    // ser a do dia.
+    setDaPratica(null);
 
     // Quem pediu menos movimento no sistema não leva uma página girando na cara.
     if (reduceMotion) return;

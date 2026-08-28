@@ -18,14 +18,31 @@ type Props = {
   topicKey: string;
   tint: string;
   onBack: () => void;
+  /**
+   * Leva ao diário com a pergunta da prática já na folha.
+   *
+   * Vinte e cinco das quarenta e uma práticas mandam escrever, e até aqui
+   * nenhuma delas oferecia onde. A porta fica no fim, e não na leitura: antes
+   * de fazer, o convite competiria com a própria prática.
+   */
+  onEscreverNoDiario?: (comeco: string) => void;
 };
 
 type Mode = 'read' | 'guide' | 'finished';
 
-export function PracticeDetailScreen({ practice, topicKey, tint, onBack }: Props) {
+export function PracticeDetailScreen({
+  practice,
+  topicKey,
+  tint,
+  onBack,
+  onEscreverNoDiario,
+}: Props) {
   const insets = useSafeAreaInsets();
   const { data, registrarPratica } = useAppState();
   const [mode, setMode] = useState<Mode>('read');
+
+  const comeco = practice.comecoNoDiario;
+  const escrever = comeco && onEscreverNoDiario ? () => onEscreverNoDiario(comeco) : null;
 
   const jaFeita = vezesPorPratica(data)[`${topicKey}/${practice.key}`] ?? 0;
 
@@ -121,7 +138,16 @@ export function PracticeDetailScreen({ practice, topicKey, tint, onBack }: Props
           </Text>
         )}
         <View style={{ width: '100%', gap: 10, marginTop: 8 }}>
-          <Button variant="primary" style={{ width: '100%' }} onPress={onBack}>
+          {!!escrever && (
+            <Button variant="primary" style={{ width: '100%' }} onPress={escrever}>
+              Escrever no diário
+            </Button>
+          )}
+          <Button
+            variant={escrever ? 'secondary' : 'primary'}
+            style={{ width: '100%' }}
+            onPress={onBack}
+          >
             Voltar às práticas
           </Button>
           <Button variant="ghost" style={{ width: '100%' }} onPress={() => setMode('guide')}>

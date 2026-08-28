@@ -29,6 +29,21 @@ export type Practice = {
   steps: { title: string; text: string }[];
   why: string;
   guide?: Guide;
+  /**
+   * A pergunta com que o diário abre quando a prática termina.
+   *
+   * Dezesseis destas práticas mandam a pessoa escrever, e o app tinha a folha
+   * mais cuidada da categoria — com rascunho salvo, ditado por voz e pergunta
+   * de partida — sem nenhuma ligação entre as duas. Ela lia "Escreva o que
+   * está sentindo", fechava a prática, procurava o diário e tentava lembrar o
+   * que ia escrever.
+   *
+   * Fica no lugar da pergunta do dia, que é o mesmo espaço de `comecos.ts` e
+   * segue as mesmas três regras: nada do que ela escreveu, nunca cobrar, e é
+   * um começo e não um formulário. Ausente nas práticas cuja escrita não é
+   * diário — a mensagem que se envia a alguém, a tarefa anotada num papel.
+   */
+  comecoNoDiario?: string;
 };
 
 export type PracticeTopic = {
@@ -110,6 +125,7 @@ export const PRACTICE_TOPICS: PracticeTopic[] = [
       },
       {
         key: 'carta-ansiedade',
+        comecoNoDiario: 'Comece por "Oi, ansiedade". O que ela está tentando proteger?',
         title: 'Carta para a ansiedade',
         duration: '10 minutos',
         summary: 'Escrever para ela em vez de discutir com ela.',
@@ -134,6 +150,7 @@ export const PRACTICE_TOPICS: PracticeTopic[] = [
     practices: [
       {
         key: 'nomear-o-que-doi',
+        comecoNoDiario: 'Qual é a palavra exata para o que dói? E onde ela aparece no corpo?',
         title: 'Nomear o que dói',
         duration: '5 minutos',
         summary: 'Trocar "estou mal" pela palavra exata.',
@@ -170,6 +187,7 @@ export const PRACTICE_TOPICS: PracticeTopic[] = [
       },
       {
         key: 'companhia-que-voce-daria',
+        comecoNoDiario: 'O que você faria por alguém que você ama, triste assim?',
         title: 'A companhia que você daria',
         duration: '10 minutos',
         summary: 'Fazer por você o que você faria por quem ama.',
@@ -185,6 +203,69 @@ export const PRACTICE_TOPICS: PracticeTopic[] = [
     ],
   },
 
+  {
+    key: 'luto',
+    title: 'Luto',
+    icon: 'book',
+    tint: palette.blue100,
+    intro:
+      'Luto não é só morte, e não tem prazo. É o que sobra quando alguma coisa que era sua deixou de ser.',
+    practices: [
+      {
+        key: 'carta-a-quem-nao-esta',
+        comecoNoDiario: 'Escreva para quem não está. Continue de onde vocês pararam.',
+        title: 'Carta para quem não está',
+        duration: '10 a 15 minutos',
+        summary: 'Escrever para quem se foi, sem precisar terminar.',
+        illustration: 'letter',
+        steps: [
+          { title: 'Escreva como se fosse conversa', text: 'Sem começo formal. Continue de onde vocês pararam.' },
+          { title: 'Conte o que ficou por dizer', text: 'O agradecimento, a briga, o pedido de desculpa. O que estiver ali.' },
+          { title: 'Diga como as coisas estão agora', text: 'O que mudou desde então. O que essa pessoa perderia de ver.' },
+          { title: 'Termine sem fechar', text: 'Não precisa de despedida. Você pode escrever de novo depois.' },
+        ],
+        why: 'Escrever para alguém que não pode responder tira o peso de ter que dizer em voz alta, e o que ficou por dizer costuma ser justamente o que mais pesa. Continuar conversando com quem se foi é comum, e não é sinal de que você não aceitou.',
+      },
+      {
+        key: 'o-que-ficou-de-heranca',
+        comecoNoDiario: 'O que ficou de herança de quem não está mais?',
+        title: 'O que ficou de herança',
+        duration: '10 minutos',
+        summary: 'O que essa pessoa deixou em você e continua funcionando.',
+        illustration: 'gratitude',
+        steps: [
+          { title: 'Liste manias e frases que você pegou dela', text: 'O jeito de fazer café, a expressão que você repete sem perceber.' },
+          { title: 'Escreva uma coisa que você faz melhor por causa dela', text: 'Ensinada de propósito ou aprendida de tanto conviver.' },
+          { title: 'Escolha uma para fazer hoje', text: 'A mais fácil da lista.' },
+          { title: 'Repare que aquilo continua acontecendo', text: 'Está em você, e está em uso.' },
+        ],
+        why: '"O que ficou" é uma pergunta diferente de "o que eu perdi", e as duas são verdadeiras ao mesmo tempo. Olhar para o que continua não apaga a falta — coloca ela ao lado de outra coisa.',
+      },
+      {
+        key: 'quando-vem-em-onda',
+        title: 'Quando a saudade vem em onda',
+        duration: '5 minutos',
+        summary: 'O que fazer no minuto em que a falta chega de repente.',
+        illustration: 'pause',
+        steps: [
+          { title: 'Pare o que estiver fazendo, se der', text: 'Sentar já ajuda. Não precisa sair do lugar nem ir para outro cômodo.' },
+          { title: 'Diga o nome do que você está sentindo', text: 'Saudade. Raiva. Culpa. Alívio, às vezes. A palavra dá contorno.' },
+          { title: 'Deixe subir sem apressar', text: 'Costuma vir em onda: sobe, fica um tempo e desce. Você não precisa fazer nada enquanto está no alto.' },
+          { title: 'Volte devagar', text: 'Um gole de água, uma janela aberta. Sem cobrar que você siga como estava antes.' },
+        ],
+        why: 'A falta raramente vem constante — vem em onda, e é por isso que pega de surpresa mesmo meses depois. Saber que ela sobe e desce muda o que se faz enquanto está no alto: esperar, em vez de brigar.',
+        guide: {
+          kind: 'steps',
+          steps: [
+            { label: 'Sente onde você estiver', text: 'Costas apoiadas, pés no chão. Só isso.', seconds: 20 },
+            { label: 'Diga o nome', text: 'Em voz alta ou por dentro: o que é isto que chegou?', seconds: 30 },
+            { label: 'Deixe estar', text: 'Sem empurrar e sem alimentar. Ela sobe, fica, e começa a descer.', seconds: 90 },
+            { label: 'Volte devagar', text: 'Repare no lugar onde você está. O ar, a luz, o barulho de fora.', seconds: 40 },
+          ],
+        },
+      },
+    ],
+  },
   {
     key: 'insonia',
     title: 'Insônia',
@@ -245,6 +326,7 @@ export const PRACTICE_TOPICS: PracticeTopic[] = [
       },
       {
         key: 'diario-da-noite',
+        comecoNoDiario: 'O que ficou em aberto hoje?',
         title: 'Diário da noite',
         duration: '5 minutos',
         summary: 'Tirar da cabeça o que ficou pendente.',
@@ -349,6 +431,7 @@ export const PRACTICE_TOPICS: PracticeTopic[] = [
       },
       {
         key: 'quem-ja-esteve-la',
+        comecoNoDiario: 'Quem apareceu quando foi difícil? O que cada um fez?',
         title: 'Quem já esteve lá',
         duration: '8 minutos',
         summary: 'A solidão apaga da memória quem apareceu.',
@@ -408,6 +491,7 @@ export const PRACTICE_TOPICS: PracticeTopic[] = [
       },
       {
         key: 'carta-nao-enviada',
+        comecoNoDiario: 'Escreva a carta que não vai ser enviada. Sem filtro — ninguém vai ler.',
         title: 'A carta que não vai ser enviada',
         duration: '12 minutos',
         summary: 'Escrever tudo, sem filtro, e guardar por um dia.',
@@ -422,6 +506,7 @@ export const PRACTICE_TOPICS: PracticeTopic[] = [
       },
       {
         key: 'o-que-estava-embaixo',
+        comecoNoDiario: 'O que estava embaixo da raiva?',
         title: 'O que estava embaixo',
         duration: '8 minutos',
         summary: 'Raiva costuma ser a segunda emoção, não a primeira.',
@@ -468,6 +553,7 @@ export const PRACTICE_TOPICS: PracticeTopic[] = [
       },
       {
         key: 'quebrar-ate-ficar-ridiculo',
+        comecoNoDiario: 'Qual é o primeiro passo, pequeno até ficar ridículo?',
         title: 'Quebrar até ficar ridículo',
         duration: '6 minutos',
         summary: 'Se o primeiro passo não parece bobo, ainda está grande.',
@@ -482,6 +568,7 @@ export const PRACTICE_TOPICS: PracticeTopic[] = [
       },
       {
         key: 'custo-de-adiar',
+        comecoNoDiario: 'O que adiar isso já custou a você?',
         title: 'O custo de adiar',
         duration: '5 minutos',
         summary: 'O peso invisível de carregar aquilo todo dia.',
@@ -506,6 +593,7 @@ export const PRACTICE_TOPICS: PracticeTopic[] = [
     practices: [
       {
         key: 'carta-gentil',
+        comecoNoDiario: 'Escreva para você como escreveria para alguém que você ama.',
         title: 'Carta gentil para você',
         duration: '10 minutos',
         summary: 'Falar consigo como falaria com um amigo.',
@@ -520,6 +608,7 @@ export const PRACTICE_TOPICS: PracticeTopic[] = [
       },
       {
         key: 'tres-conquistas',
+        comecoNoDiario: 'Quais foram as conquistas de hoje? Vale pequeno.',
         title: 'Três conquistas do dia',
         duration: '3 minutos',
         summary: 'Contar o que você fez, não o que faltou.',
@@ -542,6 +631,7 @@ export const PRACTICE_TOPICS: PracticeTopic[] = [
       },
       {
         key: 'inventario-do-que-atravessou',
+        comecoNoDiario: 'O que você já atravessou achando que não ia dar conta?',
         title: 'Inventário do que você atravessou',
         duration: '10 minutos',
         summary: 'Autoestima construída em prova, não em elogio.',
@@ -556,6 +646,7 @@ export const PRACTICE_TOPICS: PracticeTopic[] = [
       },
       {
         key: 'cinco-minutos-de-gentileza',
+        comecoNoDiario: 'Qual frase a autocrítica repete? E o que você diria a um amigo no seu lugar?',
         title: 'Cinco minutos de gentileza',
         duration: '5 minutos',
         summary: 'Trocar a frase que você repete sobre si mesmo.',
@@ -580,6 +671,115 @@ export const PRACTICE_TOPICS: PracticeTopic[] = [
     ],
   },
 
+  {
+    key: 'culpa',
+    title: 'Culpa e vergonha',
+    icon: 'lock',
+    tint: palette.cream300,
+    intro:
+      'Culpa é "eu fiz uma coisa ruim". Vergonha é "eu sou ruim". A primeira dá para resolver; a segunda só cresce no escuro.',
+    practices: [
+      {
+        key: 'o-tamanho-real',
+        comecoNoDiario: 'O que você fez, sem adjetivo? E o que dependia mesmo de você?',
+        title: 'O tamanho real da culpa',
+        duration: '10 minutos',
+        summary: 'Separar o que você fez do que você concluiu sobre si por causa disso.',
+        illustration: 'scan',
+        steps: [
+          { title: 'Escreva exatamente o que você fez', text: 'Só o fato, como uma câmera registraria. Sem adjetivo e sem "eu sou".' },
+          { title: 'Separe o que era seu do que não era', text: 'O que dependia de você, e o que dependia dos outros, do acaso e do que ninguém tinha como saber na hora.' },
+          { title: 'Escreva o que você faria diferente hoje', text: 'Com o que você sabe agora — e não com o que você sabia naquele dia.' },
+          { title: 'Se ainda dá para reparar, escreva o primeiro passo', text: 'Se não dá mais, escreva isso também. Também é uma resposta.' },
+        ],
+        why: 'Culpa incha quando fica vaga. Escrever o fato separado do julgamento devolve o tamanho da coisa: sobra o que você fez, que quase sempre é menor do que "eu estraguei tudo".',
+      },
+      {
+        key: 'tirar-do-escuro',
+        comecoNoDiario: 'Qual é a frase que você nunca disse a ninguém?',
+        title: 'Tirar a vergonha do escuro',
+        duration: '10 minutos',
+        summary: 'Dizer uma vez, sozinho, o que você acha que não pode ser dito.',
+        illustration: 'kindness',
+        steps: [
+          { title: 'Escreva a frase que você nunca disse a ninguém', text: 'Aquela que você tem certeza de que faria as pessoas se afastarem.' },
+          { title: 'Leia em voz alta, sozinho', text: 'Uma vez só. Repare que a sala continua igual depois.' },
+          { title: 'Escreva quem poderia ouvir isso sem te largar', text: 'Uma pessoa basta. Vale alguém a quem você ainda não contou nada.' },
+          { title: 'Decida se quer contar, sem prazo', text: 'Decidir que ainda não é hora também é decidir.' },
+        ],
+        why: 'Vergonha se alimenta de segredo e da certeza de ser o único assim. Dizer em voz alta, mesmo sem ninguém ouvindo, quebra a parte que diz que aquilo nunca pode ser dito.',
+      },
+      {
+        key: 'de-quem-e-a-regua',
+        comecoNoDiario: 'Qual regra você acha que quebrou — e de quem ela é?',
+        title: 'De quem é essa régua',
+        duration: '10 minutos',
+        summary: 'Ler por extenso a regra que você acha que quebrou.',
+        illustration: 'letter',
+        steps: [
+          { title: 'Escreva a regra que você acha que quebrou', text: 'Começa com "eu deveria". Escreva ela inteira, até o fim.' },
+          { title: 'Descubra de quem ela é', text: 'De uma pessoa, de uma casa, de uma época, de uma igreja, da internet. Quase nunca é sua.' },
+          { title: 'Pergunte se você exigiria isso de outra pessoa', text: 'Na mesma situação, com as mesmas informações e o mesmo cansaço.' },
+          { title: 'Reescreva a regra do jeito que você assinaria', text: 'Uma que dê para cumprir também num dia ruim.' },
+        ],
+        why: 'Boa parte da culpa vem de regras que a pessoa nunca escolheu e nunca leu inteiras. Escrever a regra por extenso é o que permite discordar dela — em vez de discordar de si mesma.',
+      },
+    ],
+  },
+  {
+    key: 'comparacao',
+    title: 'Comparação',
+    icon: 'search',
+    tint: palette.green50,
+    intro: 'Comparar é automático. O que machuca é medir o seu bastidor contra a estreia dos outros.',
+    practices: [
+      {
+        key: 'o-que-nao-esta-na-foto',
+        comecoNoDiario: 'O que você viu dessa pessoa — e o que você não viu?',
+        title: 'O que não está na foto',
+        duration: '10 minutos',
+        summary: 'Escrever a parte da conta que você não tinha.',
+        illustration: 'scan',
+        steps: [
+          { title: 'Escolha a pessoa com quem você ficou se comparando', text: 'Uma só. Provavelmente já veio à cabeça enquanto você lia.' },
+          { title: 'Escreva o que você viu', text: 'O post, a notícia, o que te contaram. Só o que chegou até você mesmo.' },
+          { title: 'Escreva o que você não viu', text: 'O que você não faz ideia: quanto custou, quem ajudou, o que ficou pelo caminho, como essa pessoa dorme.' },
+          { title: 'Compare o tamanho das duas listas', text: 'A segunda é sempre maior. Era com a primeira que você estava se medindo.' },
+        ],
+        why: 'A comparação nas redes coloca o que a outra pessoa escolheu mostrar contra tudo o que você sabe de você. Escrever a segunda lista não é consolo — é repor a informação que faltava na conta.',
+      },
+      {
+        key: 'a-sua-linha',
+        comecoNoDiario: 'Onde você estava há um ano, e onde você está agora?',
+        title: 'A sua linha, não a corrida',
+        duration: '10 minutos',
+        summary: 'Trocar o ponto de comparação: você, e não os outros.',
+        illustration: 'achievements',
+        steps: [
+          { title: 'Escreva onde você estava há um ano', text: 'No que importa para você — não no que rende foto.' },
+          { title: 'Escreva onde você está agora', text: 'Inclua o que não parece conquista: continuar, aguentar, mudar de ideia a tempo.' },
+          { title: 'Marque a distância entre as duas', text: 'Pode ser pequena. Pequena e sua continua sendo distância.' },
+          { title: 'Escolha o próximo passo dessa linha', text: 'Da sua linha. Não da de ninguém.' },
+        ],
+        why: 'Comparação com os outros não tem fim, porque sempre há mais gente. Comparar com quem você era tem um ponto de referência só, e ele é o seu — o que também é o único que você tem informação suficiente para julgar.',
+      },
+      {
+        key: 'uma-hora-sem-vitrine',
+        comecoNoDiario: 'Como você chegou no fim da hora sem tela?',
+        title: 'Uma hora sem vitrine',
+        duration: '1 hora',
+        summary: 'Tirar do alcance a parte da comparação que dá para mudar.',
+        illustration: 'pause',
+        steps: [
+          { title: 'Escolha uma hora do dia', text: 'De preferência aquela em que você rola a tela sem ter decidido rolar.' },
+          { title: 'Deixe o celular longe do braço', text: 'Outro cômodo, se der. Modo silencioso não basta: o gesto de pegar é automático.' },
+          { title: 'Faça uma coisa que ninguém vai ver', text: 'Cozinhar, andar, dormir, arrumar uma gaveta. Não precisa render nada.' },
+          { title: 'Repare como você chegou no fim da hora', text: 'Sem meta e sem cobrar melhora. Só note.' },
+        ],
+        why: 'Nenhuma conversa com a própria cabeça compete com exposição contínua. Tirar a vitrine do alcance por uma hora é a parte da comparação que se resolve mexendo no ambiente, e não em você.',
+      },
+    ],
+  },
   {
     key: 'foco',
     title: 'Foco',
@@ -625,6 +825,21 @@ export const PRACTICE_TOPICS: PracticeTopic[] = [
         ],
         why: 'Cada troca de tarefa cobra um custo de retomada que pode passar de vários minutos. O ganho não vem do cronômetro, e sim da decisão antecipada do que você não vai fazer nesse intervalo.',
       },
+      {
+        key: 'descarregar-a-cabeca',
+        comecoNoDiario: 'O que está aberto na sua cabeça agora?',
+        title: 'Descarregar a cabeça',
+        duration: '5 a 10 minutos',
+        summary: 'Tirar do pensamento tudo o que está disputando espaço, para sobrar atenção para uma coisa.',
+        illustration: 'blocks',
+        steps: [
+          { title: 'Escreva tudo o que está em aberto', text: 'Trabalho, casa, mensagem não respondida, consulta não marcada. Lista solta, sem ordem e sem organizar.' },
+          { title: 'Vá até acabar, inclusive as bobagens', text: 'Bobagem que ocupa espaço ocupa o mesmo espaço que o resto.' },
+          { title: 'Marque o que é de hoje', text: 'Quase sempre são duas ou três coisas, e não a lista inteira.' },
+          { title: 'Escolha uma e comece por ela', text: 'O resto está escrito. Não vai sumir enquanto você faz esta.' },
+        ],
+        why: 'Uma cabeça com muita coisa em aberto gasta atenção só em não esquecer delas. Escrever tudo passa essa tarefa para o papel, que lembra melhor — e o que sobra de atenção fica livre para uma coisa de cada vez.',
+      },
     ],
   },
 
@@ -637,6 +852,7 @@ export const PRACTICE_TOPICS: PracticeTopic[] = [
     practices: [
       {
         key: 'tres-coisas-boas',
+        comecoNoDiario: 'Quais foram as coisas boas de hoje?',
         title: 'Três coisas boas de hoje',
         duration: '5 minutos',
         summary: 'E por que cada uma aconteceu.',
@@ -659,6 +875,7 @@ export const PRACTICE_TOPICS: PracticeTopic[] = [
       },
       {
         key: 'carta-agradecimento',
+        comecoNoDiario: 'Para quem é essa carta? Escreva o que essa pessoa fez.',
         title: 'Carta de agradecimento',
         duration: '15 minutos',
         summary: 'Para alguém que você nunca agradeceu direito.',
@@ -695,6 +912,7 @@ export const PRACTICE_TOPICS: PracticeTopic[] = [
       },
       {
         key: 'o-que-quase-nao-aconteceu',
+        comecoNoDiario: 'O que é bom na sua vida e quase não aconteceu?',
         title: 'O que quase não aconteceu',
         duration: '6 minutos',
         summary: 'Imaginar a ausência devolve o valor que o hábito tirou.',

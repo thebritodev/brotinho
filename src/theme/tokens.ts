@@ -46,6 +46,16 @@ export const palette = {
   blue300: '#A9C4D6',
   blue100: '#DCE8F0',
 
+  /**
+   * O céu de noite da cena da janela, e só isso.
+   *
+   * Entrou contrariando a regra de não inventar tom novo, porque a paleta não
+   * tinha como escurecer: `blue300` é claro demais para ler como noite e
+   * `brown900` deixaria o céu marrom. É a mesma família dessaturada dos
+   * outros tons escuros — o azul que o `blue300` seria depois do pôr do sol.
+   */
+  night700: '#3E4A5C',
+
   lavender300: '#B9AEC7',
   lavender100: '#E4DEE8',
 

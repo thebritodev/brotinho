@@ -77,6 +77,15 @@ const RAIZ = path.join(__dirname, '..');
   const erro = (onde, o_que) => problemas.push(`${onde}: ${o_que}`);
   const texto = (v) => typeof v === 'string' && v.trim().length > 0;
 
+  /**
+   * As duas práticas que mandam escrever e **não** são diário.
+   *
+   * Em "A mensagem de um minuto" o que se escreve é a mensagem que vai ser
+   * enviada a outra pessoa; em "Blocos de atenção", a tarefa anotada num papel
+   * ao lado. Levar as duas para o diário seria confundir o que a folha é.
+   */
+  const SEM_DIARIO = new Set(['mensagem-de-um-minuto', 'blocos-de-atencao']);
+
   const chavesDeTema = new Set();
   let total = 0;
 
@@ -110,6 +119,29 @@ const RAIZ = path.join(__dirname, '..');
           if (!texto(s.title)) erro(onde, `passo ${i + 1} sem título`);
           if (!texto(s.text)) erro(onde, `passo ${i + 1} sem texto`);
         });
+
+      /*
+        Prática que manda escrever tem de oferecer onde.
+
+        Metade do conteúdo pede escrita, e por muito tempo nenhuma delas abria
+        o diário: a pessoa lia "Escreva o que está sentindo", fechava a tela e
+        ia procurar. A ligação existe agora, e esta conferência é o que impede
+        a próxima prática de nascer sem ela — é o tipo de esquecimento que não
+        quebra nada e por isso não aparece.
+      */
+      // Só o imperativo, que é como uma prática pede alguma coisa. "Escrever o
+      // título", em Dois minutos, é exemplo de primeiro passo numa tarefa
+      // qualquer — casar com ele geraria alarme falso, e guarda que grita à toa
+      // vira exceção até não sobrar guarda.
+      const pedeEscrita =
+        Array.isArray(p.steps) &&
+        p.steps.some((s) => /(escreva|liste|anote)/i.test(`${s.title} ${s.text}`));
+      if (pedeEscrita && !texto(p.comecoNoDiario) && !SEM_DIARIO.has(p.key)) {
+        erro(onde, 'manda escrever e não abre o diário (comecoNoDiario)');
+      }
+      if (texto(p.comecoNoDiario) && p.comecoNoDiario.length > 90) {
+        erro(onde, `começo do diário com ${p.comecoNoDiario.length} caracteres — é título, não parágrafo`);
+      }
 
       if (!p.guide) continue;
 

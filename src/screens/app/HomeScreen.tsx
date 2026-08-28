@@ -20,6 +20,7 @@ import {
 } from '../../components';
 import { toqueLeve } from '../../services/toque';
 import { saudacaoDoDia } from '../../data/saudacao';
+import { sugestaoParaOHumor } from '../../data/sugestao';
 import { useAppState } from '../../state/AppStateProvider';
 import type { Plant } from '../../state/types';
 import {
@@ -41,7 +42,8 @@ type Props = {
   name: string;
   onOpenComposta: () => void;
   onOpenSettings: () => void;
-  onOpenPractices: () => void;
+  /** Sem alvo abre a lista; com alvo, vai direto na prática oferecida. */
+  onOpenPractices: (alvo?: { topico: string; pratica: string }) => void;
   onOpenValues: () => void;
   onOpenReminders: () => void;
   onOpenGarden: () => void;
@@ -79,7 +81,18 @@ export function HomeScreen({
   const voltando = ausente !== null && ausente >= AUSENCIA_LONGA;
 
   const today = dayKey();
-  const mood = data.moodHistory.find((m) => m.date === today)?.mood ?? 'neutro';
+  /**
+   * `mood` cai em 'neutro' para o broto ter uma cara antes de ela dizer
+   * qualquer coisa. A oferta precisa distinguir "disse neutro" de "não disse
+   * nada" — só a primeira é uma resposta.
+   */
+  const humorMarcado = data.moodHistory.find((m) => m.date === today)?.mood ?? null;
+  const mood = humorMarcado ?? 'neutro';
+
+  const sugestao = useMemo(
+    () => sugestaoParaOHumor({ humor: humorMarcado, agora: new Date() }),
+    [humorMarcado],
+  );
 
   const growth = useMemo(() => stats(data), [data]);
 
@@ -206,6 +219,25 @@ export function HomeScreen({
           }}
           faceSize={faceSize}
         />
+
+        {/* Discreto de propósito: um convite, não um cartão. Some sozinho
+            quando o humor não pede nada — ver `data/sugestao.ts`. */}
+        {!!sugestao && (
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel={`${sugestao.convite} ${sugestao.titulo}`}
+            onPress={() => onOpenPractices({ topico: sugestao.topico, pratica: sugestao.pratica })}
+            hitSlop={8}
+            style={{ alignItems: 'center', gap: 2, paddingTop: 4 }}
+          >
+            <Text style={{ fontFamily: fonts.body.regular, fontSize: 13, color: palette.brown400 }}>
+              {sugestao.convite}
+            </Text>
+            <Text style={{ fontFamily: fonts.body.bold, fontSize: 15, color: colors.primaryStrong }}>
+              {sugestao.titulo}
+            </Text>
+          </Pressable>
+        )}
       </View>
 
       <Card

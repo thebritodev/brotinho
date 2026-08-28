@@ -246,6 +246,91 @@ e 7 dias concentra cancelamento no dia 0 e no dia 1 — gente que cancela por
 precaução antes de experimentar. Fica registrado como decisão comercial, não
 como melhoria pendente.
 
+## Pesquisa de 28 de agosto — a terceira rodada
+
+Feita a pedido, antes de gerar a build nova: funcionalidade, práticas novas,
+animação e surpresa. Os três primeiros achados saíram de vasculhar o código, e
+não da literatura.
+
+### Metade do conteúdo mandava escrever, e não abria o diário
+
+Vinte e cinco das quarenta e uma práticas pedem "Escreva…", "Liste…". O app tem
+a folha mais cuidada da categoria — rascunho salvo a cada 600 ms, ditado por
+voz, pergunta de partida — e não havia **nenhuma** ligação entre as duas coisas.
+A pessoa lia "Escreva o que está sentindo", fechava a prática, procurava o
+diário e tentava lembrar o que ia escrever.
+
+→ o campo `comecoNoDiario` nas práticas, o botão "Escrever no diário" na tela de
+conclusão, e a pergunta da prática ocupando o lugar da pergunta do dia. Some
+quando ela salva o registro: a folha seguinte volta a ser a do dia.
+
+Guardado por `confere-praticas.js`: prática cujos passos usam o imperativo
+"escreva", "liste" ou "anote" **tem** de abrir o diário, salvo duas exceções
+nomeadas — a mensagem que se envia a alguém e a tarefa anotada num papel. Sem
+esse guarda, a próxima prática nasce sem a ligação e ninguém percebe, porque
+nada quebra.
+
+> A primeira versão da regra pegava qualquer "escrev", e acusou *Dois minutos*
+> por causa de "Escrever o título", que ali é exemplo de primeiro passo numa
+> tarefa qualquer. Consertei a regra em vez de abrir exceção: guarda que grita
+> à toa vira exceção até não sobrar guarda.
+
+### O humor não levava a lugar nenhum
+
+Marcar "Ansioso" registrava em silêncio. As três práticas de ansiedade ficavam
+duas telas adiante, atrás de uma lista de treze temas. Era o único momento do
+dia em que a pessoa conta o que sente, e o momento em que o app menos fazia com
+isso.
+
+→ `data/sugestao.ts`, uma linha discreta embaixo das carinhas.
+
+**Para três humores dos seis.** Feliz, leve e neutro não recebem nada, e isso é
+a decisão, não um caso esquecido: oferecer exercício a quem acabou de dizer que
+está bem é a mesma insistência que a pesquisa da primeira rodada desaconselha.
+Calar quando não há o que oferecer é o que faz a oferta valer quando aparece.
+`testa-sugestao.js` existe sobretudo para essa regra sobreviver a quem, daqui a
+seis meses, achar que faltou preencher os outros três.
+
+**Cansado de madrugada não é cansado de tarde.** A partir das 21h a porta é a
+insônia; antes, o estresse. Mesma palavra, duas coisas — e o relógio distingue
+as duas sem precisar perguntar.
+
+### Faltavam temas inteiros
+
+Dez temas cobriam bem ansiedade, tristeza, insônia, estresse, solidão, raiva,
+procrastinação, autoestima, foco e gratidão. Não havia **luto**, **culpa e
+vergonha** nem **comparação** — e foco tinha duas práticas contra três dos
+outros temas.
+
+→ três temas novos com três práticas cada, mais a terceira de foco. **13 temas,
+41 práticas.** Todas escritas como autocuidado, sem afirmação de mecanismo — a
+lição da diretriz 1.4.1, da rodada anterior.
+
+### Sobre "animação": o que a literatura oferecia não servia
+
+A pesquisa de micro-interações e design emocional fala em dopamina, recompensa
+e "animação de high-five após um marco". É a gamificação que a primeira rodada
+mostrou não funcionar — e possivelmente prejudicar — nesta categoria. Não entrou
+nada dali.
+
+A única lacuna visual real era outra, e estava no código: a cena da janela era
+sempre ensolarada, inclusive para quem instala o app às duas da manhã — que é
+justamente quando muita gente procura um app assim.
+
+→ três faixas: dia, entardecer e noite. Não são quatro porque manhã e tarde só
+se distinguem por sombra, e inventar essa diferença seria decoração sem
+informação. Não marca nada, não muda por mérito e não há o que alcançar: é só o
+mundo lá fora estando do jeito que está.
+
+### Uma decisão registrada, e não adotada
+
+**Adiar a preocupação** (*worry postponement*) apareceu na busca como candidata
+a prática nova para ansiedade. Ficou de fora: a meta-análise mostra efeito em
+amostras não clínicas, resultado misto em quem tem transtorno de ansiedade
+generalizada, e nenhuma evidência de que o mecanismo proposto explique o efeito
+quando ele aparece. É protocolo clínico com evidência ambígua — exatamente o que
+a diretriz 1.4.1 desaconselha um app sem profissional a bordo apresentar.
+
 ## Fontes
 
 - [Clinical review of user engagement with mental health smartphone apps](https://pmc.ncbi.nlm.nih.gov/articles/PMC10270395/)
@@ -263,3 +348,7 @@ como melhoria pendente.
 - [Back up, export, and print Journal entries on iPhone (Apple)](https://support.apple.com/121822)
 - [Data Loss and Recovery Options (Day One)](https://dayoneapp.com/guides/troubleshooting/data-loss-and-recovery-options/)
 - [State of Subscription Apps 2025 (RevenueCat)](https://www.revenuecat.com/state-of-subscription-apps-2025)
+- [Effects of Worry Postponement on Daily Worry: a Meta-Analysis](https://www.piekeren.com/wp-content/uploads/2024/03/Dippel.2023_Worry-postponement-meta-analysis.pdf)
+- [Worry Postponement From the Metacognitive Perspective: A Randomized Waitlist-Controlled Trial](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC11303915/)
+- [Self-guided Cognitive Behavioral Therapy Apps for Depression (JMIR)](https://www.jmir.org/2021/7/e27619/)
+- [A Systematic Review of Cognitive Behavioral Therapy and Behavioral Activation Apps for Depression](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC4852920/)

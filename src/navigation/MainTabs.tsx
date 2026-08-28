@@ -22,6 +22,16 @@ export function MainTabs() {
   const { data } = useAppState();
   const [tab, setTab] = useState<TabKey>('home');
   const [sub, setSub] = useState<SubScreen | null>(null);
+  /**
+   * A pergunta que uma prática mandou para o diário.
+   *
+   * Mora aqui porque a viagem atravessa duas telas — a prática está dentro de
+   * `praticas`, que é uma tela empilhada, e o diário é uma aba. Some ao trocar
+   * de aba: voltar ao diário depois não é mais o mesmo pedido.
+   */
+  const [comecoDaPratica, setComecoDaPratica] = useState<string | null>(null);
+  /** A prática oferecida na Home, para as Práticas já abrirem nela. */
+  const [praticaAlvo, setPraticaAlvo] = useState<{ topico: string; pratica: string } | null>(null);
 
   const name = data.profile.name.trim() || 'você';
   const closeSub = () => setSub(null);
@@ -53,7 +63,17 @@ export function MainTabs() {
       case 'composta':
         return <CompostaScreen onClose={closeSub} />;
       case 'praticas':
-        return <PracticesScreen onBack={closeSub} />;
+        return (
+          <PracticesScreen
+            alvo={praticaAlvo}
+            onBack={closeSub}
+            onEscreverNoDiario={(comeco) => {
+              setComecoDaPratica(comeco);
+              setSub(null);
+              setTab('diario');
+            }}
+          />
+        );
       case 'valores':
         return <ValuesScreen onBack={closeSub} />;
       case 'lembretes':
@@ -68,7 +88,7 @@ export function MainTabs() {
   const renderTab = () => {
     switch (tab) {
       case 'diario':
-        return <JournalScreen />;
+        return <JournalScreen comecoDaPratica={comecoDaPratica} />;
       case 'perfil':
         return <ProfileScreen name={name} onNavigate={setSub} />;
       case 'home':
@@ -78,7 +98,10 @@ export function MainTabs() {
             name={name}
             onOpenComposta={() => setSub('composta')}
             onOpenSettings={() => setSub('config')}
-            onOpenPractices={() => setSub('praticas')}
+            onOpenPractices={(alvo) => {
+              setPraticaAlvo(alvo ?? null);
+              setSub('praticas');
+            }}
             onOpenValues={() => setSub('valores')}
             onOpenReminders={() => setSub('lembretes')}
             onOpenGarden={() => setSub('jardim')}
@@ -98,6 +121,7 @@ export function MainTabs() {
         onChange={(next) => {
           setTab(next);
           setSub(null);
+          setComecoDaPratica(null);
         }}
       />
     </View>

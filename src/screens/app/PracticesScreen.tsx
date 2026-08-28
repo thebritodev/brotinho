@@ -10,7 +10,17 @@ import { praticasMaisFeitas, ultimaPratica, vezesPorPratica } from '../../state/
 import { colors, palette, radius, shadows, fonts } from '../../theme';
 import { PracticeDetailScreen } from '../practices/PracticeDetailScreen';
 
-export function PracticesScreen({ onBack }: { onBack: () => void }) {
+export function PracticesScreen({
+  onBack,
+  onEscreverNoDiario,
+  alvo,
+}: {
+  onBack: () => void;
+  /** Repassado à prática: o fim dela pode levar ao diário. */
+  onEscreverNoDiario?: (comeco: string) => void;
+  /** Prática para abrir de saída, vinda da oferta da Home. */
+  alvo?: { topico: string; pratica: string } | null;
+}) {
   const { data } = useAppState();
   const feitas = vezesPorPratica(data);
 
@@ -26,8 +36,10 @@ export function PracticesScreen({ onBack }: { onBack: () => void }) {
     .map((r) => ({ ...r, pratica: findPractice(r.topic, r.practice), tema: findTopic(r.topic) }))
     .filter((r) => r.pratica && r.tema);
   const insets = useSafeAreaInsets();
-  const [topicKey, setTopicKey] = useState<string | null>(null);
-  const [practiceKey, setPracticeKey] = useState<string | null>(null);
+  // A oferta da Home chega como estado inicial: esta tela é montada de novo a
+  // cada abertura, então não há caso em que o alvo mude com ela na frente.
+  const [topicKey, setTopicKey] = useState<string | null>(alvo?.topico ?? null);
+  const [practiceKey, setPracticeKey] = useState<string | null>(alvo?.pratica ?? null);
 
   const topic = topicKey ? findTopic(topicKey) : undefined;
   const practice = topicKey && practiceKey ? findPractice(topicKey, practiceKey) : undefined;
@@ -42,6 +54,7 @@ export function PracticesScreen({ onBack }: { onBack: () => void }) {
           topicKey={topic.key}
           tint={topic.tint}
           onBack={() => setPracticeKey(null)}
+          onEscreverNoDiario={onEscreverNoDiario}
         />
       </ScreenTransition>
     );
