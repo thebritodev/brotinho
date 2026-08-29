@@ -3,6 +3,7 @@ import { Linking, Modal, Pressable, StyleSheet, Text, View } from 'react-native'
 
 import { colors, palette, radius, fonts } from '../../theme';
 import { Button } from '../core/Button';
+import { Icon } from '../core/Icon';
 
 /**
  * Um caminho curto até o CVV, de dentro das telas onde a pessoa está quando pesa.
@@ -27,6 +28,19 @@ import { Button } from '../core/Button';
  * O tom evita a palavra "crise" na porta de entrada de propósito: quem está mal
  * frequentemente não se reconhece em crise, e um rótulo pesado afasta em vez de
  * acolher. "Se estiver muito pesado" cabe em mais gente.
+ *
+ * ---
+ *
+ * **Por que ela parece um link, e não um texto solto.** A primeira versão era só
+ * a metade da frase — "Se estiver muito pesado agora" — em negrito cinza, logo
+ * abaixo do botão de salvar. Três problemas de uma vez: condição sem
+ * consequência, então a pessoa tinha de adivinhar o destino; nenhuma pista de
+ * que dava para tocar; e negrito com cinza-apagado ao mesmo tempo, que é o
+ * "repare em mim" e o "me ignore" se anulando.
+ *
+ * Agora fecha a frase — "tem quem escute" promete uma pessoa, sem rotular a
+ * porta — e usa o mesmo verde de link que o app já usa em toda parte. Continua
+ * discreta: aqui discrição é respeito, não timidez de design.
  */
 
 const TELEFONE = '188';
@@ -46,21 +60,29 @@ export function AjudaAgora() {
     <>
       <Pressable
         accessibilityRole="button"
-        accessibilityLabel="Se estiver muito pesado agora, ver onde pedir ajuda"
+        accessibilityLabel="Se estiver muito pesado agora, tem quem escute"
         onPress={() => setAberto(true)}
         hitSlop={10}
-        style={{ alignSelf: 'center', paddingVertical: 10, paddingHorizontal: 8 }}
+        style={{
+          alignSelf: 'center',
+          flexDirection: 'row',
+          alignItems: 'center',
+          gap: 7,
+          paddingVertical: 10,
+          paddingHorizontal: 8,
+        }}
       >
+        <Icon name="heart" size={16} color={colors.primaryStrong} strokeWidth={2.2} />
         <Text
           style={{
             fontFamily: fonts.body.bold,
             fontSize: 13,
             lineHeight: 13 * 1.4,
-            color: colors.textSecondary,
+            color: colors.primaryStrong,
             textAlign: 'center',
           }}
         >
-          Se estiver muito pesado agora
+          Se estiver muito pesado agora, tem quem escute
         </Text>
       </Pressable>
 
