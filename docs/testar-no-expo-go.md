@@ -47,6 +47,63 @@ visitante do roteador costuma isolar os aparelhos entre si e quebra tudo.
 
 ---
 
+## Quando o celular simplesmente não conecta
+
+Aconteceu, e a causa não estava no app: o **firewall do Windows bloqueia a
+entrada na porta 8081**. Ele vem ativo no perfil Private e não traz regra
+nenhuma para o node — então o celular bate na porta e não passa.
+
+O que engana aqui é que **tudo parece certo do lado do computador**: o
+`curl http://SEU-IP:8081` responde 200, o manifesto sai correto, o pacote
+compila. Requisição saindo da própria máquina não atravessa o firewall. O
+sintoma no celular é só um tempo esgotado, sem explicação.
+
+Para conferir se é isso, num PowerShell:
+
+```powershell
+Get-NetFirewallRule -Direction Inbound -Enabled True | Where-Object { $_.DisplayName -match 'node|expo|8081' }
+```
+
+Se não voltar nada, é isto.
+
+### Saída 1 — o túnel, que não pede nada do firewall
+
+```bash
+npx expo start --tunnel
+```
+
+O pacote sai por um endereço público em vez da rede local, e funciona até com o
+celular no 4G. É mais lento para recarregar, e **o endereço muda a cada vez**.
+
+Na primeira vez ele pede o `@expo/ngrok`; para instalar sem sujar o
+`package.json`:
+
+```bash
+npm install --no-save @expo/ngrok@^4.1.0
+```
+
+**O ditado por voz não funciona pelo túnel.** Só o Metro é tunelado; o servidor
+de transcrição continua na rede local, onde o celular não chega.
+
+### Saída 2 — abrir as portas, uma vez só
+
+Resolve de vez e mantém a rede local, que é mais rápida e faz o ditado
+funcionar. É mexer em configuração de segurança do sistema, então rode você
+mesmo, num PowerShell **como administrador**:
+
+```powershell
+New-NetFirewallRule -DisplayName "Expo Metro 8081" -Direction Inbound -Protocol TCP -LocalPort 8081 -Action Allow -Profile Private
+```
+
+```powershell
+New-NetFirewallRule -DisplayName "Brotinho transcricao 8787" -Direction Inbound -Protocol TCP -LocalPort 8787 -Action Allow -Profile Private
+```
+
+Só o perfil `Private` de propósito: em rede pública — cafeteria, aeroporto —
+essas portas continuam fechadas, que é o certo.
+
+---
+
 ## O que não funciona no Expo Go, e por quê
 
 Dois módulos nativos não vêm no aplicativo da Expo, e nenhum dos dois pode ser
