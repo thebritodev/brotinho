@@ -21,6 +21,7 @@ import { colors, palette, radius, shadows, fonts } from '../../theme';
 import { AduboAssentando } from './AduboAssentando';
 import { FallingWords } from './FallingWords';
 import { useCompostSession } from './useCompostSession';
+import { useBotaoVoltar } from '../../navigation/useBotaoVoltar';
 
 /** Segundos de voz necessários para completar uma compostagem. */
 const TARGET_SECONDS = 35;
@@ -86,6 +87,26 @@ export function CompostaScreen({ onClose }: { onClose: () => void }) {
     session.stop();
     setStep('explain');
   };
+
+  /**
+   * Voltar durante a gravação **para a gravação** antes de sair do passo. Sem
+   * isso o microfone continuaria ligado com a tela já noutro lugar.
+   */
+  useBotaoVoltar(() => {
+    if (step === 'record') {
+      cancelar();
+      return true;
+    }
+    if (step === 'thought') {
+      setStep('explain');
+      return true;
+    }
+    if (step === 'done') {
+      onClose();
+      return true;
+    }
+    return false;
+  });
 
   const progresso = Math.min(1, session.secs / TARGET_SECONDS);
   const restante = Math.max(0, Math.ceil(TARGET_SECONDS - session.secs));

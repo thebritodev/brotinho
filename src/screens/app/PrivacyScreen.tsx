@@ -15,6 +15,7 @@ import {
 } from '../../components';
 import { exportarJson, exportarLegivel } from '../../services/exportarDados';
 import { useAppState } from '../../state/AppStateProvider';
+import { useBotaoVoltar } from '../../navigation/useBotaoVoltar';
 import { colors, palette, radius, borderWidth, fonts } from '../../theme';
 import { PrivacyPolicyScreen } from './PrivacyPolicyScreen';
 
@@ -69,6 +70,14 @@ export function PrivacyScreen({ onBack }: { onBack: () => void }) {
   const s = data.settings;
 
   const [vendoPolitica, setVendoPolitica] = useState(false);
+
+  useBotaoVoltar(() => {
+    if (vendoPolitica) {
+      setVendoPolitica(false);
+      return true;
+    }
+    return false;
+  });
   const [exportando, setExportando] = useState(false);
   const [avisoExport, setAvisoExport] = useState<string | null>(null);
 

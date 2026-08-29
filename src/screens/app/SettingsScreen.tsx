@@ -11,6 +11,7 @@ import { MyValuesScreen } from './MyValuesScreen';
 import { PrivacyPolicyScreen } from './PrivacyPolicyScreen';
 import { RemindersScreen } from './RemindersScreen';
 import { enviarFeedback } from '../../services/feedback';
+import { useBotaoVoltar } from '../../navigation/useBotaoVoltar';
 
 function Row({
   icon,
@@ -86,6 +87,20 @@ export function SettingsScreen({ onBack }: { onBack: () => void }) {
   const s = data.settings;
 
   const [detalhe, setDetalhe] = useState<Detalhe | null>(null);
+
+  // A política é o único detalhe aberto de dentro de outro: voltar dela leva ao
+  // Sobre, e não ao começo, que é para onde o botão da barra de cima já leva.
+  useBotaoVoltar(() => {
+    if (detalhe === 'politica') {
+      setDetalhe('sobre');
+      return true;
+    }
+    if (detalhe) {
+      setDetalhe(null);
+      return true;
+    }
+    return false;
+  });
   const [avisoFeedback, setAvisoFeedback] = useState<string | null>(null);
 
   const chevron = <Icon name="chevronRight" color={palette.brown400} />;

@@ -6,6 +6,7 @@ import { Button, GrowingSprout, Icon, ScreenTransition, TopBar } from '../../com
 import { PracticeIllustration } from '../../components/brand/PracticeIllustration';
 import type { Practice } from '../../data/practices';
 import { useAppState } from '../../state/AppStateProvider';
+import { useBotaoVoltar } from '../../navigation/useBotaoVoltar';
 import { toqueDeConclusao } from '../../services/toque';
 import { vezesPorPratica } from '../../state/derived';
 import { colors, palette, radius, shadows, fonts } from '../../theme';
@@ -43,6 +44,21 @@ export function PracticeDetailScreen({
 
   const comeco = practice.comecoNoDiario;
   const escrever = comeco && onEscreverNoDiario ? () => onEscreverNoDiario(comeco) : null;
+
+  /**
+   * No meio do guia, voltar é desistir do guia — e não sair da prática.
+   *
+   * Na tela de conclusão é o contrário: a prática acabou, e voltar para a
+   * leitura seria reabrir o que ela terminou. Ali o `false` deixa a lista
+   * responder, que é para onde o botão principal também leva.
+   */
+  useBotaoVoltar(() => {
+    if (mode === 'guide') {
+      setMode('read');
+      return true;
+    }
+    return false;
+  });
 
   const jaFeita = vezesPorPratica(data)[`${topicKey}/${practice.key}`] ?? 0;
 

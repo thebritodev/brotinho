@@ -15,6 +15,7 @@ import type { SubScreen } from '../screens/app/types';
 import { CompostaScreen } from '../screens/composta/CompostaScreen';
 import { ValuesScreen } from '../screens/app/ValuesScreen';
 import { onNotificationTap } from '../services/notifications';
+import { useBotaoVoltar } from './useBotaoVoltar';
 import { useAppState } from '../state/AppStateProvider';
 import { colors } from '../theme';
 
@@ -35,6 +36,28 @@ export function MainTabs() {
 
   const name = data.profile.name.trim() || 'você';
   const closeSub = () => setSub(null);
+
+  /**
+   * O último degrau antes de o app fechar.
+   *
+   * A ordem é a mesma que a pessoa percorreu: fecha o que está empilhado, e
+   * depois volta para o Início. Só na Home é que o voltar sai do app — que é
+   * o comportamento que todo aplicativo Android tem.
+   */
+  useBotaoVoltar(() => {
+    if (sub) {
+      closeSub();
+      return true;
+    }
+    if (tab !== 'home') {
+      setTab('home');
+      // A pergunta que uma prática mandou para o diário não sobrevive à saída
+      // dele, igual ao que a barra de baixo faz.
+      setComecoDaPratica(null);
+      return true;
+    }
+    return false;
+  });
 
   // Tocar no lembrete leva ao diário; tocar no resumo semanal, ao resumo.
   // Antes o toque só trazia o app de volta para onde ele tinha parado.

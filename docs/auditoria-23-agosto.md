@@ -395,3 +395,46 @@ código: com `--strict`, a união discriminada estreita como deve.
 
 > **Um teste que compila com regras diferentes das do projeto não está testando
 > o projeto.**
+
+## 29 de agosto — o voltar do Android, e um erro que o typecheck não vê
+
+O botão (e o gesto) de voltar do Android **fechava o aplicativo de qualquer
+tela**. Alguém quatro telas adentro, lendo uma prática, tocava a barrinha de
+baixo e o app sumia. A causa é estrutural: sem biblioteca de navegação, as
+telas são estado dentro de outras telas, e ninguém tratava o evento — então o
+Android fazia a única coisa que sabe.
+
+→ `navigation/useBotaoVoltar.ts`, ligado nas oito telas com estado próprio.
+
+**Uma coisa foi confirmada na fonte antes de virar desenho**, porque tudo
+dependia dela: o `BackHandler` do React Native percorre os inscritos **de trás
+para frente** (`for (let i = length - 1; i >= 0; i--)`) e chama `exitApp()` se
+nenhum devolver `true`. Como as telas mais fundas montam depois, a ordem certa
+sai de graça — a prática responde antes da lista, que responde antes das abas.
+
+Por isso a função vai num `ref`: reinscrever a cada render jogaria a tela de
+cima na frente da de baixo.
+
+### O erro, e por que ele importa
+
+Coloquei o gancho **depois** do `return` de carregamento no `RootNavigator`.
+Hook depois de saída condicional roda em alguns renders e não em outros, e o
+React derruba a árvore inteira:
+
+> *Rendered more hooks than during the previous render.*
+
+O `tsc --noEmit` passou limpo. Os 222 testes passaram. **O app não abria** — a
+tela era o "Alguma coisa quebrou aqui" do ErrorBoundary, em qualquer
+plataforma. Só apareceu porque abri o preview antes de dizer que estava pronto.
+
+> **Terceira vez que a mesma lição se paga nesta semana:** typecheck e teste
+> dizem que o código é coerente, não que o app abre. Antes de afirmar que algo
+> funciona, abrir a tela.
+
+Depois de corrigir, percorri as oito telas uma a uma numa aba limpa — Composta,
+Perfil, Terapia, Configurações, Sobre, Meus dados, Privacidade, Política,
+Práticas, tema, prática, guia, Valores, Jardim, Diário — e conferi que nenhuma
+outra tinha o mesmo problema. Zero erro de console.
+
+**O que continua sem verificação:** o gesto em si. `useBotaoVoltar` não faz nada
+fora do Android, então a navegação de volta precisa ser testada no aparelho.

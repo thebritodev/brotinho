@@ -47,6 +47,7 @@ import { ExperimentoComposta, REPETICOES_DO_EXPERIMENTO } from './ExperimentoCom
 import { Paywall } from './Paywall';
 import { Centered, OptionList, TimeField } from './parts';
 import { TimeWheel } from './TimeWheel';
+import { useBotaoVoltar } from '../../navigation/useBotaoVoltar';
 
 /** Estado local do fluxo — só é gravado no perfil ao concluir. */
 type Draft = {
@@ -191,6 +192,16 @@ export function OnboardingScreen() {
     sentido.current = paraFrente ? 'forward' : 'back';
     setStep(Math.max(0, Math.min(TOTAL - 1, destino)));
   };
+
+  // O mesmo caminho da setinha do cabeçalho. No passo zero devolve o voltar
+  // para o `RootNavigator`, que traz de volta as boas-vindas.
+  useBotaoVoltar(() => {
+    if (step > 0) {
+      go(step - 1);
+      return true;
+    }
+    return false;
+  });
 
   const toggle = (key: 'valores' | 'tentou', value: string, max?: number) => {
     const current = draft[key];

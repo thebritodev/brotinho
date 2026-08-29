@@ -10,6 +10,7 @@ import { loadRascunho } from '../storage/appStorage';
 import { precisaAssinar, useAssinatura } from '../state/SubscriptionProvider';
 import { colors } from '../theme';
 import { MainTabs } from './MainTabs';
+import { useBotaoVoltar } from './useBotaoVoltar';
 
 export function RootNavigator() {
   const { hydrated, data } = useAppState();
@@ -44,6 +45,26 @@ export function RootNavigator() {
       vivo = false;
     };
   }, []);
+
+  /**
+   * Do onboarding de volta às boas-vindas, quando ele foi aberto agora.
+   *
+   * Não vale para quem está retomando um rascunho: ali o passo zero é o começo
+   * de uma sessão que já existia, e mandar essa pessoa para a tela de abertura
+   * pareceria ter perdido o que ela escreveu.
+   *
+   * Fica **acima** do `return` de carregamento logo abaixo, e não junto do
+   * resto da lógica: hook depois de saída condicional roda em alguns renders e
+   * não em outros, e o React derruba a tela inteira com "Rendered more hooks
+   * than during the previous render". Foi exatamente o que aconteceu aqui.
+   */
+  useBotaoVoltar(() => {
+    if (!data.profile.onboarded && comecou && !retomando) {
+      setComecou(false);
+      return true;
+    }
+    return false;
+  });
 
   // Enquanto o AsyncStorage não responde, mantém a tela na cor de fundo
   // para não piscar o onboarding para quem já passou por ele — nem as

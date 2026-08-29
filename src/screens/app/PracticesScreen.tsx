@@ -9,6 +9,7 @@ import { useAppState } from '../../state/AppStateProvider';
 import { praticasMaisFeitas, ultimaPratica, vezesPorPratica } from '../../state/derived';
 import { colors, palette, radius, shadows, fonts } from '../../theme';
 import { PracticeDetailScreen } from '../practices/PracticeDetailScreen';
+import { useBotaoVoltar } from '../../navigation/useBotaoVoltar';
 
 export function PracticesScreen({
   onBack,
@@ -40,6 +41,20 @@ export function PracticesScreen({
   // cada abertura, então não há caso em que o alvo mude com ela na frente.
   const [topicKey, setTopicKey] = useState<string | null>(alvo?.topico ?? null);
   const [practiceKey, setPracticeKey] = useState<string | null>(alvo?.pratica ?? null);
+
+  // Prática → lista do tema → lista de temas. Depois disso quem responde é o
+  // `MainTabs`, que fecha esta tela.
+  useBotaoVoltar(() => {
+    if (practiceKey) {
+      setPracticeKey(null);
+      return true;
+    }
+    if (topicKey) {
+      setTopicKey(null);
+      return true;
+    }
+    return false;
+  });
 
   const topic = topicKey ? findTopic(topicKey) : undefined;
   const practice = topicKey && practiceKey ? findPractice(topicKey, practiceKey) : undefined;
