@@ -162,7 +162,7 @@ export function WelcomeScreen({ onStart }: { onStart: () => void }) {
                     color: palette.brown700,
                   }}
                 >
-                  E se não voltaram: o arquivo técnico (JSON) que você tenha baixado daqui traz tudo
+                  E se não voltaram: a cópia de segurança que você tenha baixado daqui traz tudo
                   de volta.
                 </Text>
               </>

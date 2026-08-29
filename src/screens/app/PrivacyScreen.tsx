@@ -188,8 +188,9 @@ export function PrivacyScreen({ onBack }: { onBack: () => void }) {
               color: palette.brown700,
             }}
           >
-            Gera um arquivo de texto com tudo o que está guardado aqui — seu diário por extenso,
-            seus humores, suas compostagens e suas práticas — para você ler e guardar onde quiser.
+            Um arquivo de texto com tudo o que está guardado aqui — seu diário por extenso, seus
+            humores, suas compostagens e suas práticas. É para ler; para restaurar depois, o que
+            serve é a cópia de segurança abaixo.
           </Text>
           {!!avisoExport && (
             <Text
@@ -207,24 +208,43 @@ export function PrivacyScreen({ onBack }: { onBack: () => void }) {
 
         {/* Fora do cartão de propósito. Dentro dele isto virava um botão
             aninhado noutro: no celular o toque aqui dispararia também o cartão,
-            e a pessoa receberia o texto justamente ao pedir o JSON. */}
-        <Pressable
-          accessibilityRole="button"
-          accessibilityLabel="Baixar em formato técnico, JSON, que é o único que volta"
-          onPress={exportando ? undefined : () => void baixar(false)}
-          hitSlop={10}
-          style={{ alignSelf: 'flex-start', marginTop: -8 }}
-        >
+            e a pessoa receberia o texto justamente ao pedir o JSON.
+
+            Dizia "Prefiro o formato técnico (JSON)", e estava errado duas
+            vezes. A voz: a tela inteira fala COM a pessoa — "Baixar meus
+            dados", "Apagar meus dados" — e só esta linha falava POR ela.
+            E o nome: "formato técnico" diz do que a coisa é feita, não para
+            que serve, justamente no arquivo que virou a rede de segurança
+            quando o "Trazer de volta" passou a existir. */}
+        <View style={{ gap: 2, marginTop: -8 }}>
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel="Baixar a cópia de segurança, em JSON"
+            onPress={exportando ? undefined : () => void baixar(false)}
+            hitSlop={10}
+            style={{ alignSelf: 'flex-start' }}
+          >
+            <Text
+              style={{
+                fontFamily: fonts.body.bold,
+                fontSize: 13,
+                color: colors.primaryStrong,
+              }}
+            >
+              Baixar a cópia de segurança (JSON)
+            </Text>
+          </Pressable>
           <Text
             style={{
-              fontFamily: fonts.body.bold,
-              fontSize: 13,
-              color: colors.primaryStrong,
+              fontFamily: fonts.body.regular,
+              fontSize: 12,
+              lineHeight: 12 * 1.45,
+              color: palette.brown400,
             }}
           >
-            Prefiro o formato técnico (JSON) — é o único que volta
+            É este arquivo que o "Trazer de volta" aceita.
           </Text>
-        </Pressable>
+        </View>
 
         {/* Depois de baixar e antes de apagar, que é a ordem em que estas três
             coisas acontecem na vida de quem troca de celular. */}

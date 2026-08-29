@@ -229,8 +229,12 @@ mais.
    prefixo que `limparExportacoes` varre, então some no `finally` — inclusive
    quando a leitura falha. É o mesmo cuidado da gravação da Composta.
 
-O link do JSON passou a dizer **"é o único que volta"**: o download padrão é o
-`.txt`, que é para ler, e ninguém adivinharia que a rede de segurança é o outro.
+O JSON passou a se chamar **"cópia de segurança"**. Antes o link dizia "Prefiro
+o formato técnico (JSON)", errado duas vezes: a tela inteira fala **com** a
+pessoa e só ali falava **por** ela, e "formato técnico" diz do que o arquivo é
+feito em vez de para que serve — justamente no único arquivo que volta. O cartão
+de cima também prometia "guardar onde quiser", sugerindo backup num `.txt` que
+não restaura nada.
 
 **E a saída não podia morar só em Privacidade.** Isso apareceu dirigindo a tela:
 Privacidade fica atrás dos catorze passos do onboarding **e** do paywall, e quem

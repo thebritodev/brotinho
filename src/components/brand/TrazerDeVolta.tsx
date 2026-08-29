@@ -44,7 +44,7 @@ import { Card } from '../core/Card';
 const RECUSA: Record<Exclude<MotivoDaRecusa, 'cancelado'>, string> = {
   ilegivel: 'Não consegui ler esse arquivo.',
   'nao-e-do-brotinho':
-    'Esse arquivo não é uma cópia do Brotinho. Procure o arquivo .json que você baixou aqui.',
+    'Esse arquivo não é uma cópia do Brotinho. Procure a cópia de segurança (.json) que você baixou em Privacidade.',
   'formato-mais-novo':
     'Esse arquivo veio de uma versão mais nova do Brotinho. Atualize o app e tente de novo.',
 };
@@ -286,8 +286,8 @@ export function TrazerDeVolta({
             color: palette.brown700,
           }}
         >
-          Se em algum momento você baixou o arquivo técnico (JSON) — em outro celular, antes de
-          formatar, antes de apagar o app —, escolha ele aqui e o Brotinho volta a ser o que era.
+          Se em algum momento você baixou a cópia de segurança — em outro celular, antes de
+          formatar, antes de apagar o app —, escolha ela aqui e o Brotinho volta a ser o que era.
         </Text>
         {recados}
       </Card>
