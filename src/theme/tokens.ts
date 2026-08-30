@@ -288,28 +288,40 @@ export const coresEscuras: Cores = {
 };
 
 /**
- * As cores de humor no escuro.
+ * As cores de humor no escuro: os mesmos pastéis, um tom abaixo.
  *
- * **Escurecer o pastel não funciona, e foi o que eu fiz na primeira versão.**
- * Amarelo-claro escurecido vira oliva; verde-claro escurecido vira quase
- * preto. A matiz — que é a única coisa que distingue um humor do outro aqui —
- * se perde exatamente no escurecer.
+ * Duas tentativas erradas antes desta, e as duas erraram no mesmo lugar —
+ * mexer na luminosidade como se ela fosse a variável livre.
  *
- * O que preserva a identidade da cor sobre fundo escuro é o contrário:
- * **manter a luminosidade no meio e subir a saturação.** Cada um destes é
- * inconfundivelmente amarelo, verde, azul, cinza, lavanda ou creme, e nenhum
- * brilha a ponto de acender a tela.
+ * A primeira **escureceu o pastel**. Amarelo-claro escurecido vira oliva;
+ * verde-claro escurecido vira quase preto. A matiz, que é a única coisa que
+ * distingue um humor do outro aqui, se perde exatamente no escurecer.
  *
- * Como são tons médios, a carinha do humor volta a ser desenhada com a tinta
- * escura, igual ao tema claro — ver `MoodFace`.
+ * A segunda foi ao outro extremo: **tom médio e saturação alta.** Resolveu a
+ * matiz e criou outro problema, maior. Ler cada cor sozinha não era o teste;
+ * o teste era olhar a tela inteira. Um mostarda saturado e três cinzas médios
+ * lado a lado não são os pastéis do Brotinho num tema diferente — são outra
+ * paleta, de outro aplicativo. O tema escuro deixava de parecer o mesmo lugar.
+ *
+ * O que faltava é que **num fundo escuro o pastel não precisa mudar de faixa.**
+ * Ele já contrasta: `bg` é #211E1A. Uma pastilha clara sobre marrom quase preto
+ * lê alto, separa bem e continua sendo a mesma cor que a pessoa vê de dia.
+ * Então cada um destes é o pastel do tema claro com a luminosidade descendo uns
+ * sete pontos e a saturação um pouco abaixo — o suficiente para não acender a
+ * tela de madrugada, longe o bastante de virar cor nova.
+ *
+ * Repare que nenhum vem de `paletteEscura`. Lá, `yellow100` e companhia são
+ * superfícies escuras, feitas para receber texto claro por cima. Estas são o
+ * oposto: pastilhas claras que recebem a tinta escura da carinha — ver
+ * `MoodFace`. Mesmo nome, trabalhos contrários; por isso ficam separadas.
  */
 export const moodColorsEscuros: Record<Mood, string> = {
-  feliz: '#C9A23F',
-  leve: '#6E9C81',
-  ansioso: '#6E8DA5',
-  triste: '#7A838D',
-  cansado: '#8B7FA8',
-  neutro: '#8A8070',
+  feliz: '#F2E2B0',
+  leve: '#CFE0D4',
+  ansioso: '#C8DCE8',
+  triste: '#C4CDD8',
+  cansado: '#D3C9DC',
+  neutro: '#E6DCC4',
 };
 
 /**

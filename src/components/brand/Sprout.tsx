@@ -242,14 +242,18 @@ export function Sprout({
       {/*
         O halo é um brilho, não um disco.
 
-        No claro ele é um pastel quase branco sobre creme, e some direitinho.
-        No escuro os mesmos tons são escuros e o círculo virava um borrão
-        marrom atrás do broto — cor cheia num diâmetro de 192 lê alto demais.
-        A opacidade devolve a ele o que ele sempre foi: uma insinuação de luz.
-        
-        A primeira tentativa usou 0,4, e ficou alto de novo quando as cores
-        de humor foram corrigidas para tons médios. Dezoito por cento é o
-        ponto em que se percebe a cor sem enxergar o disco.
+        No claro ele é um pastel quase branco sobre creme: a diferença entre os
+        dois é mínima, e o que se vê é um sopro de cor, não um disco.
+
+        No escuro essa diferença é enorme — a mesma pastilha clara sobre marrom
+        quase preto, num diâmetro de 192, viraria uma lua atrás do broto. A
+        opacidade não está aqui para apagar o halo; está para devolver a ele a
+        mesma discrição que ele tem de dia.
+
+        O número já mudou três vezes, sempre atrás das cores de humor: 0,4 e
+        0,18 com os tons médios, e agora 0,14, porque os pastéis claros rendem
+        mais por ponto de opacidade. É esse o acoplamento — mexeu na cor de
+        humor, confira o halo.
       */}
       {showBg && (
         <Circle
@@ -257,7 +261,7 @@ export function Sprout({
           cy={100}
           r={96}
           fill={moodColors[mood] ?? moodColors.neutro}
-          opacity={tema === 'escuro' ? 0.18 : 1}
+          opacity={tema === 'escuro' ? 0.14 : 1}
         />
       )}
 

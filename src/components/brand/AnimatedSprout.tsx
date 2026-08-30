@@ -191,16 +191,15 @@ export function AnimatedSprout({
         /*
           O halo é um brilho, não um disco.
 
-          No claro ele é um pastel quase branco sobre creme, e some direitinho.
-          No escuro os mesmos tons são escuros, e cor cheia num círculo de 359
-          de largura virava um borrão marrom atrás do broto. A opacidade
-          devolve a ele o que ele sempre foi: uma insinuação de luz.
-          
-          A primeira tentativa usou 0,4, e ficou alto de novo quando as cores
-          de humor foram corrigidas para tons médios. Dezoito por cento é o
-          ponto em que se percebe a cor sem enxergar o disco.
+          No claro ele é um pastel quase branco sobre creme: a diferença entre
+          os dois é mínima, e o que se vê é um sopro de cor. No escuro a mesma
+          pastilha clara sobre marrom quase preto, num círculo de 359 de
+          largura, viraria uma lua atrás do broto. A opacidade devolve a ele a
+          mesma discrição que ele tem de dia.
+
+          Anda junto com `Sprout`, e pelo mesmo motivo — ver o comentário de lá.
         */
-        <View style={{ opacity: tema === 'escuro' ? 0.18 : 1 }}>
+        <View style={{ opacity: tema === 'escuro' ? 0.14 : 1 }}>
           <View
             style={{
               position: 'absolute',

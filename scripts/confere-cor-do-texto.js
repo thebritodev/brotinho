@@ -36,11 +36,31 @@ const arquivos = [];
   }
 })(RAIZ);
 
+/**
+ * Apaga o que é comentário, mantendo as linhas no lugar.
+ *
+ * Sem isto o script acusa a si mesmo: um comentário que explica um `<Text>`
+ * escreve `<Text>` e é lido como se fosse código. O primeiro falso positivo
+ * apareceu num JSDoc do diário — a documentação de uma correção virando
+ * defeito. Cada caractere de comentário vira espaço, e não `''`, para o número
+ * da linha e a coluna continuarem valendo no que sobra.
+ *
+ * Só bloco (`/* *\/`, que cobre JSDoc e `{/* *\/}` do JSX) e linha que já
+ * começa com `//`. Um `//` no meio da linha fica: quase sempre é `https://`
+ * dentro de um texto, e apagar dali seria estragar código de verdade.
+ */
+function semComentarios(texto) {
+  const vazio = (m) => m.replace(/[^\r\n]/g, ' ');
+  return texto
+    .replace(/\/\*[\s\S]*?\*\//g, vazio)
+    .replace(/^[ \t]*\/\/.*$/gm, vazio);
+}
+
 const achados = [];
 
 for (const f of arquivos) {
   if (PERDOADOS.has(path.basename(f))) continue;
-  const texto = fs.readFileSync(f, 'utf8');
+  const texto = semComentarios(fs.readFileSync(f, 'utf8'));
   const linhas = texto.split(/\r?\n/);
 
   for (let i = 0; i < linhas.length; i++) {

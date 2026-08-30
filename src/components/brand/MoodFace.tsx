@@ -34,10 +34,10 @@ export function MoodFace({ mood, size = 44, selected = false }: Props) {
     A carinha usa a tinta escura nos dois temas.
 
     Houve uma versão em que ela seguia `textPrimary`, porque as cores de humor
-    escuras eram escuras de verdade e o traço marrom sumia nelas. Corrigidas as
-    cores — tons médios em vez de pastéis escurecidos —, a carinha volta a ser
-    a mesma dos dois lados: tinta escura sobre a cor do humor, como um rostinho
-    desenhado. Ver `moodColorsEscuros`.
+    escuras eram escuras de verdade e o traço marrom sumia nelas. Isso durou o
+    tempo daquelas cores. Hoje as pastilhas de humor são claras nos dois temas
+    — ver `moodColorsEscuros` —, e a carinha é a mesma dos dois lados: tinta
+    escura sobre a cor do humor, como um rostinho desenhado a lápis.
   */
   const traco = tracos.contorno;
   const f = FACES[mood] ?? FACES.neutro;

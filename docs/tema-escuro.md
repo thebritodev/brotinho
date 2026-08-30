@@ -61,6 +61,41 @@ significados no mesmo identificador foi exatamente a armadilha.**
 O broto é o mesmo de dia e de noite. O que muda é a luz em volta: o halo, o
 papel, o cartão embaixo da ilustração.
 
+## As cores de humor: duas versões erradas antes desta
+
+Foi o único ponto do tema que o usuário reprovou duas vezes, e as duas versões
+erradas erraram no mesmo lugar — tratar **luminosidade** como a variável a
+mexer.
+
+1. **Escurecer o pastel.** Amarelo-claro escurecido vira oliva; verde-claro
+   escurecido vira quase preto. A matiz é a única coisa que separa um humor do
+   outro aqui, e é justamente ela que se perde no escurecer.
+2. **Tom médio, saturação alta.** Resolveu a matiz e criou um problema maior.
+   Ler cada cor sozinha dizia que estava tudo certo; o teste era olhar a tela
+   inteira. Um mostarda saturado e três cinzas médios lado a lado não são os
+   pastéis do Brotinho num tema diferente — são outra paleta, de outro
+   aplicativo. **O tema escuro deixava de parecer o mesmo lugar.**
+
+O que faltava é que **num fundo escuro o pastel não precisa mudar de faixa.**
+Ele já contrasta: `bg` é `#211E1A`. Pastilha clara sobre marrom quase preto lê
+alto, separa bem e continua sendo a mesma cor que a pessoa vê de dia. Cada
+`moodColorsEscuros` é hoje o pastel claro com uns sete pontos a menos de
+luminosidade e um pouco menos de saturação — o bastante para não acender a tela
+de madrugada, longe de virar cor nova.
+
+Duas consequências que andam junto e é fácil esquecer:
+
+- **A carinha volta à tinta escura nos dois temas.** Houve uma versão em que ela
+  seguia `textPrimary` porque as cores escuras eram escuras de verdade. Sobre
+  pastilha clara, tinta escura — como um rostinho desenhado a lápis.
+- **O halo é o acoplamento.** Ele pinta a cor do humor num disco de 192, e pastel
+  claro rende muito mais por ponto de opacidade que tom médio. O número já mudou
+  três vezes atrás das cores: 0,4 → 0,18 → 0,14. **Mexeu na cor de humor, confira
+  `Sprout` e `AnimatedSprout`.**
+
+Nada disso a régua de contraste pega, e ela passou nas 32 medições nas três
+versões. Contraste mede se dá para ler; não mede se parece o mesmo produto.
+
 ## Três coisas ficam fora do tema, cada uma por um motivo
 
 | O quê | Por quê |
