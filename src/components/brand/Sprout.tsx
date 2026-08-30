@@ -6,6 +6,7 @@ import {
   BULB_R,
   CX,
   type Decoration,
+  ehEnfeite,
   LEAVES_BY_STAGE,
   POT_TOP_Y,
   type SproutStage,
@@ -14,6 +15,7 @@ import {
   viewBoxDaPlanta,
 } from './geometriaDoBroto';
 
+export { ehEnfeite };
 export type { Decoration, SproutStage };
 
 type FaceSpec = {

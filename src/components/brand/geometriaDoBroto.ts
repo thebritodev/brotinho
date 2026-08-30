@@ -17,8 +17,34 @@
 
 export type SproutStage = 1 | 2 | 3;
 
-/** Valores que rendem enfeites no broto (ver tela "Meus valores"). */
+/**
+ * Valores que rendem enfeites no broto (ver tela "Meus valores").
+ *
+ * São quatro, e os valores são cinco: **coragem não tem desenho.** Não é
+ * esquecimento a consertar sem pedir — é um desenho que ninguém fez.
+ */
 export type Decoration = 'criatividade' | 'curiosidade' | 'autocuidado' | 'conexao';
+
+const ENFEITES: readonly Decoration[] = [
+  'criatividade',
+  'curiosidade',
+  'autocuidado',
+  'conexao',
+];
+
+/**
+ * O valor guardado numa planta rende enfeite?
+ *
+ * As duas telas do jardim traziam `planta.valor as never` — um `string`
+ * empurrado para dentro de `Decoration` sem ninguém conferir. Enquanto a caixa
+ * do broto era fixa, o pior que acontecia era não desenhar nada. Com a caixa
+ * calculada, um valor sem desenho passa a **alargar** a caixa para caber um
+ * enfeite que não existe, e o broto encolhe sem motivo. É o caso de "coragem",
+ * que é um valor de verdade e acontece de verdade.
+ */
+export function ehEnfeite(v: unknown): v is Decoration {
+  return typeof v === 'string' && (ENFEITES as readonly string[]).includes(v);
+}
 
 /** O eixo do broto. Tudo é desenhado simétrico em volta dele. */
 export const CX = 100;

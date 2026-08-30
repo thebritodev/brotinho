@@ -2,7 +2,7 @@ import React from 'react';
 import { ScrollView, Text, useWindowDimensions, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { AnimatedSprout, Sprout, TopBar, VALUES, type ValueKey } from '../../components';
+import { AnimatedSprout, ehEnfeite, Sprout, TopBar, VALUES, type ValueKey } from '../../components';
 import { useAppState } from '../../state/AppStateProvider';
 import {
   MATURIDADE, dayKey, daysToNextStage, diasNoCiclo, sproutStage,
@@ -151,7 +151,7 @@ export function GardenScreen({ onBack }: { onBack: () => void }) {
                       size={54}
                       showBg={false}
                       showPot={false}
-                      decorations={planta.valor ? [planta.valor as never] : []}
+                      decorations={ehEnfeite(planta.valor) ? [planta.valor] : []}
                     />
                   </View>
 

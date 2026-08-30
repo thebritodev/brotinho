@@ -7,7 +7,7 @@ import { useAppState } from '../../state/AppStateProvider';
 import { fonts, radius, useTema } from '../../theme';
 import type { Plant } from '../../state/types';
 import { Button } from '../core/Button';
-import { Sprout } from './Sprout';
+import { ehEnfeite, Sprout } from './Sprout';
 import { VALUES, type ValueKey } from './ValueBadge';
 
 /**
@@ -119,7 +119,7 @@ export function HarvestNotice({
             size={116}
             showBg={false}
             showPot={false}
-            decorations={planta.valor ? [planta.valor as never] : []}
+            decorations={ehEnfeite(planta.valor) ? [planta.valor] : []}
           />
         </View>
 
