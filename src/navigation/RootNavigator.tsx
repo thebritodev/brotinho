@@ -8,11 +8,12 @@ import { PaywallGate } from '../screens/PaywallGate';
 import { useAppState } from '../state/AppStateProvider';
 import { loadRascunho } from '../storage/appStorage';
 import { precisaAssinar, useAssinatura } from '../state/SubscriptionProvider';
-import { colors } from '../theme';
+import { useTema } from '../theme';
 import { MainTabs } from './MainTabs';
 import { useBotaoVoltar } from './useBotaoVoltar';
 
 export function RootNavigator() {
+  const { colors } = useTema();
   const { hydrated, data } = useAppState();
   const { estado } = useAssinatura();
 

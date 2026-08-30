@@ -1,6 +1,6 @@
 import type { IconName } from '../components';
 import type { IllustrationName } from '../components/brand/PracticeIllustration';
-import { moodColors, palette } from '../theme';
+import { moodColors, palette } from '../theme/tokens';
 
 /**
  * Conteúdo das práticas.

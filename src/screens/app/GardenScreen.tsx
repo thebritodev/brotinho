@@ -7,7 +7,7 @@ import { useAppState } from '../../state/AppStateProvider';
 import {
   MATURIDADE, dayKey, daysToNextStage, diasNoCiclo, sproutStage,
 } from '../../state/derived';
-import { colors, moodColors, palette, radius, shadows, fonts, type Mood } from '../../theme';
+import { fonts, type Mood, radius, useTema } from '../../theme';
 
 /**
  * O jardim: as plantas que já amadureceram, e o broto de agora.
@@ -35,6 +35,7 @@ const ROTULO_HUMOR: Record<Mood, string> = {
 };
 
 export function GardenScreen({ onBack }: { onBack: () => void }) {
+  const { colors, moodColors, palette, shadows } = useTema();
   const insets = useSafeAreaInsets();
   const { width } = useWindowDimensions();
   const { data } = useAppState();

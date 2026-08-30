@@ -1,7 +1,7 @@
 import React from 'react';
 import Svg, { Circle, G, Path } from 'react-native-svg';
 
-import { type Mood, useTema } from '../../theme';
+import { tracos, type Mood, useTema } from '../../theme';
 
 /**
  * A carinha de um humor, com a mesma expressao que o broto faz.
@@ -29,18 +29,26 @@ type Props = {
 };
 
 export function MoodFace({ mood, size = 44, selected = false }: Props) {
-  const { moodColors, palette } = useTema();
+  const { colors, moodColors, palette } = useTema();
+  /*
+    O traço da carinha acompanha o tema, ao contrário do resto do desenho.
+
+    Aqui o fundo do círculo É a cor do humor, e no escuro esses tons são
+    escuros — traço marrom sobre eles some. `textPrimary` é a tinta que se lê
+    sobre o fundo do tema em cada caso, que é exatamente o que a carinha quer.
+  */
+  const traco = colors.textPrimary;
   const f = FACES[mood] ?? FACES.neutro;
 
   const olho = (x: number) =>
     f.eye === 'circle' ? (
-      <Circle cx={x} cy={-2} r={f.r} fill={palette.brown900} />
+      <Circle cx={x} cy={-2} r={f.r} fill={traco} />
     ) : (
       <Path
         d={f.eye}
         // O olho da direita e o mesmo desenho espelhado.
         transform={`translate(${x} -2)${x < 0 ? '' : ' scale(-1,1)'}`}
-        stroke={palette.brown900}
+        stroke={traco}
         strokeWidth={2.6}
         strokeLinecap="round"
         fill="none"
@@ -55,7 +63,7 @@ export function MoodFace({ mood, size = 44, selected = false }: Props) {
         cy={0}
         r={23}
         fill={moodColors[mood]}
-        stroke={selected ? palette.green500 : palette.brown200}
+        stroke={selected ? tracos.folha : palette.brown200}
         strokeWidth={selected ? 3 : 2}
       />
       <G>
@@ -64,7 +72,7 @@ export function MoodFace({ mood, size = 44, selected = false }: Props) {
         <Path
           d={f.mouth}
           transform="translate(0 -2)"
-          stroke={palette.brown900}
+          stroke={traco}
           strokeWidth={2.4}
           strokeLinecap="round"
           fill="none"

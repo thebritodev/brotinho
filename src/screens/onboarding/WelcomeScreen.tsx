@@ -11,7 +11,7 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Button, TrazerDeVolta, WindowScene } from '../../components';
-import { colors, palette, radius, fonts } from '../../theme';
+import { fonts, radius, useTema } from '../../theme';
 
 /**
  * Boas-vindas — a primeira tela de quem abre o app.
@@ -22,6 +22,7 @@ import { colors, palette, radius, fonts } from '../../theme';
  * botão explica como os registros voltam depois de reinstalar.
  */
 export function WelcomeScreen({ onStart }: { onStart: () => void }) {
+  const { colors, palette } = useTema();
   const insets = useSafeAreaInsets();
   const { width } = useWindowDimensions();
   const [explicando, setExplicando] = useState(false);

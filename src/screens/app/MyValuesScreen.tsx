@@ -6,7 +6,7 @@ import { AnimatedSprout, Card, Chip, TopBar } from '../../components';
 import { MAX_VALUES, VALORES } from '../../data/onboarding';
 import { useAppState } from '../../state/AppStateProvider';
 import { dayKey, sproutStage } from '../../state/derived';
-import { colors, palette, radius, fonts } from '../../theme';
+import { fonts, radius, useTema } from '../../theme';
 
 /**
  * Os valores que a pessoa escolheu no onboarding — o que ela quer viver mais.
@@ -14,6 +14,7 @@ import { colors, palette, radius, fonts } from '../../theme';
  * de fato apareceu nos registros.
  */
 export function MyValuesScreen({ onBack }: { onBack: () => void }) {
+  const { colors, palette } = useTema();
   const insets = useSafeAreaInsets();
   const { data, updateProfile } = useAppState();
 

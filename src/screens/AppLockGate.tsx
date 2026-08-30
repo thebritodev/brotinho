@@ -4,7 +4,7 @@ import { AppState, Platform, Text, View } from 'react-native';
 
 import { Button, Sprout } from '../components';
 import { useAppState } from '../state/AppStateProvider';
-import { colors, fonts } from '../theme';
+import { fonts, useTema } from '../theme';
 
 /**
  * Cobre o app com uma tela de bloqueio quando "Bloqueio do app" está ligado
@@ -12,6 +12,7 @@ import { colors, fonts } from '../theme';
  * sem isso, deixar o celular na mão de alguém depois de destravar expõe o diário.
  */
 export function AppLockGate({ children }: { children: React.ReactNode }) {
+  const { colors } = useTema();
   const { data, hydrated } = useAppState();
   const enabled = data.settings.appLock && data.profile.onboarded && Platform.OS !== 'web';
 

@@ -16,7 +16,7 @@ import {
 import { exportarJson, exportarLegivel } from '../../services/exportarDados';
 import { useAppState } from '../../state/AppStateProvider';
 import { useBotaoVoltar } from '../../navigation/useBotaoVoltar';
-import { colors, palette, radius, borderWidth, fonts } from '../../theme';
+import { borderWidth, fonts, radius, useTema } from '../../theme';
 import { PrivacyPolicyScreen } from './PrivacyPolicyScreen';
 
 function PrivRow({
@@ -32,6 +32,7 @@ function PrivRow({
   children?: React.ReactNode;
   onPress?: () => void;
 }) {
+  const { palette } = useTema();
   const Container = onPress ? Pressable : View;
   return (
     <Container
@@ -65,6 +66,7 @@ function PrivRow({
 }
 
 export function PrivacyScreen({ onBack }: { onBack: () => void }) {
+  const { colors, palette } = useTema();
   const insets = useSafeAreaInsets();
   const { data, updateSettings, reset } = useAppState();
   const s = data.settings;

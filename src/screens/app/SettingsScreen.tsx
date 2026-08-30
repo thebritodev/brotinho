@@ -4,7 +4,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Card, Icon, ScreenTransition, Switch, TopBar, type IconName } from '../../components';
 import { useAppState } from '../../state/AppStateProvider';
-import { palette, fonts } from '../../theme';
+import { fonts, useTema } from '../../theme';
 import { AboutScreen, APP_VERSION } from './AboutScreen';
 import { MyDataScreen } from './MyDataScreen';
 import { MyValuesScreen } from './MyValuesScreen';
@@ -26,6 +26,7 @@ function Row({
   children?: React.ReactNode;
   onPress?: () => void;
 }) {
+  const { palette } = useTema();
   const content = (
     <>
       <Icon name={icon} color={palette.brown700} />
@@ -59,6 +60,7 @@ function Row({
 }
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
+  const { palette } = useTema();
   return (
     <View>
       <Text
@@ -82,6 +84,7 @@ function Section({ title, children }: { title: string; children: React.ReactNode
 type Detalhe = 'dados' | 'valores' | 'sobre' | 'politica' | 'lembretes';
 
 export function SettingsScreen({ onBack }: { onBack: () => void }) {
+  const { palette } = useTema();
   const insets = useSafeAreaInsets();
   const { data, updateSettings } = useAppState();
   const s = data.settings;

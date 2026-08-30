@@ -10,9 +10,10 @@ import {
   POLICY_VERSION,
   PRIVACY_POLICY,
 } from '../../data/privacyPolicy';
-import { colors, palette, radius, fonts } from '../../theme';
+import { fonts, radius, useTema } from '../../theme';
 
 export function PrivacyPolicyScreen({ onBack }: { onBack: () => void }) {
+  const { colors, palette } = useTema();
   const insets = useSafeAreaInsets();
 
   return (

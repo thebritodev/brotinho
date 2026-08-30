@@ -1,5 +1,5 @@
 import { PRACTICE_TOPICS } from './practices';
-import type { Mood } from '../theme';
+import type { Mood } from '../theme/tokens';
 
 /**
  * A prática que o app oferece depois que a pessoa diz como está.

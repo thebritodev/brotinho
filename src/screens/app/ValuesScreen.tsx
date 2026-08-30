@@ -5,9 +5,10 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Sprout, TopBar, ValueBadge, type Decoration } from '../../components';
 import { useAppState } from '../../state/AppStateProvider';
 import { dayKey, livedValues, sproutStage } from '../../state/derived';
-import { colors, fonts } from '../../theme';
+import { fonts, useTema } from '../../theme';
 
 export function ValuesScreen({ onBack }: { onBack: () => void }) {
+  const { colors } = useTema();
   const insets = useSafeAreaInsets();
   const { data } = useAppState();
 

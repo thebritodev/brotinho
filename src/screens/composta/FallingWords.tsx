@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Animated, Easing, StyleSheet, View } from 'react-native';
 
-import { palette, fonts } from '../../theme';
+import { fonts, useTema } from '../../theme';
 
 type Particle = {
   id: number;
@@ -14,6 +14,7 @@ type Particle = {
 };
 
 function Falling({ p, onDone }: { p: Particle; onDone: (id: number) => void }) {
+  const { palette } = useTema();
   const t = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {

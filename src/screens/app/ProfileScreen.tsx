@@ -5,7 +5,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Card, HumorNoTempo, Icon, Sprout, StatRow, Switch, TopBar } from '../../components';
 import { useAppState } from '../../state/AppStateProvider';
 import { caringSince, fazTerapia, sproutStage, stats } from '../../state/derived';
-import { colors, palette, fonts } from '../../theme';
+import { fonts, useTema } from '../../theme';
 import type { SubScreen } from './types';
 
 type Props = {
@@ -14,6 +14,7 @@ type Props = {
 };
 
 export function ProfileScreen({ name, onNavigate }: Props) {
+  const { colors, palette } = useTema();
   const insets = useSafeAreaInsets();
   const { data, updateSettings } = useAppState();
 

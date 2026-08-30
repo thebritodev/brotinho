@@ -9,7 +9,7 @@ import { useAppState } from '../../state/AppStateProvider';
 import { useBotaoVoltar } from '../../navigation/useBotaoVoltar';
 import { toqueDeConclusao } from '../../services/toque';
 import { vezesPorPratica } from '../../state/derived';
-import { colors, palette, radius, shadows, fonts } from '../../theme';
+import { fonts, radius, useTema } from '../../theme';
 import { BreathingGuide } from './BreathingGuide';
 import { StepGuide } from './StepGuide';
 
@@ -38,6 +38,7 @@ export function PracticeDetailScreen({
   onBack,
   onEscreverNoDiario,
 }: Props) {
+  const { colors, palette, shadows } = useTema();
   const insets = useSafeAreaInsets();
   const { data, registrarPratica } = useAppState();
   const [mode, setMode] = useState<Mode>('read');

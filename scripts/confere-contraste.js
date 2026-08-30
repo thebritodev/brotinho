@@ -58,7 +58,7 @@ function razao(frente, fundo) {
     process.execPath,
     [
       tsc, '--outDir', saida, '--module', 'esnext', '--target', 'es2020',
-      '--moduleResolution', 'bundler', '--strict', '--skipLibCheck',
+      '--moduleResolution', 'bundler', '--strict', '--skipLibCheck', '--jsx', 'react-jsx',
       path.join(RAIZ, 'src', 'theme', 'tokens.ts'),
     ],
     { stdio: 'inherit', cwd: RAIZ },

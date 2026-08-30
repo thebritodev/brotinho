@@ -2,7 +2,7 @@ import React, { useMemo, useRef } from 'react';
 import { Animated, Easing, PanResponder, PixelRatio, Text, View } from 'react-native';
 
 import { Icon, type IconName } from '../../components';
-import { colors, palette, radius, shadows, fonts } from '../../theme';
+import { fonts, radius, useTema } from '../../theme';
 import { MIN_STEP, pad } from '../../data/onboarding';
 
 /**
@@ -39,6 +39,7 @@ type Props = {
 
 /** TimeWheel — arraste o dedo sobre a hora ou os minutos para ajustar. */
 export function TimeWheel({ value, onChange, icon = 'moon' }: Props) {
+  const { colors, palette, shadows } = useTema();
   const [h, m] = value.split(':').map(Number);
 
   const estado = useRef({ h, m, onChange });

@@ -317,6 +317,14 @@ export const sombrasEscuras: Sombras = {
 
 export type Tema = 'claro' | 'escuro';
 
+/**
+ * A preferência guardada nos ajustes. `sistema` obedece ao aparelho.
+ *
+ * Mora aqui, e não junto do provedor, porque `state/types.ts` precisa dela e
+ * não pode arrastar o React junto: os testes rodam esses módulos em Node puro.
+ */
+export type PreferenciaDeTema = 'sistema' | 'claro' | 'escuro';
+
 /** Os dois temas, para o provedor escolher e para o teste de contraste medir. */
 export const TEMAS = {
   claro: { palette, colors, moodColors, shadows },
@@ -326,4 +334,44 @@ export const TEMAS = {
     moodColors: moodColorsEscuros,
     shadows: sombrasEscuras,
   },
+} as const;
+
+/**
+ * As cores do desenho — iguais nos dois temas, de propósito.
+ *
+ * Aqui esbarrou o limite de reaproveitar a paleta: `brown900` quer dizer duas
+ * coisas opostas. Como texto, é "a tinta mais escura que existe", e no tema
+ * escuro isso tem de virar quase branco. Como traço do broto, é o contorno do
+ * personagem — e ali inverter significa que o broto vira um negativo de si
+ * mesmo: cara escura com contorno claro, que foi exatamente o que apareceu na
+ * primeira tentativa.
+ *
+ * **Personagem não inverte.** O broto é o mesmo de dia e de noite; o que muda é
+ * a luz em volta dele — o halo, o papel, o céu da janela, o cartão embaixo da
+ * ilustração. Essa é a parte que o tema controla.
+ *
+ * Como não dependem do tema, estes valores são importados direto, sem gancho —
+ * o que também tira as ilustrações inteiras da migração.
+ */
+/**
+ * A paleta clara, para quem desenha.
+ *
+ * É o mesmo objeto que `palette`, com outro nome — e o nome é o ponto. Num
+ * arquivo migrado, `palette` vem do gancho e muda com o tema; numa ilustração,
+ * ela precisa ficar parada. Duas intenções com o mesmo identificador é
+ * exatamente a armadilha que fez o broto virar negativo de si mesmo, então
+ * cada uma ganhou o seu.
+ */
+export const paletteDoDesenho = palette;
+
+export const tracos = {
+  /** O contorno grosso de tudo: broto, vaso, ilustrações das práticas. */
+  contorno: palette.brown900,
+  /** O contorno verde-escuro das folhas. */
+  contornoFolha: palette.green900,
+  folha: palette.green500,
+  folhaClara: palette.green300,
+  vaso: palette.terracotta400,
+  /** Papel dentro de um desenho — a folha do caderno ilustrado, a lua. */
+  papel: palette.cream100,
 } as const;

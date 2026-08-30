@@ -36,7 +36,7 @@ import {
   sproutStage,
   stats,
 } from '../../state/derived';
-import { colors, palette, radius, fonts } from '../../theme';
+import { fonts, radius, useTema } from '../../theme';
 
 type Props = {
   name: string;
@@ -58,6 +58,7 @@ export function HomeScreen({
   onOpenReminders,
   onOpenGarden,
 }: Props) {
+  const { colors, palette } = useTema();
   const insets = useSafeAreaInsets();
   const { width, height } = useWindowDimensions();
   const { data, setTodayMood, markStageSeen, colherPlanta } = useAppState();
@@ -453,6 +454,7 @@ function Shortcut({
   subtitle: string;
   onPress: () => void;
 }) {
+  const { colors } = useTema();
   return (
     <Card onPress={onPress} padding={16} style={{ flex: 1, gap: 10 }}>
       <View

@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useRef } from 'react';
 import { AccessibilityInfo, Animated, Easing, StyleSheet, View } from 'react-native';
 
-import { palette, fonts } from '../../theme';
+import { fonts, useTema } from '../../theme';
 
 /**
  * As palavras da frase assentando na terra, na tela de conclusão.
@@ -39,6 +39,7 @@ type Semente = {
 };
 
 function Palavra({ semente, animar }: { semente: Semente; animar: boolean }) {
+  const { palette } = useTema();
   const t = useRef(new Animated.Value(animar ? 0 : 1)).current;
 
   useEffect(() => {

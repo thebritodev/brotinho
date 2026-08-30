@@ -24,7 +24,7 @@
  *    a pergunta não fica na tela depois que ela começa a digitar.
  */
 
-import type { Mood } from '../theme';
+import type { Mood } from '../theme/tokens';
 
 /** Quando a pessoa marcou como está se sentindo hoje. */
 const POR_HUMOR: Record<Mood, string[]> = {

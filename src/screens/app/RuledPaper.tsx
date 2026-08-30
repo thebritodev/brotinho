@@ -1,7 +1,7 @@
 import React from 'react';
 import { View } from 'react-native';
 
-import { palette, radius, shadows, borderWidth } from '../../theme';
+import { borderWidth, radius, useTema } from '../../theme';
 
 /** Altura de cada linha do papel pautado. */
 export const LINE_HEIGHT = 35;
@@ -20,6 +20,7 @@ export function RuledPaper({
   children?: React.ReactNode;
   style?: React.ComponentProps<typeof View>['style'];
 }) {
+  const { palette, shadows } = useTema();
   return (
     <View
       style={[

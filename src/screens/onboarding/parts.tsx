@@ -2,15 +2,21 @@ import React, { useState } from 'react';
 import { Modal, Pressable, Text, View, StyleSheet } from 'react-native';
 
 import { Button, Chip } from '../../components';
-import { colors, radius, shadows, fonts } from '../../theme';
+import { radius, fonts, useTema, type Cores, type Sombras } from '../../theme';
 import { TimeWheel } from './TimeWheel';
 
-/** Cartão branco padrão das telas de onboarding. */
-export const cardStyle = {
-  backgroundColor: colors.surface,
-  borderRadius: radius.lg,
-  ...shadows.sm,
-} as const;
+/**
+ * Cartão branco padrão das telas de onboarding.
+ *
+ * Virou função porque o objeto no topo do arquivo era montado uma vez, na
+ * carga do módulo, e ficaria com a cor do tema de abertura para sempre.
+ */
+export const cardStyle = (colors: Cores, shadows: Sombras) =>
+  ({
+    backgroundColor: colors.surface,
+    borderRadius: radius.lg,
+    ...shadows.sm,
+  }) as const;
 
 type OptionListProps = {
   items: string[];
@@ -23,6 +29,7 @@ type OptionListProps = {
 };
 
 export function OptionList({ items, value, onPick, wrap, multi }: OptionListProps) {
+  const { colors } = useTema();
   const isSelected = (label: string) =>
     multi ? Array.isArray(value) && value.includes(label) : value === label;
 
@@ -76,6 +83,7 @@ type TimeFieldProps = {
 
 /** Linha "Lembrete diário — 21:00" que abre a roda de horário em um modal. */
 export function TimeField({ label, value, onChange }: TimeFieldProps) {
+  const { colors, shadows } = useTema();
   const [open, setOpen] = useState(false);
 
   return (
@@ -84,7 +92,7 @@ export function TimeField({ label, value, onChange }: TimeFieldProps) {
         accessibilityRole="button"
         onPress={() => setOpen(true)}
         style={{
-          ...cardStyle,
+          ...cardStyle(colors, shadows),
           flexDirection: 'row',
           alignItems: 'center',
           justifyContent: 'space-between',

@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Text, View } from 'react-native';
 
 import { Button, Sprout } from '../../components';
-import { colors, palette, radius, fonts } from '../../theme';
+import { fonts, radius, useTema } from '../../theme';
 
 /**
  * Guia por etapas: conduz uma prática um passo por vez, com tempo próprio.
@@ -18,6 +18,7 @@ type Props = {
 };
 
 export function StepGuide({ steps, onDone, onCancel }: Props) {
+  const { colors, palette } = useTema();
   const [index, setIndex] = useState(0);
   const [left, setLeft] = useState(steps[0].seconds);
 

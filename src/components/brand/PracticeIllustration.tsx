@@ -1,7 +1,7 @@
 import React from 'react';
 import Svg, { Circle, Ellipse, G, Line, Path, Rect } from 'react-native-svg';
 
-import { palette } from '../../theme';
+import { paletteDoDesenho as palette, tracos } from '../../theme';
 
 /**
  * Ilustrações das práticas.
@@ -11,7 +11,7 @@ import { palette } from '../../theme';
  * para trocarem de lugar sem reajuste.
  */
 
-const OUTLINE = palette.green900;
+const OUTLINE = tracos.contornoFolha;
 const W = 3.2;
 
 const stroke = {
@@ -22,7 +22,7 @@ const stroke = {
 } as const;
 
 /** Folha do broto, reaproveitada como assinatura em várias cenas. */
-function Leaf({ x, y, rotate = 0, scale = 1, color = palette.green500 }: {
+function Leaf({ x, y, rotate = 0, scale = 1, color = tracos.folha }: {
   x: number; y: number; rotate?: number; scale?: number; color?: string;
 }) {
   return (
@@ -44,7 +44,7 @@ const ILLUSTRATIONS = {
       <Circle cx={60} cy={50} r={34} fill={palette.green100} />
       <Circle cx={60} cy={50} r={34} fill="none" {...stroke} />
       <Circle cx={60} cy={50} r={22} fill="none" {...stroke} strokeWidth={2.2} opacity={0.55} />
-      <Circle cx={60} cy={50} r={11} fill={palette.green300} {...stroke} strokeWidth={2.2} />
+      <Circle cx={60} cy={50} r={11} fill={tracos.folhaClara} {...stroke} strokeWidth={2.2} />
       <Leaf x={60} y={16} rotate={-90} scale={1.1} />
       <Path d="M 92 50 q 8 -6 16 0" fill="none" {...stroke} strokeWidth={2.4} opacity={0.7} />
       <Path d="M 12 50 q 8 6 16 0" fill="none" {...stroke} strokeWidth={2.4} opacity={0.7} />
@@ -67,10 +67,10 @@ const ILLUSTRATIONS = {
   /** Carta: envelope com uma folha saindo. */
   letter: (
     <G>
-      <Rect x={26} y={34} width={68} height={46} rx={6} fill={palette.cream100} {...stroke} />
+      <Rect x={26} y={34} width={68} height={46} rx={6} fill={tracos.papel} {...stroke} />
       <Path d="M 26 40 L 60 62 L 94 40" fill="none" {...stroke} strokeWidth={2.6} />
       <Leaf x={90} y={32} rotate={-40} scale={1.2} />
-      <Circle cx={34} cy={26} r={3} fill={palette.terracotta400} />
+      <Circle cx={34} cy={26} r={3} fill={tracos.vaso} />
     </G>
   ),
 
@@ -90,7 +90,7 @@ const ILLUSTRATIONS = {
     <G>
       <Circle cx={60} cy={24} r={10} fill={palette.cream300} {...stroke} />
       <Path d="M 60 34 L 60 62 M 60 40 L 42 54 M 60 40 L 78 54 M 60 62 L 48 86 M 60 62 L 72 86" fill="none" {...stroke} />
-      <Rect x={22} y={54} width={76} height={9} rx={4.5} fill={palette.green300} opacity={0.75} {...stroke} strokeWidth={2.2} />
+      <Rect x={22} y={54} width={76} height={9} rx={4.5} fill={tracos.folhaClara} opacity={0.75} {...stroke} strokeWidth={2.2} />
       <Leaf x={104} y={30} rotate={-50} scale={0.85} />
     </G>
   ),
@@ -98,7 +98,7 @@ const ILLUSTRATIONS = {
   /** Diário da noite: caderno com lua. */
   nightjournal: (
     <G>
-      <Rect x={28} y={30} width={62} height={52} rx={6} fill={palette.cream100} {...stroke} />
+      <Rect x={28} y={30} width={62} height={52} rx={6} fill={tracos.papel} {...stroke} />
       <Path d="M 42 30 L 42 82" fill="none" {...stroke} strokeWidth={2.4} opacity={0.5} />
       <Path d="M 52 46 L 80 46 M 52 56 L 80 56 M 52 66 L 70 66" fill="none" {...stroke} strokeWidth={2.2} opacity={0.5} />
       <Path
@@ -116,7 +116,7 @@ const ILLUSTRATIONS = {
     <G>
       <Path d="M 40 20 L 80 20 L 80 30 L 62 50 L 80 70 L 80 80 L 40 80 L 40 70 L 58 50 L 40 30 Z" fill={palette.blue100} {...stroke} />
       <Path d="M 46 26 L 74 26" fill="none" {...stroke} strokeWidth={2.4} opacity={0.6} />
-      <Path d="M 52 74 q 8 -12 16 0 z" fill={palette.green300} {...stroke} strokeWidth={2.2} />
+      <Path d="M 52 74 q 8 -12 16 0 z" fill={tracos.folhaClara} {...stroke} strokeWidth={2.2} />
       <Leaf x={96} y={40} rotate={-45} scale={0.9} />
     </G>
   ),
@@ -160,8 +160,8 @@ const ILLUSTRATIONS = {
   achievements: (
     <G>
       <Rect x={22} y={62} width={26} height={22} rx={4} fill={palette.green100} {...stroke} />
-      <Rect x={48} y={48} width={26} height={36} rx={4} fill={palette.green300} {...stroke} />
-      <Rect x={74} y={34} width={26} height={50} rx={4} fill={palette.green500} {...stroke} />
+      <Rect x={48} y={48} width={26} height={36} rx={4} fill={tracos.folhaClara} {...stroke} />
+      <Rect x={74} y={34} width={26} height={50} rx={4} fill={tracos.folha} {...stroke} />
       <Path d="M 87 22 l 2.6 5.4 l 5.4 0.8 l -4 3.8 l 1 5.4 l -5 -2.6 l -5 2.6 l 1 -5.4 l -4 -3.8 l 5.4 -0.8 z" fill={palette.amber400} />
     </G>
   ),
@@ -189,7 +189,7 @@ const ILLUSTRATIONS = {
     <G>
       <Circle cx={60} cy={50} r={34} fill={palette.green50} {...stroke} />
       <Circle cx={60} cy={50} r={21} fill="none" {...stroke} strokeWidth={2.4} />
-      <Circle cx={60} cy={50} r={8} fill={palette.green500} {...stroke} strokeWidth={2.2} />
+      <Circle cx={60} cy={50} r={8} fill={tracos.folha} {...stroke} strokeWidth={2.2} />
       <Leaf x={98} y={20} rotate={-45} scale={1} />
     </G>
   ),
@@ -197,11 +197,11 @@ const ILLUSTRATIONS = {
   /** Blocos de atenção: um bloco cheio, os outros esperando. */
   blocks: (
     <G>
-      <Rect x={20} y={40} width={34} height={34} rx={6} fill={palette.green300} {...stroke} />
+      <Rect x={20} y={40} width={34} height={34} rx={6} fill={tracos.folhaClara} {...stroke} />
       <Path d="M 28 57 l 6 6 l 12 -13" fill="none" stroke={OUTLINE} strokeWidth={3} strokeLinecap="round" strokeLinejoin="round" />
       <Rect x={60} y={40} width={20} height={34} rx={5} fill={palette.cream300} {...stroke} strokeWidth={2.6} />
       <Rect x={86} y={40} width={20} height={34} rx={5} fill={palette.cream300} {...stroke} strokeWidth={2.6} opacity={0.6} />
-      <Ellipse cx={62} cy={86} rx={44} ry={4} fill={palette.brown900} opacity={0.1} />
+      <Ellipse cx={62} cy={86} rx={44} ry={4} fill={tracos.contorno} opacity={0.1} />
     </G>
   ),
 } as const;

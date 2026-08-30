@@ -2,13 +2,24 @@ import React from 'react';
 import { Pressable, Text, View } from 'react-native';
 
 import { Icon } from '../../components';
-import { colors, palette, fonts } from '../../theme';
+import { fonts, useTema, type Cores, type Palette } from '../../theme';
 import { PLANS, PRODUTO_DO_PLANO, type PlanKey } from '../../data/onboarding';
 import { useAssinatura } from '../../state/SubscriptionProvider';
 
-const planCardStyle = (selected: boolean, accent: boolean) => ({
+/*
+  As duas fábricas já eram função — só não recebiam as cores.
+
+  O `'#fff'` de fundo virou `colors.surface`: no escuro, cartão branco sobre
+  fundo escuro seria a única coisa acesa da tela.
+*/
+const planCardStyle = (
+  colors: Cores,
+  palette: Palette,
+  selected: boolean,
+  accent: boolean,
+) => ({
   position: 'relative' as const,
-  backgroundColor: accent ? palette.green50 : '#fff',
+  backgroundColor: accent ? palette.green50 : colors.surface,
   borderRadius: 14,
   paddingVertical: 18,
   paddingHorizontal: 16,
@@ -25,7 +36,7 @@ const planCardStyle = (selected: boolean, accent: boolean) => ({
     : null),
 });
 
-const planRowStyle = (selected: boolean) => ({
+const planRowStyle = (colors: Cores, palette: Palette, selected: boolean) => ({
   flexDirection: 'row' as const,
   alignItems: 'center' as const,
   justifyContent: 'space-between' as const,
@@ -33,7 +44,7 @@ const planRowStyle = (selected: boolean) => ({
   paddingVertical: 14,
   paddingHorizontal: 16,
   borderRadius: 12,
-  backgroundColor: '#fff',
+  backgroundColor: colors.surface,
   borderWidth: selected ? 2 : 1.5,
   borderColor: selected ? palette.green500 : palette.brown200,
 });
@@ -45,6 +56,7 @@ type Props = {
 
 /** Tela de planos — destaque para o anual, com mensal ao lado e as demais opções abaixo. */
 export function Paywall({ plan, onSelectPlan }: Props) {
+  const { colors, palette } = useTema();
   const { planos } = useAssinatura();
 
   /**
@@ -119,7 +131,7 @@ export function Paywall({ plan, onSelectPlan }: Props) {
         <Pressable
           accessibilityRole="button"
           onPress={() => onSelectPlan('mensal')}
-          style={[planCardStyle(plan === 'mensal', false), { flex: 1 }]}
+          style={[planCardStyle(colors, palette, plan === 'mensal', false), { flex: 1 }]}
         >
           <Text style={{ fontFamily: fonts.display.bold, fontSize: 17, color: palette.brown900 }}>
             Mensal
@@ -148,7 +160,7 @@ export function Paywall({ plan, onSelectPlan }: Props) {
         <Pressable
           accessibilityRole="button"
           onPress={() => onSelectPlan('anual')}
-          style={[planCardStyle(plan === 'anual', true), { flex: 1 }]}
+          style={[planCardStyle(colors, palette, plan === 'anual', true), { flex: 1 }]}
         >
           <View
             style={{
@@ -214,7 +226,7 @@ export function Paywall({ plan, onSelectPlan }: Props) {
         </Text>
         <View style={{ gap: 8 }}>
           {(['semanal', 'vitalicio'] as PlanKey[]).map((key) => (
-            <Pressable accessibilityRole="button" key={key} onPress={() => onSelectPlan(key)} style={planRowStyle(plan === key)}>
+            <Pressable accessibilityRole="button" key={key} onPress={() => onSelectPlan(key)} style={planRowStyle(colors, palette, plan === key)}>
               <View style={{ gap: 2 }}>
                 <Text
                   style={{ fontFamily: fonts.display.bold, fontSize: 15, color: palette.brown900 }}

@@ -17,7 +17,7 @@ import {
 import { toqueDeConclusao, toqueLeve } from '../../services/toque';
 import { useAppState } from '../../state/AppStateProvider';
 import { vezesQueVoltou } from '../../state/derived';
-import { colors, palette, radius, shadows, fonts } from '../../theme';
+import { fonts, radius, useTema } from '../../theme';
 import { AduboAssentando } from './AduboAssentando';
 import { FallingWords } from './FallingWords';
 import { useCompostSession } from './useCompostSession';
@@ -41,6 +41,7 @@ export function CompostaScreen({
   /** Repassado ao CVV: a saída de quem não quer falar com ninguém agora. */
   aoFazerExercicio?: () => void;
 }) {
+  const { colors, palette, shadows } = useTema();
   const insets = useSafeAreaInsets();
   const { data, addCompost } = useAppState();
 

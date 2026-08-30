@@ -42,7 +42,7 @@ import {
 import { useAppState } from '../../state/AppStateProvider';
 import { descartarRascunho, loadRascunho, saveRascunho } from '../../storage/appStorage';
 import { useAssinatura } from '../../state/SubscriptionProvider';
-import { colors, palette, fonts } from '../../theme';
+import { fonts, useTema } from '../../theme';
 import { ExperimentoComposta, REPETICOES_DO_EXPERIMENTO } from './ExperimentoComposta';
 import { Paywall } from './Paywall';
 import { Centered, OptionList, TimeField } from './parts';
@@ -87,6 +87,7 @@ const PASSO = {
 } as const;
 
 export function OnboardingScreen() {
+  const { colors, palette } = useTema();
   const insets = useSafeAreaInsets();
   const { width: largura, height: altura } = useWindowDimensions();
   const { data, updateProfile } = useAppState();

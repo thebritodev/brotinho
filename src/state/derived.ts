@@ -1,5 +1,5 @@
 import type { SproutStage, ValueKey } from '../components';
-import type { Mood } from '../theme';
+import type { Mood } from '../theme/tokens';
 import { TENTOU_TERAPIA } from '../data/onboarding';
 import type { AppData, Plant } from './types';
 

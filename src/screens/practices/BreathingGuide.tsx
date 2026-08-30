@@ -6,7 +6,7 @@ import { Button } from '../../components';
 import type { BreathingPhase } from '../../data/practices';
 import { toqueMedio } from '../../services/toque';
 import { useAppState } from '../../state/AppStateProvider';
-import { colors, palette, fonts } from '../../theme';
+import { fonts, useTema } from '../../theme';
 
 /**
  * Marcador de ritmo da respiração: um círculo que infla, mantém e esvazia
@@ -40,6 +40,7 @@ type Props = {
 };
 
 export function BreathingGuide({ phases, cycles, onDone, onCancel }: Props) {
+  const { colors, palette } = useTema();
   const { data } = useAppState();
   const comSom = data.settings.somDaRespiracao;
 

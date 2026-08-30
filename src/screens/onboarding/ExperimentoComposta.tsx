@@ -2,7 +2,7 @@ import React, { useMemo, useState } from 'react';
 import { Pressable, Text, TextInput, useWindowDimensions, View } from 'react-native';
 
 import { AnimatedSprout, Button, Chip, Icon } from '../../components';
-import { colors, palette, radius, borderWidth, shadows, fonts } from '../../theme';
+import { borderWidth, fonts, radius, useTema } from '../../theme';
 import { FallingWords } from '../composta/FallingWords';
 
 /**
@@ -36,6 +36,7 @@ type Props = {
 };
 
 export function ExperimentoComposta({ thought, onChangeThought, reps, onRep }: Props) {
+  const { colors, palette, shadows } = useTema();
   const { width } = useWindowDimensions();
   const [escrevendo, setEscrevendo] = useState(!thought.trim());
 

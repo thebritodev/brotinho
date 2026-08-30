@@ -60,7 +60,7 @@ export function AnimatedSprout({
   breathe = false,
   swayOn = null,
 }: Props) {
-  const { moodColors } = useTema();
+  const { moodColors, tema } = useTema();
   /** Cor que fica por baixo enquanto a nova entra. */
   const [previous, setPrevious] = useState<Mood>(mood);
   const [current, setCurrent] = useState<Mood>(mood);
@@ -188,7 +188,15 @@ export function AnimatedSprout({
   return (
     <View style={{ width: size, height: size * 1.12 }}>
       {showBg && (
-        <>
+        /*
+          O halo é um brilho, não um disco.
+
+          No claro ele é um pastel quase branco sobre creme, e some direitinho.
+          No escuro os mesmos tons são escuros, e cor cheia num círculo de 359
+          de largura virava um borrão marrom atrás do broto. A opacidade
+          devolve a ele o que ele sempre foi: uma insinuação de luz.
+        */
+        <View style={{ opacity: tema === 'escuro' ? 0.4 : 1 }}>
           <View
             style={{
               position: 'absolute',
@@ -212,7 +220,7 @@ export function AnimatedSprout({
               opacity: fade,
             }}
           />
-        </>
+        </View>
       )}
 
       {/* A planta balança; o disco de fundo fica parado. */}

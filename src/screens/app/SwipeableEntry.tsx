@@ -3,7 +3,7 @@ import { Animated, Pressable, Text, View } from 'react-native';
 import { Swipeable } from 'react-native-gesture-handler';
 
 import { Card, Icon } from '../../components';
-import { colors, palette, radius, fonts } from '../../theme';
+import { fonts, radius, useTema } from '../../theme';
 
 /**
  * Registro do diario que revela acoes ao ser arrastado para a esquerda.
@@ -33,6 +33,7 @@ type Props = {
 };
 
 export function SwipeableEntry({ id, date, text, onEdit, onRead, onDelete, openId, onOpen }: Props) {
+  const { colors, palette } = useTema();
   const ref = useRef<Swipeable>(null);
   /** Esta linha esta aberta agora? Evita mandar fechar quem ja esta fechado. */
   const aberta = useRef(false);

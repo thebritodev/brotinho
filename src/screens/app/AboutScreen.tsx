@@ -6,7 +6,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { AnimatedSprout, Icon, TopBar } from '../../components';
 import { ABOUT, OPEN_SOURCE } from '../../data/about';
 import { CONTATO, OPERADOR } from '../../data/privacyPolicy';
-import { colors, palette, radius, shadows, fonts } from '../../theme';
+import { fonts, radius, useTema } from '../../theme';
 
 /** Vem do app.json, então nunca fica defasada em relação ao que foi publicado. */
 export const APP_VERSION = Constants.expoConfig?.version ?? '—';
@@ -17,6 +17,7 @@ type Props = {
 };
 
 export function AboutScreen({ onBack, onOpenPolicy }: Props) {
+  const { colors, palette, shadows } = useTema();
   const insets = useSafeAreaInsets();
 
   return (

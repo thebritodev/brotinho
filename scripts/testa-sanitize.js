@@ -63,7 +63,7 @@ const CASOS = [
   execFileSync(
     process.execPath,
     [tsc, '--outDir', saida, '--module', 'esnext', '--target', 'es2020',
-      '--moduleResolution', 'bundler', '--strict', '--skipLibCheck', '--allowJs', 'false',
+      '--moduleResolution', 'bundler', '--strict', '--skipLibCheck', '--jsx', 'react-jsx', '--allowJs', 'false',
       path.join(RAIZ, 'src', 'state', 'sanitize.ts')],
     { stdio: 'inherit', cwd: RAIZ },
   );

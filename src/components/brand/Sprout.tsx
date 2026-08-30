@@ -1,7 +1,7 @@
 import React from 'react';
 import Svg, { Circle, Ellipse, G, Path, Rect } from 'react-native-svg';
 
-import { type Mood, useTema } from '../../theme';
+import { tracos, type Mood, useTema } from '../../theme';
 
 type FaceSpec = {
   eye: string | 'circle';
@@ -31,7 +31,7 @@ function Face({ mood, cx, cy }: { mood: Mood; cx: number; cy: number }) {
       <Path
         d="M -6 0 Q 0 -7 6 0"
         transform={`translate(${cx + x} ${cy})`}
-        stroke={palette.brown900}
+        stroke={tracos.contorno}
         strokeWidth={2.8}
         strokeLinecap="round"
         fill="none"
@@ -44,7 +44,7 @@ function Face({ mood, cx, cy }: { mood: Mood; cx: number; cy: number }) {
         <Path
           d={f.mouth}
           transform={`translate(${cx} ${cy})`}
-          stroke={palette.brown900}
+          stroke={tracos.contorno}
           strokeWidth={2.5}
           strokeLinecap="round"
           fill="none"
@@ -55,12 +55,12 @@ function Face({ mood, cx, cy }: { mood: Mood; cx: number; cy: number }) {
 
   const eye = (x: number) =>
     f.eye === 'circle' ? (
-      <Circle cx={cx + x} cy={cy} r={f.r} fill={palette.brown900} />
+      <Circle cx={cx + x} cy={cy} r={f.r} fill={tracos.contorno} />
     ) : (
       <Path
         d={f.eye}
         transform={`translate(${cx + x} ${cy})${x < 0 ? '' : ' scale(-1,1)'}`}
-        stroke={palette.brown900}
+        stroke={tracos.contorno}
         strokeWidth={2.5}
         strokeLinecap="round"
         fill="none"
@@ -74,7 +74,7 @@ function Face({ mood, cx, cy }: { mood: Mood; cx: number; cy: number }) {
       <Path
         d={f.mouth}
         transform={`translate(${cx} ${cy})`}
-        stroke={palette.brown900}
+        stroke={tracos.contorno}
         strokeWidth={2.5}
         strokeLinecap="round"
         fill="none"
@@ -99,19 +99,19 @@ function Leaf({
   const { palette } = useTema();
   // O padrão saiu da assinatura: valor de parâmetro é avaliado antes do corpo,
   // e ali o gancho ainda não rodou.
-  const preenchimento = color ?? palette.green500;
+  const preenchimento = color ?? tracos.folha;
   return (
     <G transform={`translate(${x} ${y}) rotate(${rotate}) scale(${scale})`}>
       <Path
         d="M0 0 C -6 -14 -18 -26 -32 -24 C -42 -22 -44 -6 -34 4 C -22 16 -8 12 0 0 Z"
         fill={preenchimento}
-        stroke={palette.green900}
+        stroke={tracos.contornoFolha}
         strokeWidth={3}
         strokeLinejoin="round"
       />
       <Path
         d="M -2 -2 C -10 -8 -18 -14 -26 -18"
-        stroke={palette.green900}
+        stroke={tracos.contornoFolha}
         strokeWidth={1.6}
         strokeLinecap="round"
         fill="none"
@@ -128,7 +128,7 @@ function Decorations({ list, cx, cy }: { list: Decoration[]; cx: number; cy: num
       {list.includes('criatividade') && (
         <Path
           d={`M ${cx - 34} ${cy - 46} l 3 7 l 7 1 l -5 5 l 1 7 l -6 -3 l -6 3 l 1 -7 l -5 -5 l 7 -1 z`}
-          fill={palette.terracotta400}
+          fill={tracos.vaso}
         />
       )}
       {list.includes('curiosidade') && (
@@ -150,11 +150,11 @@ function Decorations({ list, cx, cy }: { list: Decoration[]; cx: number; cy: num
             cy={10}
             rx={30}
             ry={34}
-            fill={palette.green300}
-            stroke={palette.green900}
+            fill={tracos.folhaClara}
+            stroke={tracos.contornoFolha}
             strokeWidth={4}
           />
-          <Leaf x={-4} y={-22} rotate={-25} scale={0.9} color={palette.green300} />
+          <Leaf x={-4} y={-22} rotate={-25} scale={0.9} color={tracos.folhaClara} />
         </G>
       )}
     </G>
@@ -213,7 +213,7 @@ export function Sprout({
   showPot = true,
   showBg = true,
 }: Props) {
-  const { moodColors, palette } = useTema();
+  const { moodColors, palette, tema } = useTema();
   const stemTopY = STEM_TOP_Y[stage];
   const bulbR = BULB_R[stage];
   const midY = (POT_TOP_Y + stemTopY) / 2;
@@ -222,27 +222,43 @@ export function Sprout({
     // A viewBox tem 4 unidades de folga embaixo (224, não 220): o vaso termina
     // em y=220 e o traço de 3.5 ficaria metade para fora, cortado na borda.
     <Svg viewBox="0 0 200 224" width={size} height={size * 1.12}>
-      {showBg && <Circle cx={100} cy={100} r={96} fill={moodColors[mood] ?? moodColors.neutro} />}
+      {/*
+        O halo é um brilho, não um disco.
+
+        No claro ele é um pastel quase branco sobre creme, e some direitinho.
+        No escuro os mesmos tons são escuros e o círculo virava um borrão
+        marrom atrás do broto — cor cheia num diâmetro de 192 lê alto demais.
+        A opacidade devolve a ele o que ele sempre foi: uma insinuação de luz.
+      */}
+      {showBg && (
+        <Circle
+          cx={100}
+          cy={100}
+          r={96}
+          fill={moodColors[mood] ?? moodColors.neutro}
+          opacity={tema === 'escuro' ? 0.4 : 1}
+        />
+      )}
 
       {showPot && (
         <G>
           <Path
             d="M 62 170 C 62 166 66 164 70 164 L 130 164 C 134 164 138 166 138 170 L 128 210 C 127 216 121 220 113 220 L 87 220 C 79 220 73 216 72 210 Z"
-            fill={palette.terracotta400}
-            stroke={palette.brown900}
+            fill={tracos.vaso}
+            stroke={tracos.contorno}
             strokeWidth={3.5}
             strokeLinejoin="round"
           />
           <Path
             d="M 74 178 L 126 178"
-            stroke={palette.brown900}
+            stroke={tracos.contorno}
             strokeWidth={1.6}
             opacity={0.35}
             strokeLinecap="round"
           />
           <Path
             d="M 78 192 L 122 192"
-            stroke={palette.brown900}
+            stroke={tracos.contorno}
             strokeWidth={1.6}
             opacity={0.25}
             strokeLinecap="round"
@@ -253,17 +269,17 @@ export function Sprout({
             width={84}
             height={15}
             rx={7.5}
-            fill={palette.terracotta400}
-            stroke={palette.brown900}
+            fill={tracos.vaso}
+            stroke={tracos.contorno}
             strokeWidth={3.5}
           />
-          <Ellipse cx={100} cy={163.5} rx={34} ry={4.5} fill={palette.brown900} opacity={0.15} />
+          <Ellipse cx={100} cy={163.5} rx={34} ry={4.5} fill={tracos.contorno} opacity={0.15} />
         </G>
       )}
 
       <Path
         d={`M ${CX} ${POT_TOP_Y} C ${CX - 6} ${midY} ${CX + 6} ${midY - 10} ${CX} ${stemTopY}`}
-        stroke={palette.green900}
+        stroke={tracos.contornoFolha}
         strokeWidth={6}
         strokeLinecap="round"
         fill="none"
@@ -277,8 +293,8 @@ export function Sprout({
         cx={CX}
         cy={stemTopY - 4}
         r={bulbR}
-        fill={palette.green300}
-        stroke={palette.green900}
+        fill={tracos.folhaClara}
+        stroke={tracos.contornoFolha}
         strokeWidth={3.5}
       />
 

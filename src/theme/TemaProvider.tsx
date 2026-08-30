@@ -1,7 +1,14 @@
 import React, { createContext, useContext, useMemo } from 'react';
 import { useColorScheme } from 'react-native';
 
-import { TEMAS, type Cores, type Palette, type Sombras, type Tema } from './tokens';
+import {
+  TEMAS,
+  type Cores,
+  type Palette,
+  type PreferenciaDeTema,
+  type Sombras,
+  type Tema,
+} from './tokens';
 import type { Mood } from './tokens';
 
 /**
@@ -35,9 +42,6 @@ export type ConteudoDoTema = {
   moodColors: Record<Mood, string>;
   shadows: Sombras;
 };
-
-/** A preferência guardada. `sistema` obedece ao aparelho. */
-export type PreferenciaDeTema = 'sistema' | 'claro' | 'escuro';
 
 function resolver(preferencia: PreferenciaDeTema, doSistema: 'light' | 'dark' | null): Tema {
   if (preferencia === 'claro') return 'claro';

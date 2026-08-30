@@ -6,7 +6,7 @@ import { Card, Icon, Switch, TopBar } from '../../components';
 import { horaFalada, lembreteEnquantoDorme } from '../../data/onboarding';
 import { notificacoesPermitidas } from '../../services/notifications';
 import { useAppState } from '../../state/AppStateProvider';
-import { colors, palette, fonts } from '../../theme';
+import { fonts, useTema } from '../../theme';
 import { TimeWheel } from '../onboarding/TimeWheel';
 
 /**
@@ -20,6 +20,7 @@ import { TimeWheel } from '../onboarding/TimeWheel';
  * e `settings.reminders` e refaz o agendamento sozinho.
  */
 export function RemindersScreen({ onBack }: { onBack: () => void }) {
+  const { colors, palette } = useTema();
   const insets = useSafeAreaInsets();
   const { data, updateProfile, updateSettings } = useAppState();
   const s = data.settings;

@@ -7,7 +7,7 @@ import { PracticeIllustration } from '../../components/brand/PracticeIllustratio
 import { PRACTICE_TOPICS, findPractice, findTopic } from '../../data/practices';
 import { useAppState } from '../../state/AppStateProvider';
 import { praticasMaisFeitas, ultimaPratica, vezesPorPratica } from '../../state/derived';
-import { colors, palette, radius, shadows, fonts } from '../../theme';
+import { fonts, radius, useTema } from '../../theme';
 import { PracticeDetailScreen } from '../practices/PracticeDetailScreen';
 import { useBotaoVoltar } from '../../navigation/useBotaoVoltar';
 
@@ -22,6 +22,7 @@ export function PracticesScreen({
   /** Prática para abrir de saída, vinda da oferta da Home. */
   alvo?: { topico: string; pratica: string } | null;
 }) {
+  const { colors, palette, shadows } = useTema();
   const { data } = useAppState();
   const feitas = vezesPorPratica(data);
 

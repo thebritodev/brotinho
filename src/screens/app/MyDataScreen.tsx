@@ -6,7 +6,7 @@ import { Button, Card, Icon, Input, TopBar } from '../../components';
 import { CANAL, CHECKIN, GENERO, IDADE, PLANS, TENTOU } from '../../data/onboarding';
 import { useAppState } from '../../state/AppStateProvider';
 import { daysCaredFor } from '../../state/derived';
-import { colors, palette, radius, fonts } from '../../theme';
+import { fonts, radius, useTema } from '../../theme';
 import { OptionList, TimeField } from '../onboarding/parts';
 
 /** Campos que se editam escolhendo de uma lista. */
@@ -23,6 +23,7 @@ const LISTAS: Record<Campo, { titulo: string; opcoes: string[]; multi: boolean }
 const VAZIO = 'Não informado';
 
 export function MyDataScreen({ onBack }: { onBack: () => void }) {
+  const { colors, palette } = useTema();
   const insets = useSafeAreaInsets();
   const { data, updateProfile } = useAppState();
   const p = data.profile;

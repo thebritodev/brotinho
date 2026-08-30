@@ -6,9 +6,10 @@ import { Button, Card, HumorNoTempo, Icon, TopBar, ValueBadge } from '../../comp
 import { useAppState } from '../../state/AppStateProvider';
 import { fazTerapia, livedValues, patterns, ventThemes } from '../../state/derived';
 import { shareTherapyPdf } from '../../services/therapyReport';
-import { colors, palette, radius, fonts } from '../../theme';
+import { fonts, radius, useTema } from '../../theme';
 
 export function TherapySummaryScreen({ onBack }: { onBack: () => void }) {
+  const { colors, palette } = useTema();
   const insets = useSafeAreaInsets();
   const { data } = useAppState();
 

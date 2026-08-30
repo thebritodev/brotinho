@@ -6,7 +6,7 @@ import { Button } from '../components';
 import { PLANS, PRODUTO_DO_PLANO, type PlanKey } from '../data/onboarding';
 import { Paywall } from './onboarding/Paywall';
 import { useAssinatura } from '../state/SubscriptionProvider';
-import { colors, palette, fonts } from '../theme';
+import { fonts, useTema } from '../theme';
 
 /**
  * A tela que aparece para quem já usava o app e ficou sem assinatura —
@@ -17,6 +17,7 @@ import { colors, palette, fonts } from '../theme';
  * seria o oposto do que este app promete.
  */
 export function PaywallGate() {
+  const { colors, palette } = useTema();
   const insets = useSafeAreaInsets();
   const { planos, comprar, restaurar } = useAssinatura();
   const [plano, setPlano] = useState<PlanKey>('anual');

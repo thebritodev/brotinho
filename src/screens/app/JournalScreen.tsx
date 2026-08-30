@@ -31,21 +31,6 @@ import { useVoiceNote } from './useVoiceNote';
 /** Duração da virada de página, em ms. */
 const TURN_DURATION = 620;
 
-/** Alinha o texto às pautas — usado tanto na folha em uso quanto na que vira. */
-const paperTextStyle = {
-  minHeight: LINE_HEIGHT * 7,
-  fontFamily: fonts.body.regular,
-  fontSize: 16,
-  lineHeight: LINE_HEIGHT,
-  color: palette.brown900,
-  paddingLeft: 4,
-  paddingRight: 16,
-  // No Android o padding extra da fonte soma ao lineHeight alto do papel
-  // pautado e empurra o texto para fora da área visível.
-  includeFontPadding: false,
-  paddingTop: 0,
-} as const;
-
 /** Registros carregados por vez na lista. */
 const PAGINA = 5;
 
@@ -77,6 +62,26 @@ export function JournalScreen({
    * `escrito` guarda o valor atual fora do ciclo de render, para a gravação de
    * saída poder registrar o último estado sem depender de um novo render.
    */
+  /**
+   * Alinha o texto às pautas — usado tanto na folha em uso quanto na que vira.
+   *
+   * Estava no topo do arquivo. Aqui dentro ele acompanha o tema: no escuro a
+   * tinta clareia junto com o papel.
+   */
+  const paperTextStyle = {
+    minHeight: LINE_HEIGHT * 7,
+    fontFamily: fonts.body.regular,
+    fontSize: 16,
+    lineHeight: LINE_HEIGHT,
+    color: palette.brown900,
+    paddingLeft: 4,
+    paddingRight: 16,
+    // No Android o padding extra da fonte soma ao lineHeight alto do papel
+    // pautado e empurra o texto para fora da área visível.
+    includeFontPadding: false,
+    paddingTop: 0,
+  } as const;
+
   const [restaurado, setRestaurado] = useState(false);
   const escrito = useRef('');
   escrito.current = text;

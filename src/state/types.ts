@@ -1,5 +1,5 @@
 import type { PlanKey } from '../data/onboarding';
-import type { Mood, PreferenciaDeTema } from '../theme';
+import type { Mood, PreferenciaDeTema } from '../theme/tokens';
 
 /** Respostas do onboarding + estado da assinatura. */
 export type Profile = {

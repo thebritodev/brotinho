@@ -18,9 +18,10 @@ import { onNotificationTap } from '../services/notifications';
 import { useBotaoVoltar } from './useBotaoVoltar';
 import { ANCORA_RAPIDA } from '../data/practices';
 import { useAppState } from '../state/AppStateProvider';
-import { colors } from '../theme';
+import { useTema } from '../theme';
 
 export function MainTabs() {
+  const { colors } = useTema();
   const { data } = useAppState();
   const [tab, setTab] = useState<TabKey>('home');
   const [sub, setSub] = useState<SubScreen | null>(null);
