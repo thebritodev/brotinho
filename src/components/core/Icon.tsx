@@ -1,6 +1,8 @@
 import React from 'react';
 import Svg, { Path } from 'react-native-svg';
 
+import { useTema } from '../../theme';
+
 /** Traços do mesmo peso do mascote — todos desenhados em uma viewBox 24x24. */
 const PATHS = {
   back: 'M15 18l-6-6 6-6',
@@ -55,14 +57,18 @@ type Props = {
 };
 
 /** Icon — conjunto de ícones em contorno, no mesmo peso de traço do mascote. */
-export function Icon({ name, size = 22, color = '#3A3630', strokeWidth = 2 }: Props) {
+export function Icon({ name, size = 22, color, strokeWidth = 2 }: Props) {
+  // O padrão era '#3A3630' escrito à mão — o `brown900` do tema claro. Vindo do
+  // tema, ele acompanha: no escuro o ícone sem cor explícita clareia junto.
+  const { colors } = useTema();
+  const traco = color ?? colors.textPrimary;
   const d = PATHS[name];
   if (!d) return null;
   return (
     <Svg width={size} height={size} viewBox={VIEW_BOX[name] ?? '0 0 24 24'} fill="none">
       <Path
         d={d}
-        stroke={color}
+        stroke={traco}
         strokeWidth={strokeWidth}
         strokeLinecap="round"
         strokeLinejoin="round"

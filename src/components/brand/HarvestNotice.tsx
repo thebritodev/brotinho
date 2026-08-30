@@ -4,7 +4,7 @@ import { AccessibilityInfo, Animated, Easing, Pressable, Text, View } from 'reac
 import { pedirAvaliacaoNaColheita } from '../../services/pedirAvaliacao';
 import { toqueDeConclusao } from '../../services/toque';
 import { useAppState } from '../../state/AppStateProvider';
-import { colors, moodColors, palette, radius, shadows, fonts } from '../../theme';
+import { fonts, radius, useTema } from '../../theme';
 import type { Plant } from '../../state/types';
 import { Button } from '../core/Button';
 import { Sprout } from './Sprout';
@@ -28,6 +28,7 @@ export function HarvestNotice({
   planta: Plant;
   onClose: () => void;
 }) {
+  const { colors, moodColors, palette, shadows } = useTema();
   const { data } = useAppState();
   const entrada = useRef(new Animated.Value(0)).current;
 

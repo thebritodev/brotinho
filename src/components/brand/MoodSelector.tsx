@@ -1,15 +1,22 @@
 import React, { useEffect, useRef } from 'react';
 import { Animated, Pressable, Text, View } from 'react-native';
 
-import { colors, moodColors, fonts, type Mood } from '../../theme';
+import { fonts, useTema, type Mood } from '../../theme';
 import { MoodFace } from './MoodFace';
 
-export const MOODS: { key: Mood; label: string; tint: string }[] = [
-  { key: 'feliz', label: 'Feliz', tint: moodColors.feliz },
-  { key: 'leve', label: 'Leve', tint: moodColors.leve },
-  { key: 'ansioso', label: 'Ansioso', tint: moodColors.ansioso },
-  { key: 'cansado', label: 'Cansado', tint: moodColors.cansado },
-  { key: 'triste', label: 'Triste', tint: moodColors.triste },
+/**
+ * A cor saiu daqui.
+ *
+ * A tabela guardava `tint: moodColors.feliz`, resolvido uma vez na carga do
+ * módulo — o que congelaria a lista no tema com que o app abriu. Quem precisa
+ * da cor lê `moodColors[key]`, que já é indexado por esta mesma chave.
+ */
+export const MOODS: { key: Mood; label: string }[] = [
+  { key: 'feliz', label: 'Feliz' },
+  { key: 'leve', label: 'Leve' },
+  { key: 'ansioso', label: 'Ansioso' },
+  { key: 'cansado', label: 'Cansado' },
+  { key: 'triste', label: 'Triste' },
 ];
 
 /** Quanto a carinha escolhida cresce em relacao as outras. */
@@ -24,6 +31,7 @@ type ItemProps = {
 };
 
 function MoodItem({ mood, label, selected, size, onPress }: ItemProps) {
+  const { colors } = useTema();
   const escala = useRef(new Animated.Value(selected ? SELECTED_SCALE : 1)).current;
 
   /** Mola: cresce um pouco alem do alvo e assenta. Da vida ao toque. */

@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { AccessibilityInfo, Animated, Easing, type StyleProp, type ViewStyle } from 'react-native';
 
-import { colors } from '../theme';
+import { useTema } from '../theme';
 
 /**
  * Transicao entre telas: o conteudo novo entra suave em vez de aparecer seco.
@@ -33,6 +33,7 @@ type Props = {
 };
 
 export function ScreenTransition({ transitionKey, mode = 'fade', style, children }: Props) {
+  const { colors } = useTema();
   const t = useRef(new Animated.Value(1)).current;
   const [reduceMotion, setReduceMotion] = useState(false);
   /** Camada de hardware só enquanto anima: manter ligada custa memória à toa. */

@@ -1,7 +1,7 @@
 import React from 'react';
 import { Text, View } from 'react-native';
 
-import { colors, radius, shadows, fonts } from '../../theme';
+import { radius, fonts, useTema } from '../../theme';
 import { CountUp } from './CountUp';
 
 export type Stat = { value: number | string; label: string };
@@ -9,14 +9,16 @@ export type Stat = { value: number | string; label: string };
 /** Três cartões estreitos lado a lado; o número grande é o que aperta. */
 const LIMITE_DE_FONTE = 1.4;
 
-const numeroStyle = {
-  fontFamily: fonts.display.bold,
-  fontSize: 26,
-  color: colors.primaryStrong,
-} as const;
-
 /** StatRow — trio de estatísticas de crescimento: dias cuidados, valores vividos, padrões. */
 export function StatRow({ stats }: { stats: Stat[] }) {
+  const { colors, shadows } = useTema();
+  // O estilo estava no topo do arquivo, calculado uma vez; aqui dentro ele
+  // acompanha o tema.
+  const numeroStyle = {
+    fontFamily: fonts.display.bold,
+    fontSize: 26,
+    color: colors.primaryStrong,
+  } as const;
   return (
     <View style={{ flexDirection: 'row', gap: 10 }}>
       {stats.map((s, i) => (

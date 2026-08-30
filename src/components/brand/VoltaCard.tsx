@@ -1,7 +1,7 @@
 import React from 'react';
 import { Text, View } from 'react-native';
 
-import { colors, palette, radius, fonts } from '../../theme';
+import { fonts, radius, useTema } from '../../theme';
 import { Sprout } from './Sprout';
 
 /**
@@ -17,6 +17,7 @@ import { Sprout } from './Sprout';
  * dias ausentes contra ninguém.
  */
 export function VoltaCard({ dias }: { dias: number }) {
+  const { colors, palette } = useTema();
   const tempo =
     dias >= 30
       ? 'um tempo'

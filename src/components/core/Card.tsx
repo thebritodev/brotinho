@@ -1,7 +1,7 @@
 import React from 'react';
 import { Pressable, StyleProp, View, ViewStyle } from 'react-native';
 
-import { colors, radius, shadows } from '../../theme';
+import { radius, useTema } from '../../theme';
 
 type Props = {
   children: React.ReactNode;
@@ -20,6 +20,7 @@ type Props = {
 
 /** Card — superfície base: cantos suaves, sombra leve, fundo branco creme. */
 export function Card({ children, padding = 20, style, onPress, label }: Props) {
+  const { colors, shadows } = useTema();
   const base: StyleProp<ViewStyle> = [
     {
       backgroundColor: colors.surface,

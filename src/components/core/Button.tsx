@@ -1,16 +1,29 @@
 import React from 'react';
 import { Pressable, StyleProp, Text, ViewStyle } from 'react-native';
 
-import { colors, radius, borderWidth, fonts } from '../../theme';
+import { radius, borderWidth, fonts, useTema, type Cores } from '../../theme';
 
 type Variant = 'primary' | 'secondary' | 'ghost';
 type Size = 'md' | 'lg';
 
-const VARIANT = {
-  primary: { background: colors.primary, color: '#fff', borderColor: 'transparent' },
-  secondary: { background: colors.primarySoft, color: colors.primaryStrong, borderColor: 'transparent' },
-  ghost: { background: 'transparent', color: colors.primaryStrong, borderColor: colors.border },
-} as const;
+/**
+ * Ver o comentário gêmeo no Badge: tabela de cor no topo do arquivo congela no
+ * tema com que o app abriu.
+ *
+ * O `'#fff'` do botão principal virou `textInverse`, que é o que ele sempre
+ * quis dizer: "a cor que se lê sobre o verde". No escuro essa cor é escura, e
+ * escrever branco à mão deixaria o botão ilegível.
+ */
+const variantes = (colors: Cores) =>
+  ({
+    primary: { background: colors.primary, color: colors.textInverse, borderColor: 'transparent' },
+    secondary: {
+      background: colors.primarySoft,
+      color: colors.primaryStrong,
+      borderColor: 'transparent',
+    },
+    ghost: { background: 'transparent', color: colors.primaryStrong, borderColor: colors.border },
+  }) as const;
 
 const SIZE = {
   md: { paddingVertical: 13, paddingHorizontal: 22, fontSize: 15 },
@@ -37,6 +50,8 @@ export function Button({
   onPress,
   style,
 }: Props) {
+  const { colors } = useTema();
+  const VARIANT = variantes(colors);
   const v = VARIANT[variant] ?? VARIANT.primary;
   const s = SIZE[size] ?? SIZE.lg;
 

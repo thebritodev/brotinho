@@ -1,7 +1,7 @@
 import React from 'react';
 import { Text, View } from 'react-native';
 
-import { colors, palette, radius, shadows, fonts } from '../../theme';
+import { fonts, radius, useTema } from '../../theme';
 import type { Atravessado } from '../../state/derived';
 import { Icon } from '../core/Icon';
 
@@ -23,6 +23,7 @@ import { Icon } from '../core/Icon';
  * app deva fazer; se a pessoa quiser, ele está no histórico.
  */
 export function CrossedCard({ atravessado }: { atravessado: Atravessado }) {
+  const { colors, palette, shadows } = useTema();
   return (
     <View
       accessible

@@ -1,7 +1,7 @@
 import React from 'react';
 import { Pressable, View } from 'react-native';
 
-import { colors, palette, radius, shadows } from '../../theme';
+import { radius, useTema } from '../../theme';
 
 type Props = {
   checked?: boolean;
@@ -19,6 +19,7 @@ type Props = {
 
 /** Switch — alternador liga/desliga das configurações. */
 export function Switch({ checked = false, onChange, label }: Props) {
+  const { colors, palette, shadows } = useTema();
   return (
     <Pressable
       accessibilityRole="switch"

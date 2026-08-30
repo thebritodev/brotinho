@@ -3,7 +3,7 @@ import { Modal, Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { trazerDeUmArquivo, type MotivoDaRecusa, type Trazido } from '../../services/importarDados';
 import { useAppState } from '../../state/AppStateProvider';
-import { colors, fonts, palette, radius } from '../../theme';
+import { fonts, radius, useTema } from '../../theme';
 import { Button } from '../core/Button';
 import { Card } from '../core/Card';
 
@@ -75,6 +75,7 @@ export function TrazerDeVolta({
    */
   aoMudarConfirmacao?: (aberta: boolean) => void;
 }) {
+  const { colors, palette } = useTema();
   const { data, trazerDeVolta } = useAppState();
 
   const [ocupado, setOcupado] = useState(false);

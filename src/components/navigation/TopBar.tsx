@@ -1,7 +1,7 @@
 import React from 'react';
 import { Text, View } from 'react-native';
 
-import { colors, palette, fonts } from '../../theme';
+import { fonts, useTema } from '../../theme';
 import { Icon } from '../core/Icon';
 import { IconButton } from '../core/IconButton';
 
@@ -13,6 +13,7 @@ type Props = {
 
 /** TopBar — cabeçalho com botão voltar opcional, título e ação à direita. */
 export function TopBar({ title, onBack, trailing }: Props) {
+  const { colors, palette } = useTema();
   return (
     <View
       style={{

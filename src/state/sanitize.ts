@@ -88,6 +88,11 @@ function ajustesLimpos(v: unknown): Settings {
     analysis: booleano(s.analysis, INITIAL_SETTINGS.analysis),
     vibracao: booleano(s.vibracao, INITIAL_SETTINGS.vibracao),
     somDaRespiracao: booleano(s.somDaRespiracao, INITIAL_SETTINGS.somDaRespiracao),
+    // Valor desconhecido volta para "sistema": um tema inventado deixaria o app
+    // sem cor nenhuma, e "siga o aparelho" nunca é uma escolha errada.
+    tema: (['sistema', 'claro', 'escuro'] as const).includes(s.tema as never)
+      ? (s.tema as Settings['tema'])
+      : INITIAL_SETTINGS.tema,
   };
 }
 

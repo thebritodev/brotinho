@@ -21,6 +21,7 @@ import { clearAppData, loadAppData, saveAppData } from '../storage/appStorage';
 import type { Mood } from '../theme';
 import { dayKey, daysCaredFor, diasComRegistro, diasSemAparecer, nomeDoBroto } from './derived';
 import { sanitizarDados } from './sanitize';
+import { TemaProvider } from '../theme';
 import type { Plant } from './types';
 import {
   INITIAL_APP_DATA,
@@ -284,7 +285,16 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
     ],
   );
 
-  return <AppStateContext.Provider value={value}>{children}</AppStateContext.Provider>;
+  return (
+    <AppStateContext.Provider value={value}>
+      {/*
+        O tema mora aqui dentro porque a preferência é um ajuste, e ajuste vem
+        do disco. Colocá-lo acima obrigaria a duplicar a leitura do
+        AsyncStorage só para saber de que cor pintar.
+      */}
+      <TemaProvider preferencia={data.settings.tema}>{children}</TemaProvider>
+    </AppStateContext.Provider>
+  );
 }
 
 export function useAppState(): AppStateValue {

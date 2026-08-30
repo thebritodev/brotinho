@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { AccessibilityInfo, Animated, Easing, View } from 'react-native';
 
-import { moodColors, type Mood } from '../../theme';
+import { type Mood, useTema } from '../../theme';
 import { Sprout, type Decoration, type SproutStage } from './Sprout';
 
 /**
@@ -60,6 +60,7 @@ export function AnimatedSprout({
   breathe = false,
   swayOn = null,
 }: Props) {
+  const { moodColors } = useTema();
   /** Cor que fica por baixo enquanto a nova entra. */
   const [previous, setPrevious] = useState<Mood>(mood);
   const [current, setCurrent] = useState<Mood>(mood);

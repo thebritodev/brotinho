@@ -2,7 +2,7 @@ import React from 'react';
 import { View } from 'react-native';
 import Svg, { Path, G } from 'react-native-svg';
 
-import { colors, palette } from '../../theme';
+import { useTema } from '../../theme';
 
 /**
  * ProgressStem — o progresso do onboarding como um caule que ganha folhas.
@@ -23,6 +23,7 @@ type Props = {
 };
 
 export function ProgressStem({ step, total, width }: Props) {
+  const { colors, palette } = useTema();
   // Margem nas pontas: a primeira e a última folha não encostam na borda.
   const margem = 8;
   // Largura negativa ou zero gera um SVG inválido. Quem chama já se protege,

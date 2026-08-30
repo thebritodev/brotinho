@@ -1,7 +1,7 @@
 import React, { useEffect, useRef } from 'react';
 import { AccessibilityInfo, Animated, Easing, Pressable, Text } from 'react-native';
 
-import { colors, palette, radius, shadows, fonts } from '../../theme';
+import { fonts, radius, useTema } from '../../theme';
 import type { SproutStage } from './Sprout';
 import { AnimatedSprout } from './AnimatedSprout';
 import { Button } from '../core/Button';
@@ -30,6 +30,7 @@ type Props = {
 };
 
 export function GrowthNotice({ stage, days, onClose }: Props) {
+  const { colors, palette, shadows } = useTema();
   const entrada = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {

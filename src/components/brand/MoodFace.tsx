@@ -1,7 +1,7 @@
 import React from 'react';
 import Svg, { Circle, G, Path } from 'react-native-svg';
 
-import { moodColors, palette, type Mood } from '../../theme';
+import { type Mood, useTema } from '../../theme';
 
 /**
  * A carinha de um humor, com a mesma expressao que o broto faz.
@@ -29,6 +29,7 @@ type Props = {
 };
 
 export function MoodFace({ mood, size = 44, selected = false }: Props) {
+  const { moodColors, palette } = useTema();
   const f = FACES[mood] ?? FACES.neutro;
 
   const olho = (x: number) =>

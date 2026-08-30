@@ -1,11 +1,12 @@
 import React from 'react';
 import { Text, View } from 'react-native';
 
-import { colors, palette, radius, fonts } from '../../theme';
+import { fonts, radius, useTema } from '../../theme';
 import { Sprout } from './Sprout';
 
 /** InsightCard — o balão "Seu broto percebeu", trazendo um padrão notado no diário/desabafos. */
 export function InsightCard({ text }: { text: string }) {
+  const { colors, palette } = useTema();
   return (
     <View
       style={{

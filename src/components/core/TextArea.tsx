@@ -1,7 +1,7 @@
 import React from 'react';
 import { TextInput } from 'react-native';
 
-import { colors, radius, borderWidth, fonts } from '../../theme';
+import { borderWidth, fonts, radius, useTema } from '../../theme';
 
 type Props = {
   value: string;
@@ -12,6 +12,7 @@ type Props = {
 
 /** TextArea — campo de várias linhas para o diário / desabafo com o broto. */
 export function TextArea({ value, onChangeText, placeholder, minHeight = 200 }: Props) {
+  const { colors } = useTema();
   return (
     <TextInput
       value={value}

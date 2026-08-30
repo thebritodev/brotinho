@@ -29,6 +29,14 @@ export const palette = {
   brown100: '#E9E2D2',
 
   amber400: '#E8B65A',
+  /**
+   * O âmbar de *ler*, sobre o `amber100`.
+   *
+   * Era `'#8a6318'` escrito à mão dentro do Badge — a única cor de texto do app
+   * que não vinha da paleta, e por isso a única que não teria como acompanhar o
+   * tema escuro.
+   */
+  amber700: '#8A6318',
   amber100: '#FBEFD4',
 
   terracotta400: '#D98866',
@@ -231,6 +239,7 @@ export const paletteEscura: Palette = {
   brown100: '#38332C',
 
   amber400: '#E8B65A',
+  amber700: '#E8C07A',
   amber100: '#4A4126',
 
   terracotta400: '#D98866',

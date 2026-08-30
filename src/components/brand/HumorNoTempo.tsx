@@ -3,7 +3,7 @@ import { Pressable, Text, View } from 'react-native';
 
 import { moodRange, moodWeek } from '../../state/derived';
 import { useAppState } from '../../state/AppStateProvider';
-import { colors, fonts, moodColors, palette, radius } from '../../theme';
+import { fonts, radius, useTema } from '../../theme';
 import { Card } from '../core/Card';
 
 /**
@@ -27,6 +27,7 @@ import { Card } from '../core/Card';
  *   e não um número que sobe ou desce — nada aqui é para ser batido.
  */
 export function HumorNoTempo() {
+  const { colors, moodColors, palette } = useTema();
   const { data } = useAppState();
 
   const [periodo, setPeriodo] = useState<7 | 30 | 90>(7);

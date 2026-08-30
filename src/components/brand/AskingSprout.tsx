@@ -2,7 +2,7 @@ import React from 'react';
 import { Text, useWindowDimensions, View } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
 
-import { colors, palette, radius, shadows, fonts } from '../../theme';
+import { fonts, radius, useTema } from '../../theme';
 import { AnimatedSprout } from './AnimatedSprout';
 
 /**
@@ -34,6 +34,7 @@ type Props = {
 };
 
 export function AskingSprout({ title, sub, kicker, reageA = null, compacto = false }: Props) {
+  const { colors, palette, shadows } = useTema();
   const { width, height } = useWindowDimensions();
   /**
    * Largura e altura entram as duas: a largura define o quanto ele domina a

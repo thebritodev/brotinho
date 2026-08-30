@@ -2,7 +2,7 @@ import React from 'react';
 import { Pressable, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { colors, borderWidth, shadows } from '../../theme';
+import { borderWidth, useTema } from '../../theme';
 import { BrotinhoMark, MARK_PEACH } from '../brand/BrotinhoMark';
 import { Icon, type IconName } from '../core/Icon';
 
@@ -30,6 +30,7 @@ type Props = {
  * sem nada para ouvir.
  */
 export function BottomNav({ active = 'home', onChange }: Props) {
+  const { colors, shadows } = useTema();
   const insets = useSafeAreaInsets();
 
   const lateral = (t: SideTab) => {

@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Linking, Modal, Pressable, StyleSheet, Text, View } from 'react-native';
 
-import { colors, palette, radius, fonts } from '../../theme';
+import { fonts, radius, useTema } from '../../theme';
 import { Button } from '../core/Button';
 import { Icon } from '../core/Icon';
 
@@ -47,6 +47,7 @@ const TELEFONE = '188';
 const SITE = 'https://cvv.org.br';
 
 export function AjudaAgora({ aoFazerExercicio }: { aoFazerExercicio?: () => void }) {
+  const { colors, palette } = useTema();
   const [aberto, setAberto] = useState(false);
 
   const abrir = (url: string) => {

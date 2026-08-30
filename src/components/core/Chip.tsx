@@ -1,7 +1,7 @@
 import React from 'react';
 import { Pressable, StyleProp, Text, TextStyle, ViewStyle } from 'react-native';
 
-import { colors, radius, borderWidth, fonts } from '../../theme';
+import { borderWidth, fonts, radius, useTema } from '../../theme';
 
 type Props = {
   children: React.ReactNode;
@@ -23,6 +23,7 @@ export function Chip({
   style,
   textStyle,
 }: Props) {
+  const { colors } = useTema();
   const base: ViewStyle = {
     borderWidth,
     borderColor: selected ? colors.primary : colors.border,

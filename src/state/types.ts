@@ -1,5 +1,5 @@
 import type { PlanKey } from '../data/onboarding';
-import type { Mood } from '../theme';
+import type { Mood, PreferenciaDeTema } from '../theme';
 
 /** Respostas do onboarding + estado da assinatura. */
 export type Profile = {
@@ -59,6 +59,15 @@ export type Settings = {
    * quem está no ônibus ou com alguém dormindo do lado não é surpreendido.
    */
   somDaRespiracao: boolean;
+  /**
+   * Claro, escuro, ou o que o aparelho estiver usando.
+   *
+   * `sistema` é o padrão: a pessoa já escolheu isso uma vez, no celular, e um
+   * app de diário não tem por que discordar. Os fixos existem porque aqui o
+   * caso é comum ao contrário — gente que usa o telefone no claro e quer o
+   * diário no escuro.
+   */
+  tema: PreferenciaDeTema;
 };
 
 /** Um humor por dia; `date` no formato YYYY-MM-DD. */
@@ -141,6 +150,7 @@ export const INITIAL_PROFILE: Profile = {
 };
 
 export const INITIAL_SETTINGS: Settings = {
+  tema: 'sistema',
   reminders: true,
   weeklySummary: false,
   appLock: true,

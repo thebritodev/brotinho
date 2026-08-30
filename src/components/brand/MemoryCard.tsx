@@ -1,7 +1,7 @@
 import React from 'react';
 import { Pressable, Text, View } from 'react-native';
 
-import { colors, palette, radius, shadows, fonts } from '../../theme';
+import { fonts, radius, useTema } from '../../theme';
 import type { Lembranca } from '../../state/derived';
 import { Icon } from '../core/Icon';
 
@@ -23,6 +23,7 @@ export function MemoryCard({
   lembranca: Lembranca;
   onPress: () => void;
 }) {
+  const { colors, palette, shadows } = useTema();
   return (
     <Pressable
       accessibilityRole="button"

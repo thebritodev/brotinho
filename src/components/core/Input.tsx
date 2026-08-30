@@ -1,7 +1,7 @@
 import React from 'react';
 import { Text, TextInput, View } from 'react-native';
 
-import { colors, radius, borderWidth, fonts } from '../../theme';
+import { borderWidth, fonts, radius, useTema } from '../../theme';
 
 type Props = {
   value: string;
@@ -15,6 +15,7 @@ type Props = {
 
 /** Input — campo de texto de uma linha. */
 export function Input({ value, onChangeText, placeholder, label, autoFocus, maxLength }: Props) {
+  const { colors } = useTema();
   return (
     <View style={{ gap: 6 }}>
       {!!label && (

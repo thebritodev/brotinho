@@ -1,7 +1,7 @@
 import React from 'react';
 import Svg, { Circle, Ellipse, G, Path, Rect } from 'react-native-svg';
 
-import { moodColors, palette, type Mood } from '../../theme';
+import { type Mood, useTema } from '../../theme';
 
 type FaceSpec = {
   eye: string | 'circle';
@@ -22,6 +22,7 @@ const FACES: Record<Mood, FaceSpec> = {
 export type Decoration = 'criatividade' | 'curiosidade' | 'autocuidado' | 'conexao';
 
 function Face({ mood, cx, cy }: { mood: Mood; cx: number; cy: number }) {
+  const { palette } = useTema();
   const f = FACES[mood] ?? FACES.neutro;
 
   // "feliz" usa olhos arqueados próprios, desenhados de forma simétrica.
@@ -87,7 +88,7 @@ function Leaf({
   y,
   rotate,
   scale = 1,
-  color = palette.green500,
+  color,
 }: {
   x: number;
   y: number;
@@ -95,11 +96,15 @@ function Leaf({
   scale?: number;
   color?: string;
 }) {
+  const { palette } = useTema();
+  // O padrão saiu da assinatura: valor de parâmetro é avaliado antes do corpo,
+  // e ali o gancho ainda não rodou.
+  const preenchimento = color ?? palette.green500;
   return (
     <G transform={`translate(${x} ${y}) rotate(${rotate}) scale(${scale})`}>
       <Path
         d="M0 0 C -6 -14 -18 -26 -32 -24 C -42 -22 -44 -6 -34 4 C -22 16 -8 12 0 0 Z"
-        fill={color}
+        fill={preenchimento}
         stroke={palette.green900}
         strokeWidth={3}
         strokeLinejoin="round"
@@ -117,6 +122,7 @@ function Leaf({
 }
 
 function Decorations({ list, cx, cy }: { list: Decoration[]; cx: number; cy: number }) {
+  const { palette } = useTema();
   return (
     <G>
       {list.includes('criatividade') && (
@@ -207,6 +213,7 @@ export function Sprout({
   showPot = true,
   showBg = true,
 }: Props) {
+  const { moodColors, palette } = useTema();
   const stemTopY = STEM_TOP_Y[stage];
   const bulbR = BULB_R[stage];
   const midY = (POT_TOP_Y + stemTopY) / 2;

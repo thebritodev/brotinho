@@ -1,7 +1,7 @@
 import React from 'react';
 import { Pressable, StyleProp, Text, View, ViewStyle } from 'react-native';
 
-import { colors, palette, radius, shadows, fonts } from '../../theme';
+import { fonts, radius, useTema } from '../../theme';
 import { Icon, type IconName } from '../core/Icon';
 
 type Props = {
@@ -14,6 +14,7 @@ type Props = {
 
 /** PracticeTopicCard — linha larga que leva a um tema de prática (ansiedade, sono...). */
 export function PracticeTopicCard({ title, icon, tint, onPress, style }: Props) {
+  const { colors, palette, shadows } = useTema();
   return (
     <Pressable
       accessibilityRole="button"
