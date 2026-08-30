@@ -2,6 +2,19 @@ import React from 'react';
 import Svg, { Circle, Ellipse, G, Path, Rect } from 'react-native-svg';
 
 import { tracos, type Mood, useTema } from '../../theme';
+import {
+  BULB_R,
+  CX,
+  type Decoration,
+  LEAVES_BY_STAGE,
+  POT_TOP_Y,
+  type SproutStage,
+  STEM_TOP_Y,
+  TRACO_DA_FOLHA,
+  viewBoxDaPlanta,
+} from './geometriaDoBroto';
+
+export type { Decoration, SproutStage };
 
 type FaceSpec = {
   eye: string | 'circle';
@@ -17,9 +30,6 @@ const FACES: Record<Mood, FaceSpec> = {
   cansado: { eye: 'M -9 -1 L -2 -1', mouth: 'M -7 7 L 7 7' },
   neutro: { eye: 'circle', r: 2.4, mouth: 'M -7 7 L 7 7' },
 };
-
-/** Valores que rendem enfeites no broto (ver tela "Meus valores"). */
-export type Decoration = 'criatividade' | 'curiosidade' | 'autocuidado' | 'conexao';
 
 function Face({ mood, cx, cy }: { mood: Mood; cx: number; cy: number }) {
   const { palette } = useTema();
@@ -106,7 +116,7 @@ function Leaf({
         d="M0 0 C -6 -14 -18 -26 -32 -24 C -42 -22 -44 -6 -34 4 C -22 16 -8 12 0 0 Z"
         fill={preenchimento}
         stroke={tracos.contornoFolha}
-        strokeWidth={3}
+        strokeWidth={TRACO_DA_FOLHA}
         strokeLinejoin="round"
       />
       <Path
@@ -161,8 +171,6 @@ function Decorations({ list, cx, cy }: { list: Decoration[]; cx: number; cy: num
   );
 }
 
-export type SproutStage = 1 | 2 | 3;
-
 type Props = {
   mood?: Mood;
   stage?: SproutStage;
@@ -171,35 +179,6 @@ type Props = {
   showPot?: boolean;
   showBg?: boolean;
 };
-
-const CX = 100;
-const POT_TOP_Y = 168;
-
-const LEAVES_BY_STAGE: Record<SproutStage, { x: number; y: number; rotate: number; scale: number }[]> = {
-  1: [
-    { x: CX, y: POT_TOP_Y - 4, rotate: -35, scale: 0.55 },
-    { x: CX, y: POT_TOP_Y - 4, rotate: 210, scale: 0.5 },
-  ],
-  2: [
-    { x: CX, y: POT_TOP_Y - 10, rotate: -35, scale: 0.85 },
-    { x: CX, y: POT_TOP_Y - 10, rotate: 215, scale: 0.8 },
-    { x: CX, y: POT_TOP_Y - 30, rotate: -8, scale: 0.6 },
-  ],
-  3: [
-    { x: CX, y: POT_TOP_Y - 14, rotate: -40, scale: 1 },
-    { x: CX, y: POT_TOP_Y - 14, rotate: 220, scale: 0.95 },
-    { x: CX, y: POT_TOP_Y - 40, rotate: -10, scale: 0.8 },
-    { x: CX, y: POT_TOP_Y - 40, rotate: 190, scale: 0.75 },
-  ],
-};
-
-const STEM_TOP_Y: Record<SproutStage, number> = {
-  1: POT_TOP_Y - 26,
-  2: POT_TOP_Y - 44,
-  3: POT_TOP_Y - 62,
-};
-
-const BULB_R: Record<SproutStage, number> = { 1: 20, 2: 27, 3: 33 };
 
 /**
  * Sprout — o mascote Brotinho.
@@ -227,15 +206,16 @@ export function Sprout({
     embaixo. Era isso, e não o valor de `size`, que fazia o broto dos cartões
     parecer pequeno: aumentar o número aumentava a caixa junto com o vazio.
 
-    Recortando, a planta passa a ocupar a caixa inteira. Quem chama não muda
-    nada, e o desenho dobra de tamanho aparente no mesmo espaço.
+    O primeiro recorte eu escrevi à mão, e ele cortava as folhas: elas caem bem
+    abaixo da boca do vaso, e eu tinha fechado a caixa doze unidades depois
+    dela. Agora a caixa é calculada das mesmas tabelas que desenham — ver
+    `geometriaDoBroto`.
   */
-  const topoDaPlanta = stemTopY - bulbR - 8;
   const caixa = showPot
     ? // O 224 em vez de 220 é folga: o vaso termina em 220 e o traço de 3.5
       // ficaria metade para fora, cortado na borda.
       '0 0 200 224'
-    : `34 ${topoDaPlanta} 132 ${POT_TOP_Y + 12 - topoDaPlanta}`;
+    : viewBoxDaPlanta(stage, decorations.length > 0);
 
   return (
     <Svg viewBox={caixa} width={size} height={size * 1.12}>
@@ -254,6 +234,12 @@ export function Sprout({
         0,18 com os tons médios, e agora 0,14, porque os pastéis claros rendem
         mais por ponto de opacidade. É esse o acoplamento — mexeu na cor de
         humor, confira o halo.
+
+        Ele é desenhado no enquadramento com vaso, e por isso anda com ele: sem
+        vaso a caixa fecha em volta da planta, e o disco, que é maior que ela,
+        deixa de ser disco e vira fundo cheio. Nenhuma tela pede as duas coisas
+        juntas hoje — todas que escondem o vaso escondem o halo também. Se
+        alguma passar a pedir, é aqui que vai aparecer.
       */}
       {showBg && (
         <Circle
