@@ -2,7 +2,7 @@ import React, { useMemo } from 'react';
 import { Pressable, ScrollView, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { Card, Icon, Sprout, StatRow, Switch, TopBar } from '../../components';
+import { Card, HumorNoTempo, Icon, Sprout, StatRow, Switch, TopBar } from '../../components';
 import { useAppState } from '../../state/AppStateProvider';
 import { caringSince, sproutStage, stats } from '../../state/derived';
 import { colors, palette, fonts } from '../../theme';
@@ -59,6 +59,10 @@ export function ProfileScreen({ name, onNavigate }: Props) {
         </View>
 
         <StatRow stats={growth} />
+
+        {/* O arco do humor saiu de dentro de "Para minha terapia", onde só quem
+            faz terapia via. Ver `components/brand/HumorNoTempo.tsx`. */}
+        <HumorNoTempo />
 
         <Card onPress={() => onNavigate('terapia')} label="Para minha terapia">
           <Text style={{ fontFamily: fonts.body.extraBold, fontSize: 15, marginBottom: 4 }}>

@@ -21,6 +21,7 @@ export { CrossedCard } from './brand/CrossedCard';
 export { MemoryCard } from './brand/MemoryCard';
 export { VoltaCard } from './brand/VoltaCard';
 export { TrazerDeVolta } from './brand/TrazerDeVolta';
+export { HumorNoTempo } from './brand/HumorNoTempo';
 export { MoodFace } from './brand/MoodFace';
 export { MoodSelector, MOODS } from './brand/MoodSelector';
 export { PracticeTopicCard } from './brand/PracticeTopicCard';
