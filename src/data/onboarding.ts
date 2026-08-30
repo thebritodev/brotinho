@@ -18,10 +18,19 @@ export const VALORES = [
   'Coragem',
 ];
 
+/**
+ * A resposta que o app de fato consulta depois.
+ *
+ * Fica nomeada porque `derived.fazTerapia` compara contra ela: escrita à mão
+ * nos dois lugares, uma vírgula aqui deixaria a personalização morta e nada
+ * quebraria.
+ */
+export const TENTOU_TERAPIA = 'Faço terapia';
+
 export const TENTOU = [
   'Guardo pra mim mesmo',
   'Converso com alguém próximo',
-  'Faço terapia',
+  TENTOU_TERAPIA,
   'Já tentei meditação ou outros apps',
   'Nunca tentei nada específico',
 ];

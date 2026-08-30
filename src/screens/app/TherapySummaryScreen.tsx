@@ -4,7 +4,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Button, Card, HumorNoTempo, Icon, TopBar, ValueBadge } from '../../components';
 import { useAppState } from '../../state/AppStateProvider';
-import { livedValues, patterns, ventThemes } from '../../state/derived';
+import { fazTerapia, livedValues, patterns, ventThemes } from '../../state/derived';
 import { shareTherapyPdf } from '../../services/therapyReport';
 import { colors, palette, radius, fonts } from '../../theme';
 
@@ -21,6 +21,7 @@ export function TherapySummaryScreen({ onBack }: { onBack: () => void }) {
   const maiorTema = temas[0]?.count ?? 1;
 
   const temConteudo = data.journal.length > 0 || data.moodHistory.length > 0;
+  const emTerapia = fazTerapia(data);
 
   const exportar = async () => {
     setError(null);
@@ -53,7 +54,9 @@ export function TherapySummaryScreen({ onBack }: { onBack: () => void }) {
             color: colors.textSecondary,
           }}
         >
-          Um resumo do que você registrou, organizado para você levar e conversar com seu terapeuta.
+          {emTerapia
+            ? 'Um resumo do que você registrou, organizado para você levar e conversar com seu terapeuta.'
+            : 'Um resumo do que você registrou, organizado para você reler com calma — ou levar a uma consulta, se um dia quiser.'}
         </Text>
 
         {!temConteudo && (

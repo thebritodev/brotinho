@@ -1,5 +1,6 @@
 import type { SproutStage, ValueKey } from '../components';
 import type { Mood } from '../theme';
+import { TENTOU_TERAPIA } from '../data/onboarding';
 import type { AppData, Plant } from './types';
 
 /**
@@ -283,6 +284,24 @@ export function stats(data: AppData) {
     { value: compostas, label: compostas === 1 ? 'compostagem' : 'compostagens' },
     { value: padroes, label: padroes === 1 ? 'padrão' : 'padrões' },
   ];
+}
+
+/**
+ * Se a pessoa disse, no onboarding, que faz terapia.
+ *
+ * Ela responde isso no passo "o que você tem feito com isso", e até agora essa
+ * resposta não era usada em lugar nenhum: alimentava o espelho seguinte e
+ * ficava parada em Meus dados para sempre. O resumo era anunciado como "para
+ * a sua terapia" com o mesmo texto para quem faz terapia e para quem marcou
+ * "nunca tentei nada específico" — o app sabia e não usava.
+ *
+ * O resumo **continua existindo para todo mundo**, e de propósito: numa análise
+ * do Daylio, o que uma usuária mais destacou foi levar um PDF do diário para a
+ * consulta. Quem nunca foi é justamente quem pode chegar na primeira com algo
+ * na mão. O que muda é o texto, que para de pressupor um terapeuta.
+ */
+export function fazTerapia(data: AppData): boolean {
+  return data.profile.tentou.includes(TENTOU_TERAPIA);
 }
 
 /**

@@ -4,7 +4,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Card, HumorNoTempo, Icon, Sprout, StatRow, Switch, TopBar } from '../../components';
 import { useAppState } from '../../state/AppStateProvider';
-import { caringSince, sproutStage, stats } from '../../state/derived';
+import { caringSince, fazTerapia, sproutStage, stats } from '../../state/derived';
 import { colors, palette, fonts } from '../../theme';
 import type { SubScreen } from './types';
 
@@ -18,6 +18,8 @@ export function ProfileScreen({ name, onNavigate }: Props) {
   const { data, updateSettings } = useAppState();
 
   const growth = useMemo(() => stats(data), [data]);
+  /** Ver `fazTerapia`: o resumo é o mesmo, o texto é que para de pressupor. */
+  const emTerapia = fazTerapia(data);
   const since = caringSince(data);
 
   const row = (
@@ -64,9 +66,12 @@ export function ProfileScreen({ name, onNavigate }: Props) {
             faz terapia via. Ver `components/brand/HumorNoTempo.tsx`. */}
         <HumorNoTempo />
 
-        <Card onPress={() => onNavigate('terapia')} label="Para minha terapia">
+        <Card
+          onPress={() => onNavigate('terapia')}
+          label={emTerapia ? 'Para minha terapia' : 'Um resumo do que você registrou'}
+        >
           <Text style={{ fontFamily: fonts.body.extraBold, fontSize: 15, marginBottom: 4 }}>
-            Para minha terapia
+            {emTerapia ? 'Para minha terapia' : 'Um resumo do que você registrou'}
           </Text>
           <Text
             style={{
@@ -77,8 +82,9 @@ export function ProfileScreen({ name, onNavigate }: Props) {
               marginBottom: 12,
             }}
           >
-            Um resumo dos seus padrões e desabafos, organizado para levar e compartilhar com seu
-            terapeuta.
+            {emTerapia
+              ? 'Seus padrões e desabafos organizados para levar e compartilhar com seu terapeuta.'
+              : 'Seus padrões e desabafos organizados num arquivo só — para você reler, ou levar a uma primeira consulta, se um dia quiser.'}
           </Text>
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
             <Icon name="book" size={18} color={colors.primaryStrong} />
