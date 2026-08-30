@@ -1,3 +1,4 @@
+import { palavraValida } from '../data/humores';
 import { renomear } from '../data/onboarding';
 import type { AppData, Compost, JournalEntry, MoodLog, PracticeDone, Plant, Profile, Settings } from './types';
 import { INITIAL_APP_DATA, INITIAL_PROFILE, INITIAL_SETTINGS } from './types';
@@ -136,7 +137,19 @@ function humoresLimpos(v: unknown): MoodLog[] {
     if (typeof m.date !== 'string' || !DIA.test(m.date) || !ehMood(m.mood)) return [];
     if (vistos.has(m.date)) return [];
     vistos.add(m.date);
-    return [{ date: m.date, mood: m.mood }];
+    /*
+      A palavra é conferida contra o humor dela, não contra a lista inteira.
+
+      Uma palavra do humor errado não é enfeite trocado: `patterns` cita a
+      palavra sozinha, e "solidão apareceu em cinco dias" para quem só marcou
+      "Feliz" seria o app inventando um sentimento. Palavra estranha ou de
+      outro humor cai fora e o registro fica — o humor em si continua válido.
+    */
+    return [
+      palavraValida(m.mood, m.palavra)
+        ? { date: m.date, mood: m.mood, palavra: m.palavra }
+        : { date: m.date, mood: m.mood },
+    ];
   });
 }
 

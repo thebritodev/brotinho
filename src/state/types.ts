@@ -70,8 +70,15 @@ export type Settings = {
   tema: PreferenciaDeTema;
 };
 
-/** Um humor por dia; `date` no formato YYYY-MM-DD. */
-export type MoodLog = { date: string; mood: Mood };
+/**
+ * Um humor por dia; `date` no formato YYYY-MM-DD.
+ *
+ * `palavra` é a segunda camada, opcional: o substantivo mais preciso que a
+ * pessoa escolheu depois de tocar na carinha — ver `data/humores.ts`. Quem não
+ * escolher nada segue com o humor sozinho, que era tudo o que existia antes; é
+ * por isso que ela é opcional, e não um segundo passo obrigatório.
+ */
+export type MoodLog = { date: string; mood: Mood; palavra?: string };
 
 /**
  * Uma planta que amadureceu e foi para o jardim.

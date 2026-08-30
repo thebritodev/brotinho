@@ -13,6 +13,7 @@ import {
   InsightCard,
   MemoryCard,
   MoodSelector,
+  PalavraDoHumor,
   CrossedCard,
   StatRow,
   VoltaCard,
@@ -31,7 +32,7 @@ import {
   diasSemAparecer,
   atravessou,
   lembranca,
-  patterns,
+  padraoDoDia,
   prontoParaColher,
   sproutStage,
   stats,
@@ -61,7 +62,7 @@ export function HomeScreen({
   const { colors, palette } = useTema();
   const insets = useSafeAreaInsets();
   const { width, height } = useWindowDimensions();
-  const { data, setTodayMood, markStageSeen, colherPlanta } = useAppState();
+  const { data, setTodayMood, setTodayPalavra, markStageSeen, colherPlanta } = useAppState();
 
   /**
    * O broto domina a tela: sangra até as bordas, ignorando a margem lateral
@@ -87,7 +88,8 @@ export function HomeScreen({
    * qualquer coisa. A oferta precisa distinguir "disse neutro" de "não disse
    * nada" — só a primeira é uma resposta.
    */
-  const humorMarcado = data.moodHistory.find((m) => m.date === today)?.mood ?? null;
+  const registroDeHoje = data.moodHistory.find((m) => m.date === today);
+  const humorMarcado = registroDeHoje?.mood ?? null;
   const mood = humorMarcado ?? 'neutro';
 
   const sugestao = useMemo(
@@ -114,7 +116,7 @@ export function HomeScreen({
    * há o que contar, a seção diz o que vem a seguir.
    */
   const semNadaAindaParaContar = growth.every((s) => s.value === 0);
-  const insights = useMemo(() => patterns(data), [data]);
+  const padrao = useMemo(() => padraoDoDia(data), [data]);
   const memoria = useMemo(() => lembranca(data), [data]);
   const passou = useMemo(() => atravessou(data), [data]);
   const [lendoMemoria, setLendoMemoria] = useState(false);
@@ -220,6 +222,25 @@ export function HomeScreen({
           }}
           faceSize={faceSize}
         />
+
+        {/*
+          A palavra vem antes da sugestão, e as duas nunca competem.
+
+          A palavra pertence ao toque que a pessoa acabou de dar — é a mesma
+          pergunta, mais fina. A sugestão é outro assunto: sair daqui e fazer
+          um exercício. Invertida, a ordem convidaria a sair da tela antes de
+          terminar de responder nela.
+        */}
+        {!!humorMarcado && (
+          <PalavraDoHumor
+            mood={humorMarcado}
+            value={registroDeHoje?.palavra}
+            onChange={(p) => {
+              toqueLeve(data.settings.vibracao);
+              setTodayPalavra(p);
+            }}
+          />
+        )}
 
         {/* Discreto de propósito: um convite, não um cartão. Some sozinho
             quando o humor não pede nada — ver `data/sugestao.ts`. */}
@@ -369,12 +390,12 @@ export function HomeScreen({
 
       {/* Só aparece quando há registros suficientes — inventar um "padrão"
           para quem acabou de instalar seria falso. */}
-      {insights.length > 0 && (
+      {!!padrao && (
         <View>
           <Text style={{ color: colors.textPrimary, fontFamily: fonts.display.semiBold, fontSize: 19, marginBottom: 12 }}>
             Seu broto percebeu
           </Text>
-          <InsightCard text={insights[0]} />
+          <InsightCard text={padrao} />
         </View>
       )}
     </ScrollView>

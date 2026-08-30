@@ -1,4 +1,6 @@
-import type { SproutStage, ValueKey } from '../components';
+import type { SproutStage } from '../components';
+import { ROTULO_DO_HUMOR } from '../data/humores';
+import { ROTULO_DO_VALOR, type ValueKey } from '../data/valores';
 import type { Mood } from '../theme/tokens';
 import { TENTOU_TERAPIA } from '../data/onboarding';
 import type { AppData, Plant } from './types';
@@ -263,14 +265,71 @@ export function patterns(data: AppData): string[] {
     found.push(`Seus dias mais pesados costumam cair ${WEEKDAY_LABEL[Number(pior[0])]}.`);
   }
 
-  // Humor predominante.
+  /*
+    Humor predominante.
+
+    A frase saía com a chave crua e sem concordância — *"ansioso" foi como você
+    se sentiu* —, errada para metade das pessoas que vão usar o app. Agora ela
+    usa o rótulo e é construída em volta da marcação, não da pessoa: ninguém
+    precisa ter gênero para ter marcado "Ansioso" na maioria dos dias.
+  */
   const contagem: Partial<Record<Mood, number>> = {};
   data.moodHistory.forEach((m) => {
     contagem[m.mood] = (contagem[m.mood] ?? 0) + 1;
   });
   const dominante = (Object.entries(contagem) as [Mood, number][]).sort((a, b) => b[1] - a[1])[0];
   if (dominante && dominante[1] >= 3) {
-    found.push(`"${dominante[0]}" foi como você se sentiu na maior parte dos dias registrados.`);
+    found.push(
+      `Na maior parte dos dias registrados, você marcou "${ROTULO_DO_HUMOR[dominante[0]]}".`,
+    );
+  }
+
+  /*
+    A palavra que mais se repete.
+
+    Vale a pena separar do humor: cinco dias de "Ansioso" dizem pouco, e cinco
+    dias de *aflição* dizem outra coisa que cinco dias de *irritação*. É o
+    ganho da segunda camada aparecendo de volta para quem se deu ao trabalho de
+    escolher — sem ela, escolher a palavra não teria consequência nenhuma.
+  */
+  const porPalavra: Record<string, number> = {};
+  data.moodHistory.forEach((m) => {
+    if (m.palavra) porPalavra[m.palavra] = (porPalavra[m.palavra] ?? 0) + 1;
+  });
+  const palavraMaisVista = Object.entries(porPalavra).sort((a, b) => b[1] - a[1])[0];
+  if (palavraMaisVista && palavraMaisVista[1] >= 3) {
+    found.push(
+      `A palavra que mais voltou nos seus dias foi "${palavraMaisVista[0]}" — ${palavraMaisVista[1]} vezes.`,
+    );
+  }
+
+  /*
+    A prática que ela repete.
+
+    O app não pergunta qual é a favorita; ele repara — a mesma decisão de
+    `praticasMaisFeitas`. Duas vezes é o piso: uma repetição é acaso.
+  */
+  const repetida = praticasMaisFeitas(data, 1)[0];
+  if (repetida) {
+    found.push(`Você voltou ${repetida.vezes} vezes à prática "${repetida.practice}".`);
+  }
+
+  /*
+    O valor mais vivido, e o tema que mais volta.
+
+    Os dois leem o texto do diário, e por isso passam por `livedValues` e
+    `ventThemes` em vez de varrer `journal` aqui: as duas já respeitam o
+    interruptor "Análise dos meus registros", e refazer a conta neste arquivo
+    seria criar uma terceira leitura que ninguém lembraria de desligar junto.
+  */
+  const valor = livedValues(data)[0];
+  if (valor && valor.count >= 3) {
+    found.push(`${ROTULO_DO_VALOR[valor.value]} aparece bastante no que você escreve.`);
+  }
+
+  const tema = ventThemes(data)[0];
+  if (tema && tema.count >= 4) {
+    found.push(`Você tem voltado ao assunto "${tema.theme}" no que escreve.`);
   }
 
   // Constância na escrita.
@@ -279,6 +338,29 @@ export function patterns(data: AppData): string[] {
   }
 
   return found;
+}
+
+/**
+ * O padrão que a tela inicial mostra hoje.
+ *
+ * A Home tem espaço para um cartão e `patterns` devolve vários. Enquanto eram
+ * três regras, mostrar o primeiro passava; com sete, "Seu broto percebeu" diria
+ * a mesma frase todo dia para sempre, e as outras seis só existiriam na tela de
+ * terapia — trabalho feito que ninguém veria.
+ *
+ * Gira pelo dia, e não por sorteio. Sorteio muda a cada vez que a tela desenha:
+ * a pessoa lê metade de uma frase, rola para ver o jardim, volta e a frase é
+ * outra. Pelo dia, o cartão fica parado enquanto ela estiver ali e é outro
+ * amanhã — que é como o app já trata a frase do lembrete.
+ */
+export function padraoDoDia(data: AppData, hoje = new Date()): string | null {
+  const todos = patterns(data);
+  if (!todos.length) return null;
+  // Da chave do dia, e não de `getTime`: assim o índice não muda de valor
+  // quando o relógio cruza a meia-noite em outro fuso.
+  const [ano, mes, dia] = dayKey(hoje).split('-').map(Number);
+  const numeroDoDia = Math.floor(Date.UTC(ano, mes - 1, dia) / 86_400_000);
+  return todos[((numeroDoDia % todos.length) + todos.length) % todos.length];
 }
 
 /**

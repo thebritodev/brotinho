@@ -16,6 +16,7 @@ import {
   scheduleDailyReminder,
   scheduleWeeklySummary,
 } from '../services/notifications';
+import { palavraValida } from '../data/humores';
 import { limparExportacoes } from '../services/limparExportacoes';
 import { clearAppData, loadAppData, saveAppData } from '../storage/appStorage';
 import type { Mood } from '../theme';
@@ -28,6 +29,7 @@ import {
   type AppData,
   type Compost,
   type JournalEntry,
+  type MoodLog,
   type Profile,
   type Settings,
 } from './types';
@@ -39,6 +41,8 @@ type AppStateValue = {
   updateProfile: (patch: Partial<Profile>) => void;
   updateSettings: (patch: Partial<Settings>) => void;
   setTodayMood: (mood: Mood) => void;
+  /** Guarda a palavra mais precisa de hoje, ou a tira se for a mesma. */
+  setTodayPalavra: (palavra: string) => void;
   addJournalEntry: (text: string) => void;
   updateJournalEntry: (id: string, text: string) => void;
   removeJournalEntry: (id: string) => void;
@@ -192,13 +196,43 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
     setData((prev) => (prev.stageSeen === stage ? prev : { ...prev, stageSeen: stage }));
   }, []);
 
-  /** Um registro por dia: escolher de novo hoje substitui o de hoje. */
+  /**
+   * Um registro por dia: escolher de novo hoje substitui o de hoje.
+   *
+   * Trocar de humor apaga a palavra junto, de propósito: as palavras pertencem
+   * ao humor, e guardar "solidão" debaixo de "Feliz" porque a pessoa mudou de
+   * ideia deixaria o registro dizendo o que ela não disse.
+   */
   const setTodayMood = useCallback((mood: Mood) => {
     const today = dayKey();
     setData((prev) => ({
       ...prev,
       moodHistory: [{ date: today, mood }, ...prev.moodHistory.filter((m) => m.date !== today)],
     }));
+  }, []);
+
+  /**
+   * A palavra de hoje. Tocar na que já está escolhida a tira.
+   *
+   * Não cria registro: sem humor marcado não há a que a palavra pertencer, e
+   * na tela ela nem aparece antes disso. Palavra que não seja do humor de hoje
+   * é ignorada aqui também, e não só ao ler o disco — o mesmo motivo, e a
+   * checagem custa uma linha.
+   */
+  const setTodayPalavra = useCallback((palavra: string) => {
+    const today = dayKey();
+    setData((prev) => {
+      const hoje = prev.moodHistory.find((m) => m.date === today);
+      if (!hoje || !palavraValida(hoje.mood, palavra)) return prev;
+      const novo: MoodLog =
+        hoje.palavra === palavra
+          ? { date: hoje.date, mood: hoje.mood }
+          : { ...hoje, palavra };
+      return {
+        ...prev,
+        moodHistory: [novo, ...prev.moodHistory.filter((m) => m.date !== today)],
+      };
+    });
   }, []);
 
   const addJournalEntry = useCallback((text: string) => {
@@ -257,6 +291,7 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
       updateProfile,
       updateSettings,
       setTodayMood,
+      setTodayPalavra,
       addJournalEntry,
       updateJournalEntry,
       removeJournalEntry,

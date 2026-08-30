@@ -24,6 +24,7 @@ export { TrazerDeVolta } from './brand/TrazerDeVolta';
 export { HumorNoTempo } from './brand/HumorNoTempo';
 export { MoodFace } from './brand/MoodFace';
 export { MoodSelector, MOODS } from './brand/MoodSelector';
+export { PalavraDoHumor } from './brand/PalavraDoHumor';
 export { PracticeTopicCard } from './brand/PracticeTopicCard';
 export { Sprout, type Decoration, type SproutStage } from './brand/Sprout';
 export { ValueBadge, VALUES, type ValueKey } from './brand/ValueBadge';

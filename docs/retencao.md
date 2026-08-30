@@ -416,6 +416,109 @@ Brotinho sai a R$ 14,99/mês e está competitivo; o mensal, a R$ 29,90, está un
 para empurrar ao anual. Fica escrito aqui porque, sem isso, alguém — inclusive
 eu, daqui a seis meses — vai "corrigir" esse preço achando que é descuido.
 
+## Pesquisa de 30 de agosto — as avaliações, e o que elas pedem
+
+A rodada de 29/08 olhou o que os concorrentes **fazem**. Esta olhou o que as
+pessoas **escrevem sobre eles** — que é outra coisa, e mais útil: um recurso
+elogiado no site do produto pode ser o mesmo que a avaliação de uma estrela
+chama de chato.
+
+### O achado principal: a categoria é rígida demais, e dizem isso
+
+"Categorias de humor rígidas demais" está entre as queixas mais repetidas nas
+avaliações de app de humor. Do outro lado, o recurso mais elogiado do *How We
+Feel* — feito com o centro de inteligência emocional de Yale — é exatamente o
+oposto: dar vocabulário para a pessoa achar a palavra certa.
+
+E não é só preferência de público. Um estudo de campo de 24 dias mostra que
+**nomear a emoção com mais precisão melhora a capacidade de regulá-la sem que
+nenhuma estratégia seja ensinada.** O ganho vem do nomear. É o efeito mais
+barato que este app pode oferecer: uma lista de palavras.
+
+→ `data/humores.ts` e `components/brand/PalavraDoHumor.tsx`. Cinco substantivos
+por humor, aparecendo **depois** de a carinha ser tocada.
+
+**Três decisões que valem registro:**
+
+1. **Substantivo, e não adjetivo.** Em inglês dá para listar *anxious*, *tired*,
+   *proud*. Em português quase todo adjetivo concorda em gênero, e uma lista de
+   adjetivos obrigaria a escolher entre "ansioso" e "ansiosa" — entre errar com
+   metade das pessoas e perguntar o gênero de alguém que só queria dizer como
+   está. *Aflição* serve para qualquer pessoa. É o tipo de coisa que some numa
+   tradução direta do concorrente.
+2. **Aparece depois da carinha, nunca antes.** A queixa de interface do Finch é
+   densidade: muita coisa antes de fazer qualquer coisa. Aqui a pergunta segunda
+   só existe depois da resposta primeira, e quem não quiser responder não vê nada
+   além do que via antes.
+3. **A palavra tem consequência.** Escolher e nada acontecer seria pior que não
+   perguntar. `patterns` passou a citá-la: *a palavra que mais voltou nos seus
+   dias foi "aflição"*. Cinco dias de "Ansioso" dizem pouco; cinco dias de
+   *aflição* dizem outra coisa que cinco de *irritação*.
+
+`scripts/confere-humores.js` guarda as duas primeiras regras — reprova palavra
+com forma de adjetivo, e palavra que apareça em dois humores.
+
+### O segundo achado: coletar bem e não fazer nada com aquilo
+
+A literatura de avaliações resume assim: estes apps são fortes em **coletar e
+refletir** e fracos em **preparar e agir**. Aqui isso estava meio resolvido — a
+linha de sugestão embaixo das carinhas —, mas `patterns` tinha três regras, e
+duas fracas. Prática feita, valor vivido e tema de desabafo, que o app já
+guarda, não entravam em nenhuma.
+
+→ quatro regras novas, e `padraoDoDia`. A Home mostra um cartão só e mostrava
+sempre o primeiro: com sete regras, "Seu broto percebeu" diria a mesma frase
+para sempre, e as outras seis só existiriam na tela de terapia. Agora gira pelo
+dia — parado enquanto a pessoa está ali, outro amanhã.
+
+**Um defeito antigo apareceu no caminho.** A frase do humor predominante usava a
+chave crua e sem concordância — *"ansioso" foi como você se sentiu* —, errada
+para metade das pessoas que vão usar o app. Virou *Na maior parte dos dias
+registrados, você marcou "Ansioso"*: construída em volta da marcação, não da
+pessoa. Ninguém precisa ter gênero para ter marcado "Ansioso".
+
+### O que confirma decisões já tomadas
+
+- **A gamificação vira tarefa.** A queixa de longo prazo mais citada do Finch:
+  *"o mesmo bichinho que encanta na semana um vira mais uma coisa para cuidar no
+  mês três"*. É a terceira fonte independente com a mesma conclusão — depois da
+  literatura clínica (25/08) e do dado de retenção Daylio × Finch (29/08).
+- **O loop diário tem de ser rápido.** A outra queixa do Finch é lentidão: muitas
+  telas, mensagens e animações para marcar uma tarefa. Aqui é um toque na tela
+  inicial, e a palavra é um segundo toque opcional. Vale como régua para o que
+  vier depois.
+- **Conta obrigatória, perda de dados e falta de exportação** aparecem nas três
+  listas de queixa que li. Nenhuma se aplica: não há conta, o backup do sistema
+  está configurado, e a exportação volta desde 28/08.
+
+### Uma ideia que morreu na checagem
+
+Correlacionar sono com humor aparece na lista de recursos mais pedidos. Aqui é
+impossível: `sleepTime` é o horário habitual de dormir, coletado uma vez no
+onboarding para o lembrete não cair enquanto a pessoa dorme — não é qualidade de
+sono. Coletar isso custaria uma pergunta por dia, que é o oposto do que a mesma
+pesquisa recomenda.
+
+### O onboarding, e o limite de medir sem servidor
+
+Catorze passos, seis com pergunta. A referência de 2026 fala em duas ou três
+perguntas e sessenta a cento e vinte segundos, e avisa que perder mais de 20–30%
+num único passo é sinal vermelho. Contra isso: a ordem atual conta uma história,
+e paywall duro converte melhor quando há investimento antes — as duas coisas que
+a referência genérica não cobre.
+
+**Decidido medir antes de mexer. E aí esbarra numa parede que vale escrever:**
+não existe analytics neste app, de propósito, e a política de privacidade promete
+que não existe. Saber em qual passo a pessoa desiste exige mandar isso para algum
+lugar — o que contradiz a promessa central, num app cuja conversão depende de as
+pessoas acreditarem nessa promessa.
+
+O que dá para medir sem custo nenhum e sem código: **App Store Connect** dá
+instalações e sessões, e o **RevenueCat** dá o funil de paywall visto → compra.
+Isso cobre "quantos chegam ao fim" e "quantos pagam". O que fica de fora é
+justamente **qual passo** derruba. Fica assim, com o motivo escrito, até haver um
+motivo forte o bastante para pagar o preço.
+
 ## Fontes
 
 - [Clinical review of user engagement with mental health smartphone apps](https://pmc.ncbi.nlm.nih.gov/articles/PMC10270395/)
@@ -444,4 +547,14 @@ eu, daqui a seis meses — vai "corrigir" esse preço achando que é descuido.
 - [Como cuidar da saúde mental usando o Cíngulo (TechTudo)](https://www.techtudo.com.br/dicas-e-tutoriais/2019/12/como-cuidar-da-saude-mental-usando-o-cingulo-melhor-app-do-ano-para-android.ghtml)
 - [7 plataformas de saúde mental no Brasil (Startups)](https://startups.com.br/negocios/healthtechs/7-plataformas-que-te-ajudam-a-cuidar-da-sua-saude-mental/)
 - [13 Grounding Techniques to Help Calm Anxiety (Cleveland Clinic)](https://health.clevelandclinic.org/grounding-techniques)
+- [Insights from user reviews to improve mental health apps (Alqahtani & Orji)](https://pubmed.ncbi.nlm.nih.gov/31920160/)
+- [Using Machine Learning and Thematic Analysis to Evaluate Mental Health Apps Based on User Reviews — 104 apps, 88.125 avaliações](https://www.researchgate.net/publication/342138733_Using_Machine_Learning_and_Thematic_Analysis_Methods_to_Evaluate_Mental_Health_Apps_Based_on_User_Reviews)
+- [User Perspectives of Mood-Monitoring Apps Available to Young People (JMIR)](https://mhealth.jmir.org/2020/10/e18140/)
+- [The role of emotional granularity in emotional regulation, mental disorders, and well-being (Frontiers)](https://www.frontiersin.org/journals/psychology/articles/10.3389/fpsyg.2022.1080713/full)
+- [Beyond happy and sad: granular affect labeling to enhance emotion regulation ability](https://www.sciencedirect.com/science/article/abs/pii/S1071581925002782)
+- [How We Feel — avaliações na App Store](https://apps.apple.com/us/app/how-we-feel/id1562706384?see-all=reviews&platform=iphone)
+- [Finch App Review 2026: Honest Pros & Cons](https://habitbox.app/blog/finch-app-review)
+- [Daylio App Review 2026: Pros & Cons](https://www.choosingtherapy.com/daylio-app-review/)
+- [App Onboarding Rates 2026 (Business of Apps)](https://www.businessofapps.com/data/app-onboarding-rates/)
+- [App Onboarding Flow Benchmarks: Where Users Drop Off in 2026](https://semnexus.com/app-onboarding-flow-benchmarks-where-users-drop-off-2026)
 - [Rosebud: AI Journal — avaliações e reclamações](https://apps.apple.com/us/app/rosebud-ai-journal-diary/id6451135127?see-all=reviews&platform=iphone)
