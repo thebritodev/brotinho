@@ -112,6 +112,15 @@ export async function scheduleDailyReminder(
   time: string,
   diasSemAparecer: number | null = null,
   diasCuidados = 0,
+  /**
+   * O nome que a pessoa deu ao broto, se deu.
+   *
+   * Vai no título, e não no corpo: as 53 frases de `data/lembretes.ts` são
+   * escritas e testadas uma a uma, e costurar um nome dentro delas quebraria
+   * a costura. No título ele cabe inteiro — o lembrete deixa de chegar "do
+   * Brotinho" e passa a chegar do Bongo, que é o ponto.
+   */
+  nomeDoBroto = '',
 ): Promise<boolean> {
   const [hour, minute] = time.split(':').map(Number);
   if (Number.isNaN(hour) || Number.isNaN(minute)) return false;
@@ -138,7 +147,7 @@ export async function scheduleDailyReminder(
       // o cancelamento varrer todos de uma vez.
       identifier: `${PREFIXO}-${i}`,
       content: {
-        title: 'Brotinho',
+        title: nomeDoBroto || 'Brotinho',
         body: aviso.texto,
         data: { [DESTINO_KEY]: 'diario' satisfies DestinoDeNotificacao },
         ...(Platform.OS === 'android' ? { channelId: CHANNEL_ID } : null),

@@ -30,6 +30,7 @@ export function MyDataScreen({ onBack }: { onBack: () => void }) {
   const [campo, setCampo] = useState<Campo | null>(null);
   const [editandoNome, setEditandoNome] = useState(false);
   const [rascunhoNome, setRascunhoNome] = useState(p.name);
+  const [rascunhoBroto, setRascunhoBroto] = useState(p.nomeDoBroto);
 
   const linha = (rotulo: string, valor: string, aoTocar?: () => void) => {
     const conteudo = (
@@ -116,6 +117,14 @@ export function MyDataScreen({ onBack }: { onBack: () => void }) {
           <>
             {linha('Nome', p.name.trim() || VAZIO, () => {
               setRascunhoNome(p.name);
+              setRascunhoBroto(p.nomeDoBroto);
+              setEditandoNome(true);
+            })}
+            {/* Os dois nomes moram no mesmo lugar, como no onboarding: quem
+                deixou o broto sem nome lá encontra aqui, e não numa tela nova. */}
+            {linha('Nome do broto', p.nomeDoBroto.trim() || 'Brotinho', () => {
+              setRascunhoNome(p.name);
+              setRascunhoBroto(p.nomeDoBroto);
               setEditandoNome(true);
             })}
             {linha('Faixa etária', p.idade ?? VAZIO, () => setCampo('idade'))}
@@ -249,11 +258,18 @@ export function MyDataScreen({ onBack }: { onBack: () => void }) {
               Como podemos te chamar?
             </Text>
             <Input value={rascunhoNome} onChangeText={setRascunhoNome} placeholder="Seu nome" />
+            <Input
+              label="E eu, como você quer me chamar?"
+              placeholder="Brotinho"
+              value={rascunhoBroto}
+              onChangeText={setRascunhoBroto}
+              maxLength={24}
+            />
             <Button
               variant="primary"
               disabled={!rascunhoNome.trim()}
               onPress={() => {
-                updateProfile({ name: rascunhoNome.trim() });
+                updateProfile({ name: rascunhoNome.trim(), nomeDoBroto: rascunhoBroto.trim() });
                 setEditandoNome(false);
               }}
             >

@@ -52,6 +52,7 @@ import { useBotaoVoltar } from '../../navigation/useBotaoVoltar';
 /** Estado local do fluxo — só é gravado no perfil ao concluir. */
 type Draft = {
   name: string;
+  nomeDoBroto: string;
   checkin: string | null;
   valores: string[];
   sleepTime: string;
@@ -101,6 +102,7 @@ export function OnboardingScreen() {
   const [step, setStep] = useState(0);
   const [draft, setDraft] = useState<Draft>({
     name: data.profile.name,
+    nomeDoBroto: data.profile.nomeDoBroto,
     checkin: data.profile.checkin,
     valores: data.profile.valores,
     sleepTime: data.profile.sleepTime,
@@ -331,6 +333,18 @@ export function OnboardingScreen() {
       </View>
     ),
 
+    /*
+      Os dois nomes na mesma tela, de propósito.
+
+      Batizar o broto é o vínculo mais citado nas avaliações do Finch, e ele se
+      forma no começo ou não se forma. Mas o onboarding já tem catorze passos —
+      acrescentar um décimo quinto para isso seria trocar um problema por outro.
+      Aqui o broto acabou de perguntar o nome dela; perguntar o dele em seguida
+      é a conversa continuando, não uma tela nova.
+
+      Fica opcional e sem estrela de obrigatório: quem não quiser batizar segue
+      com "Brotinho", e nada no app depende disso.
+    */
     [PASSO.NOME]: (
       <View style={{ gap: 20 }}>
         <AskingSprout
@@ -338,6 +352,26 @@ export function OnboardingScreen() {
           sub="Só para eu não falar com você como se fosse um formulário."
         />
         <Input placeholder="Seu nome" value={draft.name} onChangeText={(name) => set({ name })} />
+
+        <View style={{ gap: 6 }}>
+          <Input
+            label="E eu, como você quer me chamar?"
+            placeholder="Brotinho"
+            value={draft.nomeDoBroto}
+            onChangeText={(nomeDoBroto) => set({ nomeDoBroto })}
+            maxLength={24}
+          />
+          <Text
+            style={{
+              fontFamily: fonts.body.regular,
+              fontSize: 12,
+              lineHeight: 12 * 1.45,
+              color: palette.brown400,
+            }}
+          >
+            Pode deixar em branco. Dá para escolher depois, em Meus dados.
+          </Text>
+        </View>
       </View>
     ),
 

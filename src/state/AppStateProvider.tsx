@@ -19,7 +19,7 @@ import {
 import { limparExportacoes } from '../services/limparExportacoes';
 import { clearAppData, loadAppData, saveAppData } from '../storage/appStorage';
 import type { Mood } from '../theme';
-import { dayKey, daysCaredFor, diasComRegistro, diasSemAparecer } from './derived';
+import { dayKey, daysCaredFor, diasComRegistro, diasSemAparecer, nomeDoBroto } from './derived';
 import { sanitizarDados } from './sanitize';
 import type { Plant } from './types';
 import {
@@ -103,6 +103,7 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
    */
   const ausencia = diasSemAparecer(data);
   const cuidados = daysCaredFor(data);
+  const broto = nomeDoBroto(data);
 
   /**
    * Varre as exportações que ficaram no cache da vez passada.
@@ -152,9 +153,9 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
     if (!hydrated || Platform.OS === 'web' || !onboarded) return;
     // Não é um agendamento só: é uma fila de dias, cada um com o seu texto.
     // O plano inteiro está em `data/lembretes.ts`.
-    if (reminders) void scheduleDailyReminder(reminder, ausencia, cuidados);
+    if (reminders) void scheduleDailyReminder(reminder, ausencia, cuidados, broto);
     else void cancelDailyReminder();
-  }, [hydrated, onboarded, reminders, reminder, ausencia, cuidados, voltou]);
+  }, [hydrated, onboarded, reminders, reminder, ausencia, cuidados, broto, voltou]);
 
   useEffect(() => {
     if (!hydrated || Platform.OS === 'web' || !onboarded) return;

@@ -59,6 +59,9 @@ function perfilLimpo(v: unknown): Profile {
   return {
     ...INITIAL_PROFILE,
     name: texto(p.name, INITIAL_PROFILE.name),
+    // Cortado no tamanho porque ele vai para o título da notificação, onde o
+    // sistema trunca sem avisar — melhor cortar aqui, com controle.
+    nomeDoBroto: texto(p.nomeDoBroto, INITIAL_PROFILE.nomeDoBroto).slice(0, 24),
     // Rótulos de resposta mudaram entre versões; `renomear` traduz os antigos.
     checkin: p.checkin ? textoOuNulo(renomear(String(p.checkin))) : null,
     tentou: listaDeTextos(p.tentou).map(renomear),

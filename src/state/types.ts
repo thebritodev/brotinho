@@ -4,6 +4,15 @@ import type { Mood } from '../theme';
 /** Respostas do onboarding + estado da assinatura. */
 export type Profile = {
   name: string;
+  /**
+   * O nome que a pessoa deu ao broto. Vazio quando ela não quis dar.
+   *
+   * Batizar é o mecanismo de vínculo mais citado nas avaliações do Finch —
+   * "dei o nome de Bongo e pronto, apego instantâneo" —, e não é gamificação:
+   * não há placar, não há ofensiva, não há nada a perder. É só deixar de ser
+   * "o app" e passar a ser alguém.
+   */
+  nomeDoBroto: string;
   checkin: string | null;
   valores: string[];
   sleepTime: string;
@@ -117,6 +126,7 @@ export type AppData = {
 
 export const INITIAL_PROFILE: Profile = {
   name: '',
+  nomeDoBroto: '',
   checkin: null,
   valores: [],
   sleepTime: '23:00',

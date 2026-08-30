@@ -9,10 +9,12 @@ type Props = {
   placeholder?: string;
   label?: string;
   autoFocus?: boolean;
+  /** Teto de caracteres. O nome do broto usa: ele vai para o título da notificação. */
+  maxLength?: number;
 };
 
 /** Input — campo de texto de uma linha. */
-export function Input({ value, onChangeText, placeholder, label, autoFocus }: Props) {
+export function Input({ value, onChangeText, placeholder, label, autoFocus, maxLength }: Props) {
   return (
     <View style={{ gap: 6 }}>
       {!!label && (
@@ -26,6 +28,7 @@ export function Input({ value, onChangeText, placeholder, label, autoFocus }: Pr
         placeholder={placeholder}
         placeholderTextColor={colors.textSecondary}
         autoFocus={autoFocus}
+        maxLength={maxLength}
         style={{
           fontFamily: fonts.body.regular,
           fontSize: 16,

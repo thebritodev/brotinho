@@ -285,6 +285,17 @@ export function stats(data: AppData) {
   ];
 }
 
+/**
+ * O nome do broto, ou vazio quando ela não deu nenhum.
+ *
+ * Quem chama decide o que fazer com o vazio: na notificação vira "Brotinho",
+ * no jardim some a linha inteira. Devolver um padrão aqui esconderia essa
+ * escolha de quem lê o código.
+ */
+export function nomeDoBroto(data: AppData): string {
+  return data.profile.nomeDoBroto.trim();
+}
+
 /** Humor dos últimos 7 dias, do mais antigo ao mais recente. */
 export function moodWeek(data: AppData): { day: string; mood: Mood | null }[] {
   const LETRAS = ['D', 'S', 'T', 'Q', 'Q', 'S', 'S'];
