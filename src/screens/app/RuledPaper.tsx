@@ -1,10 +1,38 @@
 import React from 'react';
-import { View } from 'react-native';
+import { PixelRatio, View } from 'react-native';
 
 import { borderWidth, radius, useTema } from '../../theme';
 
-/** Altura de cada linha do papel pautado. */
-export const LINE_HEIGHT = 35;
+/**
+ * A altura da pauta como o **texto** a declara.
+ *
+ * É este o número que vai em `lineHeight` de um estilo de texto, e só ele. O
+ * React Native multiplica `fontSize` e `lineHeight` pela escala de fonte do
+ * aparelho quando `allowFontScaling` está ligado, que é o padrão — ver
+ * `TextAttributes.kt`, `effectiveLineHeight`. Passar aqui um valor já
+ * multiplicado seria multiplicar duas vezes.
+ */
+export const PAUTA_EM_SP = 35;
+
+/**
+ * A mesma altura já em pixels de tela — a que a pauta **desenhada** usa.
+ *
+ * Aqui estava o desencontro que três correções de `paddingTop` não alcançaram.
+ * Um `<View>` mede em dp e ignora a escala de fonte; o texto em cima dele não.
+ * Com a fonte do sistema no padrão os dois coincidem e o defeito não existe.
+ * Com a fonte aumentada, a faixa do texto cresce e a pauta não, e a escrita
+ * desencontra **um pouco mais a cada linha** — o que nenhum deslocamento
+ * conserta, porque o errado é o passo, não a posição.
+ *
+ * Papel pautado de verdade tem a pauta feita para a letra de quem escreve.
+ * Aqui é a mesma ideia: quem aumentou a fonte do celular ganha um caderno de
+ * pauta larga, em vez de um caderno onde a letra não cabe na linha.
+ *
+ * Lido uma vez, na importação. Mudar o tamanho de fonte do sistema reinicia a
+ * atividade no Android, então o módulo é avaliado de novo com o valor novo.
+ */
+export const PAUTA = PAUTA_EM_SP * PixelRatio.getFontScale();
+
 const LINE_COUNT = 14;
 const TOP_PADDING = 6;
 
@@ -55,7 +83,7 @@ export function RuledPaper({
             position: 'absolute',
             left: 0,
             right: 0,
-            top: TOP_PADDING + (i + 1) * LINE_HEIGHT,
+            top: TOP_PADDING + (i + 1) * PAUTA,
             height: 1,
             backgroundColor: palette.brown200,
           }}

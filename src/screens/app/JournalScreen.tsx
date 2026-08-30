@@ -7,6 +7,7 @@ import {
   Keyboard,
   KeyboardAvoidingView,
   Modal,
+  PixelRatio,
   Platform,
   Pressable,
   ScrollView,
@@ -26,7 +27,7 @@ import { descartarRascunho, loadRascunho, saveRascunho } from '../../storage/app
 import { comecoDoDia } from '../../data/comecos';
 import { dayKey, normalize } from '../../state/derived';
 import { borderWidth, fonts, type Mood, radius, useTema } from '../../theme';
-import { LINE_HEIGHT, RuledPaper } from './RuledPaper';
+import { PAUTA, PAUTA_EM_SP, RuledPaper } from './RuledPaper';
 import { SwipeableEntry } from './SwipeableEntry';
 import { useVoiceNote } from './useVoiceNote';
 
@@ -34,58 +35,79 @@ import { useVoiceNote } from './useVoiceNote';
 const TURN_DURATION = 620;
 
 /**
- * Quanto a base do texto fica **acima** da pauta, em pixels.
+ * Quanto a base do texto fica **acima** da pauta.
  *
- * É a folga que existe num caderno de verdade: a escrita se apoia na linha
- * sem encostar nela. O deslocamento que produz essa folga não está aqui — ele
- * é medido, ver `usePousoNaPauta`.
+ * É a folga que existe num caderno de verdade: a escrita se apoia na linha sem
+ * encostar nela. Cresce junto com a letra, pela mesma razão que a pauta cresce
+ * — numa fonte 30% maior, quatro pixels de folga espremem o texto contra o
+ * traço. O deslocamento que produz essa folga não está aqui: ele é medido, ver
+ * `usePousoNaPauta`.
  */
-const FOLGA_ACIMA_DA_PAUTA = 4;
+const FOLGA_ACIMA_DA_PAUTA = 4 * PixelRatio.getFontScale();
 
 /**
  * O deslocamento usado onde não dá para medir.
  *
  * `onTextLayout` não existe no React Native Web, então ali a medição nunca
- * roda. Este é o valor conferido no navegador, régua na tela: com a fonte
- * centralizada na faixa de 35, a base caía 13px acima do traço.
+ * roda. Este é o valor conferido no navegador, régua na tela: o navegador
+ * centraliza a fonte na faixa, e a base cai 9px abaixo do topo do texto.
  *
- * No Android e no iOS ele dura um instante e é substituído pela medida real.
+ * Vale só na web, e na web `getFontScale()` é sempre 1 — por isso é um número
+ * cru e não uma conta. No Android e no iOS ele dura um instante e é
+ * substituído pela medida real.
  */
 const POUSO_SEM_MEDIDA = 9;
+
+/** As três linhas da régua invisível. Três, e não uma, para medir a deriva. */
+const REGUA = ['Ag', 'Ag', 'Ag'].join('\n');
 
 /**
  * Onde a base do texto cai hoje, e quanto falta para ela pousar na pauta.
  *
  * A primeira versão disto era um número fixo, calibrado no navegador, e não
  * serviu no Android: `lineHeight` maior que a fonte é distribuído de um jeito
- * em cada plataforma, e ainda muda com o tamanho de fonte do sistema. Chutar
- * um valor acerta numa e erra na outra.
+ * em cada plataforma. Chutar um valor acerta numa e erra na outra.
  *
  * Então o texto se mede. Um `<Text>` invisível com o mesmo estilo relata, via
- * `onTextLayout`, onde a base da primeira linha caiu dentro da faixa; daí sai
- * exatamente quanto falta descer. Funciona no Android, no iOS e na web sem
- * ninguém precisar recalibrar — inclusive para quem usa a fonte do sistema
- * aumentada.
+ * `onTextLayout`, onde a base de cada linha caiu; daí sai exatamente quanto
+ * falta descer, nesta plataforma, com esta fonte.
+ *
+ * **Mas um deslocamento só conserta a folha inteira se a faixa do texto tiver
+ * a altura da pauta**, e foi aí que três correções seguidas erraram. Se a
+ * segunda linha não começa exatamente `PAUTA` abaixo da primeira, a escrita
+ * desencontra um pouco mais a cada linha, e nenhum `paddingTop` alcança isso:
+ * o errado é o passo, não a posição. Os dois defeitos se parecem na tela e têm
+ * consertos opostos — por isso a régua tem três linhas, e por isso existe o
+ * aviso. Ver `PAUTA`, em `RuledPaper`, para a causa.
  */
 function usePousoNaPauta() {
   const [deslocamento, setDeslocamento] = useState(POUSO_SEM_MEDIDA);
 
   const medir = (e: NativeSyntheticEvent<TextLayoutEventData>) => {
-    const linha = e.nativeEvent.lines[0];
+    const linhas = e.nativeEvent.lines;
+    const linha = linhas[0];
     if (!linha) return;
     // `y` é o topo da faixa da linha; `ascender`, a altura da letra acima da
     // base. A soma é onde a base está desenhada hoje.
     const baseAtual = linha.y + linha.ascender;
-    const baseDesejada = LINE_HEIGHT - FOLGA_ACIMA_DA_PAUTA;
+    const baseDesejada = PAUTA - FOLGA_ACIMA_DA_PAUTA;
     const novo = Math.max(0, Math.round(baseDesejada - baseAtual));
 
     if (__DEV__) {
-      // Sai no terminal do Metro, para conferir a medida no aparelho de
-      // verdade em vez de deduzir da web.
-      console.log(
-        `[brotinho/pauta] base em ${baseAtual.toFixed(1)} (y ${linha.y.toFixed(1)} + ` +
-          `ascender ${linha.ascender.toFixed(1)}) · alvo ${baseDesejada} · desce ${novo}`,
-      );
+      const passo = linhas[1] ? linhas[1].y - linha.y : null;
+      const cabecalho =
+        `[brotinho/pauta] base ${baseAtual.toFixed(1)} ` +
+        `(y ${linha.y.toFixed(1)} + asc ${linha.ascender.toFixed(1)}) · ` +
+        `faixa ${linha.height.toFixed(1)} · desc ${linha.descender.toFixed(1)} · ` +
+        `alvo ${baseDesejada} · desce ${novo}`;
+      console.log(cabecalho);
+      if (passo !== null && Math.abs(passo - PAUTA) > 0.5) {
+        console.warn(
+          `[brotinho/pauta] a faixa mede ${passo.toFixed(1)}, e a pauta ${PAUTA.toFixed(1)}. ` +
+            'Nenhum paddingTop conserta isso: o texto vai desencontrar mais a cada linha. ' +
+            'O que está errado é a altura da faixa.',
+        );
+      }
     }
 
     setDeslocamento((antigo) => (antigo === novo ? antigo : novo));
@@ -136,10 +158,18 @@ export function JournalScreen({
    */
 
   const paperTextStyle = {
-    minHeight: LINE_HEIGHT * 7,
+    minHeight: PAUTA * 7,
     fontFamily: fonts.body.regular,
     fontSize: 16,
-    lineHeight: LINE_HEIGHT,
+    /*
+      Aqui vai a altura **em sp**, não a já escalada.
+
+      O React Native multiplica `lineHeight` pela escala de fonte do aparelho
+      por conta própria. `PAUTA` é o resultado dessa multiplicação, e serve para
+      quem desenha em dp — a pauta, o `minHeight`, a conta do pouso. Escrever
+      `PAUTA` nesta linha multiplicaria duas vezes.
+    */
+    lineHeight: PAUTA_EM_SP,
     color: palette.brown900,
     paddingLeft: 4,
     paddingRight: 16,
@@ -411,7 +441,14 @@ export function JournalScreen({
             {/*
               A régua que se mede. Invisível, fora do fluxo e sem toque: existe
               só para o `onTextLayout` informar onde a base da letra cai nesta
-              plataforma, com esta fonte, neste tamanho de sistema.
+              plataforma, com esta fonte, neste tamanho de sistema — e de quanto
+              em quanto vêm as faixas seguintes, que é a outra metade do
+              alinhamento.
+
+              Três jeitos de escondê-la, porque são três plataformas: as duas
+              propriedades nativas do Android e do iOS, e `aria-hidden` para a
+              web, onde nenhuma das duas existe. Sem a terceira, um leitor de
+              tela anunciaria "Ag Ag Ag" antes do diário.
             */}
             <Text
               style={[paperTextStyle, { position: 'absolute', opacity: 0 }]}
@@ -419,8 +456,9 @@ export function JournalScreen({
               pointerEvents="none"
               accessibilityElementsHidden
               importantForAccessibility="no-hide-descendants"
+              aria-hidden
             >
-              Ag
+              {REGUA}
             </Text>
             <TextInput
               value={text}
