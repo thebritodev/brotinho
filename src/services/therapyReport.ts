@@ -5,7 +5,14 @@ import { VALUES } from '../components';
 import { findPractice, findTopic } from '../data/practices';
 import { daysCaredFor, livedValues, moodWeek, patterns, ventThemes } from '../state/derived';
 import type { AppData } from '../state/types';
-import { moodColors, palette } from '../theme';
+/*
+  O PDF sai claro sempre, e por isso importa a paleta fixa.
+
+  Ele é feito para ser impresso e mostrado a outra pessoa. Um resumo de fundo
+  preto gasta tinta, fica ilegível em papel e não é do tema do leitor — é do
+  tema de quem exportou.
+*/
+import { moodColors, paletteDoDesenho as palette } from '../theme/tokens';
 import { comNomeDoBrotinho, limparExportacoes } from './limparExportacoes';
 
 const escape = (s: string) =>

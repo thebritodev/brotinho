@@ -32,7 +32,7 @@ function PrivRow({
   children?: React.ReactNode;
   onPress?: () => void;
 }) {
-  const { palette } = useTema();
+  const { colors, palette } = useTema();
   const Container = onPress ? Pressable : View;
   return (
     <Container
@@ -45,7 +45,7 @@ function PrivRow({
     >
       <Icon name={icon} color={palette.brown700} />
       <View style={{ flex: 1 }}>
-        <Text style={{ fontFamily: fonts.body.bold, fontSize: 15 }}>{label}</Text>
+        <Text style={{ color: colors.textPrimary, fontFamily: fonts.body.bold, fontSize: 15 }}>{label}</Text>
         {!!hint && (
           <Text
             style={{
@@ -354,7 +354,7 @@ export function PrivacyScreen({ onBack }: { onBack: () => void }) {
                     color: palette.brown700,
                   }}
                 >
-                  <Text style={{ fontFamily: fonts.body.extraBold }}>{quantidade}</Text> {rotulo}
+                  <Text style={{ color: colors.textPrimary, fontFamily: fonts.body.extraBold }}>{quantidade}</Text> {rotulo}
                 </Text>
               ))}
             </View>

@@ -123,7 +123,7 @@ export function HarvestNotice({
           />
         </View>
 
-        <Text style={{ fontFamily: fonts.display.bold, fontSize: 23, textAlign: 'center' }}>
+        <Text style={{ color: colors.textPrimary, fontFamily: fonts.display.bold, fontSize: 23, textAlign: 'center' }}>
           Esta planta cresceu
         </Text>
 

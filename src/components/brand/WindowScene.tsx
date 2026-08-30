@@ -2,7 +2,15 @@ import React from 'react';
 import { View } from 'react-native';
 import Svg, { Circle, Ellipse, G, Path, Rect } from 'react-native-svg';
 
-import { palette } from '../../theme';
+/*
+  A janela usa a paleta fixa, e não o tema.
+
+  Ela já tem noite própria: o céu muda com a hora de quem está olhando, não com
+  a preferência do app. Seguir o tema também deixaria a cena com duas noites
+  empilhadas — uma do relógio e outra do interruptor —, e o desenho perderia o
+  sentido de "o mundo lá fora agora".
+*/
+import { paletteDoDesenho as palette } from '../../theme';
 import { AnimatedSprout } from './AnimatedSprout';
 
 /**

@@ -123,7 +123,7 @@ export function MyValuesScreen({ onBack }: { onBack: () => void }) {
             gap: 6,
           }}
         >
-          <Text style={{ fontFamily: fonts.display.semiBold, fontSize: 17 }}>
+          <Text style={{ color: colors.textPrimary, fontFamily: fonts.display.semiBold, fontSize: 17 }}>
             Estes são diferentes da aba Valores
           </Text>
           <Text

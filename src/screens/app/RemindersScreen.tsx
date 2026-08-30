@@ -99,7 +99,7 @@ export function RemindersScreen({ onBack }: { onBack: () => void }) {
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
             <Icon name="bell" color={palette.brown700} />
             <View style={{ flex: 1 }}>
-              <Text style={{ fontFamily: fonts.body.bold, fontSize: 15 }}>Lembrete diário</Text>
+              <Text style={{ color: colors.textPrimary, fontFamily: fonts.body.bold, fontSize: 15 }}>Lembrete diário</Text>
               <Text
                 style={{
                   fontFamily: fonts.body.regular,
@@ -154,7 +154,7 @@ export function RemindersScreen({ onBack }: { onBack: () => void }) {
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
             <Icon name="star" color={palette.brown700} />
             <View style={{ flex: 1 }}>
-              <Text style={{ fontFamily: fonts.body.bold, fontSize: 15 }}>Resumo semanal</Text>
+              <Text style={{ color: colors.textPrimary, fontFamily: fonts.body.bold, fontSize: 15 }}>Resumo semanal</Text>
               <Text
                 style={{
                   fontFamily: fonts.body.regular,

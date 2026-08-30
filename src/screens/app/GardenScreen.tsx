@@ -57,7 +57,7 @@ export function GardenScreen({ onBack }: { onBack: () => void }) {
         {/* O broto de agora */}
         <View style={{ alignItems: 'center', gap: 10 }}>
           <AnimatedSprout mood={humorDeHoje} stage={sproutStage(data)} size={tamanho} breathe />
-          <Text style={{ fontFamily: fonts.display.bold, fontSize: 19 }}>Crescendo agora</Text>
+          <Text style={{ color: colors.textPrimary, fontFamily: fonts.display.bold, fontSize: 19 }}>Crescendo agora</Text>
           <Text
             style={{
               fontFamily: fonts.body.regular,
@@ -114,7 +114,7 @@ export function GardenScreen({ onBack }: { onBack: () => void }) {
           </View>
         ) : (
           <View style={{ gap: 12 }}>
-            <Text style={{ fontFamily: fonts.display.semiBold, fontSize: 19 }}>
+            <Text style={{ color: colors.textPrimary, fontFamily: fonts.display.semiBold, fontSize: 19 }}>
               Plantas que você criou
             </Text>
 
@@ -156,7 +156,7 @@ export function GardenScreen({ onBack }: { onBack: () => void }) {
                   </View>
 
                   <View style={{ flex: 1, gap: 3 }}>
-                    <Text style={{ fontFamily: fonts.body.extraBold, fontSize: 15 }}>
+                    <Text style={{ color: colors.textPrimary, fontFamily: fonts.body.extraBold, fontSize: 15 }}>
                       {mesDe(planta.maturedAt) || 'período guardado'}
                     </Text>
                     <Text

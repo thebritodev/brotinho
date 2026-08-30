@@ -122,7 +122,7 @@ export function Paywall({ plan, onSelectPlan }: Props) {
           }}
         >
           No plano anual você paga{' '}
-          <Text style={{ fontFamily: fonts.body.extraBold }}>{preco('anual')} por ano</Text> em vez
+          <Text style={{ color: colors.textPrimary, fontFamily: fonts.body.extraBold }}>{preco('anual')} por ano</Text> em vez
           de {preco('mensal')} por mês.
         </Text>
       </View>

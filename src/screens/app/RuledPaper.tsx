@@ -20,12 +20,21 @@ export function RuledPaper({
   children?: React.ReactNode;
   style?: React.ComponentProps<typeof View>['style'];
 }) {
-  const { palette, shadows } = useTema();
+  const { colors, palette, shadows } = useTema();
   return (
     <View
       style={[
         {
-          backgroundColor: palette.cream100,
+          /*
+            A folha acompanha o tema.
+
+            Era `palette.cream100` fixo, e no escuro virava a coisa mais clara
+            da tela: uma página branca acesa num diário aberto de madrugada.
+            `surface` é o papel de cada tema — creme no claro, marrom quente no
+            escuro — e a tinta em cima dela já vinha de `brown900`, que
+            acompanha junto.
+          */
+          backgroundColor: colors.surface,
           borderRadius: radius.lg,
           borderWidth,
           borderColor: palette.brown200,

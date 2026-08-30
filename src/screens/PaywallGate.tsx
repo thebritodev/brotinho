@@ -48,7 +48,7 @@ export function PaywallGate() {
   return (
     <View style={{ flex: 1, backgroundColor: colors.bg, paddingTop: insets.top }}>
       <View style={{ paddingHorizontal: 20, paddingTop: 8, gap: 6 }}>
-        <Text style={{ fontFamily: fonts.display.bold, fontSize: 24, lineHeight: 24 * 1.2 }}>
+        <Text style={{ color: colors.textPrimary, fontFamily: fonts.display.bold, fontSize: 24, lineHeight: 24 * 1.2 }}>
           Sua assinatura terminou
         </Text>
         <Text

@@ -539,7 +539,7 @@ export function OnboardingScreen() {
               <Icon name={p.icon} size={20} color={colors.primaryStrong} />
             </View>
             <View style={{ flex: 1, gap: 3 }}>
-              <Text style={{ fontFamily: fonts.body.extraBold, fontSize: 15 }}>{p.title}</Text>
+              <Text style={{ color: colors.textPrimary, fontFamily: fonts.body.extraBold, fontSize: 15 }}>{p.title}</Text>
               <Text
                 style={{
                   fontFamily: fonts.body.regular,
@@ -583,7 +583,7 @@ export function OnboardingScreen() {
               <Icon name={a.icon} size={19} color={colors.primaryStrong} />
             </View>
             <View style={{ flex: 1, gap: 2 }}>
-              <Text style={{ fontFamily: fonts.body.extraBold, fontSize: 15 }}>{a.title}</Text>
+              <Text style={{ color: colors.textPrimary, fontFamily: fonts.body.extraBold, fontSize: 15 }}>{a.title}</Text>
               <Text
                 style={{
                   fontFamily: fonts.body.regular,

@@ -102,7 +102,7 @@ export function TimeField({ label, value, onChange }: TimeFieldProps) {
           paddingHorizontal: 20,
         }}
       >
-        <Text style={{ fontFamily: fonts.body.bold, fontSize: 15 }}>{label}</Text>
+        <Text style={{ color: colors.textPrimary, fontFamily: fonts.body.bold, fontSize: 15 }}>{label}</Text>
         <Text
           style={{ fontFamily: fonts.display.bold, fontSize: 22, color: colors.primaryStrong }}
         >

@@ -255,7 +255,7 @@ export function MyDataScreen({ onBack }: { onBack: () => void }) {
             style={[StyleSheet.absoluteFill, { backgroundColor: 'rgba(58,54,48,0.4)' }]}
           />
           <View style={{ backgroundColor: colors.bg, borderRadius: radius.lg, padding: 20, gap: 16 }}>
-            <Text style={{ fontFamily: fonts.display.semiBold, fontSize: 19 }}>
+            <Text style={{ color: colors.textPrimary, fontFamily: fonts.display.semiBold, fontSize: 19 }}>
               Como podemos te chamar?
             </Text>
             <Input value={rascunhoNome} onChangeText={setRascunhoNome} placeholder="Seu nome" />
@@ -307,7 +307,7 @@ export function MyDataScreen({ onBack }: { onBack: () => void }) {
               gap: 16,
             }}
           >
-            <Text style={{ fontFamily: fonts.display.semiBold, fontSize: 19 }}>{lista?.titulo}</Text>
+            <Text style={{ color: colors.textPrimary, fontFamily: fonts.display.semiBold, fontSize: 19 }}>{lista?.titulo}</Text>
 
             <ScrollView showsVerticalScrollIndicator={false}>
               {!!lista && !!campo && (

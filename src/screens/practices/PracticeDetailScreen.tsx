@@ -253,7 +253,7 @@ export function PracticeDetailScreen({
         </View>
 
         <View style={{ gap: 14 }}>
-          <Text style={{ fontFamily: fonts.display.semiBold, fontSize: 19 }}>Como fazer</Text>
+          <Text style={{ color: colors.textPrimary, fontFamily: fonts.display.semiBold, fontSize: 19 }}>Como fazer</Text>
 
           {practice.steps.map((s, i) => (
             <View key={s.title} style={{ flexDirection: 'row', gap: 12, alignItems: 'flex-start' }}>
@@ -274,7 +274,7 @@ export function PracticeDetailScreen({
                 </Text>
               </View>
               <View style={{ flex: 1, gap: 3 }}>
-                <Text style={{ fontFamily: fonts.body.bold, fontSize: 15 }}>{s.title}</Text>
+                <Text style={{ color: colors.textPrimary, fontFamily: fonts.body.bold, fontSize: 15 }}>{s.title}</Text>
                 <Text
                   style={{
                     fontFamily: fonts.body.regular,
@@ -298,7 +298,7 @@ export function PracticeDetailScreen({
             ...shadows.sm,
           }}
         >
-          <Text style={{ fontFamily: fonts.display.semiBold, fontSize: 17, marginBottom: 8 }}>
+          <Text style={{ color: colors.textPrimary, fontFamily: fonts.display.semiBold, fontSize: 17, marginBottom: 8 }}>
             Por que funciona
           </Text>
           <Text

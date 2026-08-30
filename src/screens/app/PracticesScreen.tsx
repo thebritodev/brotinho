@@ -130,7 +130,7 @@ export function PracticesScreen({
               </View>
 
               <View style={{ flex: 1, gap: 3 }}>
-                <Text style={{ fontFamily: fonts.body.extraBold, fontSize: 16 }}>{p.title}</Text>
+                <Text style={{ color: colors.textPrimary, fontFamily: fonts.body.extraBold, fontSize: 16 }}>{p.title}</Text>
                 <Text
                   style={{
                     fontFamily: fonts.body.regular,
@@ -250,7 +250,7 @@ export function PracticesScreen({
               >
                 A última que você fez
               </Text>
-              <Text style={{ fontFamily: fonts.body.extraBold, fontSize: 16 }}>
+              <Text style={{ color: colors.textPrimary, fontFamily: fonts.body.extraBold, fontSize: 16 }}>
                 {retomar.title}
               </Text>
             </View>
@@ -294,7 +294,7 @@ export function PracticesScreen({
                     ...shadows.sm,
                   }}
                 >
-                  <Text style={{ fontFamily: fonts.body.bold, fontSize: 13 }}>
+                  <Text style={{ color: colors.textPrimary, fontFamily: fonts.body.bold, fontSize: 13 }}>
                     {r.pratica!.title}
                   </Text>
                   <Text

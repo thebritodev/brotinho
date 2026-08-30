@@ -30,7 +30,7 @@ export function AboutScreen({ onBack, onOpenPolicy }: Props) {
       >
         <View style={{ alignItems: 'center', gap: 12, paddingTop: 4 }}>
           <AnimatedSprout mood="feliz" stage={3} size={140} swayOnMount />
-          <Text style={{ fontFamily: fonts.display.bold, fontSize: 26 }}>Brotinho</Text>
+          <Text style={{ color: colors.textPrimary, fontFamily: fonts.display.bold, fontSize: 26 }}>Brotinho</Text>
           <Text
             style={{ fontFamily: fonts.body.regular, fontSize: 14, color: colors.textSecondary }}
           >
@@ -40,7 +40,7 @@ export function AboutScreen({ onBack, onOpenPolicy }: Props) {
 
         {ABOUT.map((secao) => (
           <View key={secao.title} style={{ gap: 8 }}>
-            <Text style={{ fontFamily: fonts.display.semiBold, fontSize: 18 }}>{secao.title}</Text>
+            <Text style={{ color: colors.textPrimary, fontFamily: fonts.display.semiBold, fontSize: 18 }}>{secao.title}</Text>
             {secao.paragraphs.map((p, i) => (
               <Text
                 key={i}
@@ -72,14 +72,14 @@ export function AboutScreen({ onBack, onOpenPolicy }: Props) {
           })}
         >
           <Icon name="lock" color={palette.brown700} />
-          <Text style={{ flex: 1, fontFamily: fonts.body.bold, fontSize: 15 }}>
+          <Text style={{ color: colors.textPrimary, flex: 1, fontFamily: fonts.body.bold, fontSize: 15 }}>
             Política de privacidade
           </Text>
           <Icon name="chevronRight" color={palette.brown400} />
         </Pressable>
 
         <View style={{ gap: 8 }}>
-          <Text style={{ fontFamily: fonts.display.semiBold, fontSize: 18 }}>
+          <Text style={{ color: colors.textPrimary, fontFamily: fonts.display.semiBold, fontSize: 18 }}>
             Feito com software livre
           </Text>
           <Text

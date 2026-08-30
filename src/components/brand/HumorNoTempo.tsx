@@ -42,7 +42,7 @@ export function HumorNoTempo() {
   return (
     <Card>
       <View style={{ marginBottom: 12, gap: 10 }}>
-        <Text style={{ fontFamily: fonts.display.semiBold, fontSize: 17 }}>
+        <Text style={{ color: colors.textPrimary, fontFamily: fonts.display.semiBold, fontSize: 17 }}>
           Seu humor ao longo do tempo
         </Text>
         <View style={{ flexDirection: 'row', gap: 8 }}>

@@ -51,7 +51,7 @@ export function PrivacyPolicyScreen({ onBack }: { onBack: () => void }) {
 
         {PRIVACY_POLICY.map((secao) => (
           <View key={secao.title} style={{ gap: 8 }}>
-            <Text style={{ fontFamily: fonts.display.semiBold, fontSize: 18 }}>{secao.title}</Text>
+            <Text style={{ color: colors.textPrimary, fontFamily: fonts.display.semiBold, fontSize: 18 }}>{secao.title}</Text>
             {secao.paragraphs.map((p, i) => (
               <Text
                 key={i}

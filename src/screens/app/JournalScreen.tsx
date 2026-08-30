@@ -23,7 +23,7 @@ import { useAppState } from '../../state/AppStateProvider';
 import { descartarRascunho, loadRascunho, saveRascunho } from '../../storage/appStorage';
 import { comecoDoDia } from '../../data/comecos';
 import { dayKey, normalize } from '../../state/derived';
-import { colors, palette, radius, borderWidth, fonts, type Mood } from '../../theme';
+import { borderWidth, fonts, type Mood, radius, useTema } from '../../theme';
 import { LINE_HEIGHT, RuledPaper } from './RuledPaper';
 import { SwipeableEntry } from './SwipeableEntry';
 import { useVoiceNote } from './useVoiceNote';
@@ -45,6 +45,7 @@ export function JournalScreen({
   /** Repassado ao CVV: a saída de quem não quer falar com ninguém agora. */
   aoFazerExercicio?: () => void;
 }) {
+  const { colors, palette } = useTema();
   const insets = useSafeAreaInsets();
   const { data, addJournalEntry, updateJournalEntry, removeJournalEntry } = useAppState();
 
@@ -329,7 +330,7 @@ export function JournalScreen({
         showsVerticalScrollIndicator={false}
         keyboardShouldPersistTaps="handled"
       >
-        <Text style={{ fontFamily: fonts.display.semiBold, fontSize: 19 }}>{comeco}</Text>
+        <Text style={{ color: colors.textPrimary, fontFamily: fonts.display.semiBold, fontSize: 19 }}>{comeco}</Text>
 
         {/* Folha em uso. A folha que acabou de ser salva vira por cima dela. */}
         <View>
@@ -455,7 +456,7 @@ export function JournalScreen({
         <AjudaAgora aoFazerExercicio={aoFazerExercicio} />
 
         <View style={{ gap: 10 }}>
-          <Text style={{ fontFamily: fonts.display.semiBold, fontSize: 19 }}>
+          <Text style={{ color: colors.textPrimary, fontFamily: fonts.display.semiBold, fontSize: 19 }}>
             Registros anteriores
           </Text>
           {mostrarBusca && (
@@ -703,7 +704,7 @@ export function JournalScreen({
             style={[StyleSheet.absoluteFill, { backgroundColor: 'rgba(58,54,48,0.45)' }]}
           />
           <View style={{ backgroundColor: colors.bg, borderRadius: radius.lg, padding: 20, gap: 14 }}>
-            <Text style={{ fontFamily: fonts.display.semiBold, fontSize: 19 }}>
+            <Text style={{ color: colors.textPrimary, fontFamily: fonts.display.semiBold, fontSize: 19 }}>
               Editar registro
             </Text>
 
@@ -762,7 +763,7 @@ export function JournalScreen({
             style={[StyleSheet.absoluteFill, { backgroundColor: 'rgba(58,54,48,0.5)' }]}
           />
           <View style={{ backgroundColor: colors.bg, borderRadius: radius.lg, padding: 22, gap: 14 }}>
-            <Text style={{ fontFamily: fonts.display.bold, fontSize: 21 }}>Excluir registro?</Text>
+            <Text style={{ color: colors.textPrimary, fontFamily: fonts.display.bold, fontSize: 21 }}>Excluir registro?</Text>
             <Text
               style={{
                 fontFamily: fonts.body.regular,

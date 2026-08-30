@@ -170,7 +170,7 @@ export function HomeScreen({
     >
       <View style={{ flexDirection: 'row', alignItems: 'flex-start' }}>
         <View style={{ flex: 1 }}>
-          <Text style={{ fontFamily: fonts.display.bold, fontSize: 24 }}>Oi, {name}</Text>
+          <Text style={{ color: colors.textPrimary, fontFamily: fonts.display.bold, fontSize: 24 }}>Oi, {name}</Text>
           <Text
             style={{
               fontFamily: fonts.body.regular,
@@ -209,7 +209,7 @@ export function HomeScreen({
         >
           <AnimatedSprout mood={mood} stage={stage} size={sproutSize} breathe />
         </Pressable>
-        <Text style={{ fontFamily: fonts.body.bold, fontSize: 16 }}>
+        <Text style={{ color: colors.textPrimary, fontFamily: fonts.body.bold, fontSize: 16 }}>
           Como você está se sentindo hoje?
         </Text>
         <MoodSelector
@@ -345,7 +345,7 @@ export function HomeScreen({
       </View>
 
       <View>
-        <Text style={{ fontFamily: fonts.display.semiBold, fontSize: 19, marginBottom: 12 }}>
+        <Text style={{ color: colors.textPrimary, fontFamily: fonts.display.semiBold, fontSize: 19, marginBottom: 12 }}>
           {semNadaAindaParaContar ? 'Seu broto' : 'Seu crescimento'}
         </Text>
         {semNadaAindaParaContar ? (
@@ -371,7 +371,7 @@ export function HomeScreen({
           para quem acabou de instalar seria falso. */}
       {insights.length > 0 && (
         <View>
-          <Text style={{ fontFamily: fonts.display.semiBold, fontSize: 19, marginBottom: 12 }}>
+          <Text style={{ color: colors.textPrimary, fontFamily: fonts.display.semiBold, fontSize: 19, marginBottom: 12 }}>
             Seu broto percebeu
           </Text>
           <InsightCard text={insights[0]} />
@@ -470,7 +470,7 @@ function Shortcut({
         <Icon name={icon} size={20} color={iconColor} />
       </View>
       <View style={{ gap: 2 }}>
-        <Text style={{ fontFamily: fonts.body.extraBold, fontSize: 15 }}>{title}</Text>
+        <Text style={{ color: colors.textPrimary, fontFamily: fonts.body.extraBold, fontSize: 15 }}>{title}</Text>
         <Text
           style={{ fontFamily: fonts.body.regular, fontSize: 12, color: colors.textSecondary }}
         >

@@ -120,7 +120,7 @@ export function WelcomeScreen({ onStart }: { onStart: () => void }) {
             }}
           >
             {!confirmandoVolta && (
-              <Text style={{ fontFamily: fonts.display.bold, fontSize: 21 }}>
+              <Text style={{ color: colors.textPrimary, fontFamily: fonts.display.bold, fontSize: 21 }}>
                 Seus registros voltam sozinhos
               </Text>
             )}

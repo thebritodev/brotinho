@@ -104,7 +104,7 @@ export function AjudaAgora({ aoFazerExercicio }: { aoFazerExercicio?: () => void
           <View
             style={{ backgroundColor: colors.bg, borderRadius: radius.lg, padding: 22, gap: 14 }}
           >
-            <Text style={{ fontFamily: fonts.display.bold, fontSize: 21 }}>
+            <Text style={{ color: colors.textPrimary, fontFamily: fonts.display.bold, fontSize: 21 }}>
               Você não precisa segurar isso sozinho
             </Text>
 

@@ -35,7 +35,7 @@ export function ProfileScreen({ name, onNavigate }: Props) {
       style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}
     >
       <Icon name={icon} color={palette.brown700} />
-      <Text style={{ flex: 1, fontFamily: fonts.body.bold, fontSize: 15 }}>{label}</Text>
+      <Text style={{ color: colors.textPrimary, flex: 1, fontFamily: fonts.body.bold, fontSize: 15 }}>{label}</Text>
       <Icon name="chevronRight" color={palette.brown400} />
     </Pressable>
   );
@@ -50,7 +50,7 @@ export function ProfileScreen({ name, onNavigate }: Props) {
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 14 }}>
           <Sprout mood="leve" stage={sproutStage(data)} size={64} showBg={false} />
           <View>
-            <Text style={{ fontFamily: fonts.body.extraBold, fontSize: 17 }}>{name}</Text>
+            <Text style={{ color: colors.textPrimary, fontFamily: fonts.body.extraBold, fontSize: 17 }}>{name}</Text>
             {!!since && (
               <Text
                 style={{ fontFamily: fonts.body.regular, fontSize: 13, color: colors.textSecondary }}
@@ -71,7 +71,7 @@ export function ProfileScreen({ name, onNavigate }: Props) {
           onPress={() => onNavigate('terapia')}
           label={emTerapia ? 'Para minha terapia' : 'Um resumo do que você registrou'}
         >
-          <Text style={{ fontFamily: fonts.body.extraBold, fontSize: 15, marginBottom: 4 }}>
+          <Text style={{ color: colors.textPrimary, fontFamily: fonts.body.extraBold, fontSize: 15, marginBottom: 4 }}>
             {emTerapia ? 'Para minha terapia' : 'Um resumo do que você registrou'}
           </Text>
           <Text
@@ -101,7 +101,7 @@ export function ProfileScreen({ name, onNavigate }: Props) {
           <View style={{ gap: 16 }}>
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
               <Icon name="bell" color={palette.brown700} />
-              <Text style={{ flex: 1, fontFamily: fonts.body.bold, fontSize: 15 }}>
+              <Text style={{ color: colors.textPrimary, flex: 1, fontFamily: fonts.body.bold, fontSize: 15 }}>
                 Lembretes diários
               </Text>
               <Switch

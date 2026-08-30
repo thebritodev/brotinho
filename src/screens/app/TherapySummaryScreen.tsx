@@ -37,7 +37,7 @@ export function TherapySummaryScreen({ onBack }: { onBack: () => void }) {
   };
 
   const sectionTitle = (t: string) => (
-    <Text style={{ fontFamily: fonts.display.semiBold, fontSize: 17, marginBottom: 12 }}>{t}</Text>
+    <Text style={{ color: colors.textPrimary, fontFamily: fonts.display.semiBold, fontSize: 17, marginBottom: 12 }}>{t}</Text>
   );
 
   return (
@@ -124,7 +124,7 @@ export function TherapySummaryScreen({ onBack }: { onBack: () => void }) {
                   {temas.map((x) => (
                     <View key={x.theme}>
                       <View style={{ flexDirection: 'row', marginBottom: 4 }}>
-                        <Text style={{ flex: 1, fontFamily: fonts.body.bold, fontSize: 13 }}>
+                        <Text style={{ color: colors.textPrimary, flex: 1, fontFamily: fonts.body.bold, fontSize: 13 }}>
                           {x.theme}
                         </Text>
                         <Text

@@ -183,7 +183,7 @@ export function CompostaScreen({
       >
         {icone}
         <View style={{ flex: 1 }}>
-          <Text style={{ fontFamily: fonts.display.semiBold, fontSize: 17, marginBottom: 8 }}>
+          <Text style={{ color: colors.textPrimary, fontFamily: fonts.display.semiBold, fontSize: 17, marginBottom: 8 }}>
             {titulo}
           </Text>
           <Text
@@ -421,7 +421,7 @@ export function CompostaScreen({
             >
               <Icon name="back" color={colors.textPrimary} />
             </Pressable>
-            <Text style={{ flex: 1, fontFamily: fonts.display.bold, fontSize: 20 }}>
+            <Text style={{ color: colors.textPrimary, flex: 1, fontFamily: fonts.display.bold, fontSize: 20 }}>
               Compostando
             </Text>
             <Text
