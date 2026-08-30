@@ -28,7 +28,7 @@ export function HarvestNotice({
   planta: Plant;
   onClose: () => void;
 }) {
-  const { colors, moodColors, palette, shadows } = useTema();
+  const { colors, moodColorsFundo, palette, shadows } = useTema();
   const { data } = useAppState();
   const entrada = useRef(new Animated.Value(0)).current;
 
@@ -108,7 +108,8 @@ export function HarvestNotice({
             width: 132,
             height: 132,
             borderRadius: 66,
-            backgroundColor: planta.mood ? moodColors[planta.mood] : palette.cream200,
+            // Fundo atrás do desenho, e não pastilha — ver `moodColorsFundo`.
+            backgroundColor: planta.mood ? moodColorsFundo[planta.mood] : palette.cream200,
             alignItems: 'center',
             justifyContent: 'center',
           }}

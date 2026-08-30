@@ -40,6 +40,8 @@ export type ConteudoDoTema = {
   colors: Cores;
   palette: Palette;
   moodColors: Record<Mood, string>;
+  /** A mesma cor quando ela é superfície atrás do desenho — ver `tokens`. */
+  moodColorsFundo: Record<Mood, string>;
   shadows: Sombras;
 };
 
@@ -61,6 +63,7 @@ const TemaContext = createContext<ConteudoDoTema>({
   colors: TEMAS.claro.colors,
   palette: TEMAS.claro.palette,
   moodColors: TEMAS.claro.moodColors,
+  moodColorsFundo: TEMAS.claro.moodColorsFundo,
   shadows: TEMAS.claro.shadows,
 });
 
@@ -80,6 +83,7 @@ export function TemaProvider({
       colors: TEMAS[tema].colors,
       palette: TEMAS[tema].palette,
       moodColors: TEMAS[tema].moodColors,
+      moodColorsFundo: TEMAS[tema].moodColorsFundo,
       shadows: TEMAS[tema].shadows,
     }),
     [tema],

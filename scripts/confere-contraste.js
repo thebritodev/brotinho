@@ -138,6 +138,50 @@ function razao(frente, fundo) {
 
       O piso é o de elemento gráfico: são traços de 2,4 a 2,6 de espessura.
     */
+    /*
+      A cor de humor como **fundo**: régua de distância, e não de posição.
+
+      Ela não recebe texto — é o halo atrás do broto e o disco do jardim —,
+      então a pergunta não é a da WCAG. É: dá para ver que tem cor ali, sem que
+      aquilo vire um holofote? Perto demais do fundo, o halo some; longe demais,
+      um círculo de 192 sobre marrom quase preto vira uma lua.
+
+      **A primeira versão desta régua mediu posição** — "a cor fica entre o
+      fundo da tela e o cartão" — e reprovou o tema claro nas seis, que é
+      exatamente o erro que o comentário logo abaixo já contava sobre a outra
+      régua. No claro os pastéis são mais escuros que o creme; no escuro os
+      fundos são mais claros que a tela. Os dois estão certos, e a posição
+      relativa simplesmente não é a mesma coisa nos dois temas.
+
+      Distância é — mas só de um lado. **Só o teto.**
+
+      A segunda versão pôs piso de 1,1 junto, e ele reprovou o amarelo e o creme
+      do tema claro: 1,06 e 1,07. Aqueles dois se distinguem do creme por
+      **matiz**, e razão de contraste só enxerga luminosidade — o mesmo motivo
+      pelo qual as cores de humor ficaram fora deste arquivo. Terceira vez que
+      uma régua de luminância cobra demais de cor codificada por matiz. Aqui
+      corrigi a régua, como nas outras duas.
+
+      O teto sobrevive porque a falha que ele pega é de luminosidade de
+      verdade: pastilha clara usada como superfície acende a tela escura,
+      independentemente da matiz dela. Foi essa a falha real, e é essa que não
+      pode voltar.
+
+      Vale a pena existir: esta cor já saiu errada três vezes — pastel
+      escurecido, tom médio saturado, pastel claro como superfície — e nenhuma
+      das três falhava neste arquivo, porque nenhuma era pergunta de contraste
+      de texto.
+    */
+    for (const [humor, cor] of Object.entries(t.moodColorsFundo)) {
+      const r = razao(cor, c.bg);
+      const ok = r <= 1.45;
+      if (!ok) falhas += 1;
+      console.log(
+        `  ${ok ? 'ok   ' : 'FALHA'} ${`fundo do humor "${humor}" não acende a tela`.padEnd(44)} ` +
+          `${r.toFixed(2)} (máximo 1.45)`,
+      );
+    }
+
     for (const [humor, cor] of Object.entries(t.moodColors)) {
       linha(`carinha "${humor}" sobre a cor do humor`, TINTA_DA_CARINHA, cor, AA_GRANDE);
     }

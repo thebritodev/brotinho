@@ -9,8 +9,15 @@ import Svg, { Circle, Ellipse, G, Path, Rect } from 'react-native-svg';
   a preferência do app. Seguir o tema também deixaria a cena com duas noites
   empilhadas — uma do relógio e outra do interruptor —, e o desenho perderia o
   sentido de "o mundo lá fora agora".
+
+  **Com uma exceção, e ela é a linha que separa as duas coisas.** O que se vê
+  *pela* janela é o mundo lá fora, e segue o relógio. O chão embaixo do
+  parapeito não é mundo lá fora: é o cômodo onde a pessoa está, ou seja, a
+  parede do próprio app. Congelado junto com o céu, ele ficava creme claro no
+  tema escuro — uma faixa acesa atravessando a primeira tela do onboarding.
+  Ver `chaoDoComodo`.
 */
-import { paletteDoDesenho as palette } from '../../theme';
+import { paletteDoDesenho as palette, useTema } from '../../theme';
 import { AnimatedSprout } from './AnimatedSprout';
 
 /**
@@ -117,6 +124,18 @@ export function faixaDaHora(agora: Date): Faixa {
 }
 
 export function WindowScene({ width, agora }: { width: number; agora?: Date }) {
+  /*
+    A única cor da cena que acompanha o tema.
+
+    `cream200` é a mesma chave nas duas paletas — papel no claro, marrom quente
+    no escuro —, então o tema claro fica idêntico ao que sempre foi e o escuro
+    ganha a parede que faltava. Sai uma cor só do gancho, e não a paleta
+    inteira: duas paletas com o mesmo nome dentro de um arquivo é exatamente a
+    armadilha que `tracos` existe para evitar.
+  */
+  const { palette: doTema } = useTema();
+  const chaoDoComodo = doTema.cream200;
+
   const k = width / W;
   const height = H * k;
   const sproutSize = 126 * k;
@@ -226,8 +245,8 @@ export function WindowScene({ width, agora }: { width: number; agora?: Date }) {
           </G>
         </G>
 
-        {/* Chão abaixo do parapeito */}
-        <Rect x={0} y={182} width={W} height={48} fill={palette.cream200} />
+        {/* Chão abaixo do parapeito — o cômodo, não o mundo lá fora. */}
+        <Rect x={0} y={182} width={W} height={48} fill={chaoDoComodo} />
       </Svg>
 
       {/* O mascote de verdade, pousado no parapeito. */}

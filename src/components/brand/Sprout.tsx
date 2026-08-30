@@ -194,7 +194,7 @@ export function Sprout({
   showPot = true,
   showBg = true,
 }: Props) {
-  const { moodColors, palette, tema } = useTema();
+  const { moodColorsFundo, palette } = useTema();
   const stemTopY = STEM_TOP_Y[stage];
   const bulbR = BULB_R[stage];
   const midY = (POT_TOP_Y + stemTopY) / 2;
@@ -222,20 +222,19 @@ export function Sprout({
   return (
     <Svg viewBox={caixa} width={size} height={size * 1.12}>
       {/*
-        O halo é um brilho, não um disco.
+        O halo é um brilho, não um disco — e agora é uma superfície.
 
-        No claro ele é um pastel quase branco sobre creme: a diferença entre os
-        dois é mínima, e o que se vê é um sopro de cor, não um disco.
+        Ele passou por 0,4, 0,18 e 0,14 de opacidade, sempre correndo atrás da
+        cor de humor: cada vez que aquela tabela mudava, o disco ficava alto ou
+        sumia. A causa era a tabela errada. `moodColors` é cor de pastilha,
+        clara de propósito porque recebe tinta escura por cima; usada num
+        círculo de 192 sobre marrom quase preto, ela vira uma lua atrás do
+        broto, e a opacidade só existia para disfarçar isso.
 
-        No escuro essa diferença é enorme — a mesma pastilha clara sobre marrom
-        quase preto, num diâmetro de 192, viraria uma lua atrás do broto. A
-        opacidade não está aqui para apagar o halo; está para devolver a ele a
-        mesma discrição que ele tem de dia.
-
-        O número já mudou três vezes, sempre atrás das cores de humor: 0,4 e
-        0,18 com os tons médios, e agora 0,14, porque os pastéis claros rendem
-        mais por ponto de opacidade. É esse o acoplamento — mexeu na cor de
-        humor, confira o halo.
+        `moodColorsFundo` é a mesma cor no papel de superfície — igual à outra
+        no tema claro, escura no tema escuro. Com ela o halo volta a ser
+        opacidade 1 dos dois lados, como qualquer outro fundo, e para de
+        depender de um número calibrado no olho.
 
         Ele é desenhado no enquadramento com vaso, e por isso anda com ele: sem
         vaso a caixa fecha em volta da planta, e o disco, que é maior que ela,
@@ -248,8 +247,7 @@ export function Sprout({
           cx={100}
           cy={100}
           r={96}
-          fill={moodColors[mood] ?? moodColors.neutro}
-          opacity={tema === 'escuro' ? 0.14 : 1}
+          fill={moodColorsFundo[mood] ?? moodColorsFundo.neutro}
         />
       )}
 

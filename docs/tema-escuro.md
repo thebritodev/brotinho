@@ -83,18 +83,54 @@ alto, separa bem e continua sendo a mesma cor que a pessoa vê de dia. Cada
 luminosidade e um pouco menos de saturação — o bastante para não acender a tela
 de madrugada, longe de virar cor nova.
 
-Duas consequências que andam junto e é fácil esquecer:
+**A carinha volta à tinta escura nos dois temas.** Houve uma versão em que ela
+seguia `textPrimary` porque as cores escuras eram escuras de verdade. Sobre
+pastilha clara, tinta escura — como um rostinho desenhado a lápis.
 
-- **A carinha volta à tinta escura nos dois temas.** Houve uma versão em que ela
-  seguia `textPrimary` porque as cores escuras eram escuras de verdade. Sobre
-  pastilha clara, tinta escura — como um rostinho desenhado a lápis.
-- **O halo é o acoplamento.** Ele pinta a cor do humor num disco de 192, e pastel
-  claro rende muito mais por ponto de opacidade que tom médio. O número já mudou
-  três vezes atrás das cores: 0,4 → 0,18 → 0,14. **Mexeu na cor de humor, confira
-  `Sprout` e `AnimatedSprout`.**
+### E aí veio a quarta versão, que era o problema de verdade
 
-Nada disso a régua de contraste pega, e ela passou nas 32 medições nas três
-versões. Contraste mede se dá para ler; não mede se parece o mesmo produto.
+As três primeiras discutiam **qual tom**. A quarta descobriu que a pergunta
+estava errada: a cor de humor faz **dois trabalhos opostos**, e nenhum tom
+serve para os dois.
+
+| como pastilha | como fundo |
+|---|---|
+| carinha, barra do gráfico, palavra escolhida | halo atrás do broto, disco do jardim, círculo da colheita |
+| pequena, recebe tinta escura por cima | superfície grande, o desenho é que vai por cima |
+| tem de ser **clara** | clara no escuro é **holofote** |
+
+Enquanto os dois leram a mesma tabela, um dos dois ficou errado a cada ajuste —
+com as cores escuras o jardim ficava sujo; com as claras, cada broto do jardim
+ganhou um disco aceso atrás. **É o mesmo formato de armadilha do `brown900`:**
+um nome, dois significados opostos. E a saída é a mesma de `tracos` — separar.
+
+→ `moodColorsFundo`. No tema claro é literalmente `moodColors`, porque ali os
+dois trabalhos coincidem: pastel sobre creme já é discreto. É no escuro que eles
+se separam.
+
+De quebra some o acoplamento: o halo era pintado com opacidade — 0,4, depois
+0,18, depois 0,14 — perseguindo a cor de humor a cada mudança. Com cor de fundo
+própria, ele volta a ser opacidade 1 nos dois temas, como qualquer superfície.
+
+### A régua que faltava, e o piso que sobrou dela
+
+Nenhuma das quatro versões falhava em `confere-contraste.js`, porque nenhuma era
+pergunta de contraste de texto. A régua nova mede a cor de fundo contra a tela e
+**só tem teto**: máximo 1,45.
+
+O piso morreu no mesmo dia em que nasceu. Ele reprovava o amarelo e o creme do
+tema claro — 1,06 e 1,07 — que se distinguem do fundo por **matiz**, e razão de
+contraste só enxerga luminosidade. Terceira vez neste arquivo que uma régua de
+luminância cobra demais de cor codificada por matiz; nas três, o consertado foi
+o medidor.
+
+O teto sobrevive porque a falha que ele pega é de luminosidade de verdade:
+pastilha clara usada como superfície acende a tela escura, com qualquer matiz.
+Medindo o defeito que o usuário reportou, ele dá **12,87** contra o teto de
+1,45.
+
+> Contraste mede se dá para ler. Não mede se parece o mesmo produto, nem se um
+> nome está fazendo dois trabalhos.
 
 ## Três coisas ficam fora do tema, cada uma por um motivo
 

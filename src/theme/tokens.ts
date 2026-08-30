@@ -325,6 +325,57 @@ export const moodColorsEscuros: Record<Mood, string> = {
 };
 
 /**
+ * A cor do humor quando ela é **fundo**, e não pastilha.
+ *
+ * Aqui esbarrou o mesmo limite de `brown900` e `tracos`: um nome, dois
+ * trabalhos opostos. Como pastilha — a carinha, a barra do gráfico, a palavra
+ * escolhida — a cor do humor precisa ser **clara**, porque recebe tinta escura
+ * por cima e porque é um objeto pequeno que tem de se destacar. Como fundo —
+ * o halo atrás do broto, o disco do jardim, o círculo da colheita — ela é
+ * **superfície**, e superfície clara no tema escuro é um holofote.
+ *
+ * Enquanto os dois usaram a mesma tabela, um dos dois ficou errado a cada
+ * ajuste: com as cores escuras o jardim ficava sujo, e com as claras ele passou
+ * a ter um disco aceso atrás de cada broto. Não era questão de achar o tom
+ * certo — não existe tom que sirva para os dois.
+ *
+ * No tema claro os dois trabalhos coincidem: pastel sobre creme já é discreto,
+ * e por isso `moodColorsFundo` é literalmente `moodColors` ali. É no escuro que
+ * eles se separam, e é por isso que a tabela precisou existir.
+ *
+ * De quebra, some o acoplamento que eu tinha documentado em `Sprout`: o halo
+ * era desenhado com opacidade — 0,4, depois 0,18, depois 0,14 — perseguindo a
+ * cor de humor a cada mudança. Com a cor de fundo própria, ele volta a ser
+ * opacidade 1 nos dois temas, como qualquer outra superfície.
+ */
+export const moodColorsFundo: Record<Mood, string> = moodColors;
+
+/**
+ * Os tons têm de ficar **entre** o fundo e o cartão, e é uma faixa estreita.
+ *
+ * `bg` é #211E1A e `surface` é #2C2823 — oito pontos de luminosidade separam os
+ * dois. O halo da tela inicial é desenhado sobre o fundo; os discos do jardim e
+ * da colheita, sobre o cartão. Alto demais, o halo vira uma lua num círculo de
+ * 192 sobre marrom quase preto; baixo demais, o disco do jardim some dentro do
+ * cartão. Estes ficam por volta de 18% de luminosidade: uns seis pontos acima
+ * do fundo e uns três acima do cartão.
+ *
+ * A primeira tentativa foi a 20%, e no escuro isso já era disco em vez de
+ * brilho. No escuro o olho lê diferença de luminosidade com mais sensibilidade
+ * do que no claro — o mesmo delta que passa despercebido sobre creme salta
+ * sobre marrom escuro. Por isso a distância aqui é menor que a do tema claro,
+ * e não igual.
+ */
+export const moodColorsFundoEscuros: Record<Mood, string> = {
+  feliz: '#383124',
+  leve: '#27342C',
+  ansioso: '#253039',
+  triste: '#2A2E36',
+  cansado: '#302A3A',
+  neutro: '#363028',
+};
+
+/**
  * Sombra no escuro quase não aparece — o que separa um cartão do fundo ali é a
  * própria diferença de cor, não a sombra. Mantida com opacidade maior para o
  * pouco que rende, e preta em vez de marrom.
@@ -347,11 +398,12 @@ export type PreferenciaDeTema = 'sistema' | 'claro' | 'escuro';
 
 /** Os dois temas, para o provedor escolher e para o teste de contraste medir. */
 export const TEMAS = {
-  claro: { palette, colors, moodColors, shadows },
+  claro: { palette, colors, moodColors, moodColorsFundo, shadows },
   escuro: {
     palette: paletteEscura,
     colors: coresEscuras,
     moodColors: moodColorsEscuros,
+    moodColorsFundo: moodColorsFundoEscuros,
     shadows: sombrasEscuras,
   },
 } as const;

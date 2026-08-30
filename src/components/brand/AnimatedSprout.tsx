@@ -60,7 +60,7 @@ export function AnimatedSprout({
   breathe = false,
   swayOn = null,
 }: Props) {
-  const { moodColors, tema } = useTema();
+  const { moodColorsFundo } = useTema();
   /** Cor que fica por baixo enquanto a nova entra. */
   const [previous, setPrevious] = useState<Mood>(mood);
   const [current, setCurrent] = useState<Mood>(mood);
@@ -189,17 +189,19 @@ export function AnimatedSprout({
     <View style={{ width: size, height: size * 1.12 }}>
       {showBg && (
         /*
-          O halo é um brilho, não um disco.
+          O halo é um brilho, não um disco — e agora é uma superfície.
 
-          No claro ele é um pastel quase branco sobre creme: a diferença entre
-          os dois é mínima, e o que se vê é um sopro de cor. No escuro a mesma
-          pastilha clara sobre marrom quase preto, num círculo de 359 de
-          largura, viraria uma lua atrás do broto. A opacidade devolve a ele a
-          mesma discrição que ele tem de dia.
+          Ele vinha com opacidade calibrada no olho porque usava `moodColors`,
+          que é cor de pastilha e por isso clara: num círculo de 359 sobre
+          marrom quase preto, aquilo virava uma lua atrás do broto. Com
+          `moodColorsFundo`, que é a mesma cor no papel de fundo, ele volta a
+          ser opacidade 1 dos dois lados.
 
-          Anda junto com `Sprout`, e pelo mesmo motivo — ver o comentário de lá.
+          A camada que sobrou existe pela travessia entre dois humores: o disco
+          de baixo é o humor anterior, e o de cima entra por cima dele. Ver o
+          comentário de `Sprout`.
         */
-        <View style={{ opacity: tema === 'escuro' ? 0.14 : 1 }}>
+        <View>
           <View
             style={{
               position: 'absolute',
@@ -208,7 +210,7 @@ export function AnimatedSprout({
               width: diameter,
               height: diameter,
               borderRadius: diameter / 2,
-              backgroundColor: moodColors[previous],
+              backgroundColor: moodColorsFundo[previous],
             }}
           />
           <Animated.View
@@ -219,7 +221,7 @@ export function AnimatedSprout({
               width: diameter,
               height: diameter,
               borderRadius: diameter / 2,
-              backgroundColor: moodColors[current],
+              backgroundColor: moodColorsFundo[current],
               opacity: fade,
             }}
           />
