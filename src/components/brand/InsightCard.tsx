@@ -12,13 +12,21 @@ export function InsightCard({ text }: { text: string }) {
       style={{
         flexDirection: 'row',
         gap: 12,
-        alignItems: 'flex-start',
+        /*
+          Centralizado, e não alinhado pelo topo.
+
+          O broto tem altura fixa e o texto tem uma, duas ou três linhas. Preso
+          ao topo, um texto curto ficava encostado na borda de cima com o broto
+          sobrando embaixo — o cartão parecia torto. Centralizado, o texto
+          acompanha o broto em qualquer tamanho.
+        */
+        alignItems: 'center',
         backgroundColor: colors.primarySoft,
         borderRadius: radius.lg,
         padding: 16,
       }}
     >
-      <Sprout mood="leve" stage={2} size={44} showPot={false} showBg={false} />
+      <Sprout mood="leve" stage={2} size={56} showPot={false} showBg={false} />
       <Text
         style={{
           flex: 1,

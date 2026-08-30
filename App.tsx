@@ -24,7 +24,7 @@ import { RootNavigator } from './src/navigation/RootNavigator';
 import { AppLockGate } from './src/screens/AppLockGate';
 import { AppStateProvider } from './src/state/AppStateProvider';
 import { SubscriptionProvider } from './src/state/SubscriptionProvider';
-import { colors } from './src/theme';
+import { useTema } from './src/theme';
 
 void SplashScreen.preventAutoHideAsync();
 
@@ -52,18 +52,35 @@ function AppInterno() {
     // O gesture-handler exige esta raiz; sem ela os gestos não chegam a rodar.
     <GestureHandlerRootView style={{ flex: 1 }}>
       <SafeAreaProvider>
-        <View style={{ flex: 1, backgroundColor: colors.bg }}>
-          <StatusBar style="dark" />
-          <AppStateProvider>
+        <AppStateProvider>
+          {/*
+            O fundo e a barra de status ficam DENTRO do provedor de tema.
+
+            Estavam fora, com a cor clara fixa: a barra vinha escura sobre um
+            app escuro, e o fundo atrás de tudo continuava creme — visível no
+            instante de carregamento e por trás das transições de tela.
+          */}
+          <Moldura>
             <SubscriptionProvider>
               <AppLockGate>
                 <RootNavigator />
               </AppLockGate>
             </SubscriptionProvider>
-          </AppStateProvider>
-        </View>
+          </Moldura>
+        </AppStateProvider>
       </SafeAreaProvider>
     </GestureHandlerRootView>
+  );
+}
+
+/** O fundo e a barra de status, já do lado de dentro do tema. */
+function Moldura({ children }: { children: React.ReactNode }) {
+  const { colors, tema } = useTema();
+  return (
+    <View style={{ flex: 1, backgroundColor: colors.bg }}>
+      <StatusBar style={tema === 'escuro' ? 'light' : 'dark'} />
+      {children}
+    </View>
   );
 }
 

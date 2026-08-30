@@ -195,8 +195,12 @@ export function AnimatedSprout({
           No escuro os mesmos tons são escuros, e cor cheia num círculo de 359
           de largura virava um borrão marrom atrás do broto. A opacidade
           devolve a ele o que ele sempre foi: uma insinuação de luz.
+          
+          A primeira tentativa usou 0,4, e ficou alto de novo quando as cores
+          de humor foram corrigidas para tons médios. Dezoito por cento é o
+          ponto em que se percebe a cor sem enxergar o disco.
         */
-        <View style={{ opacity: tema === 'escuro' ? 0.4 : 1 }}>
+        <View style={{ opacity: tema === 'escuro' ? 0.18 : 1 }}>
           <View
             style={{
               position: 'absolute',

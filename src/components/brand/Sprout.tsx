@@ -229,6 +229,10 @@ export function Sprout({
         No escuro os mesmos tons são escuros e o círculo virava um borrão
         marrom atrás do broto — cor cheia num diâmetro de 192 lê alto demais.
         A opacidade devolve a ele o que ele sempre foi: uma insinuação de luz.
+        
+        A primeira tentativa usou 0,4, e ficou alto de novo quando as cores
+        de humor foram corrigidas para tons médios. Dezoito por cento é o
+        ponto em que se percebe a cor sem enxergar o disco.
       */}
       {showBg && (
         <Circle
@@ -236,7 +240,7 @@ export function Sprout({
           cy={100}
           r={96}
           fill={moodColors[mood] ?? moodColors.neutro}
-          opacity={tema === 'escuro' ? 0.4 : 1}
+          opacity={tema === 'escuro' ? 0.18 : 1}
         />
       )}
 

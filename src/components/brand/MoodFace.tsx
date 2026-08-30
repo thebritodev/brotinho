@@ -29,15 +29,17 @@ type Props = {
 };
 
 export function MoodFace({ mood, size = 44, selected = false }: Props) {
-  const { colors, moodColors, palette } = useTema();
+  const { moodColors, palette } = useTema();
   /*
-    O traço da carinha acompanha o tema, ao contrário do resto do desenho.
+    A carinha usa a tinta escura nos dois temas.
 
-    Aqui o fundo do círculo É a cor do humor, e no escuro esses tons são
-    escuros — traço marrom sobre eles some. `textPrimary` é a tinta que se lê
-    sobre o fundo do tema em cada caso, que é exatamente o que a carinha quer.
+    Houve uma versão em que ela seguia `textPrimary`, porque as cores de humor
+    escuras eram escuras de verdade e o traço marrom sumia nelas. Corrigidas as
+    cores — tons médios em vez de pastéis escurecidos —, a carinha volta a ser
+    a mesma dos dois lados: tinta escura sobre a cor do humor, como um rostinho
+    desenhado. Ver `moodColorsEscuros`.
   */
-  const traco = colors.textPrimary;
+  const traco = tracos.contorno;
   const f = FACES[mood] ?? FACES.neutro;
 
   const olho = (x: number) =>

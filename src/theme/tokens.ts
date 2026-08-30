@@ -290,18 +290,26 @@ export const coresEscuras: Cores = {
 /**
  * As cores de humor no escuro.
  *
- * No claro são pastéis quase brancos, porque o fundo é creme. No escuro os
- * mesmos pastéis cegariam — mas escurecer demais faria o dia registrado ficar
- * igual ao dia vazio no gráfico. São tons médios: distinguem a matiz e não
- * brilham. `confere-contraste.js` cobra que cada um se separe do fundo.
+ * **Escurecer o pastel não funciona, e foi o que eu fiz na primeira versão.**
+ * Amarelo-claro escurecido vira oliva; verde-claro escurecido vira quase
+ * preto. A matiz — que é a única coisa que distingue um humor do outro aqui —
+ * se perde exatamente no escurecer.
+ *
+ * O que preserva a identidade da cor sobre fundo escuro é o contrário:
+ * **manter a luminosidade no meio e subir a saturação.** Cada um destes é
+ * inconfundivelmente amarelo, verde, azul, cinza, lavanda ou creme, e nenhum
+ * brilha a ponto de acender a tela.
+ *
+ * Como são tons médios, a carinha do humor volta a ser desenhada com a tinta
+ * escura, igual ao tema claro — ver `MoodFace`.
  */
 export const moodColorsEscuros: Record<Mood, string> = {
-  feliz: paletteEscura.yellow100,
-  leve: paletteEscura.green100,
-  ansioso: paletteEscura.blue100,
-  triste: paletteEscura.slate100,
-  cansado: paletteEscura.lavender100,
-  neutro: paletteEscura.cream300,
+  feliz: '#C9A23F',
+  leve: '#6E9C81',
+  ansioso: '#6E8DA5',
+  triste: '#7A838D',
+  cansado: '#8B7FA8',
+  neutro: '#8A8070',
 };
 
 /**

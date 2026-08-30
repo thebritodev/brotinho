@@ -34,7 +34,7 @@ export function PrivacyPolicyScreen({ onBack }: { onBack: () => void }) {
             padding: 16,
           }}
         >
-          <Sprout mood="leve" stage={2} size={52} showPot={false} showBg={false} />
+          <Sprout mood="leve" stage={2} size={66} showPot={false} showBg={false} />
           <Text
             style={{
               flex: 1,

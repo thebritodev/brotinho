@@ -255,7 +255,7 @@ export function CompostaScreen({
               alignItems: 'flex-start',
             }}
           >
-            <Sprout mood="leve" stage={2} size={44} showPot={false} showBg={false} />
+            <Sprout mood="leve" stage={2} size={56} showPot={false} showBg={false} />
             <Text
               style={{
                 flex: 1,

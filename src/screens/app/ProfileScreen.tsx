@@ -48,7 +48,7 @@ export function ProfileScreen({ name, onNavigate }: Props) {
         showsVerticalScrollIndicator={false}
       >
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 14 }}>
-          <Sprout mood="leve" stage={sproutStage(data)} size={64} showBg={false} />
+          <Sprout mood="leve" stage={sproutStage(data)} size={84} showBg={false} />
           <View>
             <Text style={{ color: colors.textPrimary, fontFamily: fonts.body.extraBold, fontSize: 17 }}>{name}</Text>
             {!!since && (

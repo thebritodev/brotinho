@@ -31,6 +31,15 @@ import { useVoiceNote } from './useVoiceNote';
 /** Duração da virada de página, em ms. */
 const TURN_DURATION = 620;
 
+/**
+ * Quanto o texto desce para se apoiar na pauta, em pixels.
+ *
+ * Medido na tela: com a fonte centralizada na faixa de 35, a base do texto
+ * ficava 13px acima do traço. Nove desce o suficiente para a escrita pousar
+ * sem encostar.
+ */
+const POUSO_NA_PAUTA = 9;
+
 /** Registros carregados por vez na lista. */
 const PAGINA = 5;
 
@@ -80,7 +89,18 @@ export function JournalScreen({
     // No Android o padding extra da fonte soma ao lineHeight alto do papel
     // pautado e empurra o texto para fora da área visível.
     includeFontPadding: false,
-    paddingTop: 0,
+    /*
+      O texto pousa na pauta, em vez de flutuar no meio dela.
+
+      Com `lineHeight` 35 e fonte 16, o glifo fica centralizado na faixa: medido
+      na tela, a base da escrita caía 13px acima do traço, e a folha parecia um
+      caderno em que ninguém acertou a linha. Este empurrão põe a base logo
+      acima da pauta, que é como se escreve à mão.
+
+      Vale para as duas folhas — a que está sendo escrita e a que vira na
+      animação —, porque as duas usam este mesmo estilo.
+    */
+    paddingTop: POUSO_NA_PAUTA,
   } as const;
 
   const [restaurado, setRestaurado] = useState(false);

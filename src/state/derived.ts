@@ -228,7 +228,22 @@ export function livedValues(data: AppData): { value: ValueKey; count: number }[]
 /** Padrões só aparecem com base suficiente; abaixo disso seria adivinhação. */
 const MIN_ENTRIES_FOR_PATTERNS = 5;
 
-const WEEKDAY_LABEL = ['domingo', 'segunda', 'terça', 'quarta', 'quinta', 'sexta', 'sábado'];
+/**
+ * Os dias com a preposição que cada um pede.
+ *
+ * A frase era montada com "na " fixo na frente, e saía "cair **na** domingo" e
+ * "cair **na** sábado" — os dois únicos masculinos da semana. Guardar a
+ * preposição junto do dia resolve sem `if` na hora de escrever.
+ */
+const WEEKDAY_LABEL = [
+  'no domingo',
+  'na segunda',
+  'na terça',
+  'na quarta',
+  'na quinta',
+  'na sexta',
+  'no sábado',
+];
 
 export function patterns(data: AppData): string[] {
   if (data.journal.length + data.moodHistory.length < MIN_ENTRIES_FOR_PATTERNS) return [];
@@ -245,7 +260,7 @@ export function patterns(data: AppData): string[] {
   });
   const pior = Object.entries(dificil).sort((a, b) => b[1] - a[1])[0];
   if (pior && Number(pior[1]) >= 2) {
-    found.push(`Seus dias mais pesados costumam cair na ${WEEKDAY_LABEL[Number(pior[0])]}.`);
+    found.push(`Seus dias mais pesados costumam cair ${WEEKDAY_LABEL[Number(pior[0])]}.`);
   }
 
   // Humor predominante.

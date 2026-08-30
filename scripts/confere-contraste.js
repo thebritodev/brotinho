@@ -27,6 +27,9 @@ const RAIZ = path.join(__dirname, '..');
 const AA_TEXTO = 4.5;
 const AA_GRANDE = 3.0;
 
+/** `tracos.contorno` — a tinta com que a carinha do humor é desenhada. */
+const TINTA_DA_CARINHA = '#3A3630';
+
 /** #RRGGBB para [r, g, b] em 0..255. */
 function canais(hex) {
   const h = hex.replace('#', '');
@@ -126,6 +129,18 @@ function razao(frente, fundo) {
       claro, que funciona — o piso aqui é só "dá para ver que existe".
     */
     linha('borda fina sobre o cartão', c.border, c.surface, 1.2);
+
+    /*
+      A carinha do humor é desenhada com tinta escura sobre a cor do humor, nos
+      dois temas. Se um tom de humor escurecer demais, o rostinho some — foi o
+      que aconteceu na primeira paleta escura, em que os pastéis tinham sido
+      escurecidos em vez de saturados.
+
+      O piso é o de elemento gráfico: são traços de 2,4 a 2,6 de espessura.
+    */
+    for (const [humor, cor] of Object.entries(t.moodColors)) {
+      linha(`carinha "${humor}" sobre a cor do humor`, TINTA_DA_CARINHA, cor, AA_GRANDE);
+    }
   }
 
   fs.rmSync(saida, { recursive: true, force: true });
