@@ -52,7 +52,14 @@ const PAGINA = 5;
 const formatDate = (timestamp: number) =>
   new Date(timestamp).toLocaleDateString('pt-BR', { day: 'numeric', month: 'long' });
 
-export function JournalScreen({ comecoDaPratica }: { comecoDaPratica?: string | null }) {
+export function JournalScreen({
+  comecoDaPratica,
+  aoFazerExercicio,
+}: {
+  comecoDaPratica?: string | null;
+  /** Repassado ao CVV: a saída de quem não quer falar com ninguém agora. */
+  aoFazerExercicio?: () => void;
+}) {
   const insets = useSafeAreaInsets();
   const { data, addJournalEntry, updateJournalEntry, removeJournalEntry } = useAppState();
 
@@ -440,7 +447,7 @@ export function JournalScreen({ comecoDaPratica }: { comecoDaPratica?: string | 
 
         {/* Fica logo abaixo de onde a pessoa escreve, e antes do histórico:
             é o ponto do app em que ela está mais perto do que dói. */}
-        <AjudaAgora />
+        <AjudaAgora aoFazerExercicio={aoFazerExercicio} />
 
         <View style={{ gap: 10 }}>
           <Text style={{ fontFamily: fonts.display.semiBold, fontSize: 19 }}>

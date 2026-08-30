@@ -16,6 +16,7 @@ import { CompostaScreen } from '../screens/composta/CompostaScreen';
 import { ValuesScreen } from '../screens/app/ValuesScreen';
 import { onNotificationTap } from '../services/notifications';
 import { useBotaoVoltar } from './useBotaoVoltar';
+import { ANCORA_RAPIDA } from '../data/practices';
 import { useAppState } from '../state/AppStateProvider';
 import { colors } from '../theme';
 
@@ -36,6 +37,19 @@ export function MainTabs() {
 
   const name = data.profile.name.trim() || 'você';
   const closeSub = () => setSub(null);
+
+  const abrirPratica = (alvo: { topico: string; pratica: string }) => {
+    setPraticaAlvo(alvo);
+    setSub('praticas');
+  };
+
+  /**
+   * O caminho curto de "estou muito mal agora" até o aterramento.
+   *
+   * Sai do CVV, no Diário e na Composta: quem abre aquela porta e não está
+   * pronta para falar com alguém não recebia nada além de "Agora não".
+   */
+  const ancorarAgora = () => abrirPratica(ANCORA_RAPIDA);
 
   /**
    * O último degrau antes de o app fechar.
@@ -84,7 +98,7 @@ export function MainTabs() {
       case 'privacidade':
         return <PrivacyScreen onBack={closeSub} />;
       case 'composta':
-        return <CompostaScreen onClose={closeSub} />;
+        return <CompostaScreen onClose={closeSub} aoFazerExercicio={ancorarAgora} />;
       case 'praticas':
         return (
           <PracticesScreen
@@ -111,7 +125,9 @@ export function MainTabs() {
   const renderTab = () => {
     switch (tab) {
       case 'diario':
-        return <JournalScreen comecoDaPratica={comecoDaPratica} />;
+        return (
+          <JournalScreen comecoDaPratica={comecoDaPratica} aoFazerExercicio={ancorarAgora} />
+        );
       case 'perfil':
         return <ProfileScreen name={name} onNavigate={setSub} />;
       case 'home':

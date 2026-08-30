@@ -335,6 +335,87 @@ generalizada, e nenhuma evidência de que o mecanismo proposto explique o efeito
 quando ele aparece. É protocolo clínico com evidência ambígua — exatamente o que
 a diretriz 1.4.1 desaconselha um app sem profissional a bordo apresentar.
 
+## Pesquisa de 29 de agosto — o que os concorrentes fazem
+
+Primeira rodada olhando para fora: Finch, Daylio, Rosebud, Cíngulo, Zenklub. Dois
+dos achados **confirmam** decisões que já estavam tomadas aqui, e registrar isso
+vale tanto quanto registrar as faltas — foi por pouco que a conclusão intuitiva
+("seja mais parecido com o Finch") não foi a errada.
+
+### Simplicidade ganha da gamificação — agora com dado de produto
+
+O **Daylio retém cerca de 40% no trigésimo dia; o Finch, cerca de 22%.** A
+análise credita a diferença à simplicidade do registro diário somada à
+visualização de longo prazo — e não à gamificação, que é justamente o que o
+Finch tem de sobra: bichinho, acessórios, aventuras, micropets, países.
+
+É a mesma conclusão da primeira rodada desta página, que veio da literatura
+clínica. Duas fontes independentes, mesma resposta: **não implementar streak,
+placar nem ranking.**
+
+### O modelo grátis do Finch seria um mau negócio aqui
+
+O Finch libera o essencial de graça e cobra US$ 9,99/mês por customização. Copiar
+isso pareceria generoso e seria caro:
+
+- Paywall duro converte **10,7% contra 2,1%** da freemium até o dia 35.
+- Gera **21% mais receita por usuário em um ano**.
+- E a retenção depois de um ano é praticamente **idêntica**: 27% contra 28%.
+
+> O paywall duro do Brotinho está certo. O que a mesma fonte recomenda para apps
+> de saúde e ainda **não** temos é o **teste grátis** — registrado, não decidido.
+
+### O arco do humor estava escondido
+
+Já calculávamos 7, 30 e 90 dias — só que dentro de "Para minha terapia", onde o
+gráfico dizia respeito a outra pessoa. Quem não faz terapia registrava o humor
+todos os dias e nunca via o próprio arco, que é exatamente a função a que se
+credita a vitória do Daylio.
+
+→ `components/brand/HumorNoTempo.tsx`, no Perfil e na tela de terapia.
+
+### O SOS do Cíngulo, na versão mais conservadora possível
+
+O Cíngulo — o app de terapia digital mais bem avaliado do país — tem um recurso
+SOS com técnicas para crise aguda. O Brotinho já tinha as técnicas (aterramento
+5-4-3-2-1 e respiração 4-7-8) e o CVV; faltava o caminho curto, porque em crise
+ninguém percorre treze temas.
+
+A literatura dá o enquadramento seguro: ancoragem sensorial alivia sofrimento
+agudo em **30 a 120 segundos**, e a linguagem correta é a de bem-estar — apoiar
+ancoragem e relaxamento —, nunca diagnóstico ou tratamento.
+
+→ um terceiro botão dentro do CVV que já existia: **"Fazer um exercício comigo"**.
+Nenhum conteúdo novo, nenhuma afirmação nova; só a remoção da navegação. Vem
+**depois** do 188 e do chat de propósito: a pessoa continua vindo primeiro, e a
+saída existe para quem abriu aquela porta e não estava pronta para falar com
+ninguém — que antes só podia fechar.
+
+`confere-praticas.js` passa a exigir que a `ANCORA_RAPIDA` aponte para uma
+prática existente **e com guia**. Renomear aquela prática não quebraria
+compilação nem teste: a porta abriria no vazio, no pior momento possível.
+
+### O widget, adiado com o motivo escrito
+
+É o motor de retenção do Daylio **e** do Finch, pelo mesmo motivo nos dois:
+ocupa espaço permanente na tela inicial, entrega valor sem urgência e — ao
+contrário da notificação — não envelhece na fila nem é descartado.
+
+Ficou para depois, e não por preguiça: o `expo-widgets` está em **alpha** e só
+cobre iOS; o Android exige módulo nativo escrito à mão. Nenhum dos dois roda no
+Expo Go, ou seja, custaria justamente o fluxo de desenvolvimento que acabou de
+ser consertado. **Depois da primeira leva de usuários reais.**
+
+### O preço mensal é caro de propósito
+
+O Cíngulo cobra R$ 99,90 por semestre — cerca de R$ 16,65 por mês. O anual do
+Brotinho sai a R$ 14,99/mês e está competitivo; o mensal, a R$ 29,90, está uns
+80% acima.
+
+**Isso é deliberado**, decidido pelo dono do app em 29/08/2026: o mensal é caro
+para empurrar ao anual. Fica escrito aqui porque, sem isso, alguém — inclusive
+eu, daqui a seis meses — vai "corrigir" esse preço achando que é descuido.
+
 ## Fontes
 
 - [Clinical review of user engagement with mental health smartphone apps](https://pmc.ncbi.nlm.nih.gov/articles/PMC10270395/)
@@ -356,3 +437,11 @@ a diretriz 1.4.1 desaconselha um app sem profissional a bordo apresentar.
 - [Worry Postponement From the Metacognitive Perspective: A Randomized Waitlist-Controlled Trial](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC11303915/)
 - [Self-guided Cognitive Behavioral Therapy Apps for Depression (JMIR)](https://www.jmir.org/2021/7/e27619/)
 - [A Systematic Review of Cognitive Behavioral Therapy and Behavioral Activation Apps for Depression](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC4852920/)
+- [Daylio, Finch e a mecânica de widget (Deconstructor of Fun)](https://www.deconstructoroffun.com/blog/x0hd2ssr80y5n7gv0w967pg7hwd7tl)
+- [UX Teardown: Finch Self-Care App](https://medium.com/@deepthi.aipm/ux-teardown-finch-self-care-app-18122357fae7)
+- [Hard Paywall vs Free Trial: RevenueCat 2026 Data](https://www.buildmvpfast.com/blog/hard-paywall-vs-free-trial-revenuecat-indie-app-2026)
+- [State of Subscription Apps 2026 (RevenueCat)](https://www.revenuecat.com/state-of-subscription-apps)
+- [Como cuidar da saúde mental usando o Cíngulo (TechTudo)](https://www.techtudo.com.br/dicas-e-tutoriais/2019/12/como-cuidar-da-saude-mental-usando-o-cingulo-melhor-app-do-ano-para-android.ghtml)
+- [7 plataformas de saúde mental no Brasil (Startups)](https://startups.com.br/negocios/healthtechs/7-plataformas-que-te-ajudam-a-cuidar-da-sua-saude-mental/)
+- [13 Grounding Techniques to Help Calm Anxiety (Cleveland Clinic)](https://health.clevelandclinic.org/grounding-techniques)
+- [Rosebud: AI Journal — avaliações e reclamações](https://apps.apple.com/us/app/rosebud-ai-journal-diary/id6451135127?see-all=reviews&platform=iphone)

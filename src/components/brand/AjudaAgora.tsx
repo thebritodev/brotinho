@@ -46,7 +46,7 @@ import { Icon } from '../core/Icon';
 const TELEFONE = '188';
 const SITE = 'https://cvv.org.br';
 
-export function AjudaAgora() {
+export function AjudaAgora({ aoFazerExercicio }: { aoFazerExercicio?: () => void }) {
   const [aberto, setAberto] = useState(false);
 
   const abrir = (url: string) => {
@@ -141,6 +141,36 @@ export function AjudaAgora() {
               <Button variant="ghost" style={{ width: '100%' }} onPress={() => abrir(SITE)}>
                 Conversar por chat em cvv.org.br
               </Button>
+
+              {/* A saída para quem abriu esta porta e não está pronta para falar
+                  com ninguém. Antes ela não recebia nada e só podia fechar. Vem
+                  depois do CVV de propósito: a pessoa continua vindo primeiro. */}
+              {!!aoFazerExercicio && (
+                <>
+                  <Text
+                    style={{
+                      fontFamily: fonts.body.regular,
+                      fontSize: 13,
+                      lineHeight: 13 * 1.5,
+                      color: colors.textSecondary,
+                      marginTop: 6,
+                    }}
+                  >
+                    E se você não quiser falar com ninguém agora:
+                  </Text>
+                  <Button
+                    variant="secondary"
+                    style={{ width: '100%' }}
+                    onPress={() => {
+                      setAberto(false);
+                      aoFazerExercicio();
+                    }}
+                  >
+                    Fazer um exercício comigo
+                  </Button>
+                </>
+              )}
+
               <Button variant="ghost" style={{ width: '100%' }} onPress={() => setAberto(false)}>
                 Agora não
               </Button>

@@ -55,6 +55,20 @@ export type PracticeTopic = {
   practices: Practice[];
 };
 
+/**
+ * A prática que a porta de "estou muito mal agora" abre.
+ *
+ * Ancoragem sensorial é o que a literatura aponta para sofrimento agudo — 5-4-3-2-1,
+ * respiração pausada, estímulo frio —, e ela alivia em algo entre trinta e cento e
+ * vinte segundos. O aterramento já existia aqui; o que faltava era o caminho curto,
+ * porque em crise ninguém percorre treze temas.
+ *
+ * Fica nomeado neste arquivo, e não escrito à mão na navegação, porque renomear a
+ * prática lá deixaria a porta abrindo no vazio sem quebrar nada. `confere-praticas.js`
+ * confere que ela existe **e que tem guia**: em crise ninguém lê, alguém precisa conduzir.
+ */
+export const ANCORA_RAPIDA = { topico: 'ansiedade', pratica: 'aterramento-54321' } as const;
+
 export const PRACTICE_TOPICS: PracticeTopic[] = [
   {
     key: 'ansiedade',

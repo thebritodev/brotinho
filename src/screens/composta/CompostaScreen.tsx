@@ -33,7 +33,14 @@ const SUGESTOES = ['vou ser demitido', 'ninguém confia em mim', 'vai dar tudo e
 
 type Step = 'explain' | 'thought' | 'record' | 'done';
 
-export function CompostaScreen({ onClose }: { onClose: () => void }) {
+export function CompostaScreen({
+  onClose,
+  aoFazerExercicio,
+}: {
+  onClose: () => void;
+  /** Repassado ao CVV: a saída de quem não quer falar com ninguém agora. */
+  aoFazerExercicio?: () => void;
+}) {
   const insets = useSafeAreaInsets();
   const { data, addCompost } = useAppState();
 
@@ -348,7 +355,7 @@ export function CompostaScreen({ onClose }: { onClose: () => void }) {
 
           {/* A tela em que a pessoa escreve o pensamento que mais dói. Se há um
               lugar no app onde o caminho até ajuda precisa ser curto, é este. */}
-          <AjudaAgora />
+          <AjudaAgora aoFazerExercicio={aoFazerExercicio} />
         </ScrollView>
       </View>
       </ScreenTransition>

@@ -71,7 +71,9 @@ const RAIZ = path.join(__dirname, '..');
   }
 
   const alvo = achar('practices.js');
-  const { PRACTICE_TOPICS } = await import('file://' + alvo.split(path.sep).join('/'));
+  const { PRACTICE_TOPICS, ANCORA_RAPIDA } = await import(
+    'file://' + alvo.split(path.sep).join('/'),
+  );
 
   const problemas = [];
   const erro = (onde, o_que) => problemas.push(`${onde}: ${o_que}`);
@@ -171,6 +173,30 @@ const RAIZ = path.join(__dirname, '..');
   }
 
   fs.rmSync(saida, { recursive: true, force: true });
+
+  /*
+    A porta de "estou muito mal agora" precisa abrir em algum lugar.
+
+    Ela sai do CVV, no Diário e na Composta, e aponta para uma prática pela
+    chave. Renomear essa prática não quebraria compilação nem teste nenhum: a
+    porta simplesmente abriria no vazio, no pior momento possível para isso.
+
+    O guia é exigido junto, e não por capricho: em crise ninguém lê uma tela de
+    passos: alguém precisa conduzir.
+  */
+  const temaAncora = PRACTICE_TOPICS.find((t) => t.key === ANCORA_RAPIDA.topico);
+  const praticaAncora = temaAncora?.practices.find((p) => p.key === ANCORA_RAPIDA.pratica);
+  if (!praticaAncora) {
+    erro(
+      `${ANCORA_RAPIDA.topico}/${ANCORA_RAPIDA.pratica}`,
+      'ANCORA_RAPIDA aponta para uma prática que não existe — a porta do CVV abriria no vazio',
+    );
+  } else if (!praticaAncora.guide) {
+    erro(
+      `${ANCORA_RAPIDA.topico}/${ANCORA_RAPIDA.pratica}`,
+      'ANCORA_RAPIDA sem guia — em crise a pessoa precisa ser conduzida, não ler',
+    );
+  }
 
   console.log(`${PRACTICE_TOPICS.length} temas · ${total} práticas`);
   if (!problemas.length) {
