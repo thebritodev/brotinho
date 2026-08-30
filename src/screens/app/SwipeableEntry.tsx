@@ -64,7 +64,7 @@ export function SwipeableEntry({ id, date, text, onEdit, onRead, onDelete, openI
       }}
     >
       <Icon name={icone} size={20} color="#fff" />
-      <Text style={{ fontFamily: fonts.body.bold, fontSize: 12, color: '#fff' }}>{rotulo}</Text>
+      <Text style={{ fontFamily: fonts.body.bold, fontSize: 12, color: colors.textInverse }}>{rotulo}</Text>
     </Pressable>
   );
 

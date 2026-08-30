@@ -44,7 +44,10 @@ for (const f of arquivos) {
   const linhas = texto.split(/\r?\n/);
 
   for (let i = 0; i < linhas.length; i++) {
-    if (!/<Text[\s>]/.test(linhas[i])) continue;
+    // `<Text` sozinho no fim da linha conta: a tag continua abaixo. A primeira
+    // versão exigia um caractere depois e deixou passar exatamente esses —
+    // achados medindo a cor na tela, não lendo o código.
+    if (!/<Text(\s|>|$)/.test(linhas[i])) continue;
 
     // Junta a tag de abertura inteira, que pode ocupar várias linhas.
     let tag = '';

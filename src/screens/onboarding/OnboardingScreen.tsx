@@ -310,6 +310,7 @@ export function OnboardingScreen() {
         <View style={{ gap: 12 }}>
           <Text
             style={{
+              color: colors.textPrimary,
               fontFamily: fonts.display.bold,
               fontSize: 30,
               lineHeight: 30 * 1.2,
@@ -449,6 +450,7 @@ export function OnboardingScreen() {
         <View style={{ gap: 10 }}>
           <Text
             style={{
+              color: colors.textPrimary,
               fontFamily: fonts.display.bold,
               fontSize: 24,
               lineHeight: 24 * 1.25,
@@ -516,6 +518,7 @@ export function OnboardingScreen() {
       <View style={{ gap: 16 }}>
         <Text
           style={{
+            color: colors.textPrimary,
             fontFamily: fonts.display.bold,
             fontSize: 23,
             lineHeight: 23 * 1.24,
@@ -560,6 +563,7 @@ export function OnboardingScreen() {
       <View style={{ gap: 14 }}>
         <Text
           style={{
+            color: colors.textPrimary,
             fontFamily: fonts.display.bold,
             fontSize: 23,
             lineHeight: 23 * 1.24,
@@ -606,6 +610,7 @@ export function OnboardingScreen() {
         <GrowingSprout size={brotoDoPlano} />
         <Text
           style={{
+            color: colors.textPrimary,
             fontFamily: fonts.display.bold,
             fontSize: 22,
             lineHeight: 22 * 1.2,
@@ -740,7 +745,7 @@ export function OnboardingScreen() {
           paddingHorizontal: 20,
           alignItems: 'center',
           gap: 12,
-          backgroundColor: isPaywall ? '#fff' : colors.bg,
+          backgroundColor: isPaywall ? colors.surface : colors.bg,
         }}
       >
         {!experimentoIncompleto && (

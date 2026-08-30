@@ -121,6 +121,7 @@ export function PracticeDetailScreen({
         <GrowingSprout size={150} ate={2} />
         <Text
           style={{
+            color: colors.textPrimary,
             fontFamily: fonts.display.bold,
             fontSize: 24,
             lineHeight: 24 * 1.25,

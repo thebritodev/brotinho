@@ -54,6 +54,7 @@ export function WelcomeScreen({ onStart }: { onStart: () => void }) {
         <View style={{ paddingHorizontal: 24, gap: 12, marginTop: 8 }}>
           <Text
             style={{
+              color: colors.textPrimary,
               fontFamily: fonts.display.extraBold,
               fontSize: 30,
               lineHeight: 30 * 1.2,

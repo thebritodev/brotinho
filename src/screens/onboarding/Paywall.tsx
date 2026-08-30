@@ -178,7 +178,7 @@ export function Paywall({ plan, onSelectPlan }: Props) {
                 fontFamily: fonts.body.extraBold,
                 fontSize: 11,
                 letterSpacing: 0.3,
-                color: '#fff',
+                color: colors.textInverse,
               }}
             >
               MAIS POPULAR

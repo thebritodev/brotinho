@@ -62,6 +62,7 @@ export function ExperimentoComposta({ thought, onChangeThought, reps, onRep }: P
       <View style={{ gap: 16 }}>
         <Text
           style={{
+            color: colors.textPrimary,
             fontFamily: fonts.display.bold,
             fontSize: 21,
             lineHeight: 21 * 1.26,
@@ -128,6 +129,7 @@ export function ExperimentoComposta({ thought, onChangeThought, reps, onRep }: P
     <View style={{ alignItems: 'center', gap: 14 }}>
       <Text
         style={{
+          color: colors.textPrimary,
           fontFamily: fonts.display.bold,
           fontSize: 20,
           lineHeight: 20 * 1.26,

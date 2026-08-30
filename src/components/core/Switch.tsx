@@ -45,7 +45,7 @@ export function Switch({ checked = false, onChange, label }: Props) {
           width: 20,
           height: 20,
           borderRadius: 10,
-          backgroundColor: '#fff',
+          backgroundColor: colors.surface,
           ...shadows.sm,
         }}
       />

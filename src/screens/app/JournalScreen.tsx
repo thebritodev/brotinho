@@ -386,13 +386,13 @@ export function JournalScreen({
             {voice.state === 'transcribing' ? (
               <ActivityIndicator size="small" color={colors.primaryStrong} />
             ) : (
-              <Icon name="droplet" size={18} color={isRecording ? '#fff' : colors.primaryStrong} />
+              <Icon name="droplet" size={18} color={isRecording ? colors.textInverse : colors.primaryStrong} />
             )}
             <Text
               style={{
                 fontFamily: fonts.body.bold,
                 fontSize: 15,
-                color: isRecording ? '#fff' : colors.primaryStrong,
+                color: isRecording ? colors.textInverse : colors.primaryStrong,
               }}
             >
               {voiceLabel}

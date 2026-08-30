@@ -89,7 +89,7 @@ export function GrowthNotice({ stage, days, onClose }: Props) {
         <AnimatedSprout mood="feliz" stage={stage} size={150} swayOnMount />
 
         <Text
-          style={{ fontFamily: fonts.display.bold, fontSize: 22, textAlign: 'center' }}
+          style={{ color: colors.textPrimary, fontFamily: fonts.display.bold, fontSize: 22, textAlign: 'center' }}
         >
           {texto.titulo}
         </Text>

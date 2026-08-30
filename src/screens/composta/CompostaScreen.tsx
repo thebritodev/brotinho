@@ -160,10 +160,10 @@ export function CompostaScreen({
             justifyContent: 'center',
           }}
         >
-          <Text style={{ fontFamily: fonts.body.extraBold, fontSize: 14, color: '#fff' }}>{n}</Text>
+          <Text style={{ fontFamily: fonts.body.extraBold, fontSize: 14, color: colors.textInverse }}>{n}</Text>
         </View>
         <Text
-          style={{ flex: 1, fontFamily: fonts.body.regular, fontSize: 15, lineHeight: 15 * 1.5 }}
+          style={{ color: colors.textPrimary, flex: 1, fontFamily: fonts.body.regular, fontSize: 15, lineHeight: 15 * 1.5 }}
         >
           {texto}
         </Text>
@@ -212,6 +212,7 @@ export function CompostaScreen({
             <Sprout mood="leve" stage={2} size={120} />
             <Text
               style={{
+                color: colors.textPrimary,
                 fontFamily: fonts.display.bold,
                 fontSize: 20,
                 lineHeight: 20 * 1.3,
@@ -526,7 +527,7 @@ export function CompostaScreen({
                   alignItems: 'center',
                 }}
               >
-                <Text style={{ fontFamily: fonts.body.bold, fontSize: 17, color: '#fff' }}>
+                <Text style={{ fontFamily: fonts.body.bold, fontSize: 17, color: colors.textInverse }}>
                   Segurar e repetir
                 </Text>
               </Pressable>
@@ -630,6 +631,7 @@ export function CompostaScreen({
 
         <Text
           style={{
+            color: colors.textPrimary,
             fontFamily: fonts.display.bold,
             fontSize: 24,
             lineHeight: 24 * 1.25,
