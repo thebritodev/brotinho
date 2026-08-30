@@ -94,7 +94,7 @@ export function Paywall({ plan, onSelectPlan }: Props) {
             borderRadius: 999,
           }}
         >
-          <Text style={{ fontFamily: fonts.body.extraBold, fontSize: 13, color: '#8a6318' }}>
+          <Text style={{ fontFamily: fonts.body.extraBold, fontSize: 13, color: palette.amber700 }}>
             Oferta do plano anual
           </Text>
         </View>

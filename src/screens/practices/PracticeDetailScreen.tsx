@@ -269,7 +269,7 @@ export function PracticeDetailScreen({
                 }}
               >
                 <Text
-                  style={{ fontFamily: fonts.body.extraBold, fontSize: 14, color: '#fff' }}
+                  style={{ fontFamily: fonts.body.extraBold, fontSize: 14, color: colors.textInverse }}
                 >
                   {i + 1}
                 </Text>

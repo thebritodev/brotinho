@@ -153,7 +153,7 @@ export function PracticesScreen({
                   </Text>
                   {!!p.guide && (
                     <>
-                      <Text style={{ color: palette.brown200 }}>·</Text>
+                      <Text style={{ color: palette.brown400 }}>·</Text>
                       <Text
                         style={{
                           fontFamily: fonts.body.bold,
@@ -169,7 +169,7 @@ export function PracticesScreen({
                       exercícios soltos e ninguém sabia onde tinha parado. */}
                   {!!feitas[`${topic.key}/${p.key}`] && (
                     <>
-                      <Text style={{ color: palette.brown200 }}>·</Text>
+                      <Text style={{ color: palette.brown400 }}>·</Text>
                       <Text
                         style={{
                           fontFamily: fonts.body.bold,
