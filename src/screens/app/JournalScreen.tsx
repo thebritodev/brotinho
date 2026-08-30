@@ -14,6 +14,8 @@ import {
   Text,
   TextInput,
   View,
+  type NativeSyntheticEvent,
+  type TextLayoutEventData,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -32,13 +34,65 @@ import { useVoiceNote } from './useVoiceNote';
 const TURN_DURATION = 620;
 
 /**
- * Quanto o texto desce para se apoiar na pauta, em pixels.
+ * Quanto a base do texto fica **acima** da pauta, em pixels.
  *
- * Medido na tela: com a fonte centralizada na faixa de 35, a base do texto
- * ficava 13px acima do traço. Nove desce o suficiente para a escrita pousar
- * sem encostar.
+ * É a folga que existe num caderno de verdade: a escrita se apoia na linha
+ * sem encostar nela. O deslocamento que produz essa folga não está aqui — ele
+ * é medido, ver `usePousoNaPauta`.
  */
-const POUSO_NA_PAUTA = 9;
+const FOLGA_ACIMA_DA_PAUTA = 4;
+
+/**
+ * O deslocamento usado onde não dá para medir.
+ *
+ * `onTextLayout` não existe no React Native Web, então ali a medição nunca
+ * roda. Este é o valor conferido no navegador, régua na tela: com a fonte
+ * centralizada na faixa de 35, a base caía 13px acima do traço.
+ *
+ * No Android e no iOS ele dura um instante e é substituído pela medida real.
+ */
+const POUSO_SEM_MEDIDA = 9;
+
+/**
+ * Onde a base do texto cai hoje, e quanto falta para ela pousar na pauta.
+ *
+ * A primeira versão disto era um número fixo, calibrado no navegador, e não
+ * serviu no Android: `lineHeight` maior que a fonte é distribuído de um jeito
+ * em cada plataforma, e ainda muda com o tamanho de fonte do sistema. Chutar
+ * um valor acerta numa e erra na outra.
+ *
+ * Então o texto se mede. Um `<Text>` invisível com o mesmo estilo relata, via
+ * `onTextLayout`, onde a base da primeira linha caiu dentro da faixa; daí sai
+ * exatamente quanto falta descer. Funciona no Android, no iOS e na web sem
+ * ninguém precisar recalibrar — inclusive para quem usa a fonte do sistema
+ * aumentada.
+ */
+function usePousoNaPauta() {
+  const [deslocamento, setDeslocamento] = useState(POUSO_SEM_MEDIDA);
+
+  const medir = (e: NativeSyntheticEvent<TextLayoutEventData>) => {
+    const linha = e.nativeEvent.lines[0];
+    if (!linha) return;
+    // `y` é o topo da faixa da linha; `ascender`, a altura da letra acima da
+    // base. A soma é onde a base está desenhada hoje.
+    const baseAtual = linha.y + linha.ascender;
+    const baseDesejada = LINE_HEIGHT - FOLGA_ACIMA_DA_PAUTA;
+    const novo = Math.max(0, Math.round(baseDesejada - baseAtual));
+
+    if (__DEV__) {
+      // Sai no terminal do Metro, para conferir a medida no aparelho de
+      // verdade em vez de deduzir da web.
+      console.log(
+        `[brotinho/pauta] base em ${baseAtual.toFixed(1)} (y ${linha.y.toFixed(1)} + ` +
+          `ascender ${linha.ascender.toFixed(1)}) · alvo ${baseDesejada} · desce ${novo}`,
+      );
+    }
+
+    setDeslocamento((antigo) => (antigo === novo ? antigo : novo));
+  };
+
+  return { deslocamento, medir };
+}
 
 /** Registros carregados por vez na lista. */
 const PAGINA = 5;
@@ -72,12 +126,15 @@ export function JournalScreen({
    * `escrito` guarda o valor atual fora do ciclo de render, para a gravação de
    * saída poder registrar o último estado sem depender de um novo render.
    */
+  const { deslocamento: pouso, medir: medirPouso } = usePousoNaPauta();
+
   /**
    * Alinha o texto às pautas — usado tanto na folha em uso quanto na que vira.
    *
-   * Estava no topo do arquivo. Aqui dentro ele acompanha o tema: no escuro a
-   * tinta clareia junto com o papel.
+   * Vive aqui dentro, e não no topo do arquivo, para acompanhar o tema: no
+   * escuro a tinta clareia junto com o papel.
    */
+
   const paperTextStyle = {
     minHeight: LINE_HEIGHT * 7,
     fontFamily: fonts.body.regular,
@@ -92,15 +149,11 @@ export function JournalScreen({
     /*
       O texto pousa na pauta, em vez de flutuar no meio dela.
 
-      Com `lineHeight` 35 e fonte 16, o glifo fica centralizado na faixa: medido
-      na tela, a base da escrita caía 13px acima do traço, e a folha parecia um
-      caderno em que ninguém acertou a linha. Este empurrão põe a base logo
-      acima da pauta, que é como se escreve à mão.
-
-      Vale para as duas folhas — a que está sendo escrita e a que vira na
-      animação —, porque as duas usam este mesmo estilo.
+      O valor vem de `usePousoNaPauta`, que mede em vez de chutar. Vale para as
+      duas folhas — a que está sendo escrita e a que vira na animação —, porque
+      as duas usam este mesmo estilo.
     */
-    paddingTop: POUSO_NA_PAUTA,
+    paddingTop: pouso,
   } as const;
 
   const [restaurado, setRestaurado] = useState(false);
@@ -355,6 +408,20 @@ export function JournalScreen({
         {/* Folha em uso. A folha que acabou de ser salva vira por cima dela. */}
         <View>
           <RuledPaper>
+            {/*
+              A régua que se mede. Invisível, fora do fluxo e sem toque: existe
+              só para o `onTextLayout` informar onde a base da letra cai nesta
+              plataforma, com esta fonte, neste tamanho de sistema.
+            */}
+            <Text
+              style={[paperTextStyle, { position: 'absolute', opacity: 0 }]}
+              onTextLayout={medirPouso}
+              pointerEvents="none"
+              accessibilityElementsHidden
+              importantForAccessibility="no-hide-descendants"
+            >
+              Ag
+            </Text>
             <TextInput
               value={text}
               onChangeText={setText}

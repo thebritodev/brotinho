@@ -218,10 +218,27 @@ export function Sprout({
   const bulbR = BULB_R[stage];
   const midY = (POT_TOP_Y + stemTopY) / 2;
 
+  /*
+    Sem vaso, a viewBox se fecha em volta da planta.
+
+    A caixa `0 0 200 224` inclui o vaso, que vai de 164 a 220. Escondendo o
+    vaso, um terço da caixa fica vazio — e o desenho, que continua sendo
+    encaixado nela, aparece com metade do tamanho, flutuando com um buraco
+    embaixo. Era isso, e não o valor de `size`, que fazia o broto dos cartões
+    parecer pequeno: aumentar o número aumentava a caixa junto com o vazio.
+
+    Recortando, a planta passa a ocupar a caixa inteira. Quem chama não muda
+    nada, e o desenho dobra de tamanho aparente no mesmo espaço.
+  */
+  const topoDaPlanta = stemTopY - bulbR - 8;
+  const caixa = showPot
+    ? // O 224 em vez de 220 é folga: o vaso termina em 220 e o traço de 3.5
+      // ficaria metade para fora, cortado na borda.
+      '0 0 200 224'
+    : `34 ${topoDaPlanta} 132 ${POT_TOP_Y + 12 - topoDaPlanta}`;
+
   return (
-    // A viewBox tem 4 unidades de folga embaixo (224, não 220): o vaso termina
-    // em y=220 e o traço de 3.5 ficaria metade para fora, cortado na borda.
-    <Svg viewBox="0 0 200 224" width={size} height={size * 1.12}>
+    <Svg viewBox={caixa} width={size} height={size * 1.12}>
       {/*
         O halo é um brilho, não um disco.
 
