@@ -1,8 +1,48 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { AccessibilityInfo, Animated, Easing, View } from 'react-native';
 
+import Svg, { Circle, Defs, RadialGradient, Stop } from 'react-native-svg';
+
 import { type Mood, useTema } from '../../theme';
 import { Sprout, type Decoration, type SproutStage } from './Sprout';
+
+/**
+ * Uma camada do halo: disco de cor no claro, luz de tras no escuro.
+ *
+ * Os dois mecanismos vivem aqui pelo mesmo motivo de `Sprout` — no escuro,
+ * fundo mais escuro que a planta le como sombra em volta, e o que funciona e
+ * luz vindo de tras. La o comentario longo; aqui so a repeticao do desenho,
+ * porque esta tela precisa de **duas** camadas para atravessar de um humor ao
+ * outro por opacidade.
+ */
+function CamadaDoHalo({ mood, lado }: { mood: Mood; lado: number }) {
+  const { moodColors, moodColorsFundo, tema } = useTema();
+  if (tema !== 'escuro') {
+    return (
+      <View
+        style={{
+          width: lado,
+          height: lado,
+          borderRadius: lado / 2,
+          backgroundColor: moodColorsFundo[mood],
+        }}
+      />
+    );
+  }
+  const id = `luz-anim-${mood}`;
+  return (
+    <Svg width={lado} height={lado} viewBox="0 0 100 100">
+      <Defs>
+        <RadialGradient id={id} cx="50%" cy="50%" r="50%">
+          <Stop offset="0%" stopColor={moodColors[mood]} stopOpacity={0.22} />
+          <Stop offset="40%" stopColor={moodColors[mood]} stopOpacity={0.12} />
+          <Stop offset="100%" stopColor={moodColors[mood]} stopOpacity={0} />
+        </RadialGradient>
+      </Defs>
+      <Circle cx={50} cy={50} r={50} fill={`url(#${id})`} />
+    </Svg>
+  );
+}
 
 /**
  * O broto reagindo à troca de humor: o disco de fundo faz a transição de cor
@@ -60,7 +100,6 @@ export function AnimatedSprout({
   breathe = false,
   swayOn = null,
 }: Props) {
-  const { moodColorsFundo } = useTema();
   /** Cor que fica por baixo enquanto a nova entra. */
   const [previous, setPrevious] = useState<Mood>(mood);
   const [current, setCurrent] = useState<Mood>(mood);
@@ -189,42 +228,18 @@ export function AnimatedSprout({
     <View style={{ width: size, height: size * 1.12 }}>
       {showBg && (
         /*
-          O halo é um brilho, não um disco — e agora é uma superfície.
-
-          Ele vinha com opacidade calibrada no olho porque usava `moodColors`,
-          que é cor de pastilha e por isso clara: num círculo de 359 sobre
-          marrom quase preto, aquilo virava uma lua atrás do broto. Com
-          `moodColorsFundo`, que é a mesma cor no papel de fundo, ele volta a
-          ser opacidade 1 dos dois lados.
-
-          A camada que sobrou existe pela travessia entre dois humores: o disco
-          de baixo é o humor anterior, e o de cima entra por cima dele. Ver o
-          comentário de `Sprout`.
+          Duas camadas, pela travessia entre humores: a de baixo é o humor
+          anterior, a de cima entra por opacidade. O que cada camada desenha
+          depende do tema — ver `CamadaDoHalo`, e o comentário longo em
+          `Sprout`.
         */
         <View>
-          <View
-            style={{
-              position: 'absolute',
-              left: offset,
-              top: offset,
-              width: diameter,
-              height: diameter,
-              borderRadius: diameter / 2,
-              backgroundColor: moodColorsFundo[previous],
-            }}
-          />
-          <Animated.View
-            style={{
-              position: 'absolute',
-              left: offset,
-              top: offset,
-              width: diameter,
-              height: diameter,
-              borderRadius: diameter / 2,
-              backgroundColor: moodColorsFundo[current],
-              opacity: fade,
-            }}
-          />
+          <View style={{ position: 'absolute', left: offset, top: offset }}>
+            <CamadaDoHalo mood={previous} lado={diameter} />
+          </View>
+          <Animated.View style={{ position: 'absolute', left: offset, top: offset, opacity: fade }}>
+            <CamadaDoHalo mood={current} lado={diameter} />
+          </Animated.View>
         </View>
       )}
 

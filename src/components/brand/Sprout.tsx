@@ -1,5 +1,5 @@
 import React from 'react';
-import Svg, { Circle, Ellipse, G, Path, Rect } from 'react-native-svg';
+import Svg, { Circle, Defs, Ellipse, G, Path, RadialGradient, Rect, Stop } from 'react-native-svg';
 
 import { tracos, type Mood, useTema } from '../../theme';
 import {
@@ -194,7 +194,7 @@ export function Sprout({
   showPot = true,
   showBg = true,
 }: Props) {
-  const { moodColorsFundo, palette } = useTema();
+  const { moodColors, moodColorsFundo, palette, tema } = useTema();
   const stemTopY = STEM_TOP_Y[stage];
   const bulbR = BULB_R[stage];
   const midY = (POT_TOP_Y + stemTopY) / 2;
@@ -222,34 +222,55 @@ export function Sprout({
   return (
     <Svg viewBox={caixa} width={size} height={size * 1.12}>
       {/*
-        O halo é um brilho, não um disco — e agora é uma superfície.
+        O halo: dois mecanismos, porque a luz do ambiente é outra.
 
-        Ele passou por 0,4, 0,18 e 0,14 de opacidade, sempre correndo atrás da
-        cor de humor: cada vez que aquela tabela mudava, o disco ficava alto ou
-        sumia. A causa era a tabela errada. `moodColors` é cor de pastilha,
-        clara de propósito porque recebe tinta escura por cima; usada num
-        círculo de 192 sobre marrom quase preto, ela vira uma lua atrás do
-        broto, e a opacidade só existia para disfarçar isso.
+        No **claro** é o que sempre foi: um disco da cor do humor. Pastel sobre
+        creme já é discreto, ninguém reclamou, e não se mexe no que funciona.
 
-        `moodColorsFundo` é a mesma cor no papel de superfície — igual à outra
-        no tema claro, escura no tema escuro. Com ela o halo volta a ser
-        opacidade 1 dos dois lados, como qualquer outro fundo, e para de
-        depender de um número calibrado no olho.
+        No **escuro** ele foi refeito, e a correção não era de tom — era de
+        direção da luz. Todas as tentativas anteriores pintaram o fundo com uma
+        cor **mais escura** que a planta, e num tema escuro isso lê como sombra
+        em volta: um buraco colorido. Escurecer, clarear ou dissolver aquele
+        disco não resolvia, porque o problema não era o quanto de cor, e sim de
+        onde vinha a luz.
 
-        Ele é desenhado no enquadramento com vaso, e por isso anda com ele: sem
-        vaso a caixa fecha em volta da planta, e o disco, que é maior que ela,
-        deixa de ser disco e vira fundo cheio. Nenhuma tela pede as duas coisas
-        juntas hoje — todas que escondem o vaso escondem o halo também. Se
-        alguma passar a pedir, é aqui que vai aparecer.
+        Num ambiente escuro o que se vê é luz **vindo de trás** do objeto. Então
+        aqui a cor é a pastilha clara do humor — a mesma de `moodColors`, que a
+        carinha e o gráfico já usam — a 22% no centro, desvanecendo até zero. A
+        planta fica iluminada por trás, sem borda de círculo em lugar nenhum, e
+        os humores voltam a se distinguir: dourado no feliz, azulado no ansioso,
+        acinzentado no triste. Um gradiente mais fraco os deixava todos iguais,
+        que foi o defeito da tentativa anterior a esta.
+
+        `moodColorsFundo` continua existindo e continua sendo tom escuro: ele é
+        o disco pequeno do jardim e da colheita, que fica **sobre cartão** e não
+        sobre a tela, e ali funciona.
+
+        O halo é desenhado no enquadramento com vaso, e por isso anda com ele:
+        sem vaso a caixa fecha em volta da planta, e o disco, que é maior que
+        ela, deixa de ser disco e vira fundo cheio. Nenhuma tela pede as duas
+        coisas juntas hoje — todas que escondem o vaso escondem o halo também.
       */}
-      {showBg && (
-        <Circle
-          cx={100}
-          cy={100}
-          r={96}
-          fill={moodColorsFundo[mood] ?? moodColorsFundo.neutro}
-        />
-      )}
+      {showBg &&
+        (tema === 'escuro' ? (
+          <>
+            <Defs>
+              <RadialGradient id={`luz-${mood}`} cx="50%" cy="50%" r="50%">
+                <Stop offset="0%" stopColor={moodColors[mood]} stopOpacity={0.22} />
+                <Stop offset="40%" stopColor={moodColors[mood]} stopOpacity={0.12} />
+                <Stop offset="100%" stopColor={moodColors[mood]} stopOpacity={0} />
+              </RadialGradient>
+            </Defs>
+            <Circle cx={100} cy={100} r={105} fill={`url(#luz-${mood})`} />
+          </>
+        ) : (
+          <Circle
+            cx={100}
+            cy={100}
+            r={96}
+            fill={moodColorsFundo[mood] ?? moodColorsFundo.neutro}
+          />
+        ))}
 
       {showPot && (
         <G>
