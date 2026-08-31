@@ -47,3 +47,7 @@ server/.env
 
 # Capturas geradas para a App Store (podem ser refeitas com scripts/capturas.js)
 capturas/
+
+# Anotado pelo scripts/ligar-expo.cmd a cada vez que o tunel sobe.
+# O subdominio do ngrok muda toda vez, entao isto e sempre local.
+endereco-expo.txt
