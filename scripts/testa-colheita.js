@@ -13,9 +13,9 @@
  */
 
 const { execFileSync } = require('child_process');
-const os = require('os');
 const path = require('path');
 const fs = require('fs');
+const { pastaTemporaria } = require('./pasta-temporaria');
 
 const RAIZ = path.join(__dirname, '..');
 const DIA = 24 * 60 * 60 * 1000;
@@ -26,7 +26,7 @@ function chaveDoDia(t) {
 }
 
 (async () => {
-  const saida = fs.mkdtempSync(path.join(os.tmpdir(), 'colheita-'));
+  const saida = pastaTemporaria('colheita');
   const tsc = path.join(RAIZ, 'node_modules', 'typescript', 'bin', 'tsc');
 
   execFileSync(
@@ -154,7 +154,6 @@ function chaveDoDia(t) {
     daysCaredFor({ ...comHistoria, diasCuidadosMax: undefined }) === brutoAntes,
   );
 
-  fs.rmSync(saida, { recursive: true, force: true });
   console.log(`\n13 casos · ${falhas} falha(s)`);
   process.exit(falhas === 0 ? 0 : 1);
 })().catch((e) => {

@@ -19,9 +19,9 @@
  */
 
 const { execFileSync } = require('child_process');
-const os = require('os');
 const path = require('path');
 const fs = require('fs');
+const { pastaTemporaria } = require('./pasta-temporaria');
 
 const RAIZ = path.join(__dirname, '..');
 
@@ -60,7 +60,7 @@ const chave = (d) => {
 };
 
 function main() {
-  const saida = fs.mkdtempSync(path.join(os.tmpdir(), 'brotinho-resposta-'));
+  const saida = pastaTemporaria('resposta');
   compila(
     [path.join('src', 'data', 'resposta.ts'), path.join('src', 'state', 'sanitize.ts')],
     saida,

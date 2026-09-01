@@ -28,9 +28,9 @@
  */
 
 const { execFileSync } = require('child_process');
-const os = require('os');
 const path = require('path');
 const fs = require('fs');
+const { pastaTemporaria } = require('./pasta-temporaria');
 
 const RAIZ = path.join(__dirname, '..');
 const SPROUT = path.join(RAIZ, 'src', 'components', 'brand', 'Sprout.tsx');
@@ -56,7 +56,7 @@ function numeros(texto) {
 
 /** Compila um módulo TS solto e o importa. */
 async function carrega(relativo, nome) {
-  const saida = fs.mkdtempSync(path.join(os.tmpdir(), 'brotinho-broto-'));
+  const saida = pastaTemporaria('broto');
   execFileSync(
     process.execPath,
     [

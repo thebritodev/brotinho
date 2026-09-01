@@ -14,9 +14,9 @@
  */
 
 const { execFileSync } = require('child_process');
-const os = require('os');
 const path = require('path');
 const fs = require('fs');
+const { pastaTemporaria } = require('./pasta-temporaria');
 
 const RAIZ = path.join(__dirname, '..');
 
@@ -35,7 +35,7 @@ const COBRANCA = [
 ];
 
 (async () => {
-  const saida = fs.mkdtempSync(path.join(os.tmpdir(), 'lembretes-'));
+  const saida = pastaTemporaria('lembretes');
   const tsc = path.join(RAIZ, 'node_modules', 'typescript', 'bin', 'tsc');
 
   execFileSync(
@@ -284,7 +284,6 @@ const COBRANCA = [
   checa('quem dorme as 09h da manha nao recebe palpite', !dorme('12:00', '09:00'));
   checa('horario invalido nao quebra', typeof dorme('abc', 'xyz') === 'boolean');
 
-  fs.rmSync(saida, { recursive: true, force: true });
 
   console.log(`\n${TODAS_AS_FRASES.length} frases · ${falhas} falha(s)`);
   process.exit(falhas === 0 ? 0 : 1);

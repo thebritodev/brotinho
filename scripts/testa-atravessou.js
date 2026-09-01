@@ -14,9 +14,9 @@
  */
 
 const { execFileSync } = require('child_process');
-const os = require('os');
 const path = require('path');
 const fs = require('fs');
+const { pastaTemporaria } = require('./pasta-temporaria');
 
 const RAIZ = path.join(__dirname, '..');
 
@@ -118,7 +118,7 @@ const CASOS = [
 ];
 
 (async () => {
-  const saida = fs.mkdtempSync(path.join(os.tmpdir(), 'atravessou-'));
+  const saida = pastaTemporaria('atravessou');
   const tsc = path.join(RAIZ, 'node_modules', 'typescript', 'bin', 'tsc');
 
   execFileSync(
@@ -199,7 +199,6 @@ const CASOS = [
   }
   falhas += extra;
 
-  fs.rmSync(saida, { recursive: true, force: true });
   console.log(`\n${CASOS.length + 2} casos · ${falhas} falha(s)`);
   process.exit(falhas === 0 ? 0 : 1);
 })().catch((e) => {

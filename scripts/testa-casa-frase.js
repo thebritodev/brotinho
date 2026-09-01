@@ -12,9 +12,9 @@
  */
 
 const { execFileSync } = require('child_process');
-const os = require('os');
 const path = require('path');
 const fs = require('fs');
+const { pastaTemporaria } = require('./pasta-temporaria');
 
 const RAIZ = path.join(__dirname, '..');
 const FONTE = path.join(RAIZ, 'src', 'screens', 'composta', 'casaFrase.ts');
@@ -73,7 +73,7 @@ const GRUPOS = [
 ];
 
 (async () => {
-  const saida = fs.mkdtempSync(path.join(os.tmpdir(), 'casa-frase-'));
+  const saida = pastaTemporaria('casa-frase');
 
   // O binário do TypeScript direto, sem passar pelo npx: no Windows o
   // `spawnSync` de um `.cmd` falha com EINVAL desde as versões recentes do Node.
@@ -113,7 +113,6 @@ const GRUPOS = [
     }
   }
 
-  fs.rmSync(saida, { recursive: true, force: true });
 
   console.log(`\n${total} casos · ${falhas} falha(s)`);
   process.exit(falhas === 0 ? 0 : 1);

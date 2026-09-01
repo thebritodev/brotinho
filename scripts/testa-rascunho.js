@@ -17,14 +17,14 @@
  */
 
 const { execFileSync } = require('child_process');
-const os = require('os');
 const path = require('path');
 const fs = require('fs');
+const { pastaTemporaria } = require('./pasta-temporaria');
 
 const RAIZ = path.join(__dirname, '..');
 
 (async () => {
-  const saida = fs.mkdtempSync(path.join(os.tmpdir(), 'rascunho-'));
+  const saida = pastaTemporaria('rascunho');
   const tsc = path.join(RAIZ, 'node_modules', 'typescript', 'bin', 'tsc');
 
   try {
@@ -174,7 +174,6 @@ globalThis.__DEV__ = false;`,
     return chaves.length === 0 ? 'ok' : `sobraram: ${chaves.join(', ')}`;
   });
 
-  fs.rmSync(saida, { recursive: true, force: true });
   console.log(`\n10 casos · ${falhas} falha(s)`);
   process.exit(falhas === 0 ? 0 : 1);
 })().catch((e) => {

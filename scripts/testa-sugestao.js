@@ -18,9 +18,9 @@
  */
 
 const { execFileSync } = require('child_process');
-const os = require('os');
 const path = require('path');
 const fs = require('fs');
+const { pastaTemporaria } = require('./pasta-temporaria');
 
 const RAIZ = path.join(__dirname, '..');
 
@@ -30,7 +30,7 @@ const NOITE = new Date(2026, 7, 28, 23, 0, 0);
 const MADRUGADA = new Date(2026, 7, 28, 3, 0, 0);
 
 (async () => {
-  const saida = fs.mkdtempSync(path.join(os.tmpdir(), 'sugestao-'));
+  const saida = pastaTemporaria('sugestao');
   const tsc = path.join(RAIZ, 'node_modules', 'typescript', 'bin', 'tsc');
 
   execFileSync(
@@ -168,7 +168,6 @@ const MADRUGADA = new Date(2026, 7, 28, 3, 0, 0);
     return problemas.length ? problemas.join('; ') : 'ok';
   });
 
-  fs.rmSync(saida, { recursive: true, force: true });
   console.log(`\n${total} casos · ${falhas} falha(s)`);
   process.exit(falhas === 0 ? 0 : 1);
 })().catch((e) => {

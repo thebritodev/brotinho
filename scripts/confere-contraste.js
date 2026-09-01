@@ -18,9 +18,9 @@
  */
 
 const { execFileSync } = require('child_process');
-const os = require('os');
 const path = require('path');
 const fs = require('fs');
+const { pastaTemporaria } = require('./pasta-temporaria');
 
 const RAIZ = path.join(__dirname, '..');
 
@@ -54,7 +54,7 @@ function razao(frente, fundo) {
 }
 
 (async () => {
-  const saida = fs.mkdtempSync(path.join(os.tmpdir(), 'contraste-'));
+  const saida = pastaTemporaria('contraste');
   const tsc = path.join(RAIZ, 'node_modules', 'typescript', 'bin', 'tsc');
 
   execFileSync(
@@ -186,8 +186,6 @@ function razao(frente, fundo) {
       linha(`carinha "${humor}" sobre a cor do humor`, TINTA_DA_CARINHA, cor, AA_GRANDE);
     }
   }
-
-  fs.rmSync(saida, { recursive: true, force: true });
   console.log(`\n${falhas} falha(s) de contraste`);
   process.exit(falhas === 0 ? 0 : 1);
 })().catch((e) => {

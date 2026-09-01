@@ -14,14 +14,14 @@
  */
 
 const { execFileSync } = require('child_process');
-const os = require('os');
 const path = require('path');
 const fs = require('fs');
+const { pastaTemporaria } = require('./pasta-temporaria');
 
 const RAIZ = path.join(__dirname, '..');
 
 (async () => {
-  const saida = fs.mkdtempSync(path.join(os.tmpdir(), 'praticas-'));
+  const saida = pastaTemporaria('praticas');
   const tsc = path.join(RAIZ, 'node_modules', 'typescript', 'bin', 'tsc');
 
   // O arquivo importa tipos e cores; `isolatedModules` não serve porque
@@ -171,8 +171,6 @@ const RAIZ = path.join(__dirname, '..');
       }
     }
   }
-
-  fs.rmSync(saida, { recursive: true, force: true });
 
   /*
     A porta de "estou muito mal agora" precisa abrir em algum lugar.

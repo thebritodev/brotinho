@@ -21,9 +21,9 @@
  */
 
 const { execFileSync } = require('child_process');
-const os = require('os');
 const path = require('path');
 const fs = require('fs');
+const { pastaTemporaria } = require('./pasta-temporaria');
 
 const RAIZ = path.join(__dirname, '..');
 
@@ -74,7 +74,7 @@ function compila(arquivos, saida) {
 }
 
 function main() {
-  const saida = fs.mkdtempSync(path.join(os.tmpdir(), 'brotinho-humores-'));
+  const saida = pastaTemporaria('humores');
   compila(
     [path.join('src', 'data', 'humores.ts'), path.join('src', 'state', 'derived.ts'), path.join('src', 'state', 'sanitize.ts')],
     saida,
