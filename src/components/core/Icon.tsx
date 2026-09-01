@@ -63,8 +63,21 @@ const PATHS = {
   /** Foco: alvo. O ponto do meio é traço de comprimento zero, como em `more`. */
   alvo: 'M12 21a9 9 0 110-18 9 9 0 010 18zM12 16.5a4.5 4.5 0 110-9 4.5 4.5 0 010 9zM12 12l0 0',
   sparkle: 'M12 2l1.6 5.4L19 9l-5.4 1.6L12 16l-1.6-5.4L5 9l5.4-1.6L12 2z',
+  /*
+    Flor: cinco pétalas redondas em volta de um miolo.
+
+    A anterior era um miolo com sete blocos ao redor, e aos 22 pontos não se
+    lia como flor nenhuma — virava um aglomerado. Ela passou a importar quando
+    a coragem ganhou uma flor desenhada no broto e este ícone virou a legenda
+    dela, logo abaixo do desenho: um não parecia o outro.
+
+    Anel de 6, pétala de 3,3, miolo de 2,1. As medidas vêm de comparar cinco
+    versões aos 30 pontos: com anel menor as pétalas se encostam e o contorno
+    interno vira ruído; com pétala em gota a flor lê como estrela, que é o
+    ícone da criatividade.
+  */
   flower:
-    'M12 8a2.5 2.5 0 100 5 2.5 2.5 0 000-5zM12 3c1.5 0 2.5 1.5 2 3-1.5-1-2.5-1-2-3zM12 3c-1.5 0-2.5 1.5-2 3 1.5-1 2.5-1 2-3zM6 12c0-1.5 1.5-2.5 3-2-1 1.5-1 2.5-3 2zM18 12c0-1.5-1.5-2.5-3-2 1 1.5 1 2.5 3 2zM12 21c1.5 0 2.5-1.5 2-3-1.5 1-2.5 1-2 3zM12 21c-1.5 0-2.5-1.5-2-3 1.5 1 2.5 1 2 3z',
+    'M8.7 6a3.3 3.3 0 1 0 6.6 0a3.3 3.3 0 1 0-6.6 0M14.41 10.15a3.3 3.3 0 1 0 6.6 0a3.3 3.3 0 1 0-6.6 0M12.23 16.85a3.3 3.3 0 1 0 6.6 0a3.3 3.3 0 1 0-6.6 0M5.17 16.85a3.3 3.3 0 1 0 6.6 0a3.3 3.3 0 1 0-6.6 0M2.99 10.15a3.3 3.3 0 1 0 6.6 0a3.3 3.3 0 1 0-6.6 0M9.9 12a2.1 2.1 0 1 0 4.2 0a2.1 2.1 0 1 0-4.2 0',
   star: 'M12 2l2.6 6.6L21 9.2l-5 4.5 1.5 6.8L12 17l-5.5 3.5L8 13.7l-5-4.5 6.4-.6L12 2z',
   check: 'M4 12l5 5L20 6',
   plus: 'M12 5v14M5 12h14',

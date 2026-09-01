@@ -123,6 +123,43 @@ function Decorations({ list, cx, cy }: { list: Decoration[]; cx: number; cy: num
           <Circle cx={cx + 44} cy={cy + 16} r={3} />
         </G>
       )}
+      {/*
+        Coragem: a flor.
+
+        As outras quatro são marcas em volta — estrela, brilho, gotas, a
+        plantinha companheira. A flor é a única que sai da própria planta, e é
+        essa a diferença que interessa: coragem não é algo que aconteceu perto
+        dela, é ela tendo se aberto. É também a primeira coisa deste vocabulário
+        que uma planta faz por conta própria, e ele não tinha nenhuma.
+
+        Cinco pétalas redondas contra a estrela de cinco pontas da criatividade:
+        as duas são quentes e ficam em lados opostos, e o que as separa aos 56
+        pixels da tela de valores é o contorno, não a cor.
+
+        Ela fica em `cy + 26`, e não em `cy + 18` como desenhei primeiro: ali a
+        pétala de cima encostava na gota esquerda do autocuidado, que mora em
+        `cy + 6`. Os cinco enfeites aparecem juntos na tela de valores, então
+        cada um precisa do seu canto — a estrela em cima à esquerda, o brilho em
+        cima à direita, as gotas nos lados, a plantinha embaixo à direita, a
+        flor embaixo à esquerda.
+      */}
+      {list.includes('coragem') && (
+        <G>
+          {[0, 1, 2, 3, 4].map((i) => {
+            const angulo = (i * 2 * Math.PI) / 5 - Math.PI / 2;
+            return (
+              <Circle
+                key={i}
+                cx={cx - 33 + Math.cos(angulo) * 5.4}
+                cy={cy + 14 + Math.sin(angulo) * 5.4}
+                r={3.8}
+                fill={palette.terracotta600}
+              />
+            );
+          })}
+          <Circle cx={cx - 33} cy={cy + 14} r={2.6} fill={palette.amber400} />
+        </G>
+      )}
       {list.includes('conexao') && (
         <G transform={`translate(${cx + 46} ${cy + 30}) scale(0.42)`}>
           <Ellipse

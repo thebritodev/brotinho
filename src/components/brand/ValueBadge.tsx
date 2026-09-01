@@ -14,10 +14,23 @@ export type { ValueKey };
  * tema de abertura. Guardando a chave, quem desenha faz `palette[v.tint]` e
  * recebe o azul do tema em uso — e o tipo garante que a chave exista.
  */
+/*
+  Cada ícone é o enfeite que aquele valor põe no broto.
+
+  Eles não eram: "Criatividade" trazia uma flor e desenhava uma estrela;
+  "Coragem" trazia uma folha e não desenhava nada, porque não tinha desenho.
+  Numa tela que diz "seu broto ganha uma característica para cada valor", a
+  lista logo abaixo do desenho é a legenda dele — e a legenda apontava para
+  outra coisa.
+
+  Agora a estrela é a estrela, o brilho é o brilho, as gotas são as gotas, a
+  folha é a plantinha companheira e a flor é a flor. Ver `Decorations`, no
+  `Sprout`.
+*/
 export const VALUES: Record<ValueKey, { label: string; icon: IconName; tint: keyof Palette }> = {
-  criatividade: { label: ROTULO_DO_VALOR.criatividade, icon: 'flower', tint: 'terracotta100' },
-  conexao: { label: ROTULO_DO_VALOR.conexao, icon: 'heart', tint: 'blue100' },
-  coragem: { label: ROTULO_DO_VALOR.coragem, icon: 'leaf', tint: 'green100' },
+  criatividade: { label: ROTULO_DO_VALOR.criatividade, icon: 'star', tint: 'terracotta100' },
+  conexao: { label: ROTULO_DO_VALOR.conexao, icon: 'leaf', tint: 'blue100' },
+  coragem: { label: ROTULO_DO_VALOR.coragem, icon: 'flower', tint: 'green100' },
   autocuidado: { label: ROTULO_DO_VALOR.autocuidado, icon: 'droplet', tint: 'yellow100' },
   curiosidade: { label: ROTULO_DO_VALOR.curiosidade, icon: 'sparkle', tint: 'lavender100' },
 };

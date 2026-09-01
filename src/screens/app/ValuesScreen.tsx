@@ -1,8 +1,8 @@
 import React, { useMemo } from 'react';
-import { ScrollView, Text, View } from 'react-native';
+import { ScrollView, Text, useWindowDimensions, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { Sprout, TopBar, ValueBadge, type Decoration } from '../../components';
+import { Sprout, TopBar, ValueBadge, ehEnfeite } from '../../components';
 import { useAppState } from '../../state/AppStateProvider';
 import { dayKey, livedValues, sproutStage } from '../../state/derived';
 import { fonts, useTema } from '../../theme';
@@ -10,14 +10,40 @@ import { fonts, useTema } from '../../theme';
 export function ValuesScreen({ onBack }: { onBack: () => void }) {
   const { colors } = useTema();
   const insets = useSafeAreaInsets();
+  const { width } = useWindowDimensions();
   const { data } = useAppState();
+
+  /*
+    O broto é o assunto desta tela, e estava com 150 pixels fixos.
+
+    Com os cinco enfeites aparecendo juntos, cada um deles fica com poucos
+    pixels de diâmetro nesse tamanho — a flor e a plantinha viram manchas. O
+    teto de 240 segura o desenho em telas largas, onde ele passaria a ocupar
+    metade da altura só porque a largura permite.
+  */
+  const tamanhoDoBroto = Math.min(width * 0.62, 240);
 
   const values = useMemo(() => livedValues(data), [data]);
   const today = dayKey();
   const mood = data.moodHistory.find((m) => m.date === today)?.mood ?? 'neutro';
 
-  // Os 3 valores mais vividos viram enfeites no broto.
-  const decorations = values.slice(0, 3).map((v) => v.value) as Decoration[];
+  /*
+    Todos os valores vividos viram enfeite, não os três primeiros.
+
+    O corte em três existia porque só quatro dos cinco valores tinham desenho e
+    dois deles disputavam espaço. Agora os cinco têm o seu canto — estrela em
+    cima à esquerda, brilho em cima à direita, gotas nos lados, plantinha
+    embaixo à direita, flor embaixo à esquerda — e o broto pode mostrar tudo de
+    uma vez. É o que a tela promete: um retrato do que a pessoa viveu, não uma
+    amostra dele.
+
+    E é filtro, não `as Decoration[]`. O elenco antes tinha quatro nomes e a
+    lista podia trazer cinco: a conversão empurrava "coragem" para dentro sem
+    ninguém conferir, e ela chegava ao desenho como um enfeite que não existe —
+    que não desenha nada e ainda **alarga a caixa** para caber, encolhendo o
+    broto sem motivo. Ver `ehEnfeite`.
+  */
+  const decorations = values.map((v) => v.value).filter(ehEnfeite);
 
   return (
     <View style={{ flex: 1, paddingTop: insets.top }}>
@@ -40,10 +66,15 @@ export function ValuesScreen({ onBack }: { onBack: () => void }) {
             textAlign: 'center',
           }}
         >
-          Seu broto ganha características a partir dos valores que aparecem no que você escreve.
+          Seu broto ganha uma característica para cada valor que aparece no que você escreve.
         </Text>
 
-        <Sprout mood={mood} stage={sproutStage(data)} decorations={decorations} size={150} />
+        <Sprout
+          mood={mood}
+          stage={sproutStage(data)}
+          decorations={decorations}
+          size={tamanhoDoBroto}
+        />
 
         {values.length ? (
           <View style={{ gap: 10, width: '100%' }}>

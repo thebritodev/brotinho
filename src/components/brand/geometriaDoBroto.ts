@@ -22,16 +22,23 @@ export type SproutStage = 1 | 2 | 3;
 /**
  * Valores que rendem enfeites no broto (ver tela "Meus valores").
  *
- * São quatro, e os valores são cinco: **coragem não tem desenho.** Não é
- * esquecimento a consertar sem pedir — é um desenho que ninguém fez.
+ * Eram quatro para cinco valores: coragem não tinha desenho, e isso ficou
+ * anotado aqui por um tempo como "um desenho que ninguém fez". Agora tem — a
+ * flor. Ver `Decorations`, no `Sprout`, para o porquê de ser uma flor.
  */
-export type Decoration = 'criatividade' | 'curiosidade' | 'autocuidado' | 'conexao';
+export type Decoration =
+  | 'criatividade'
+  | 'curiosidade'
+  | 'autocuidado'
+  | 'conexao'
+  | 'coragem';
 
 const ENFEITES: readonly Decoration[] = [
   'criatividade',
   'curiosidade',
   'autocuidado',
   'conexao',
+  'coragem',
 ];
 
 /**
