@@ -22,8 +22,46 @@ const PATHS = {
   heart: 'M12 20s-7-4.6-9.5-9C1 8 2 4 6 4c2.2 0 3.7 1.4 6 3.8C14.3 5.4 15.8 4 18 4c4 0 5 4 3.5 7-2.5 4.4-9.5 9-9.5 9z',
   moon: 'M20 14.5A8.5 8.5 0 119.5 4a7 7 0 0010.5 10.5z',
   droplet: 'M12 3s6 6.5 6 10.5a6 6 0 11-12 0C6 9.5 12 3 12 3z',
-  footprints:
-    'M8 4a2 2 0 012 2c0 2-2 2-2 4s2 2 2 3-1 2-2 2-2-1-2-3V6a2 2 0 012-2zM16 10a2 2 0 012 2c0 2-2 2-2 4s2 1 2 3-1 2-2 2-2-1-2-3v-6a2 2 0 012-2z',
+  /*
+    Os quatro desenhos dos temas de prática, e por que existem.
+
+    Antes deles, "Raiva" era `footprints` — que a 26 pontos vira dois rabiscos
+    que ninguém identifica —, e três temas usavam o ícone de outro destino do
+    app: "Luto" o `book` da aba Diário, "Estresse" o `droplet` da Composta,
+    "Foco" o `leaf` das Práticas. Numa lista de treze linhas iguais, o ícone é
+    metade do que diferencia uma da outra; repetir o de outro lugar não é só
+    inexpressivo, ensina a coisa errada.
+
+    `footprints` saiu junto: era o único uso dele no app.
+  */
+  /*
+    Raiva: chama.
+
+    O que separa fogo de gota não é a língua interna — desenhada pequena, ela
+    some aos 26 pontos e sobra um pingo com um cachinho dentro, que foi a
+    primeira tentativa. O que separa é a **ponta**: torta, deslocada do eixo, e
+    com um degrau de um lado. Gota é simétrica e lisa; chama não é. Comparada
+    lado a lado com `droplet` a 26 pontos antes de entrar.
+  */
+  chama:
+    'M13.5 2c-.5 3 .8 4.4 2 5.9 1.3 1.6 2.5 3 2.5 5.3a6 6 0 01-12 0c0-2 .7-3.3 1.8-4.4.1 1.5.9 2.4 2 2.7C8.5 8 10.5 4.6 13.5 2z',
+  /*
+    Luto: ampulheta.
+
+    O galho sem folha era a escolha bonita — planta, e o que fica quando o que
+    era seu não é mais —, mas aos 26 pontos vira uma runa: hastes de cinco
+    pontos que ninguém identifica. A nuvem de chuva se lê de longe e diz
+    "tristeza", que é o tema logo acima na lista. O coração aberto se lê e é o
+    ícone da Autoestima com um corte, que é a colisão que estamos desfazendo.
+
+    A ampulheta se lê aos 26 pontos, não é de mais ninguém, e é a que o próprio
+    texto do tema pede: "luto não é só morte, e não tem prazo".
+  */
+  ampulheta: 'M7 3h10M7 21h10M8 3c0 4 4 5.5 4 9s-4 5-4 9M16 3c0 4-4 5.5-4 9s4 5 4 9',
+  /** Estresse: manômetro. O ponteiro no alto é a pressão que o corpo acumula. */
+  pressao: 'M4 17.5a8 8 0 0116 0M12 17.5l4.2-5',
+  /** Foco: alvo. O ponto do meio é traço de comprimento zero, como em `more`. */
+  alvo: 'M12 21a9 9 0 110-18 9 9 0 010 18zM12 16.5a4.5 4.5 0 110-9 4.5 4.5 0 010 9zM12 12l0 0',
   sparkle: 'M12 2l1.6 5.4L19 9l-5.4 1.6L12 16l-1.6-5.4L5 9l5.4-1.6L12 2z',
   flower:
     'M12 8a2.5 2.5 0 100 5 2.5 2.5 0 000-5zM12 3c1.5 0 2.5 1.5 2 3-1.5-1-2.5-1-2-3zM12 3c-1.5 0-2.5 1.5-2 3 1.5-1 2.5-1 2-3zM6 12c0-1.5 1.5-2.5 3-2-1 1.5-1 2.5-3 2zM18 12c0-1.5-1.5-2.5-3-2 1 1.5 1 2.5 3 2zM12 21c1.5 0 2.5-1.5 2-3-1.5 1-2.5 1-2 3zM12 21c-1.5 0-2.5-1.5-2-3 1.5 1 2.5 1 2 3z',

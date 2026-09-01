@@ -71,7 +71,7 @@ const RAIZ = path.join(__dirname, '..');
   }
 
   const alvo = achar('practices.js');
-  const { PRACTICE_TOPICS, ANCORA_RAPIDA, resumoDoTema } = await import(
+  const { PRACTICE_TOPICS, ANCORA_RAPIDA, resumoDoTema, ORCAMENTO_DO_RESUMO } = await import(
     'file://' + alvo.split(path.sep).join('/'),
   );
 
@@ -215,8 +215,14 @@ const RAIZ = path.join(__dirname, '..');
       if (!/[.!?]$/.test(resumo)) {
         erro(tema.key, `resumo não termina em frase fechada: "${resumo}"`);
       }
-      if (resumo.length > 100) {
-        erro(tema.key, `resumo com ${resumo.length} caracteres, não cabe em duas linhas`);
+      if (resumo.length > ORCAMENTO_DO_RESUMO) {
+        // Só acontece quando a primeira frase sozinha estoura: ela entra de
+        // qualquer jeito, e aí quem tem de encurtar é o `intro`.
+        erro(
+          tema.key,
+          `resumo com ${resumo.length} caracteres, acima de ${ORCAMENTO_DO_RESUMO} — ` +
+            'a primeira frase do intro não cabe em duas linhas',
+        );
       }
       if (!tema.intro.startsWith(resumo)) {
         erro(tema.key, 'resumo não é o começo do intro');

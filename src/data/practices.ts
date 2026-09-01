@@ -77,13 +77,26 @@ export const ANCORA_RAPIDA = { topico: 'ansiedade', pratica: 'aterramento-54321'
  * nada: parece defeito. Aqui a conta é por frase inteira: pega enquanto couber
  * no orçamento, e para antes de estourar.
  *
- * O orçamento é generoso o bastante para juntar duas frases curtas, que é o
- * caso de "Culpa e vergonha" — ali as duas primeiras são um par, e só uma
- * delas não diz nada. E apertado o bastante para deixar de fora a segunda
- * frase dos temas que abrem com uma definição e emendam o que as práticas
- * fazem, que é informação para dentro do tema e não para a lista.
+ * ## De onde vem o 64
+ *
+ * Das duas linhas medidas na tela, e não de estimativa. A maior primeira frase
+ * do arquivo tem 61 caracteres — "A ansiedade acelera o corpo antes da cabeça
+ * entender por quê." — e ocupa as duas linhas inteiras num aparelho de 375 de
+ * largura. O orçamento fica logo acima disso.
+ *
+ * Ele é generoso o bastante para juntar duas frases curtas, que é o caso de
+ * "Culpa e vergonha": as duas primeiras somam 58 e são um par, e só uma delas
+ * não diz nada. E apertado o bastante para deixar de fora a segunda frase dos
+ * temas que abrem com uma definição e emendam o que as práticas fazem — em
+ * "Gratidão" as duas somavam 74, passavam no orçamento antigo de 78 e
+ * estouravam as duas linhas, que foi como o número errado apareceu.
+ *
+ * A primeira frase entra sempre, mesmo que estoure sozinha: um resumo vazio é
+ * pior que um resumo apertado. Quem confere que ela não estoura é
+ * `confere-praticas.js`, e ele reclama de um `intro` reescrito com abertura
+ * longa demais antes de a tela cortar.
  */
-const ORCAMENTO_DO_RESUMO = 78;
+export const ORCAMENTO_DO_RESUMO = 64;
 
 export function resumoDoTema(intro: string): string {
   const frases = intro.match(/[^.!?]+[.!?]+/g) ?? [intro];
@@ -256,7 +269,7 @@ export const PRACTICE_TOPICS: PracticeTopic[] = [
   {
     key: 'luto',
     title: 'Luto',
-    icon: 'book',
+    icon: 'ampulheta',
     tint: palette.blue100,
     intro:
       'Luto não é só morte, e não tem prazo. É o que sobra quando alguma coisa que era sua deixou de ser.',
@@ -395,7 +408,7 @@ export const PRACTICE_TOPICS: PracticeTopic[] = [
   {
     key: 'estresse',
     title: 'Estresse',
-    icon: 'droplet',
+    icon: 'pressao',
     tint: moodColors.triste,
     intro: 'Estresse acumula no corpo antes de virar pensamento. Estas práticas são curtas de propósito.',
     practices: [
@@ -512,7 +525,7 @@ export const PRACTICE_TOPICS: PracticeTopic[] = [
   {
     key: 'raiva',
     title: 'Raiva',
-    icon: 'footprints',
+    icon: 'chama',
     tint: palette.terracotta100,
     intro: 'Raiva quase sempre é a capa de outra coisa. Descarregar o corpo primeiro é o que deixa ver o que tem embaixo.',
     practices: [
@@ -833,7 +846,7 @@ export const PRACTICE_TOPICS: PracticeTopic[] = [
   {
     key: 'foco',
     title: 'Foco',
-    icon: 'leaf',
+    icon: 'alvo',
     tint: palette.green100,
     intro: 'Foco não é força de vontade. É reduzir o número de coisas competindo pela sua atenção.',
     practices: [
