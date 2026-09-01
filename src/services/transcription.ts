@@ -32,6 +32,21 @@ export const TRANSCRIPTION_ENDPOINT = process.env.EXPO_PUBLIC_TRANSCRIPTION_URL 
  */
 export const isTranscriptionConfigured = () => __DEV__ && TRANSCRIPTION_ENDPOINT.length > 0;
 
+/**
+ * Quanto tempo esperar o servidor antes de desistir, em ms.
+ *
+ * Não havia limite nenhum. Com o backend fora do ar — que é o estado normal
+ * dele, já que só roda na máquina de desenvolvimento — o `fetch` ficava
+ * pendurado esperando o TCP estourar sozinho, o que no Android leva minutos.
+ * A tela ficava em "Transcrevendo..." o tempo todo, sem erro e sem saída, e o
+ * que a pessoa gravou não virava nada.
+ *
+ * Quarenta segundos é folgado para o que o app manda: o ditado do diário é de
+ * segundos, e mesmo o Whisper local devolve bem antes disso. O que este número
+ * corta não é transcrição lenta, é servidor que não vai responder.
+ */
+const TEMPO_LIMITE_MS = 40_000;
+
 export type TranscriptionResult = {
   text: string;
   /** true quando veio do texto de exemplo, não de um serviço real. */
@@ -86,6 +101,16 @@ export async function transcribeAudio(uri: string): Promise<TranscriptionResult>
   }
 
   let response: Response;
+  /*
+    O relógio precisa ser desarmado nos dois caminhos.
+
+    Um `setTimeout` que sobrevive à resposta bem-sucedida aborta um controlador
+    que já não interessa — inofensivo aqui — mas segura o temporizador vivo por
+    quarenta segundos depois de a tela já ter seguido em frente. Daí o
+    `finally`.
+  */
+  const cancelador = new AbortController();
+  const relogio = setTimeout(() => cancelador.abort(), TEMPO_LIMITE_MS);
   try {
     const form = new FormData();
     // `expo/fetch` + `File` cuidam do multipart nativamente. Montar o FormData
@@ -95,9 +120,23 @@ export async function transcribeAudio(uri: string): Promise<TranscriptionResult>
     response = (await expoFetch(TRANSCRIPTION_ENDPOINT, {
       method: 'POST',
       body: form,
+      signal: cancelador.signal,
     })) as unknown as Response;
   } catch (error) {
+    /*
+      Desistir por tempo não é "a rede falhou": é o servidor não ter respondido.
+      A sonda do `diagnoseFailure` faria mais uma requisição para descobrir algo
+      que já se sabe, e ainda demoraria mais.
+    */
+    if (cancelador.signal.aborted) {
+      throw new Error(
+        `O servidor de transcrição não respondeu em ${TEMPO_LIMITE_MS / 1000} segundos. ` +
+          'Confira se o backend está rodando. O que você falou não se perdeu — dá para escrever.',
+      );
+    }
     throw new Error(await diagnoseFailure(error));
+  } finally {
+    clearTimeout(relogio);
   }
 
   if (!response.ok) {
