@@ -493,15 +493,33 @@ export function HomeScreen({
         </View>
       </Modal>
 
-      {/* A colheita tem precedência: é o momento maior, e mostrar os dois
-          avisos empilhados atropelaria os dois. */}
-      {colhendo ? (
-        <HarvestNotice planta={colhendo} onClose={guardarNoJardim} />
-      ) : (
-        celebrando && stage !== 1 && (
-          <GrowthNotice stage={stage} days={daysCaredFor(data)} onClose={fecharCelebracao} />
-        )
-      )}
+      {/*
+        A colheita tem precedência: é o momento maior, e mostrar os dois avisos
+        empilhados atropelaria os dois.
+
+        Os dois vão dentro de um `Modal` porque não estavam cobrindo a tela
+        inteira. O escurecido deles é `position: absolute` com as quatro bordas
+        em zero, e isso preenche o pai — que aqui é a Home, e a Home termina
+        onde a barra de baixo começa. A barra ficava acesa embaixo de um aviso
+        escuro, e continuava respondendo ao toque: dava para trocar de aba no
+        meio da colheita. O `Modal` também devolve o botão de voltar do
+        Android, que antes não fechava nada.
+      */}
+      <Modal
+        visible={!!colhendo || (celebrando && stage !== 1)}
+        transparent
+        animationType="none"
+        onRequestClose={colhendo ? guardarNoJardim : fecharCelebracao}
+      >
+        {colhendo ? (
+          <HarvestNotice planta={colhendo} onClose={guardarNoJardim} />
+        ) : (
+          celebrando &&
+          stage !== 1 && (
+            <GrowthNotice stage={stage} days={daysCaredFor(data)} onClose={fecharCelebracao} />
+          )
+        )}
+      </Modal>
     </View>
   );
 }

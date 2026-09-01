@@ -45,7 +45,38 @@ export function CompostaScreen({
   const insets = useSafeAreaInsets();
   const { data, addCompost } = useAppState();
 
-  const [step, setStep] = useState<Step>('explain');
+  /**
+   * Quem já compostou alguma vez entra direto no pensamento.
+   *
+   * A explicação — o desenho, o título, os três passos, a saciedade semântica,
+   * o aviso do microfone e a fala do broto — tem quase quatro telas de altura,
+   * e vinha inteira antes do botão **todas as vezes**. Na décima composta a
+   * pessoa já sabe o que é: fazê-la reler a aula para chegar ao campo de texto
+   * é cobrar pedágio justamente no recurso mais próprio do app.
+   *
+   * Fica num `ref` para a decisão ser tomada uma vez, ao abrir. Lendo
+   * `data.composts` a cada render, a tela mudaria de forma no meio da sessão:
+   * a composta salva no fim viraria a primeira, e "voltar" passaria a fechar.
+   */
+  const jaCompostou = useRef(data.composts.length > 0);
+
+  const [step, setStep] = useState<Step>(jaCompostou.current ? 'thought' : 'explain');
+
+  /**
+   * Para onde o "voltar" do pensamento leva: ao passo anterior de verdade.
+   *
+   * Quem passou pela explicação volta para ela. Quem entrou direto não tem
+   * para onde voltar dentro do fluxo, e a seta fecha — que é o que ela parece
+   * prometer quando é a primeira tela que a pessoa vê. Guardado num estado, e
+   * não deduzido de `jaCompostou`, porque quem entrou direto pode abrir a
+   * explicação pelo link e aí ela passa a estar atrás.
+   */
+  const [explicacaoAtras, setExplicacaoAtras] = useState(!jaCompostou.current);
+  const irParaOPensamento = () => {
+    setExplicacaoAtras(true);
+    setStep('thought');
+  };
+  const voltarDoPensamento = () => (explicacaoAtras ? setStep('explain') : onClose());
   const [thought, setThought] = useState('');
   const [result, setResult] = useState({ reps: 0, secs: 0 });
 
@@ -93,7 +124,14 @@ export function CompostaScreen({
 
   const cancelar = () => {
     session.stop();
-    setStep('explain');
+    /*
+      Volta para o pensamento, não para a explicação.
+
+      Quem desiste no meio da gravação desiste da gravação, não da prática. A
+      frase que ela acabou de escrever continua no campo, e recomeçar custa um
+      toque — antes custava rolar a explicação inteira de novo.
+    */
+    setStep('thought');
   };
 
   /**
@@ -106,7 +144,7 @@ export function CompostaScreen({
       return true;
     }
     if (step === 'thought') {
-      setStep('explain');
+      voltarDoPensamento();
       return true;
     }
     if (step === 'done') {
@@ -270,10 +308,31 @@ export function CompostaScreen({
             </Text>
           </View>
 
-          <Button variant="primary" style={{ width: '100%' }} onPress={() => setStep('thought')}>
+        </ScrollView>
+
+        {/*
+          O botão sai da rolagem e fica preso no rodapé.
+
+          Ele era o último item de um conteúdo com quase quatro telas: quem
+          abriu a Composta para compostar precisava rolar a explicação inteira
+          para encontrar o que já tinha decidido fazer. Preso aqui, a
+          explicação pode ser tão longa quanto precisa ser sem cobrar nada de
+          quem não quer lê-la.
+        */}
+        <View
+          style={{
+            paddingHorizontal: 20,
+            paddingTop: 12,
+            paddingBottom: 16,
+            backgroundColor: colors.bg,
+            borderTopWidth: 1,
+            borderTopColor: colors.border,
+          }}
+        >
+          <Button variant="primary" style={{ width: '100%' }} onPress={irParaOPensamento}>
             Escolher o pensamento
           </Button>
-        </ScrollView>
+        </View>
       </View>
       </ScreenTransition>
     );
@@ -285,7 +344,7 @@ export function CompostaScreen({
     return (
       <ScreenTransition transitionKey="thought" mode="forward">
       <View style={{ flex: 1, backgroundColor: colors.bg }}>
-        {header('O pensamento', () => setStep('explain'))}
+        {header('O pensamento', voltarDoPensamento)}
         <ScrollView
           contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 28, gap: 18, flexGrow: 1 }}
           showsVerticalScrollIndicator={false}
@@ -318,6 +377,33 @@ export function CompostaScreen({
               ))}
             </View>
           </View>
+
+          {/*
+            Quem entrou direto não passou pela explicação, e é aqui que ela
+            some de vista. Uma linha discreta a traz de volta.
+
+            Fica depois das sugestões, e não entre o campo e elas: ali cortava
+            ao meio uma coisa só — escreva a frase, ou pegue uma destas.
+          */}
+          {jaCompostou.current && (
+            <Pressable
+              accessibilityRole="button"
+              onPress={() => setStep('explain')}
+              hitSlop={10}
+              style={{ alignSelf: 'flex-start' }}
+            >
+              <Text
+                style={{
+                  fontFamily: fonts.body.bold,
+                  fontSize: 13,
+                  color: colors.primaryStrong,
+                  textDecorationLine: 'underline',
+                }}
+              >
+                Como funciona, de novo
+              </Text>
+            </Pressable>
+          )}
 
           <View style={{ flex: 1 }} />
 
