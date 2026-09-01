@@ -293,6 +293,11 @@ export function OnboardingScreen() {
     if (r === 'erro') setAvisoDaCompra('A compra não foi concluída. Nada foi cobrado.');
   };
 
+  /**
+   * Só existe onde existe loja — ver o cabeçalho, que nem desenha o link fora
+   * disso. A guarda fica de qualquer forma: ela é a garantia de que nenhum
+   * caminho futuro chame isto sem loja e volte a não fazer nada.
+   */
   const tocarEmRestaurar = async () => {
     if (!podeCobrar) return;
     setAvisoDaCompra(null);
@@ -689,7 +694,20 @@ export function OnboardingScreen() {
           </View>
         )}
 
-        {isPaywall ? (
+        {/*
+          "Restaurar" só aparece onde existe loja.
+
+          Ele chamava um `tocarEmRestaurar` que começa com `if (!podeCobrar)
+          return` — e `podeCobrar` é false no Expo Go, na web, e em qualquer
+          build sem a chave da RevenueCat. Tocar não fazia nada: nem aviso, nem
+          "Restaurando…", nada. Um controle que não pode funcionar não devia
+          estar na tela, e escondê-lo é mais honesto que dar a ele uma mensagem
+          de erro para justificar a própria presença.
+
+          O espaçador mantém o cabeçalho equilibrado: sem ele o "voltar" e o
+          progresso escorregam para a direita quando o link some.
+        */}
+        {isPaywall && podeCobrar ? (
           <Pressable
             accessibilityRole="button"
             accessibilityLabel="Restaurar compra"
@@ -703,6 +721,8 @@ export function OnboardingScreen() {
               {ocupado === 'restaurando' ? 'Restaurando…' : 'Restaurar'}
             </Text>
           </Pressable>
+        ) : isPaywall ? (
+          <View style={{ flex: 1 }} />
         ) : (
           <Text
             style={{

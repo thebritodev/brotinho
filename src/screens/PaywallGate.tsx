@@ -19,7 +19,7 @@ import { fonts, useTema } from '../theme';
 export function PaywallGate() {
   const { colors, palette } = useTema();
   const insets = useSafeAreaInsets();
-  const { planos, comprar, restaurar } = useAssinatura();
+  const { planos, podeCobrar, comprar, restaurar } = useAssinatura();
   const [plano, setPlano] = useState<PlanKey>('anual');
   const [ocupado, setOcupado] = useState<'comprando' | 'restaurando' | null>(null);
   const [aviso, setAviso] = useState<string | null>(null);
@@ -115,17 +115,27 @@ export function PaywallGate() {
           {detalhes.fine}
         </Text>
 
-        <Pressable accessibilityRole="button" onPress={recuperar} disabled={!!ocupado} style={{ padding: 8 }}>
-          {ocupado === 'restaurando' ? (
-            <ActivityIndicator color={colors.primaryStrong} />
-          ) : (
-            <Text
-              style={{ fontFamily: fonts.body.bold, fontSize: 14, color: colors.primaryStrong }}
-            >
-              Já assinei · restaurar compra
-            </Text>
-          )}
-        </Pressable>
+        {/*
+          Como no paywall do onboarding: sem loja, sem link.
+
+          Aqui ele não era silencioso, era pior — `restaurarCompras` devolve
+          false quando não há SDK nenhum, e a tela concluía "não encontrei uma
+          assinatura ativa nesta conta da loja". Isso é uma afirmação sobre a
+          conta da pessoa, feita sem nunca ter falado com loja alguma.
+        */}
+        {podeCobrar && (
+          <Pressable accessibilityRole="button" onPress={recuperar} disabled={!!ocupado} style={{ padding: 8 }}>
+            {ocupado === 'restaurando' ? (
+              <ActivityIndicator color={colors.primaryStrong} />
+            ) : (
+              <Text
+                style={{ fontFamily: fonts.body.bold, fontSize: 14, color: colors.primaryStrong }}
+              >
+                Já assinei · restaurar compra
+              </Text>
+            )}
+          </Pressable>
+        )}
 
         {Platform.OS === 'ios' && (
           <Text
