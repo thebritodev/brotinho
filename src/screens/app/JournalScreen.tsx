@@ -26,6 +26,7 @@ import { useAppState } from '../../state/AppStateProvider';
 import { descartarRascunho, loadRascunho, saveRascunho } from '../../storage/appStorage';
 import { comecoDoDia } from '../../data/comecos';
 import { respostaAoRegistro } from '../../data/resposta';
+import { sugestaoParaOHumor, type Sugestao } from '../../data/sugestao';
 import { dayKey, normalize } from '../../state/derived';
 import { borderWidth, fonts, type Mood, radius, useTema } from '../../theme';
 import { PAUTA, PAUTA_EM_SP, RuledPaper } from './RuledPaper';
@@ -123,15 +124,28 @@ const PAGINA = 5;
 const formatDate = (timestamp: number) =>
   new Date(timestamp).toLocaleDateString('pt-BR', { day: 'numeric', month: 'long' });
 
+/**
+ * Emenda o que foi ditado ao que já está escrito.
+ *
+ * Uma função só, usada nos dois lugares — na prévia ao vivo e na hora de
+ * gravar de verdade. Se as duas emendassem por conta própria, a frase daria um
+ * pulo lateral no instante em que o parcial vira definitivo, e o pulo seria
+ * por causa de um espaço.
+ */
+const juntar = (escrito: string, novo: string) => (escrito ? `${escrito} ` : '') + novo;
+
 export function JournalScreen({
   comecoDaPratica,
   aoFazerExercicio,
+  aoAbrirPratica,
 }: {
   comecoDaPratica?: string | null;
   /** Repassado ao CVV: a saída de quem não quer falar com ninguém agora. */
   aoFazerExercicio?: () => void;
+  /** Abre uma prática direto, para a oferta que vem depois de salvar. */
+  aoAbrirPratica?: (alvo: { topico: string; pratica: string }) => void;
 }) {
-  const { colors, palette } = useTema();
+  const { colors, palette, shadows } = useTema();
   const insets = useSafeAreaInsets();
   const { data, addJournalEntry, updateJournalEntry, removeJournalEntry } = useAppState();
 
@@ -144,6 +158,20 @@ export function JournalScreen({
    * pendurada por cima de um texto novo faria parecer que é a este.
    */
   const [resposta, setResposta] = useState<string | null>(null);
+
+  /**
+   * A prática oferecida depois de salvar — ver `data/sugestao.ts`.
+   *
+   * Sai do **humor que a pessoa marcou hoje**, e não do que ela escreveu. Ler
+   * o texto para adivinhar o sentimento seria o app afirmando o que ela sente
+   * a partir de palavras soltas: "hoje não fiquei ansioso" abriria ansiedade.
+   * A carinha que ela tocou é um fato que ela declarou, e é a mesma regra que
+   * governa a resposta do broto — só fato verificável, nunca interpretação.
+   *
+   * Vive no mesmo ciclo da resposta: aparece ao salvar, some quando ela volta
+   * a escrever. É oferta de um momento, não faixa pendurada na tela.
+   */
+  const [oferta, setOferta] = useState<Sugestao | null>(null);
 
   /**
    * O que está sendo escrito, atravessando a troca de aba e o fim do app.
@@ -254,7 +282,7 @@ export function JournalScreen({
   const [excluindo, setExcluindo] = useState<{ id: string; date: string } | null>(null);
 
   const appendTranscription = useCallback((transcribed: string) => {
-    setText((t) => (t ? `${t} ` : '') + transcribed);
+    setText((t) => juntar(t, transcribed));
   }, []);
 
   const voice = useVoiceNote({ onText: appendTranscription });
@@ -399,6 +427,16 @@ export function JournalScreen({
       admirando do próprio eco.
     */
     setResposta(respostaAoRegistro({ data, texto: content }));
+    /*
+      E, quando o dia foi marcado como difícil, uma prática para ele.
+
+      A oferta sai da carinha que a pessoa tocou hoje, pela mesma função que a
+      tela inicial usa — inclusive a regra de que "cansado" de madrugada é
+      insônia e de tarde é estresse. Nos outros três humores `sugestaoParaOHumor`
+      devolve nulo, e o broto não oferece nada: exercício para quem acabou de
+      dizer que está bem é o app não sabendo ouvir.
+    */
+    setOferta(sugestaoParaOHumor({ humor: humorDeHoje, agora: new Date() }));
     toqueDeConclusao(data.settings.vibracao);
     setText('');
     // Virou registro: o rascunho não tem mais razão de existir, e deixá-lo
@@ -478,13 +516,30 @@ export function JournalScreen({
             >
               {REGUA}
             </Text>
+            {/*
+              O que está sendo ditado aparece **na folha**, não numa linha à
+              parte.
+
+              O reconhecimento já era em tempo real: ele emite parciais a cada
+              palavra. Só que o parcial ia para um itálico pequeno embaixo do
+              papel, e a folha só recebia texto quando a pessoa parava de falar
+              — então a espera existia na tela mesmo não existindo no motor.
+
+              Enquanto o parcial corre, o campo fica sem edição: o valor está
+              sendo escrito de fora, e um cursor disputando com ele daria
+              caractere embaralhado. A frase pode se corrigir sozinha no meio do
+              caminho, e isso é o reconhecedor refazendo o palpite conforme
+              ouve mais — é o preço de ver o texto nascer.
+            */}
             <TextInput
-              value={text}
+              value={voice.partial ? juntar(text, voice.partial) : text}
+              editable={!voice.partial}
               onChangeText={(t) => {
                 setText(t);
-                // A resposta era ao registro anterior; sobre um texto novo ela
-                // passaria a parecer resposta a este.
+                // A resposta e a oferta eram ao registro anterior; sobre um
+                // texto novo elas passariam a parecer resposta a este.
                 if (resposta) setResposta(null);
+                if (oferta) setOferta(null);
               }}
               placeholder="Escreva o que vier. Ninguém além de você vai ler."
               placeholderTextColor={colors.textSecondary}
@@ -556,20 +611,6 @@ export function JournalScreen({
             </Text>
           </Pressable>
 
-          {/* Texto reconhecido ao vivo, antes de virar registro. */}
-          {!!voice.partial && (
-            <Text
-              style={{
-                fontFamily: fonts.body.regular,
-                fontSize: 14,
-                lineHeight: 14 * 1.5,
-                color: colors.textSecondary,
-                fontStyle: 'italic',
-              }}
-            >
-              {voice.partial}
-            </Text>
-          )}
 
           {!!voice.error && (
             <Text
@@ -618,6 +659,50 @@ export function JournalScreen({
           porta que existe para quem está mal. Ver `data/resposta.ts`.
         */}
         {!!resposta && <InsightCard text={resposta} />}
+
+        {/*
+          A prática para o dia que ela marcou, e só quando marcou um difícil.
+
+          Fica depois da resposta e antes do CVV, na mesma ordem de sempre: o
+          broto reage ao que ela fez, oferece o que tem, e a porta de quem está
+          muito mal continua sendo a última coisa e a mais visível.
+
+          O convite não promete resultado e não diz o que ela está sentindo —
+          ela já disse, tocando a carinha. Some sozinho quando ela volta a
+          escrever, e não reaparece com outra cara mais tarde.
+        */}
+        {!!oferta && (
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel={`${oferta.convite} ${oferta.titulo}`}
+            onPress={() => aoAbrirPratica?.({ topico: oferta.topico, pratica: oferta.pratica })}
+            style={({ pressed }) => ({
+              flexDirection: 'row',
+              alignItems: 'center',
+              gap: 12,
+              backgroundColor: colors.surface,
+              borderRadius: radius.lg,
+              paddingVertical: 14,
+              paddingHorizontal: 16,
+              opacity: pressed ? 0.85 : 1,
+              ...shadows.sm,
+            })}
+          >
+            <View style={{ flex: 1, gap: 2 }}>
+              <Text
+                style={{ fontFamily: fonts.body.regular, fontSize: 13, color: colors.textSecondary }}
+              >
+                {oferta.convite}
+              </Text>
+              <Text
+                style={{ fontFamily: fonts.body.bold, fontSize: 15, color: colors.primaryStrong }}
+              >
+                {oferta.titulo}
+              </Text>
+            </View>
+            <Icon name="chevronRight" size={20} color={palette.brown400} />
+          </Pressable>
+        )}
 
         <AjudaAgora aoFazerExercicio={aoFazerExercicio} />
 

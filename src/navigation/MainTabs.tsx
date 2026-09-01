@@ -127,7 +127,11 @@ export function MainTabs() {
     switch (tab) {
       case 'diario':
         return (
-          <JournalScreen comecoDaPratica={comecoDaPratica} aoFazerExercicio={ancorarAgora} />
+          <JournalScreen
+            comecoDaPratica={comecoDaPratica}
+            aoFazerExercicio={ancorarAgora}
+            aoAbrirPratica={abrirPratica}
+          />
         );
       case 'perfil':
         return <ProfileScreen name={name} onNavigate={setSub} />;
