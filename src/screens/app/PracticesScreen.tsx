@@ -4,7 +4,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Icon, PracticeTopicCard, ScreenTransition, TopBar } from '../../components';
 import { PracticeIllustration } from '../../components/brand/PracticeIllustration';
-import { PRACTICE_TOPICS, findPractice, findTopic } from '../../data/practices';
+import { PRACTICE_TOPICS, findPractice, findTopic, resumoDoTema } from '../../data/practices';
 import { useAppState } from '../../state/AppStateProvider';
 import { praticasMaisFeitas, ultimaPratica, vezesPorPratica } from '../../state/derived';
 import { fonts, radius, useTema } from '../../theme';
@@ -312,6 +312,7 @@ export function PracticesScreen({
           <PracticeTopicCard
             key={t.key}
             title={t.title}
+            subtitle={resumoDoTema(t.intro)}
             icon={t.icon}
             tint={t.tint}
             style={{ flexGrow: 1 }}

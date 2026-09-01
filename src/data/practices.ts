@@ -69,6 +69,42 @@ export type PracticeTopic = {
  */
 export const ANCORA_RAPIDA = { topico: 'ansiedade', pratica: 'aterramento-54321' } as const;
 
+/**
+ * O `intro` do tema encurtado para caber na lista, sem cortar no meio.
+ *
+ * A lista mostra a frase do tema em duas linhas, e `numberOfLines` cortava com
+ * reticências no meio de uma palavra — "Estas..." — que é pior que não mostrar
+ * nada: parece defeito. Aqui a conta é por frase inteira: pega enquanto couber
+ * no orçamento, e para antes de estourar.
+ *
+ * O orçamento é generoso o bastante para juntar duas frases curtas, que é o
+ * caso de "Culpa e vergonha" — ali as duas primeiras são um par, e só uma
+ * delas não diz nada. E apertado o bastante para deixar de fora a segunda
+ * frase dos temas que abrem com uma definição e emendam o que as práticas
+ * fazem, que é informação para dentro do tema e não para a lista.
+ */
+const ORCAMENTO_DO_RESUMO = 78;
+
+export function resumoDoTema(intro: string): string {
+  const frases = intro.match(/[^.!?]+[.!?]+/g) ?? [intro];
+  let resumo = '';
+  for (const frase of frases) {
+    /*
+      Emenda cru e apara só no fim.
+
+      Cada frase depois da primeira vem com o espaço que a separava da
+      anterior. Aparar frase por frase e depois juntar com um espaço meu punha
+      dois espaços no meio, e o resumo deixava de ser um prefixo exato do
+      `intro` — que é o que `confere-praticas.js` verifica, e foi como este
+      erro apareceu.
+    */
+    const proximo = (resumo + frase).trimEnd();
+    if (resumo && proximo.length > ORCAMENTO_DO_RESUMO) break;
+    resumo = proximo;
+  }
+  return resumo.trim();
+}
+
 export const PRACTICE_TOPICS: PracticeTopic[] = [
   {
     key: 'ansiedade',

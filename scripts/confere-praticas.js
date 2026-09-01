@@ -1,8 +1,8 @@
 /**
  * Confere a integridade dos textos das práticas.
  *
- * São 31 práticas escritas à mão, e nada no TypeScript impede que duas tenham
- * a mesma chave, que um passo fique com o texto vazio, ou que um guia de
+ * São dezenas de práticas escritas à mão, e nada no TypeScript impede que duas
+ * tenham a mesma chave, que um passo fique com o texto vazio, ou que um guia de
  * respiração some para zero segundo. Erros assim não quebram o app: eles
  * aparecem como uma tela em branco no meio de um exercício de ansiedade.
  *
@@ -71,7 +71,7 @@ const RAIZ = path.join(__dirname, '..');
   }
 
   const alvo = achar('practices.js');
-  const { PRACTICE_TOPICS, ANCORA_RAPIDA } = await import(
+  const { PRACTICE_TOPICS, ANCORA_RAPIDA, resumoDoTema } = await import(
     'file://' + alvo.split(path.sep).join('/'),
   );
 
@@ -196,6 +196,32 @@ const RAIZ = path.join(__dirname, '..');
       `${ANCORA_RAPIDA.topico}/${ANCORA_RAPIDA.pratica}`,
       'ANCORA_RAPIDA sem guia — em crise a pessoa precisa ser conduzida, não ler',
     );
+  }
+
+  /*
+    O resumo que aparece na lista de temas.
+
+    Ele encurta o `intro` por frase inteira, e o que se confere é justamente o
+    que a regra promete: que sobra alguma coisa, que essa coisa termina em
+    pontuação — nunca no meio de uma palavra — e que ela cabe nas duas linhas
+    do cartão. Um `intro` reescrito com uma primeira frase longa passaria pelo
+    TypeScript e chegaria à tela cortado.
+  */
+  for (const tema of PRACTICE_TOPICS) {
+    const resumo = resumoDoTema(tema.intro);
+    if (!texto(resumo)) {
+      erro(tema.key, 'resumo do tema vazio');
+    } else {
+      if (!/[.!?]$/.test(resumo)) {
+        erro(tema.key, `resumo não termina em frase fechada: "${resumo}"`);
+      }
+      if (resumo.length > 100) {
+        erro(tema.key, `resumo com ${resumo.length} caracteres, não cabe em duas linhas`);
+      }
+      if (!tema.intro.startsWith(resumo)) {
+        erro(tema.key, 'resumo não é o começo do intro');
+      }
+    }
   }
 
   console.log(`${PRACTICE_TOPICS.length} temas · ${total} práticas`);
