@@ -441,9 +441,21 @@ export const tracos = {
   contorno: palette.brown900,
   /** O contorno verde-escuro das folhas. */
   contornoFolha: palette.green900,
-  folha: palette.green500,
-  folhaClara: palette.green300,
-  vaso: palette.terracotta400,
+  /*
+    Estes três deixaram de apontar para a paleta e viraram valores próprios.
+
+    Eram `green500`, `green300` e `terracotta400`, e apontar para lá amarrava a
+    cor do personagem à cor da interface: mexer no verde de um botão mexia na
+    folha do broto. São coisas diferentes, e a separação já existia em espírito
+    — `tracos` nasceu justamente para o desenho não seguir o tema.
+
+    Os tons também secaram. Quando o tom do app foi decidido como sóbrio em vez
+    de fofo, saturação alta passou a ser o que mais denunciava brinquedo, e
+    estes são os mesmos matizes alguns pontos abaixo.
+  */
+  folha: '#6F9079',
+  folhaClara: '#A9C0B0',
+  vaso: '#C08363',
   /** Papel dentro de um desenho — a folha do caderno ilustrado, a lua. */
   papel: palette.cream100,
 } as const;

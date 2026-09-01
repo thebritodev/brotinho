@@ -1,0 +1,15 @@
+{
+  "artboards": [
+    { "file": "Main.dc.html", "x": 0, "y": 0, "w": 560, "h": 700, "title": "Brotinho" }
+  ],
+  "annotations": [
+    {
+      "id": "fechado",
+      "x": 620,
+      "y": 0,
+      "w": 420,
+      "text": "Fechado\n\nCorpo: cabeça, caule e duas folhas. Traço de 2,2 em vez de 3,5. Verde e terracota dessaturados.\n\nFeliz: olhos redondos como os outros cinco humores, só a boca distingue.\n\nO que não mudou: as seis expressões continuam sendo as mesmas seis, e o personagem segue igual nos dois temas."
+    }
+  ],
+  "launch": { "view": "canvas" }
+}

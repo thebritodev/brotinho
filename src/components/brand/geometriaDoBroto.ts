@@ -15,6 +15,8 @@
  * garante.
  */
 
+import type { Mood } from '../../theme';
+
 export type SproutStage = 1 | 2 | 3;
 
 /**
@@ -45,6 +47,33 @@ const ENFEITES: readonly Decoration[] = [
 export function ehEnfeite(v: unknown): v is Decoration {
   return typeof v === 'string' && (ENFEITES as readonly string[]).includes(v);
 }
+
+/**
+ * Os seis rostos, num lugar só.
+ *
+ * **Havia duas cópias desta tabela** — uma no `Sprout`, outra no `MoodFace` —
+ * e elas divergiram na primeira vez que alguém mexeu num rosto: o broto grande
+ * passou a sorrir de um jeito e a carinha da fileira de outro, na mesma tela.
+ * Duas descrições do mesmo desenho não têm como ficar iguais por disciplina.
+ *
+ * As coordenadas valem numa `viewBox` de -26 a 26, com o rosto no centro. Quem
+ * desenha num raio diferente escala o grupo inteiro em vez de recalcular
+ * ponto a ponto — ver `MoodFace` e `Face`, em `Sprout`.
+ *
+ * `feliz` tem olho redondo como os outros cinco, e não em arco: a 24 px, que é
+ * o tamanho dele na fileira de humores, dois arcos sobre uma boca leem como
+ * sobrancelhas. Só a boca o distingue do `leve`, e basta.
+ */
+export type Cara = { eye: string | 'circle'; r?: number; mouth: string };
+
+export const CARAS: Record<Mood, Cara> = {
+  feliz: { eye: 'circle', r: 2.6, mouth: 'M -10 5 Q 0 14 10 5' },
+  leve: { eye: 'circle', r: 2.6, mouth: 'M -8 6 Q 0 11 8 6' },
+  ansioso: { eye: 'circle', r: 3.2, mouth: 'M -6 8 Q -3 5 0 8 Q 3 11 6 8' },
+  triste: { eye: 'circle', r: 2.6, mouth: 'M -9 9 Q 0 2 9 9' },
+  cansado: { eye: 'M -9 -1 L -2 -1', mouth: 'M -7 7 L 7 7' },
+  neutro: { eye: 'circle', r: 2.4, mouth: 'M -7 7 L 7 7' },
+};
 
 /** O eixo do broto. Tudo é desenhado simétrico em volta dele. */
 export const CX = 100;
@@ -80,14 +109,27 @@ export const STEM_TOP_Y: Record<SproutStage, number> = {
 
 export const BULB_R: Record<SproutStage, number> = { 1: 20, 2: 27, 3: 33 };
 
+/*
+  As espessuras do desenho.
+
+  Eram 3, 3,5 e 6. Afinaram juntas quando o tom do app foi decidido como
+  **sóbrio** em vez de fofo: é a espessura do contorno, mais que a forma, que
+  separa "parece brinquedo" de "parece objeto". A referência de design premium
+  em bem-estar de 2026 aponta contenção, não mais fofura — e a forma do broto
+  não mudou nada nessa passagem.
+
+  A caixa que cerca o desenho é calculada a partir destes números, então ela
+  encolheu sozinha junto com o traço. É para isso que eles moram aqui.
+*/
+
 /** A espessura do contorno da folha, em `Leaf`. */
-export const TRACO_DA_FOLHA = 3;
+export const TRACO_DA_FOLHA = 2.2;
 
 /** A espessura do contorno do bulbo. */
-export const TRACO_DO_BULBO = 3.5;
+export const TRACO_DO_BULBO = 2.2;
 
 /** A espessura da haste. */
-export const TRACO_DA_HASTE = 6;
+export const TRACO_DA_HASTE = 3.6;
 
 /**
  * Os pontos do contorno da folha: âncoras e controles do `d` de `Leaf`.

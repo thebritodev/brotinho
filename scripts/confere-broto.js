@@ -61,8 +61,16 @@ async function carrega(relativo, nome) {
     process.execPath,
     [
       path.join(RAIZ, 'node_modules', 'typescript', 'bin', 'tsc'),
-      '--outDir', saida, '--module', 'esnext', '--target', 'es2020',
+      // `--rootDir` fixa a raiz da emissão: sem ele o TypeScript escolhe a
+      // pasta comum entre os arquivos do grafo, e o caminho de saída muda
+      // sozinho quando o módulo ganha um import novo.
+      '--outDir', saida, '--rootDir', path.join(RAIZ, 'src'),
+      '--module', 'esnext', '--target', 'es2020',
       '--moduleResolution', 'bundler', '--strict', '--skipLibCheck',
+      // `--jsx` e `--esModuleInterop` entraram quando o módulo passou a
+      // importar o tipo `Mood` do tema: um `import type` é apagado na emissão,
+      // mas o TypeScript confere o grafo inteiro antes, e ali há `.tsx`.
+      '--esModuleInterop', '--jsx', 'react-native',
       path.join(RAIZ, relativo),
     ],
     { stdio: 'inherit', cwd: RAIZ },
@@ -75,7 +83,7 @@ async function main() {
   const fonte = fs.readFileSync(SPROUT, 'utf8');
   const g = await carrega(
     path.join('src', 'components', 'brand', 'geometriaDoBroto.ts'),
-    'geometriaDoBroto.js',
+    path.join('components', 'brand', 'geometriaDoBroto.js'),
   );
 
   // --- A. o casco da folha é o `d` do desenho ---------------------------
@@ -162,6 +170,30 @@ async function main() {
       );
     }
   }
+
+  // --- G. ninguem guarda uma segunda copia dos rostos --------------------
+  /*
+    Havia duas tabelas de rosto — uma no Sprout, outra no MoodFace — e elas
+    divergiram na primeira vez que alguem mexeu num rosto: o broto grande
+    passou a sorrir de um jeito e a carinha da fileira de outro, na mesma tela.
+    Agora ha uma so, em geometriaDoBroto. Este teste existe para a segunda nao
+    voltar a nascer.
+  */
+  for (const arquivo of ['Sprout.tsx', 'MoodFace.tsx']) {
+    const texto = fs.readFileSync(
+      path.join(RAIZ, 'src', 'components', 'brand', arquivo),
+      'utf8',
+    );
+    const temTabela = /const\s+FACES\s*(:|=)/.test(texto);
+    confere(`${arquivo} nao guarda uma tabela de rostos propria`, !temTabela);
+  }
+  const rostos = Object.keys(g.CARAS);
+  confere('CARAS cobre os seis humores', rostos.length === 6, rostos.join(', '));
+  confere(
+    'o feliz tem olho redondo, como os outros',
+    g.CARAS.feliz.eye === 'circle',
+    `olho: ${g.CARAS.feliz.eye}`,
+  );
 
   // --- C. o enquadramento com vaso cabe a planta e o vaso ---------------
   const doVaso = fonte.match(/d="(M 62 170[^"]+)"/);

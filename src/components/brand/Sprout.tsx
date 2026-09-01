@@ -4,6 +4,7 @@ import Svg, { Circle, Ellipse, G, Path, Rect } from 'react-native-svg';
 import { tracos, type Mood, useTema } from '../../theme';
 import {
   BULB_R,
+  CARAS,
   CX,
   type Decoration,
   ehEnfeite,
@@ -21,53 +22,17 @@ import {
 export { ehEnfeite };
 export type { Decoration, SproutStage };
 
-type FaceSpec = {
-  eye: string | 'circle';
-  r?: number;
-  mouth: string;
-};
-
-const FACES: Record<Mood, FaceSpec> = {
-  feliz: { eye: 'M -8 -2 Q -8 -8 -3 -8', mouth: 'M -10 6 Q 0 16 10 6' },
-  leve: { eye: 'circle', r: 2.6, mouth: 'M -8 6 Q 0 11 8 6' },
-  ansioso: { eye: 'circle', r: 3.2, mouth: 'M -6 8 Q -3 5 0 8 Q 3 11 6 8' },
-  triste: { eye: 'circle', r: 2.6, mouth: 'M -9 9 Q 0 2 9 9' },
-  cansado: { eye: 'M -9 -1 L -2 -1', mouth: 'M -7 7 L 7 7' },
-  neutro: { eye: 'circle', r: 2.4, mouth: 'M -7 7 L 7 7' },
-};
-
 function Face({ mood, cx, cy }: { mood: Mood; cx: number; cy: number }) {
   const { palette } = useTema();
-  const f = FACES[mood] ?? FACES.neutro;
+  const f = CARAS[mood] ?? CARAS.neutro;
 
-  // "feliz" usa olhos arqueados próprios, desenhados de forma simétrica.
-  if (mood === 'feliz') {
-    const eye = (x: number) => (
-      <Path
-        d="M -6 0 Q 0 -7 6 0"
-        transform={`translate(${cx + x} ${cy})`}
-        stroke={tracos.contorno}
-        strokeWidth={2.8}
-        strokeLinecap="round"
-        fill="none"
-      />
-    );
-    return (
-      <G>
-        {eye(-9)}
-        {eye(9)}
-        <Path
-          d={f.mouth}
-          transform={`translate(${cx} ${cy})`}
-          stroke={tracos.contorno}
-          strokeWidth={2.5}
-          strokeLinecap="round"
-          fill="none"
-        />
-      </G>
-    );
-  }
+  /*
+    Não há mais caso especial para o `feliz`.
 
+    Havia um: ele desenhava dois arcos no lugar dos olhos. Trocar a tabela
+    `FACES` sozinha não teria efeito nenhum, porque este ramo passava por cima
+    dela — o tipo de sobra que faz uma mudança parecer que não pegou.
+  */
   const eye = (x: number) =>
     f.eye === 'circle' ? (
       <Circle cx={cx + x} cy={cy} r={f.r} fill={tracos.contorno} />
@@ -76,7 +41,7 @@ function Face({ mood, cx, cy }: { mood: Mood; cx: number; cy: number }) {
         d={f.eye}
         transform={`translate(${cx + x} ${cy})${x < 0 ? '' : ' scale(-1,1)'}`}
         stroke={tracos.contorno}
-        strokeWidth={2.5}
+        strokeWidth={2.4}
         strokeLinecap="round"
         fill="none"
       />
@@ -90,7 +55,7 @@ function Face({ mood, cx, cy }: { mood: Mood; cx: number; cy: number }) {
         d={f.mouth}
         transform={`translate(${cx} ${cy})`}
         stroke={tracos.contorno}
-        strokeWidth={2.5}
+        strokeWidth={2.4}
         strokeLinecap="round"
         fill="none"
       />
@@ -123,7 +88,7 @@ function Leaf({
         stroke={tracos.contornoFolha}
         strokeWidth={TRACO_DA_FOLHA}
         strokeLinejoin="round"
-      />
+      />{/* TRACO_DA_FOLHA afinou junto com o resto — ver `geometriaDoBroto`. */}
       <Path
         d="M -2 -2 C -10 -8 -18 -14 -26 -18"
         stroke={tracos.contornoFolha}
@@ -274,7 +239,7 @@ export function Sprout({
             d="M 62 170 C 62 166 66 164 70 164 L 130 164 C 134 164 138 166 138 170 L 128 210 C 127 216 121 220 113 220 L 87 220 C 79 220 73 216 72 210 Z"
             fill={tracos.vaso}
             stroke={tracos.contorno}
-            strokeWidth={3.5}
+            strokeWidth={2.2}
             strokeLinejoin="round"
           />
           <Path
@@ -299,7 +264,7 @@ export function Sprout({
             rx={7.5}
             fill={tracos.vaso}
             stroke={tracos.contorno}
-            strokeWidth={3.5}
+            strokeWidth={2.2}
           />
           <Ellipse cx={100} cy={163.5} rx={34} ry={4.5} fill={tracos.contorno} opacity={0.15} />
         </G>
@@ -308,7 +273,7 @@ export function Sprout({
       <Path
         d={`M ${CX} ${POT_TOP_Y} C ${CX - 6} ${midY} ${CX + 6} ${midY - 10} ${CX} ${stemTopY}`}
         stroke={tracos.contornoFolha}
-        strokeWidth={6}
+        strokeWidth={3.6}
         strokeLinecap="round"
         fill="none"
       />
@@ -323,7 +288,7 @@ export function Sprout({
         r={bulbR}
         fill={tracos.folhaClara}
         stroke={tracos.contornoFolha}
-        strokeWidth={3.5}
+        strokeWidth={2.2}
       />
 
       <Face mood={mood} cx={CX} cy={stemTopY - 4} />
