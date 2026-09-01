@@ -585,6 +585,64 @@ export function vezesQueVoltou(data: AppData, texto: string): number {
   return data.composts.filter((c) => mesmaDor(alvo, c.thought)).length;
 }
 
+/**
+ * Quantos registros **anteriores** do diário falam do mesmo assunto.
+ *
+ * Irmão de `vezesQueVoltou`, que olha a Composta. Os dois usam a mesma medida
+ * de "mesma dor" — metade das palavras significativas em comum —, e os dois
+ * obedecem ao interruptor de análise, porque os dois leem texto.
+ *
+ * Serve para o broto responder a um registro recém-escrito sem inventar
+ * interpretação: contar quantas vezes um assunto voltou é fato verificável no
+ * aparelho da pessoa, e não leitura de sentimento.
+ */
+export function vezesNoDiario(data: AppData, texto: string, ignorarId?: string): number {
+  if (!data.settings.analysis) return 0;
+
+  const alvo = assinatura(texto);
+  if (alvo.size < 2) return 0;
+
+  return data.journal.filter((e) => e.id !== ignorarId && mesmaDor(alvo, e.text)).length;
+}
+
+/**
+ * O que aconteceu no dia seguinte, da última vez que ela escreveu sentindo
+ * isto.
+ *
+ * Só devolve **notícia boa**, e é regra, não estilo: se o dia seguinte foi
+ * igual ou pior, o app fica calado. É o mesmo cuidado de `atravessou` — o
+ * Brotinho tem como dizer "você piorou" e nunca vai dizer.
+ *
+ * Não lê texto nenhum: cruza o dia em que houve registro com o humor marcado
+ * naquele dia e no dia seguinte. Por isso não passa pelo interruptor de
+ * análise, que governa leitura de conteúdo.
+ */
+export function depoisDeEscreverAssim(
+  data: AppData,
+  humor: Mood,
+  hoje = new Date(),
+): Mood | null {
+  const chaveDeHoje = dayKey(hoje);
+  const humorPorDia = new Map(data.moodHistory.map((m) => [m.date, m.mood]));
+
+  // Dias, anteriores a hoje, em que ela escreveu e marcou este mesmo humor.
+  const diasQueEscreveu = [...new Set(data.journal.map((e) => dayKey(e.createdAt)))]
+    .filter((d) => d < chaveDeHoje && humorPorDia.get(d) === humor)
+    .sort()
+    .reverse();
+
+  for (const dia of diasQueEscreveu) {
+    const [a, m, d] = dia.split('-').map(Number);
+    const seguinte = new Date(a, m - 1, d + 1);
+    const depois = humorPorDia.get(dayKey(seguinte));
+    if (!depois) continue;
+    // Só o que alivia. Igual ou pior não vira frase.
+    if (depois === 'leve' || depois === 'feliz') return depois;
+    return null;
+  }
+  return null;
+}
+
 // --- Pensamentos que não voltaram ----------------------------------------
 
 export type Atravessado = { texto: string; quando: string; diasAtras: number };

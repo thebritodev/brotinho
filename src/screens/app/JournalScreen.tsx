@@ -20,11 +20,12 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { AjudaAgora, Button, Icon, MoodFace, MOODS, Sprout, TopBar } from '../../components';
+import { AjudaAgora, Button, Icon, InsightCard, MoodFace, MOODS, Sprout, TopBar } from '../../components';
 import { toqueDeConclusao } from '../../services/toque';
 import { useAppState } from '../../state/AppStateProvider';
 import { descartarRascunho, loadRascunho, saveRascunho } from '../../storage/appStorage';
 import { comecoDoDia } from '../../data/comecos';
+import { respostaAoRegistro } from '../../data/resposta';
 import { dayKey, normalize } from '../../state/derived';
 import { borderWidth, fonts, type Mood, radius, useTema } from '../../theme';
 import { PAUTA, PAUTA_EM_SP, RuledPaper } from './RuledPaper';
@@ -135,6 +136,14 @@ export function JournalScreen({
   const { data, addJournalEntry, updateJournalEntry, removeJournalEntry } = useAppState();
 
   const [text, setText] = useState('');
+
+  /**
+   * O que o broto respondeu ao último registro salvo — ver `data/resposta.ts`.
+   *
+   * Some quando ela volta a escrever: a resposta é àquele registro, e ficar
+   * pendurada por cima de um texto novo faria parecer que é a este.
+   */
+  const [resposta, setResposta] = useState<string | null>(null);
 
   /**
    * O que está sendo escrito, atravessando a troca de aba e o fim do app.
@@ -381,6 +390,15 @@ export function JournalScreen({
     // O registro é gravado ANTES da animação, nunca depois: um desabafo não pode
     // se perder porque um efeito visual não terminou.
     addJournalEntry(content);
+    /*
+      A resposta é calculada com o estado de ANTES da gravação, de propósito.
+
+      `addJournalEntry` só chega em `data` no render seguinte, e o registro
+      recém-salvo não deve contar como repetição de si mesmo — "esse assunto já
+      apareceu uma vez" sobre o que ela acabou de escrever seria o app se
+      admirando do próprio eco.
+    */
+    setResposta(respostaAoRegistro({ data, texto: content }));
     toqueDeConclusao(data.settings.vibracao);
     setText('');
     // Virou registro: o rascunho não tem mais razão de existir, e deixá-lo
@@ -462,7 +480,12 @@ export function JournalScreen({
             </Text>
             <TextInput
               value={text}
-              onChangeText={setText}
+              onChangeText={(t) => {
+                setText(t);
+                // A resposta era ao registro anterior; sobre um texto novo ela
+                // passaria a parecer resposta a este.
+                if (resposta) setResposta(null);
+              }}
               placeholder="Escreva o que vier. Ninguém além de você vai ler."
               placeholderTextColor={colors.textSecondary}
               multiline
@@ -578,6 +601,15 @@ export function JournalScreen({
 
         {/* Fica logo abaixo de onde a pessoa escreve, e antes do histórico:
             é o ponto do app em que ela está mais perto do que dói. */}
+        {/*
+          O broto responde ao que acabou de ser escrito.
+
+          Fica **depois** do botão e **antes** do convite do CVV: é a reação ao
+          gesto que ela acabou de fazer, e ainda assim não se põe na frente da
+          porta que existe para quem está mal. Ver `data/resposta.ts`.
+        */}
+        {!!resposta && <InsightCard text={resposta} />}
+
         <AjudaAgora aoFazerExercicio={aoFazerExercicio} />
 
         <View style={{ gap: 10 }}>
