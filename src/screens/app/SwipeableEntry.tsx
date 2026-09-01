@@ -89,7 +89,22 @@ export function SwipeableEntry({ id, date, text, onEdit, onRead, onDelete, openI
     });
 
     return (
+      /*
+        Escondidas do leitor de tela, e não por descuido.
+
+        Elas ficam na árvore mesmo com o cartão fechado — o `Swipeable` só as
+        desloca para fora da vista. Quem navega por voz então encontrava, em
+        cada registro, um "Editar" e um "Excluir" soltos, sem dizer de qual
+        registro, antes de chegar ao botão de opções — que abre um menu com
+        esses mesmos dois comandos.
+
+        E arrastar não é gesto disponível para essa pessoa: o TalkBack e o
+        VoiceOver capturam o arrasto para navegar. Foi por isso que o botão de
+        opções existe. Aqui é a camada do gesto; a do menu é a que responde.
+      */
       <Animated.View
+        accessibilityElementsHidden
+        importantForAccessibility="no-hide-descendants"
         style={{ flexDirection: 'row', width: ACTIONS_WIDTH, transform: [{ translateX }] }}
       >
         {acao('Editar', 'pencil', colors.primary, onEdit)}

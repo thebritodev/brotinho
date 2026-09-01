@@ -153,7 +153,7 @@ export function PrivacyScreen({ onBack }: { onBack: () => void }) {
               />
             </PrivRow>
             <PrivRow
-              icon="sparkle"
+              icon="search"
               label="Análise dos meus registros"
               hint="Permite que o broto identifique padrões nos seus textos"
             >
@@ -169,7 +169,7 @@ export function PrivacyScreen({ onBack }: { onBack: () => void }) {
         <Card>
           <View style={{ gap: 18 }}>
             <PrivRow
-              icon="pencil"
+              icon="book"
               label="Política de privacidade"
               onPress={() => setVendoPolitica(true)}
             >

@@ -216,7 +216,7 @@ export function SettingsScreen({ onBack }: { onBack: () => void }) {
 
         <Section title="Sinais do app">
           <Row
-            icon="sparkle"
+            icon="vibracao"
             label="Vibração"
             hint="Confirma o humor escolhido, cada repetição da Composta e o fim de um ciclo"
           >
@@ -227,7 +227,7 @@ export function SettingsScreen({ onBack }: { onBack: () => void }) {
             />
           </Row>
           <Row
-            icon="bell"
+            icon="som"
             label="Som na respiração"
             hint="Um tom marca as fases, para você fechar os olhos. Respeita o silencioso do aparelho"
           >
@@ -255,14 +255,21 @@ export function SettingsScreen({ onBack }: { onBack: () => void }) {
           >
             {chevron}
           </Row>
-          <Row icon="book" label="Idioma" hint="Português (BR)">
-            {chevron}
-          </Row>
+          {/*
+            Sem seta: esta linha não leva a lugar nenhum.
+
+            Ela tinha a mesma seta das outras e nenhum `onPress`. Tocar não
+            fazia nada, e a seta prometia que faria — é a definição de botão
+            morto. O app é só em português, então não há para onde ir; o que a
+            linha tem a dizer, ela diz parada. No dia em que houver um segundo
+            idioma, a seta volta junto com o destino.
+          */}
+          <Row icon="globo" label="Idioma" hint="Português (BR)" />
         </Section>
 
         <Section title="Sobre">
           <Row
-            icon="sparkle"
+            icon="info"
             label="Sobre o Brotinho"
             hint={`Versão ${APP_VERSION}`}
             onPress={() => setDetalhe('sobre')}

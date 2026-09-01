@@ -60,6 +60,29 @@ const PATHS = {
   ampulheta: 'M7 3h10M7 21h10M8 3c0 4 4 5.5 4 9s-4 5-4 9M16 3c0 4-4 5.5-4 9s4 5 4 9',
   /** Estresse: manômetro. O ponteiro no alto é a pressão que o corpo acumula. */
   pressao: 'M4 17.5a8 8 0 0116 0M12 17.5l4.2-5',
+  /*
+    Os quatro das Configurações, e por que existem.
+
+    A tela tinha `sparkle` em três linhas sem relação nenhuma — Vibração,
+    Análise dos registros, Sobre o Brotinho —, `bell` em Lembretes e de novo
+    em Som na respiração duas linhas abaixo, e `book`, que é o ícone da aba
+    Diário, em Idioma. Ícone que aponta para outra coisa é pior que ícone
+    nenhum: ele ensina uma associação errada e depois cobra por ela.
+
+    Não dava para resolver remanejando: o conjunto simplesmente não tinha
+    desenho para "vibra", "som", "idioma" e "sobre". Estes quatro foram
+    comparados aos 26 pontos antes de entrar, como os das práticas.
+  */
+  /** Vibração: o aparelho tremendo, com os traços curtos dos dois lados. */
+  vibracao:
+    'M9.5 3h5a1.8 1.8 0 011.8 1.8v14.4a1.8 1.8 0 01-1.8 1.8h-5a1.8 1.8 0 01-1.8-1.8V4.8A1.8 1.8 0 019.5 3zM4.8 9.5v5M2 11v2M19.2 9.5v5M22 11v2',
+  /** Som: a fonte e três ondas abrindo. O ponto é traço de comprimento zero. */
+  som: 'M5 12l0 0M8.5 9a4.2 4.2 0 010 6M12.5 6.5a8 8 0 010 11M16.5 4a11.5 11.5 0 010 16',
+  /** Idioma: globo. Um meridiano de cada lado e o equador — mais que isso vira grade aos 26. */
+  globo:
+    'M12 21a9 9 0 100-18 9 9 0 000 18M3 12h18M12 3c3.2 3.4 3.2 14.6 0 18M12 3c-3.2 3.4-3.2 14.6 0 18',
+  /** Sobre: o "i" de informação, com o pingo em cima. */
+  info: 'M12 21a9 9 0 100-18 9 9 0 000 18M12 11.5v5M12 7.8l0 0',
   /** Foco: alvo. O ponto do meio é traço de comprimento zero, como em `more`. */
   alvo: 'M12 21a9 9 0 110-18 9 9 0 010 18zM12 16.5a4.5 4.5 0 110-9 4.5 4.5 0 010 9zM12 12l0 0',
   sparkle: 'M12 2l1.6 5.4L19 9l-5.4 1.6L12 16l-1.6-5.4L5 9l5.4-1.6L12 2z',

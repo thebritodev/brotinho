@@ -6,7 +6,6 @@ export { Icon, ICON_NAMES, type IconName } from './core/Icon';
 export { IconButton } from './core/IconButton';
 export { Input } from './core/Input';
 export { Switch } from './core/Switch';
-export { TextArea } from './core/TextArea';
 
 export { AnimatedSprout } from './brand/AnimatedSprout';
 export { AskingSprout } from './brand/AskingSprout';
