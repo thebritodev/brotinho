@@ -534,7 +534,16 @@ export function JournalScreen({
             {voice.state === 'transcribing' ? (
               <ActivityIndicator size="small" color={colors.primaryStrong} />
             ) : (
-              <Icon name="droplet" size={18} color={isRecording ? colors.textInverse : colors.primaryStrong} />
+              /*
+                Microfone, não gota.
+
+                A gota é o símbolo da Composta, onde a água rega o broto. Aqui
+                o botão faz uma coisa só: liga o microfone. Uma gota ao lado de
+                "Falar em vez de escrever" não é uma metáfora, é um enigma — e
+                gravando, com o botão vermelho, o microfone é o único desenho
+                que diz sozinho "estou ouvindo, toque para parar".
+              */
+              <Icon name="mic" size={18} color={isRecording ? colors.textInverse : colors.primaryStrong} />
             )}
             <Text
               style={{

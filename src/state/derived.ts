@@ -527,13 +527,24 @@ export function lembranca(data: AppData, hoje = new Date()): Lembranca | null {
  * `moodWeek` só mostrava 7 dias. Quem registra há meses não tinha como ver o
  * próprio arco — que é justamente o motivo de registrar todo dia.
  */
-export function moodRange(data: AppData, dias: number): { date: string; mood: Mood | null }[] {
+export function moodRange(
+  data: AppData,
+  dias: number,
+): { date: string; mood: Mood | null; diaDaSemana: number }[] {
   const porDia = new Map(data.moodHistory.map((m) => [m.date, m.mood]));
   return Array.from({ length: dias }).map((_, i) => {
     const d = new Date();
     d.setDate(d.getDate() - (dias - 1 - i));
     const date = dayKey(d);
-    return { date, mood: porDia.get(date) ?? null };
+    /*
+      O dia da semana sai daqui, do `Date` que já existe, e não da string.
+
+      Quem recebe isto precisa saber em que coluna o dia cai, e a tentação é
+      fazer `new Date(date)` do outro lado — que lê "2026-09-01" como meia-noite
+      em UTC e, no Brasil, devolve o dia anterior. O erro apareceria como uma
+      grade inteira deslocada uma casa, e só em alguns fusos.
+    */
+    return { date, mood: porDia.get(date) ?? null, diaDaSemana: d.getDay() };
   });
 }
 

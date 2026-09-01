@@ -131,9 +131,18 @@ export function BottomNav({ active = 'home', onChange }: Props) {
             // sem isso sobraria um fio branco na borda.
             backgroundColor: MARK_PEACH,
             overflow: 'hidden',
-            // Aba fechada: o botão inteiro recua. Antes quem recuava era só o
-            // desenho, e com o disco cobrindo tudo isso não apareceria mais.
-            opacity: active === 'home' ? 1 : 0.55,
+            /*
+              O disco não recua mais quando a aba está fechada.
+
+              Ele recuava a 0,55, e o pêssego misturado com o creme do fundo
+              dava #F4D0B2 — um disco quase invisível, com o broto lavado
+              dentro. Não lia como "aba fechada", lia como botão desligado, e
+              logo no controle maior e mais alto da tela.
+
+              Quem diz qual aba está aberta é o rótulo embaixo, que muda de
+              peso e de cor — foi para isso que os três ganharam rótulo. O
+              disco fica sendo o que ele é: a marca, sempre inteira.
+            */
             transform: [{ scale: pressed ? 0.94 : 1 }],
             ...shadows.md,
           })}
