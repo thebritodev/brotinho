@@ -189,7 +189,58 @@ async function main() {
       cabe,
       `planta começa em ${maisAlto.toFixed(1)} · vaso termina em ${(vasoBaixo + traco).toFixed(1)} de 224`,
     );
+
+    // --- E. a transcricao do alcance do vaso ainda bate com o desenho -----
+    const decl = g.VASO_ALCANCA;
+    const rectVaso = fonte.match(/<Rect\s+x=\{58\}\s+y=\{156\}\s+width=\{84\}\s+height=\{15\}/);
+    confere('o Rect da borda do vaso foi encontrado', !!rectVaso);
+    const esq = Math.min(vasoEsq, 58) - traco;
+    const dir = Math.max(vasoDir, 58 + 84) + traco;
+    const bai = vasoBaixo + traco;
+    const bate =
+      Math.abs(decl.esquerda - esq) < 0.01 &&
+      Math.abs(decl.direita - dir) < 0.01 &&
+      Math.abs(decl.baixo - bai) < 0.01;
+    confere(
+      'VASO_ALCANCA descreve o vaso desenhado',
+      bate,
+      bate
+        ? `${esq} .. ${dir}, fundo ${bai}`
+        : `tabela ${decl.esquerda}/${decl.direita}/${decl.baixo} · traço ${esq}/${dir}/${bai}`,
+    );
+
+    // --- F. a caixa sem halo cabe planta e vaso, e rende mais desenho -----
+    for (const stage of estagios) {
+      const semHalo = g.caixaComVaso(stage, false);
+      const cabeTudo =
+        semHalo.x <= esq + 0.01 &&
+        semHalo.x + semHalo.largura >= dir - 0.01 &&
+        semHalo.y + semHalo.altura >= bai - 0.01;
+      confere(`a caixa sem halo cabe planta e vaso — estágio ${stage}`, cabeTudo);
+
+      // Quanto o desenho cresce em relacao ao enquadramento com halo, na mesma
+      // altura de tela: e a razao entre as alturas uteis das duas caixas.
+      const ganho = caixaComVaso_ganho(g, stage, bai);
+      confere(
+        `sem halo o desenho cresce — estágio ${stage}`,
+        ganho > 1.15,
+        `${((ganho - 1) * 100).toFixed(0)}% maior`,
+      );
+    }
   }
+}
+
+/**
+ * Quanto o desenho fica maior sem halo, na mesma altura de tela.
+ *
+ * Os dois enquadramentos são renderizados com a mesma altura, então a escala
+ * de cada um é `altura do quadro / altura da caixa`. O desenho é o mesmo nos
+ * dois; o que muda é o quanto de caixa vazia ele divide espaço com.
+ */
+function caixaComVaso_ganho(g, stage, vasoBaixo) {
+  const planta = g.caixaDaPlanta(stage, false);
+  const semHalo = vasoBaixo + g.FOLGA_DA_CAIXA - planta.y;
+  return 224 / semHalo;
 }
 
 main()

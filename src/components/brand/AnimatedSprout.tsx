@@ -224,6 +224,20 @@ export function AnimatedSprout({
       {/* A planta balança; o disco de fundo fica parado. */}
       <Animated.View
         style={{
+          /*
+            Centrado aqui, e não na moldura de fora.
+
+            O desenho ficou mais estreito que a moldura onde não há halo — a
+            caixa fecha em volta da planta e do vaso —, e sem centrar ele grudava
+            na borda esquerda, com meio broto para fora da tela.
+
+            A primeira tentativa pôs `alignItems: 'center'` na moldura, e isso
+            empurrou o halo duzentos pixels para a direita: ele é filho absoluto
+            com `left`, e no Yoga o alinhamento do pai ainda o alcança. Centrar
+            só esta camada deixa o halo exatamente onde sempre esteve.
+          */
+          width: size,
+          alignItems: 'center',
           // O caule nasce na base: girar pelo pé é o que faz parecer planta,
           // e não um adesivo rodando no meio.
           transformOrigin: 'center bottom',
@@ -231,7 +245,19 @@ export function AnimatedSprout({
           transform: [{ rotate }, { scale }],
         }}
       >
-        <Sprout mood={current} stage={stage} size={size} decorations={decorations} showBg={false} />
+        {/*
+          `showBg={false}` porque o halo é desenhado aqui em camadas, e
+          `molduraDoHalo` para o enquadramento saber que ele existe mesmo
+          assim — as duas coisas são diferentes, ver `Sprout`.
+        */}
+        <Sprout
+          mood={current}
+          stage={stage}
+          size={size}
+          decorations={decorations}
+          showBg={false}
+          molduraDoHalo={showBg}
+        />
       </Animated.View>
     </View>
   );

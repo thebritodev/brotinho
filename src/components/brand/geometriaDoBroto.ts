@@ -197,9 +197,51 @@ export function caixaDaPlanta(stage: SproutStage, temEnfeite = false): Caixa {
   };
 }
 
-/** A mesma caixa no formato que a `viewBox` de um SVG espera. */
-export function viewBoxDaPlanta(stage: SproutStage, temEnfeite = false): string {
-  const c = caixaDaPlanta(stage, temEnfeite);
+/**
+ * Até onde o vaso chega, contando a metade de fora do traço de 3,5.
+ *
+ * O vaso é um `d` de Bézier e um `<Rect>` dentro de `Sprout`, não uma tabela,
+ * então estes três números são transcritos e não calculados — como o casco da
+ * folha. E como ele, ficam guardados por `confere-broto.js`, que lê o desenho
+ * do arquivo e confere que a transcrição ainda bate.
+ */
+export const VASO_ALCANCA = { esquerda: 56.25, direita: 143.75, baixo: 221.75 };
+
+/**
+ * A caixa que cerca planta **e** vaso.
+ *
+ * Existe para quando não há halo atrás do broto. O enquadramento de sempre,
+ * `0 0 200 224`, foi desenhado em volta do halo: ele reserva uns 53 de altura
+ * acima da planta, que é exatamente o espaço que o disco ocupava. Sem disco,
+ * aquilo vira um vazio no topo da tela e o broto parece pequeno e caído.
+ *
+ * Recortando, o mesmo desenho passa a ocupar cerca de um terço a mais de
+ * altura no mesmo espaço da tela — sem mexer em `size`, que era o botão
+ * errado: aumentar `size` aumentava o vazio junto.
+ */
+export function caixaComVaso(stage: SproutStage, temEnfeite = false): Caixa {
+  const planta = caixaDaPlanta(stage, temEnfeite);
+  const esquerda = Math.min(planta.x, VASO_ALCANCA.esquerda);
+  const direita = Math.max(planta.x + planta.largura, VASO_ALCANCA.direita);
+  const meia = Math.max(CX - esquerda, direita - CX);
+  return {
+    x: CX - meia,
+    y: planta.y,
+    largura: 2 * meia,
+    altura: VASO_ALCANCA.baixo + FOLGA_DA_CAIXA - planta.y,
+  };
+}
+
+/** Uma caixa no formato que a `viewBox` de um SVG espera. */
+export function comoViewBox(c: Caixa): string {
   const n = (v: number) => Math.round(v * 100) / 100;
   return `${n(c.x)} ${n(c.y)} ${n(c.largura)} ${n(c.altura)}`;
 }
+
+/** A caixa da planta sozinha, já no formato da `viewBox`. */
+export function viewBoxDaPlanta(stage: SproutStage, temEnfeite = false): string {
+  return comoViewBox(caixaDaPlanta(stage, temEnfeite));
+}
+
+/** O enquadramento de sempre, desenhado em volta do halo. */
+export const CAIXA_COM_HALO: Caixa = { x: 0, y: 0, largura: 200, altura: 224 };

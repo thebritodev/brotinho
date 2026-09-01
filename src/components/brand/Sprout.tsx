@@ -12,7 +12,10 @@ import {
   type SproutStage,
   STEM_TOP_Y,
   TRACO_DA_FOLHA,
-  viewBoxDaPlanta,
+  CAIXA_COM_HALO,
+  caixaComVaso,
+  caixaDaPlanta,
+  comoViewBox,
 } from './geometriaDoBroto';
 
 export { ehEnfeite };
@@ -180,6 +183,18 @@ type Props = {
   size?: number;
   showPot?: boolean;
   showBg?: boolean;
+  /**
+   * Há um halo desenhado **por fora**, e o enquadramento precisa reservar
+   * espaço para ele.
+   *
+   * Existe por causa do `AnimatedSprout`: ele pinta o halo em camadas próprias,
+   * para atravessar de um humor ao outro, e por isso pede `showBg={false}` aqui.
+   * Sem esta distinção, "não desenho halo" e "não há halo atrás de mim" viram a
+   * mesma coisa — e o recorte disparou no tema claro, encolhendo a caixa por
+   * dentro de um disco que continuava do tamanho antigo. O broto saiu grande e
+   * torto dentro do próprio halo.
+   */
+  molduraDoHalo?: boolean;
 };
 
 /**
@@ -193,6 +208,7 @@ export function Sprout({
   size = 160,
   showPot = true,
   showBg = true,
+  molduraDoHalo = false,
 }: Props) {
   const { moodColorsFundo, palette, tema } = useTema();
   const stemTopY = STEM_TOP_Y[stage];
@@ -213,14 +229,40 @@ export function Sprout({
     dela. Agora a caixa é calculada das mesmas tabelas que desenham — ver
     `geometriaDoBroto`.
   */
-  const caixa = showPot
-    ? // O 224 em vez de 220 é folga: o vaso termina em 220 e o traço de 3.5
-      // ficaria metade para fora, cortado na borda.
-      '0 0 200 224'
-    : viewBoxDaPlanta(stage, decorations.length > 0);
+  /*
+    Três enquadramentos, e o que decide é o que está desenhado atrás.
+
+    Com halo, a caixa é a de sempre — ela foi feita em volta do disco, e
+    reserva uns 53 de altura acima da planta que é exatamente o que o disco
+    ocupa. Sem halo, aquele espaço reservado vira um vazio no topo da tela, e o
+    broto parece pequeno e caído no meio dela.
+
+    Por isso o tema escuro, que não tem halo desde a correção do fundo, passa a
+    usar a caixa fechada em volta de planta e vaso. Mesmo espaço na tela, cerca
+    de um terço a mais de desenho.
+  */
+  const temEnfeite = decorations.length > 0;
+  const semHalo = !(showBg || molduraDoHalo) || tema === 'escuro';
+  const caixa = !showPot
+    ? caixaDaPlanta(stage, temEnfeite)
+    : semHalo
+      ? caixaComVaso(stage, temEnfeite)
+      : CAIXA_COM_HALO;
+
+  /*
+    O quadro sai da proporção da caixa, e não de um 1,12 fixo.
+
+    O 1,12 vinha de `224 / 200`, a proporção da caixa com halo — bater os dois
+    é o que faz o desenho preencher o quadro sem sobra. Escrito à mão, ele só
+    valia para aquela caixa: nas outras o desenho encolhia para caber e ficava
+    com faixa vazia dos lados. Derivando da caixa em uso, cada enquadramento
+    preenche o seu, e o de sempre continua dando exatamente 1,12.
+  */
+  const altura = size * 1.12;
+  const largura = altura * (caixa.largura / caixa.altura);
 
   return (
-    <Svg viewBox={caixa} width={size} height={size * 1.12}>
+    <Svg viewBox={comoViewBox(caixa)} width={largura} height={altura}>
       {/*
         O halo: dois mecanismos, porque a luz do ambiente é outra.
 
