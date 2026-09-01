@@ -12,10 +12,10 @@ import {
   type SproutStage,
   STEM_TOP_Y,
   TRACO_DA_FOLHA,
-  CAIXA_COM_HALO,
-  caixaComVaso,
   caixaDaPlanta,
+  caixaDoMascote,
   comoViewBox,
+  medidasDoMascote,
 } from './geometriaDoBroto';
 
 export { ehEnfeite };
@@ -243,23 +243,25 @@ export function Sprout({
   */
   const temEnfeite = decorations.length > 0;
   const semHalo = !(showBg || molduraDoHalo) || tema === 'escuro';
-  const caixa = !showPot
-    ? caixaDaPlanta(stage, temEnfeite)
-    : semHalo
-      ? caixaComVaso(stage, temEnfeite)
-      : CAIXA_COM_HALO;
+  const caixa = showPot
+    ? caixaDoMascote(stage, temEnfeite, semHalo)
+    : caixaDaPlanta(stage, temEnfeite);
 
   /*
-    O quadro sai da proporção da caixa, e não de um 1,12 fixo.
+    Duas regras de quadro, porque são dois trabalhos diferentes.
 
-    O 1,12 vinha de `224 / 200`, a proporção da caixa com halo — bater os dois
-    é o que faz o desenho preencher o quadro sem sobra. Escrito à mão, ele só
-    valia para aquela caixa: nas outras o desenho encolhia para caber e ficava
-    com faixa vazia dos lados. Derivando da caixa em uso, cada enquadramento
-    preenche o seu, e o de sempre continua dando exatamente 1,12.
+    **O mascote** — com vaso — mantém a escala fixa de `size / 200`: o mesmo
+    desenho, do mesmo tamanho, em qualquer tema. Sem halo o quadro encolhe e
+    abraça o desenho, e é isso que sobe o broto sem aumentá-lo. Ver
+    `medidasDoMascote`.
+
+    **O broto dos cartões** — sem vaso — faz o contrário: preenche o espaço que
+    lhe deram. Ali `size` é o tamanho pedido pelo cartão, não a escala do
+    desenho, e encolher o quadro seria devolver o defeito do broto pequeno.
   */
-  const altura = size * 1.12;
-  const largura = altura * (caixa.largura / caixa.altura);
+  const { largura, altura } = showPot
+    ? medidasDoMascote(caixa, size)
+    : { altura: size * 1.12, largura: size * 1.12 * (caixa.largura / caixa.altura) };
 
   return (
     <Svg viewBox={comoViewBox(caixa)} width={largura} height={altura}>

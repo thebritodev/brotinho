@@ -218,29 +218,27 @@ async function main() {
         semHalo.y + semHalo.altura >= bai - 0.01;
       confere(`a caixa sem halo cabe planta e vaso — estágio ${stage}`, cabeTudo);
 
-      // Quanto o desenho cresce em relacao ao enquadramento com halo, na mesma
-      // altura de tela: e a razao entre as alturas uteis das duas caixas.
-      const ganho = caixaComVaso_ganho(g, stage, bai);
+      /*
+        O desenho tem o MESMO tamanho nos dois enquadramentos; o que encolhe é
+        o quadro.
+
+        Este teste ja pediu o contrario. A primeira versao do recorte amarrava
+        a altura do quadro e deixava o desenho crescer 65% no tema escuro —
+        some o vazio, sim, e trocar de tema virava trocar de app. Quem usa
+        pediu para subir o broto, nao para aumenta-lo, e o teste passou a
+        cobrar isso.
+      */
+      const comHalo = g.medidasDoMascote(g.CAIXA_COM_HALO, 200);
+      const sem = g.medidasDoMascote(semHalo, 200);
+      const mesmaEscala = Math.abs(comHalo.largura / 200 - sem.largura / semHalo.largura) < 0.001;
+      confere(`sem halo o desenho nao muda de tamanho — estágio ${stage}`, mesmaEscala);
       confere(
-        `sem halo o desenho cresce — estágio ${stage}`,
-        ganho > 1.15,
-        `${((ganho - 1) * 100).toFixed(0)}% maior`,
+        `sem halo o quadro encolhe — estágio ${stage}`,
+        sem.altura < comHalo.altura * 0.95,
+        `${(100 - (sem.altura / comHalo.altura) * 100).toFixed(0)}% mais baixo`,
       );
     }
   }
-}
-
-/**
- * Quanto o desenho fica maior sem halo, na mesma altura de tela.
- *
- * Os dois enquadramentos são renderizados com a mesma altura, então a escala
- * de cada um é `altura do quadro / altura da caixa`. O desenho é o mesmo nos
- * dois; o que muda é o quanto de caixa vazia ele divide espaço com.
- */
-function caixaComVaso_ganho(g, stage, vasoBaixo) {
-  const planta = g.caixaDaPlanta(stage, false);
-  const semHalo = vasoBaixo + g.FOLGA_DA_CAIXA - planta.y;
-  return 224 / semHalo;
 }
 
 main()

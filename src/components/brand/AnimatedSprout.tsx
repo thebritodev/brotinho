@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { AccessibilityInfo, Animated, Easing, View } from 'react-native';
 
 import { type Mood, useTema } from '../../theme';
+import { caixaDoMascote, medidasDoMascote } from './geometriaDoBroto';
 import { Sprout, type Decoration, type SproutStage } from './Sprout';
 
 /**
@@ -77,7 +78,8 @@ export function AnimatedSprout({
   swayOnMount = false,
   breathe = false,
   swayOn = null,
-}: Props) {
+}: Props) {
+  const { tema } = useTema();
   /** Cor que fica por baixo enquanto a nova entra. */
   const [previous, setPrevious] = useState<Mood>(mood);
   const [current, setCurrent] = useState<Mood>(mood);
@@ -192,6 +194,20 @@ export function AnimatedSprout({
     return () => clearTimeout(seguranca);
   }, [mood]);
 
+  /*
+    A moldura acompanha o quadro do broto.
+
+    Ela reservava `size * 1,12` sempre, que é a altura da caixa com halo. Sem
+    halo — o tema escuro, desde a correção do fundo — aquilo virava uma faixa
+    vazia acima do broto, e ele descia para o meio da tela. Encolhendo a
+    moldura junto, o broto sobe e continua do mesmo tamanho.
+  */
+  const semHalo = !showBg || tema === 'escuro';
+  const quadro = medidasDoMascote(
+    caixaDoMascote(stage, decorations.length > 0, semHalo),
+    size,
+  );
+
   const diameter = size * CIRCLE_RATIO;
   const offset = size * CIRCLE_OFFSET;
 
@@ -203,7 +219,7 @@ export function AnimatedSprout({
   const scale = breath.interpolate({ inputRange: [0, 1], outputRange: [1, BREATH_SCALE] });
 
   return (
-    <View style={{ width: size, height: size * 1.12 }}>
+    <View style={{ width: size, height: quadro.altura }}>
       {showBg && (
         /*
           Duas camadas, pela travessia entre humores: a de baixo é o humor

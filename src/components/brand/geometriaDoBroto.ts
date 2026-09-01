@@ -245,3 +245,32 @@ export function viewBoxDaPlanta(stage: SproutStage, temEnfeite = false): string 
 
 /** O enquadramento de sempre, desenhado em volta do halo. */
 export const CAIXA_COM_HALO: Caixa = { x: 0, y: 0, largura: 200, altura: 224 };
+
+/** A caixa que o mascote usa: a de sempre, ou a fechada quando não há halo. */
+export function caixaDoMascote(
+  stage: SproutStage,
+  temEnfeite: boolean,
+  semHalo: boolean,
+): Caixa {
+  return semHalo ? caixaComVaso(stage, temEnfeite) : CAIXA_COM_HALO;
+}
+
+/**
+ * O quadro do mascote na tela, em pixels.
+ *
+ * **A escala é sempre a mesma, e é isso que importa aqui.** Um pixel de tela
+ * vale `size / 200` unidades de desenho, venha de qual caixa vier — então o
+ * broto tem exatamente o mesmo tamanho nos dois temas. O que muda entre eles é
+ * só o quadro: sem halo ele encolhe e passa a abraçar o desenho, em vez de
+ * reservar a altura que o disco ocupava.
+ *
+ * A primeira versão disto amarrava a altura em `size * 1,12` e tirava a largura
+ * da proporção da caixa. O efeito colateral era o desenho crescer 65% no tema
+ * escuro — some o vazio, sim, mas trocando um problema por outro: trocar de
+ * tema virava trocar de app. Encolher o quadro sobe o broto sem tocar no
+ * tamanho dele, que era o pedido.
+ */
+export function medidasDoMascote(caixa: Caixa, size: number) {
+  const escala = size / CAIXA_COM_HALO.largura;
+  return { largura: caixa.largura * escala, altura: caixa.altura * escala };
+}
