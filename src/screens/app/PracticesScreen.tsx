@@ -68,7 +68,7 @@ export function PracticesScreen({
         <PracticeDetailScreen
           practice={practice}
           topicKey={topic.key}
-          tint={topic.tint}
+          tint={palette[topic.tint]}
           onBack={() => setPracticeKey(null)}
           onEscreverNoDiario={onEscreverNoDiario}
         />
@@ -120,7 +120,7 @@ export function PracticesScreen({
                   width: 62,
                   height: 62,
                   borderRadius: radius.md,
-                  backgroundColor: topic.tint,
+                  backgroundColor: palette[topic.tint],
                   alignItems: 'center',
                   justifyContent: 'center',
                   overflow: 'hidden',
@@ -314,7 +314,15 @@ export function PracticesScreen({
             title={t.title}
             subtitle={resumoDoTema(t.intro)}
             icon={t.icon}
-            tint={t.tint}
+            /*
+              A chave vira cor **aqui**, com a paleta do tema que está no ar.
+
+              O `tint` mora em `practices.ts`, que é dado e não componente: ele
+              guarda o nome do tom, não o tom. Quem resolve é quem desenha, e
+              por isso o mesmo tema fica pastel no claro e escuro no escuro,
+              em vez de pastel nos dois com um ícone quase branco por cima.
+            */
+            tint={palette[t.tint]}
             style={{ flexGrow: 1 }}
             onPress={() => setTopicKey(t.key)}
           />

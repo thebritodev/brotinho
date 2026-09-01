@@ -15,8 +15,18 @@ import { MIN_STEP, pad } from '../../data/onboarding';
  */
 const ESCALA_DA_FONTE = Math.min(PixelRatio.getFontScale(), 1.6);
 
-/** Altura de cada número no carretel. Também é o passo do arrasto. */
-const ITEM_HEIGHT = Math.round(44 * ESCALA_DA_FONTE);
+/**
+ * Altura de cada número no carretel, **em sp** — ou seja, antes da escala.
+ *
+ * É este número que vai para o `lineHeight`, e só ele. O React Native
+ * multiplica `fontSize` e `lineHeight` pela escala da fonte do sistema por
+ * conta própria; entregar um valor já multiplicado faz a escala ser aplicada
+ * duas vezes. É o mesmo erro que desalinhou o diário das pautas do papel.
+ */
+const ALTURA_EM_SP = 44;
+
+/** Altura de cada número no carretel, em pixels. Também é o passo do arrasto. */
+const ITEM_HEIGHT = Math.round(ALTURA_EM_SP * ESCALA_DA_FONTE);
 
 /**
  * Quantos números aparecem acima e abaixo do escolhido.
@@ -128,6 +138,29 @@ export function TimeWheel({ value, onChange, icon = 'moon' }: Props) {
                   style={{
                     fontFamily: fonts.display.bold,
                     fontSize: centro ? 40 : 19,
+                    /*
+                      O número não estava no meio da faixa verde, e a culpa era
+                      da caixa de linha, não da faixa.
+
+                      Sem `lineHeight`, a caixa vem da fonte: ela reserva
+                      espaço para a descida das letras — o rabo do "p", do "g"
+                      —, e dígito nenhum tem descida. Os algarismos ficam
+                      encostados no alto da própria caixa, e a caixa é centrada,
+                      não eles. Numa escala de fonte menor que 1 a linha encolhe
+                      mais que o texto e a folga sobra toda embaixo, que é
+                      quando o desencontro fica visível.
+
+                      Amarrando a caixa de linha à altura da fileira, as duas
+                      passam a ser a mesma coisa. Em sp, não em pixels: o valor
+                      em pixels já foi multiplicado pela escala uma vez.
+
+                      `includeFontPadding` tira a folga extra que o Android
+                      acrescenta por fora da caixa, e que reintroduziria o
+                      mesmo deslocamento por outro caminho.
+                    */
+                    lineHeight: ALTURA_EM_SP,
+                    includeFontPadding: false,
+                    textAlignVertical: 'center',
                     color: centro ? colors.textPrimary : palette.brown200,
                   }}
                 >
@@ -181,9 +214,18 @@ export function TimeWheel({ value, onChange, icon = 'moon' }: Props) {
         />
 
         {coluna(h, 1, 24, restoHora, responderHora)}
+        {/* Os dois-pontos seguem a mesma caixa de linha dos números: sem isso
+            eles ficariam centrados por outra régua e sairiam do eixo junto. */}
         <Text
           maxFontSizeMultiplier={1.6}
-          style={{ fontFamily: fonts.display.bold, fontSize: 34, color: palette.brown200 }}
+          style={{
+            fontFamily: fonts.display.bold,
+            fontSize: 34,
+            lineHeight: ALTURA_EM_SP,
+            includeFontPadding: false,
+            textAlignVertical: 'center',
+            color: palette.brown200,
+          }}
         >
           :
         </Text>

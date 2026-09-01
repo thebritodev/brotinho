@@ -15,6 +15,7 @@ export { GrowingSprout } from './brand/GrowingSprout';
 export { GrowthNotice } from './brand/GrowthNotice';
 export { HarvestNotice } from './brand/HarvestNotice';
 export { ProgressStem } from './brand/ProgressStem';
+export { BalaoDoBroto } from './brand/BalaoDoBroto';
 export { InsightCard } from './brand/InsightCard';
 export { AjudaAgora } from './brand/AjudaAgora';
 export { CrossedCard } from './brand/CrossedCard';

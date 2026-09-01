@@ -1,6 +1,6 @@
 import type { IconName } from '../components';
 import type { IllustrationName } from '../components/brand/PracticeIllustration';
-import { moodColors, palette } from '../theme/tokens';
+import type { Palette } from '../theme/tokens';
 
 /**
  * Conteúdo das práticas.
@@ -50,7 +50,22 @@ export type PracticeTopic = {
   key: string;
   title: string;
   icon: IconName;
-  tint: string;
+  /**
+   * O fundo do quadradinho do ícone, guardado como **chave da paleta** e não
+   * como cor.
+   *
+   * Aqui estavam as cores resolvidas: `moodColors.ansioso`, `palette.blue100`.
+   * Só que este arquivo é dado, não componente — ele importava `tokens`
+   * estaticamente e ficava com os valores do tema **claro**, para sempre. No
+   * tema escuro o fundo continuava pastel enquanto o ícone, esse sim vindo do
+   * tema, virava quase branco: branco sobre creme, ícone nenhum visível.
+   *
+   * Guardando a chave, quem desenha faz `palette[tema.tint]` e recebe a cor do
+   * tema que está no ar — o mesmo caminho que `ValueBadge` já usava. E a
+   * paleta escura tem os pares certos prontos (`blue100` é `#3A5468` lá), então
+   * não foi preciso inventar cor nova.
+   */
+  tint: keyof Palette;
   intro: string;
   practices: Practice[];
 };
@@ -123,7 +138,7 @@ export const PRACTICE_TOPICS: PracticeTopic[] = [
     key: 'ansiedade',
     title: 'Ansiedade',
     icon: 'sparkle',
-    tint: moodColors.ansioso,
+    tint: 'blue100',
     intro: 'A ansiedade acelera o corpo antes da cabeça entender por quê. Estas práticas começam pelo corpo.',
     practices: [
       {
@@ -208,7 +223,7 @@ export const PRACTICE_TOPICS: PracticeTopic[] = [
     key: 'tristeza',
     title: 'Tristeza',
     icon: 'flower',
-    tint: palette.slate100,
+    tint: 'slate100',
     intro: 'Tristeza não é um problema a resolver. É um estado que pede companhia — inclusive a sua.',
     practices: [
       {
@@ -270,7 +285,7 @@ export const PRACTICE_TOPICS: PracticeTopic[] = [
     key: 'luto',
     title: 'Luto',
     icon: 'ampulheta',
-    tint: palette.blue100,
+    tint: 'blue100',
     intro:
       'Luto não é só morte, e não tem prazo. É o que sobra quando alguma coisa que era sua deixou de ser.',
     practices: [
@@ -333,7 +348,7 @@ export const PRACTICE_TOPICS: PracticeTopic[] = [
     key: 'insonia',
     title: 'Insônia',
     icon: 'moon',
-    tint: moodColors.cansado,
+    tint: 'lavender100',
     intro: 'Dormir não se força. O que dá para fazer é preparar o corpo e tirar a pressa da cabeça.',
     practices: [
       {
@@ -409,7 +424,7 @@ export const PRACTICE_TOPICS: PracticeTopic[] = [
     key: 'estresse',
     title: 'Estresse',
     icon: 'pressao',
-    tint: moodColors.triste,
+    tint: 'slate100',
     intro: 'Estresse acumula no corpo antes de virar pensamento. Estas práticas são curtas de propósito.',
     practices: [
       {
@@ -468,7 +483,7 @@ export const PRACTICE_TOPICS: PracticeTopic[] = [
     key: 'solidao',
     title: 'Solidão',
     icon: 'user',
-    tint: palette.brown100,
+    tint: 'brown100',
     intro: 'Solidão não é falta de gente por perto. É a distância entre o que você sente e o que os outros sabem.',
     practices: [
       {
@@ -526,7 +541,7 @@ export const PRACTICE_TOPICS: PracticeTopic[] = [
     key: 'raiva',
     title: 'Raiva',
     icon: 'chama',
-    tint: palette.terracotta100,
+    tint: 'terracotta100',
     intro: 'Raiva quase sempre é a capa de outra coisa. Descarregar o corpo primeiro é o que deixa ver o que tem embaixo.',
     practices: [
       {
@@ -589,7 +604,7 @@ export const PRACTICE_TOPICS: PracticeTopic[] = [
     key: 'procrastinacao',
     title: 'Procrastinação',
     icon: 'check',
-    tint: palette.amber100,
+    tint: 'amber100',
     intro: 'Procrastinar raramente é preguiça. É quase sempre uma tarefa grande demais para o estado em que você está.',
     practices: [
       {
@@ -651,7 +666,7 @@ export const PRACTICE_TOPICS: PracticeTopic[] = [
     key: 'autoestima',
     title: 'Autoestima',
     icon: 'heart',
-    tint: moodColors.feliz,
+    tint: 'yellow100',
     intro: 'Autoestima não se conserta com elogio. Se constrói reparando no que já está lá.',
     practices: [
       {
@@ -738,7 +753,7 @@ export const PRACTICE_TOPICS: PracticeTopic[] = [
     key: 'culpa',
     title: 'Culpa e vergonha',
     icon: 'lock',
-    tint: palette.cream300,
+    tint: 'cream300',
     intro:
       'Culpa é "eu fiz uma coisa ruim". Vergonha é "eu sou ruim". A primeira dá para resolver; a segunda só cresce no escuro.',
     practices: [
@@ -793,7 +808,7 @@ export const PRACTICE_TOPICS: PracticeTopic[] = [
     key: 'comparacao',
     title: 'Comparação',
     icon: 'search',
-    tint: palette.green50,
+    tint: 'green50',
     intro: 'Comparar é automático. O que machuca é medir o seu bastidor contra a estreia dos outros.',
     practices: [
       {
@@ -847,7 +862,7 @@ export const PRACTICE_TOPICS: PracticeTopic[] = [
     key: 'foco',
     title: 'Foco',
     icon: 'alvo',
-    tint: palette.green100,
+    tint: 'green100',
     intro: 'Foco não é força de vontade. É reduzir o número de coisas competindo pela sua atenção.',
     practices: [
       {
@@ -910,7 +925,7 @@ export const PRACTICE_TOPICS: PracticeTopic[] = [
     key: 'gratidao',
     title: 'Gratidão',
     icon: 'star',
-    tint: palette.yellow100,
+    tint: 'yellow100',
     intro: 'Gratidão não é fingir que está tudo bem. É reparar no que sustentou o dia.',
     practices: [
       {

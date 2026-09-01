@@ -19,6 +19,7 @@ import Svg, { Circle, Ellipse, G, Path, Rect } from 'react-native-svg';
 */
 import { paletteDoDesenho as palette, useTema } from '../../theme';
 import { AnimatedSprout } from './AnimatedSprout';
+import { caixaDoMascote, medidasDoMascote } from './geometriaDoBroto';
 
 /**
  * WindowScene — o broto num vaso, no parapeito de uma janela.
@@ -249,12 +250,27 @@ export function WindowScene({ width, agora }: { width: number; agora?: Date }) {
         <Rect x={0} y={182} width={W} height={48} fill={chaoDoComodo} />
       </Svg>
 
-      {/* O mascote de verdade, pousado no parapeito. */}
+      {/*
+        O mascote de verdade, pousado no parapeito.
+
+        O que desce daqui até o parapeito é a **altura do quadro**, e ela vem da
+        mesma conta que o `AnimatedSprout` usa para se desenhar. Era
+        `sproutSize * 1,12` — um multiplicador da largura calibrado à mão quando
+        o quadro do mascote era o retângulo do disco de humor, que tinha essa
+        proporção. O disco saiu e o quadro passou a abraçar o desenho; o 1,12
+        ficou, virou uma altura maior que a real, e o vaso descolou do
+        parapeito. O broto ficou flutuando.
+
+        Perguntar a altura em vez de repeti-la é o que impede isso de voltar:
+        mexer no desenho reposiciona o vaso sozinho.
+      */}
       <View
         style={{
           position: 'absolute',
           left: width * SPROUT_CENTER_X - sproutSize / 2,
-          top: height * SILL_Y - sproutSize * 1.12,
+          top:
+            height * SILL_Y -
+            medidasDoMascote(caixaDoMascote(3, false), sproutSize).altura,
         }}
       >
         <AnimatedSprout mood="feliz" stage={3} size={sproutSize} breathe />

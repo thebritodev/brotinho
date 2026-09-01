@@ -4,6 +4,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import {
   AnimatedSprout,
+  BalaoDoBroto,
   Button,
   Card,
   GrowthNotice,
@@ -199,19 +200,9 @@ export function HomeScreen({
       }}
       showsVerticalScrollIndicator={false}
     >
-      <View style={{ flexDirection: 'row', alignItems: 'flex-start' }}>
+      <View style={{ flexDirection: 'row', alignItems: 'center' }}>
         <View style={{ flex: 1 }}>
           <Text style={{ color: colors.textPrimary, fontFamily: fonts.display.bold, fontSize: 24 }}>Oi, {name}</Text>
-          <Text
-            style={{
-              fontFamily: fonts.body.regular,
-              fontSize: 15,
-              color: colors.textSecondary,
-              marginTop: 4,
-            }}
-          >
-            {saudacao}
-          </Text>
         </View>
         <View style={{ flexDirection: 'row', gap: 4 }}>
           <IconButton
@@ -228,6 +219,35 @@ export function HomeScreen({
       </View>
 
       {voltando && <VoltaCard dias={ausente} />}
+
+      {/*
+        A frase do dia virou fala do broto.
+
+        Ela era um parágrafo cinza logo abaixo do "Oi, Pedro" — indistinguível
+        de qualquer outro texto de sistema, embora seja a única frase da tela
+        que ele diz. No balão, com o bico apontando para o desenho logo abaixo,
+        quem fala fica claro sem precisar escrever "o broto diz".
+
+        Ela desceu para depois do `VoltaCard`: com um cartão no meio, o bico
+        apontaria para o cartão em vez de para o broto.
+
+        A margem negativa come parte do `gap: 22` do container. Encostado
+        demais, o bico vira um V grudado na cabeça dele; longe demais, deixa de
+        apontar para alguma coisa.
+      */}
+      <BalaoDoBroto style={{ marginBottom: -14 }}>
+        <Text
+          style={{
+            fontFamily: fonts.body.regular,
+            fontSize: 15,
+            lineHeight: 15 * 1.5,
+            color: palette.brown700,
+            textAlign: 'center',
+          }}
+        >
+          {saudacao}
+        </Text>
+      </BalaoDoBroto>
 
       <View style={{ alignItems: 'center', gap: 12 }}>
         {/* Margem negativa: o desenho encosta nas bordas da tela. */}

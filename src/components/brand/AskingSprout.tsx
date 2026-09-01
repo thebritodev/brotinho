@@ -1,9 +1,9 @@
 import React from 'react';
 import { Text, useWindowDimensions, View } from 'react-native';
-import Svg, { Path } from 'react-native-svg';
 
-import { fonts, radius, useTema } from '../../theme';
+import { fonts, useTema } from '../../theme';
 import { AnimatedSprout } from './AnimatedSprout';
+import { BalaoDoBroto } from './BalaoDoBroto';
 
 /**
  * AskingSprout — o broto fazendo a pergunta, com o balão de fala acima dele.
@@ -15,10 +15,6 @@ import { AnimatedSprout } from './AnimatedSprout';
  * Ele está sempre no estágio 3 e feliz: é o mesmo rosto do começo ao fim do
  * onboarding, para a pessoa reconhecer quem está falando com ela.
  */
-
-/** Bico do balão. */
-const TAIL_W = 26;
-const TAIL_H = 14;
 
 type Props = {
   title: string;
@@ -34,7 +30,7 @@ type Props = {
 };
 
 export function AskingSprout({ title, sub, kicker, reageA = null, compacto = false }: Props) {
-  const { colors, palette, shadows } = useTema();
+  const { colors, palette } = useTema();
   const { width, height } = useWindowDimensions();
   /**
    * Largura e altura entram as duas: a largura define o quanto ele domina a
@@ -51,17 +47,12 @@ export function AskingSprout({ title, sub, kicker, reageA = null, compacto = fal
 
   return (
     <View style={{ alignItems: 'center', gap: 2 }}>
-      <View
-        style={{
-          width: '100%',
-          backgroundColor: colors.surface,
-          borderRadius: radius.lg,
-          paddingVertical: 10,
-          paddingHorizontal: 18,
-          gap: 8,
-          ...shadows.sm,
-        }}
-      >
+      {/*
+        O balão saiu daqui para `BalaoDoBroto`: ele era o único do app com bico,
+        e o bico é justamente o que marca a fala do broto. Agora a saudação da
+        tela inicial e o "Seu broto percebeu" usam o mesmo desenho.
+      */}
+      <BalaoDoBroto lado="baixo" tom="superficie" style={{ width: '100%' }}>
         {!!kicker && (
           <Text
             style={{
@@ -98,12 +89,7 @@ export function AskingSprout({ title, sub, kicker, reageA = null, compacto = fal
             {sub}
           </Text>
         )}
-      </View>
-
-      {/* Bico desenhado à parte, para o balão manter os cantos redondos. */}
-      <Svg width={TAIL_W} height={TAIL_H} viewBox={`0 0 ${TAIL_W} ${TAIL_H}`} style={{ marginTop: -1 }}>
-        <Path d={`M0 0 L${TAIL_W / 2} ${TAIL_H} L${TAIL_W} 0 Z`} fill={colors.surface} />
-      </Svg>
+      </BalaoDoBroto>
 
       <AnimatedSprout
         mood="feliz"

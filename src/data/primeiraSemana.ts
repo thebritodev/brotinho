@@ -59,7 +59,7 @@ export function proximoPasso(data: AppData): Passo | null {
   if (!data.journal.length) {
     return {
       frase:
-        'O diário fica na aba do meio. O que você escrever ali não sai deste aparelho — nem eu consigo ler.',
+        'O diário fica na primeira aba, à esquerda. O que você escrever ali não sai deste aparelho — nem eu consigo ler.',
       destino: null,
     };
   }
