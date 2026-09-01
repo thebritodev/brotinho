@@ -1,5 +1,5 @@
-import React, { useEffect, useRef } from 'react';
-import { Animated, Pressable, Text, View } from 'react-native';
+import React, { useEffect, useRef, useState } from 'react';
+import { Animated, Modal, Pressable, Text, View } from 'react-native';
 import { Swipeable } from 'react-native-gesture-handler';
 
 import { Card, Icon } from '../../components';
@@ -33,7 +33,19 @@ type Props = {
 };
 
 export function SwipeableEntry({ id, date, text, onEdit, onRead, onDelete, openId, onOpen }: Props) {
-  const { colors, palette } = useTema();
+  const { colors, palette, shadows } = useTema();
+  /**
+   * As mesmas duas ações, alcançáveis sem gesto nenhum.
+   *
+   * Editar e excluir só existiam arrastando o cartão. Quem tem limitação
+   * motora, ou navega por leitor de tela, **não conseguia apagar o próprio
+   * desabafo** — e num app cuja promessa é que os dados são dela, isso pesa
+   * mais que a média. A recomendação da literatura de design para pessoas em
+   * sofrimento é direta: todo gesto precisa de alternativa em botão.
+   *
+   * O arrastar continua igual para quem já usa.
+   */
+  const [menuAberto, setMenuAberto] = useState(false);
   const ref = useRef<Swipeable>(null);
   /** Esta linha esta aberta agora? Evita mandar fechar quem ja esta fechado. */
   const aberta = useRef(false);
@@ -112,16 +124,28 @@ export function SwipeableEntry({ id, date, text, onEdit, onRead, onDelete, openI
             um toque — antes só dava para reler entrando em "Editar", o que
             sugeria que você ia alterar alguma coisa. */}
         <Card onPress={onRead}>
-          <Text
-            style={{
-              fontFamily: fonts.body.extraBold,
-              fontSize: 13,
-              color: colors.primaryStrong,
-              marginBottom: 6,
-            }}
-          >
-            {date}
-          </Text>
+          <View style={{ flexDirection: 'row', alignItems: 'flex-start' }}>
+            <Text
+              style={{
+                flex: 1,
+                fontFamily: fonts.body.extraBold,
+                fontSize: 13,
+                color: colors.primaryStrong,
+                marginBottom: 6,
+              }}
+            >
+              {date}
+            </Text>
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel={`Opções do registro de ${date}`}
+              onPress={() => setMenuAberto(true)}
+              hitSlop={10}
+              style={{ width: 28, height: 22, alignItems: 'flex-end', justifyContent: 'center' }}
+            >
+              <Icon name="more" size={18} color={palette.brown400} />
+            </Pressable>
+          </View>
           <Text
             numberOfLines={LINHAS_NA_LISTA}
             style={{
@@ -135,6 +159,69 @@ export function SwipeableEntry({ id, date, text, onEdit, onRead, onDelete, openI
           </Text>
         </Card>
       </Swipeable>
+
+      <Modal
+        visible={menuAberto}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setMenuAberto(false)}
+      >
+        {/* Tocar fora fecha, como qualquer folha de ações do sistema. */}
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel="Fechar"
+          onPress={() => setMenuAberto(false)}
+          style={{
+            flex: 1,
+            backgroundColor: 'rgba(0,0,0,0.35)',
+            justifyContent: 'flex-end',
+            padding: 20,
+          }}
+        >
+          <View
+            style={{
+              backgroundColor: colors.surface,
+              borderRadius: radius.lg,
+              overflow: 'hidden',
+              ...shadows.lg,
+            }}
+          >
+            <Text
+              style={{
+                fontFamily: fonts.body.bold,
+                fontSize: 13,
+                color: palette.brown400,
+                padding: 16,
+              }}
+            >
+              {date}
+            </Text>
+            <Pressable
+              accessibilityRole="button"
+              onPress={() => {
+                setMenuAberto(false);
+                onEdit();
+              }}
+              style={{ flexDirection: 'row', alignItems: 'center', gap: 12, padding: 16, minHeight: 44 }}
+            >
+              <Icon name="pencil" size={20} color={colors.primary} />
+              <Text style={{ fontFamily: fonts.body.bold, fontSize: 15, color: colors.textPrimary }}>Editar</Text>
+            </Pressable>
+            <View style={{ height: 1, backgroundColor: colors.border }} />
+            <Pressable
+              accessibilityRole="button"
+              onPress={() => {
+                setMenuAberto(false);
+                onDelete();
+              }}
+              style={{ flexDirection: 'row', alignItems: 'center', gap: 12, padding: 16, minHeight: 44 }}
+            >
+              <Icon name="trash" size={20} color={colors.danger} />
+              <Text style={{ fontFamily: fonts.body.bold, fontSize: 15, color: colors.danger }}>Excluir</Text>
+            </Pressable>
+          </View>
+        </Pressable>
+      </Modal>
     </View>
   );
 }

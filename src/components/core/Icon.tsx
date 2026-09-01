@@ -10,6 +10,15 @@ const PATHS = {
     'M12 15a3 3 0 100-6 3 3 0 000 6zM19.4 13a1.7 1.7 0 00.34 1.87l.06.06a2 2 0 11-2.83 2.83l-.06-.06a1.7 1.7 0 00-1.87-.34 1.7 1.7 0 00-1 1.55V19a2 2 0 11-4 0v-.09a1.7 1.7 0 00-1-1.55 1.7 1.7 0 00-1.87.34l-.06.06a2 2 0 11-2.83-2.83l.06-.06A1.7 1.7 0 004.6 13a1.7 1.7 0 00-1.55-1H3a2 2 0 110-4h.09A1.7 1.7 0 004.6 7a1.7 1.7 0 00-.34-1.87l-.06-.06a2 2 0 112.83-2.83l.06.06A1.7 1.7 0 008.96 2.6a1.7 1.7 0 001-1.55V1a2 2 0 114 0v.09a1.7 1.7 0 001 1.55 1.7 1.7 0 001.87-.34l.06-.06a2 2 0 112.83 2.83l-.06.06A1.7 1.7 0 0019.4 7a1.7 1.7 0 001.55 1H21a2 2 0 110 4h-.09a1.7 1.7 0 00-1.55 1z',
   bell: 'M9 17a3 3 0 006 0M5 8a7 7 0 0114 0c0 4 1.5 5.5 1.5 5.5H3.5S5 12 5 8z',
   pencil: 'M4 20l4-1 11-11-3-3L5 16l-1 4zM14 6l3 3',
+  /*
+    Três pontos, e cada um é um traço de comprimento zero.
+
+    O conjunto inteiro é desenhado como `stroke` com ponta redonda, e um `M x y
+    l 0 0` vira um ponto perfeitamente redondo do tamanho da espessura. Assim
+    ele acompanha `strokeWidth` e `color` como os outros, em vez de precisar de
+    três `<Circle>` com regra própria.
+  */
+  more: 'M6 12l0 0M12 12l0 0M18 12l0 0',
   heart: 'M12 20s-7-4.6-9.5-9C1 8 2 4 6 4c2.2 0 3.7 1.4 6 3.8C14.3 5.4 15.8 4 18 4c4 0 5 4 3.5 7-2.5 4.4-9.5 9-9.5 9z',
   moon: 'M20 14.5A8.5 8.5 0 119.5 4a7 7 0 0010.5 10.5z',
   droplet: 'M12 3s6 6.5 6 10.5a6 6 0 11-12 0C6 9.5 12 3 12 3z',

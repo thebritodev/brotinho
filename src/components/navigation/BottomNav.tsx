@@ -1,8 +1,8 @@
 import React from 'react';
-import { Pressable, View } from 'react-native';
+import { Pressable, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { borderWidth, useTema } from '../../theme';
+import { borderWidth, fonts, useTema } from '../../theme';
 import { BrotinhoMark, MARK_PEACH } from '../brand/BrotinhoMark';
 import { Icon, type IconName } from '../core/Icon';
 
@@ -42,7 +42,7 @@ export function BottomNav({ active = 'home', onChange }: Props) {
         accessibilityLabel={t.label}
         accessibilityState={{ selected: ativa }}
         onPress={() => onChange?.(t.key)}
-        style={{ flex: 1, alignItems: 'center', justifyContent: 'center', minHeight: 48 }}
+        style={{ flex: 1, alignItems: 'center', justifyContent: 'center', minHeight: 48, gap: 3 }}
       >
         <Icon
           name={t.icon}
@@ -50,6 +50,24 @@ export function BottomNav({ active = 'home', onChange }: Props) {
           color={ativa ? colors.primaryStrong : colors.textSecondary}
           strokeWidth={ativa ? 2.4 : 2}
         />
+        {/*
+          O rótulo é visível, e não só para o leitor de tela.
+
+          Os três ícones viviam sozinhos, e o nome de cada aba existia apenas em
+          `accessibilityLabel`. Ícone sem rótulo obriga a adivinhar, e adivinhar
+          é caro justamente para quem abre o app mal — a literatura de design
+          para pessoas em sofrimento lista isso entre os atritos que mais pesam.
+          Catorze pixels de altura resolvem.
+        */}
+        <Text
+          style={{
+            fontFamily: ativa ? fonts.body.bold : fonts.body.regular,
+            fontSize: 11,
+            color: ativa ? colors.primaryStrong : colors.textSecondary,
+          }}
+        >
+          {t.label}
+        </Text>
       </Pressable>
     );
   };
@@ -70,8 +88,26 @@ export function BottomNav({ active = 'home', onChange }: Props) {
         }}
       >
         {lateral(LEFT)}
-        {/* Lugar reservado para o botão central, que é posicionado por cima. */}
-        <View style={{ width: CENTER_SIZE }} />
+        {/*
+          Lugar reservado para o botão central, que é posicionado por cima.
+
+          O rótulo dele mora aqui, e não no botão: o botão sobe para fora da
+          barra, e um texto preso nele subiria junto, descolado dos outros dois.
+          O espaçador de 26 é a altura do ícone das laterais, para as três
+          palavras ficarem na mesma linha.
+        */}
+        <View style={{ width: CENTER_SIZE, alignItems: 'center', gap: 3 }}>
+          <View style={{ height: 26 }} />
+          <Text
+            style={{
+              fontFamily: active === 'home' ? fonts.body.bold : fonts.body.regular,
+              fontSize: 11,
+              color: active === 'home' ? colors.primaryStrong : colors.textSecondary,
+            }}
+          >
+            Início
+          </Text>
+        </View>
         {lateral(RIGHT)}
       </View>
 

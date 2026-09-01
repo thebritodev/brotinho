@@ -133,6 +133,11 @@ export function HomeScreen({
   const stage = sproutStage(data);
   const [celebrando, setCelebrando] = useState(false);
 
+  /**
+   * Humores em que uma comemoração cai mal. Ver o efeito abaixo.
+   */
+  const DIA_PESADO: readonly (typeof mood)[] = ['ansioso', 'triste', 'cansado'];
+
   useEffect(() => {
     // Quem já usava o app antes disso existir adota o estágio atual calado:
     // comemorar de uma vez um crescimento que aconteceu semanas atrás seria
@@ -141,8 +146,25 @@ export function HomeScreen({
       markStageSeen(stage);
       return;
     }
-    if (stage > data.stageSeen) setCelebrando(true);
-  }, [stage, data.stageSeen]);
+    if (stage <= data.stageSeen) return;
+
+    /*
+      A comemoração espera o dia melhorar.
+
+      O crescimento do broto depende só de dias de presença, e não olhava o
+      humor: quem marcasse "Triste" no décimo dia levava uma festa na cara. A
+      literatura de design para pessoas em sofrimento chama isso pelo nome —
+      tela de comemoração logo depois de registrar um momento difícil é
+      descompasso emocional, e é dos que mais afastam.
+
+      Nada se perde: `stageSeen` não avança, então a comemoração aparece
+      inteira no primeiro dia em que ela não estiver marcando um humor pesado.
+      Só muda a hora.
+    */
+    if (humorMarcado && DIA_PESADO.includes(humorMarcado)) return;
+
+    setCelebrando(true);
+  }, [stage, data.stageSeen, humorMarcado]);
 
   /**
    * Planta madura: mostra o momento ANTES de guardar.
