@@ -1,15 +1,63 @@
 {
   "artboards": [
-    { "file": "Main.dc.html", "x": 0, "y": 0, "w": 560, "h": 700, "title": "Brotinho" }
+    {
+      "file": "Main.dc.html",
+      "x": 0,
+      "y": 0,
+      "w": 560,
+      "h": 700,
+      "title": "O broto"
+    },
+    {
+      "file": "Hoje.dc.html",
+      "x": 0,
+      "y": 840,
+      "w": 390,
+      "h": 1180,
+      "title": "Como está hoje"
+    },
+    {
+      "file": "OpcaoA.dc.html",
+      "x": 500,
+      "y": 840,
+      "w": 390,
+      "h": 1180,
+      "title": "A · A pergunta e o resto"
+    },
+    {
+      "file": "OpcaoB.dc.html",
+      "x": 1000,
+      "y": 840,
+      "w": 390,
+      "h": 1180,
+      "title": "B · Responde ao humor"
+    },
+    {
+      "file": "OpcaoC.dc.html",
+      "x": 1500,
+      "y": 840,
+      "w": 390,
+      "h": 1180,
+      "title": "C · Quatro portas"
+    }
   ],
   "annotations": [
     {
-      "id": "fechado",
-      "x": 620,
-      "y": 0,
-      "w": 420,
-      "text": "Fechado\n\nCorpo: cabeça, caule e duas folhas. Traço de 2,2 em vez de 3,5. Verde e terracota dessaturados.\n\nFeliz: olhos redondos como os outros cinco humores, só a boca distingue.\n\nO que não mudou: as seis expressões continuam sendo as mesmas seis, e o personagem segue igual nos dois temas."
+      "id": "criterio",
+      "x": 0,
+      "y": 2080,
+      "w": 700,
+      "text": "O critério, tirado da pesquisa\n\n\"O padrão baixa o custo de usar o app justamente quando a pessoa menos pode pagar esse custo?\"\n\nPainel denso exige decidir, e decidir é o que essa pessoa menos tem. As três opções atacam isso por caminhos diferentes: A encurta, B reordena, C nivela."
+    },
+    {
+      "id": "jafeito",
+      "x": 760,
+      "y": 2080,
+      "w": 640,
+      "text": "Já corrigido e no app\n\nEditar e excluir agora têm botão, não só gesto. A barra de baixo ganhou rótulos. A comemoração espera, se o dia foi pesado. Alvos de toque em 44.\n\nEstas quatro saíram da mesma pesquisa e não dependiam de escolher direção."
     }
   ],
-  "launch": { "view": "canvas" }
+  "launch": {
+    "view": "canvas"
+  }
 }

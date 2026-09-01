@@ -1,0 +1,72 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@400;600;700;800&family=Nunito:wght@400;600;700;800&display=swap">
+  <style>
+    body { margin: 0; font-family: Nunito, system-ui, sans-serif; }
+    a { color: #3E6B54; } a:hover { color: #2E4A3B; }
+    .baloo { font-family: 'Baloo 2', system-ui, sans-serif; }
+    .caps { letter-spacing: 0.14em; text-transform: uppercase; font-size: 10px; font-weight: 700; color: #8A8375; }
+    .bloco { background: #FFFFFF; border: 1.5px solid #D9D1BF; border-radius: 10px; padding: 13px 14px; }
+    .t { font-size: 14px; font-weight: 700; }
+    .s { font-size: 12px; color: #716B60; margin-top: 1px; }
+  </style>
+</helmet>
+
+<div style="width: 390px; background: #FBF6EC; color: #3A3630">
+  <div style="padding: 18px 20px 4px 20px" class="caps">Opção B · A tela responde ao humor</div>
+
+  <div style="padding: 0 20px 20px 20px; display: flex; flex-direction: column; gap: 14px">
+
+    <div style="border: 1.5px solid #E9E2D2; border-radius: 12px; padding: 12px">
+      <div class="caps" style="margin-bottom: 10px">Antes de marcar</div>
+      <div style="display: flex; flex-direction: column; gap: 8px">
+        <div class="bloco"><div class="t">Oi, Pedro</div></div>
+        <div class="bloco" style="background: #E3EDE6; border-color: #9EBBAA; padding: 22px 14px"><div class="t" style="color: #2E4A3B">O broto</div></div>
+        <div class="bloco" style="background: #E3EDE6; border-color: #9EBBAA"><div class="t" style="color: #2E4A3B">Cinco carinhas</div><div class="s" style="color: #3E6B54">e nada mais na tela</div></div>
+      </div>
+      <div style="font-size: 12px; color: #716B60; margin-top: 10px; line-height: 1.5">Uma pergunta. Nenhum cartão, nenhum número, nada para decidir.</div>
+    </div>
+
+    <div style="display: flex; align-items: center; gap: 10px; color: #ADA595; font-size: 11px">
+      <div style="flex-grow: 1; height: 1px; background: #E9E2D2"></div>ela marca<div style="flex-grow: 1; height: 1px; background: #E9E2D2"></div>
+    </div>
+
+    <div style="border: 2px dashed #A9C4D6; border-radius: 12px; padding: 12px; background: #F4F8FB">
+      <div class="caps" style="color: #2E4A3B; margin-bottom: 10px">Marcou "Ansioso"</div>
+      <div style="display: flex; flex-direction: column; gap: 8px">
+        <div class="bloco"><div class="t">Cinco palavras</div><div class="s">aflição, apreensão, medo…</div></div>
+        <div class="bloco" style="border-color: #A9C4D6"><div class="t">Aterramento 5-4-3-2-1</div><div class="s">a prática que serve para isto, agora grande</div></div>
+        <div class="bloco" style="border-color: #A9C4D6"><div class="t">Composta</div><div class="s">tirar o pensamento da cabeça</div></div>
+        <div class="bloco" style="opacity: 0.45; border-style: dashed"><div class="t">Meus valores</div><div class="s">não é hora disto — desce para o fim</div></div>
+      </div>
+    </div>
+
+    <div style="border: 2px dashed #9EBBAA; border-radius: 12px; padding: 12px; background: #F1F6F2">
+      <div class="caps" style="color: #2E4A3B; margin-bottom: 10px">Marcou "Feliz"</div>
+      <div style="display: flex; flex-direction: column; gap: 8px">
+        <div class="bloco"><div class="t">Cinco palavras</div><div class="s">alegria, gratidão, orgulho…</div></div>
+        <div class="bloco" style="border-color: #9EBBAA"><div class="t">Seu broto percebeu</div><div class="s">a observação sobe: é hora de olhar para trás</div></div>
+        <div class="bloco" style="border-color: #9EBBAA"><div class="t">Meus valores</div><div class="s">o que você viveu esta semana</div></div>
+        <div class="bloco" style="opacity: 0.45; border-style: dashed"><div class="t">Composta</div><div class="s">nada a compostar hoje — desce</div></div>
+      </div>
+    </div>
+  </div>
+
+  <div style="padding: 0 20px 26px 20px; font-size: 13px; line-height: 1.6; color: #5B5548">
+    <strong>A ideia:</strong> a tela tem os mesmos blocos, e a <strong>ordem</strong> muda com o que a pessoa acabou de dizer. Quem está ansioso vê primeiro o que alivia; quem está bem vê primeiro o que reconhece.
+    <br><br>
+    <strong>O que ganha:</strong> é a única das três que responde à pessoa. O app já sabe o humor e hoje faz quase nada com ele — a linha de sugestão é o único lugar.
+    <br><br>
+    <strong>O custo, e é sério:</strong> a interface deixa de ser previsível. A pesquisa de design para pessoas em sofrimento pede o contrário — estrutura estável, sem relearning a cada volta. Mitigável mantendo os mesmos blocos e mexendo só na ordem, nunca escondendo nada.
+  </div>
+</div>
+</x-dc>
+</body>
+</html>

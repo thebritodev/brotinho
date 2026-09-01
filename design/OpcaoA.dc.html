@@ -1,0 +1,65 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@400;600;700;800&family=Nunito:wght@400;600;700;800&display=swap">
+  <style>
+    body { margin: 0; font-family: Nunito, system-ui, sans-serif; }
+    a { color: #3E6B54; } a:hover { color: #2E4A3B; }
+    .baloo { font-family: 'Baloo 2', system-ui, sans-serif; }
+    .caps { letter-spacing: 0.14em; text-transform: uppercase; font-size: 10px; font-weight: 700; color: #8A8375; }
+    .bloco { background: #FFFFFF; border: 1.5px solid #D9D1BF; border-radius: 10px; padding: 13px 14px; }
+    .t { font-size: 14px; font-weight: 700; }
+    .s { font-size: 12px; color: #716B60; margin-top: 1px; }
+  </style>
+</helmet>
+
+<div style="width: 390px; background: #FBF6EC; color: #3A3630">
+  <div style="padding: 18px 20px 4px 20px" class="caps">Opção A · A pergunta e o resto</div>
+  <div style="padding: 0 20px 14px 20px" class="baloo" style="font-size: 20px">Uma dobra só para responder</div>
+
+  <div style="padding: 0 20px 20px 20px; display: flex; flex-direction: column; gap: 8px">
+
+    <div style="border: 2px dashed #9EBBAA; border-radius: 12px; padding: 12px; background: #F1F6F2">
+      <div class="caps" style="color: #3E6B54; margin-bottom: 10px">Primeira dobra · o que aparece ao abrir</div>
+      <div style="display: flex; flex-direction: column; gap: 8px">
+        <div class="bloco"><div class="t">Oi, Pedro</div><div class="s">saudação do dia</div></div>
+        <div class="bloco" style="background: #E3EDE6; border-color: #9EBBAA; padding: 22px 14px">
+          <div class="t" style="color: #2E4A3B">O broto</div><div class="s" style="color: #3E6B54">um pouco menor: 38% da altura, não 46%</div>
+        </div>
+        <div class="bloco" style="background: #E3EDE6; border-color: #9EBBAA"><div class="t" style="color: #2E4A3B">Cinco carinhas</div><div class="s" style="color: #3E6B54">a pergunta do dia</div></div>
+        <div class="bloco"><div class="t">Cinco palavras</div><div class="s">aparecem depois de marcar, como já é hoje</div></div>
+      </div>
+      <div style="font-size: 12px; color: #3E6B54; margin-top: 10px; line-height: 1.5">Quem abre o app para uma coisa só, responde e fecha, nunca precisa rolar.</div>
+    </div>
+
+    <div style="height: 22px; display: flex; align-items: center; justify-content: center; color: #ADA595; font-size: 11px">↓ a dobra ↓</div>
+
+    <div style="border: 1.5px solid #E9E2D2; border-radius: 12px; padding: 12px">
+      <div class="caps" style="margin-bottom: 10px">Abaixo · quem quiser continuar</div>
+      <div style="display: flex; flex-direction: column; gap: 8px">
+        <div class="bloco"><div class="t">Sugestão para o humor de hoje</div><div class="s">só quando há o que oferecer</div></div>
+        <div class="bloco"><div class="t">Composta</div><div class="s">cartão, como já é</div></div>
+        <div class="bloco"><div class="t">Práticas · Meus valores</div><div class="s">dois cartões</div></div>
+        <div class="bloco"><div class="t">Seu broto percebeu</div><div class="s">a observação do dia</div></div>
+        <div class="bloco" style="opacity: 0.5; border-style: dashed"><div class="t">Seu crescimento</div><div class="s">sai daqui e vai para o Perfil</div></div>
+      </div>
+    </div>
+  </div>
+
+  <div style="padding: 0 20px 26px 20px; font-size: 13px; line-height: 1.6; color: #5B5548">
+    <strong>A ideia:</strong> a tela inicial tem um trabalho — perguntar como você está. Tudo isso cabe numa dobra se o broto encolher um pouco e os três números saírem.
+    <br><br>
+    <strong>Por que os números saem:</strong> "dias cuidados" e "compostagens" são memória, e memória tem lugar no Perfil. "Padrões: 5" é contagem de frases geradas — um número que não corresponde a nada que a pessoa fez.
+    <br><br>
+    <strong>O custo:</strong> mexe pouco. É a opção mais conservadora das três, e não resolve a sensação de "muita coisa" para quem rola até o fim.
+  </div>
+</div>
+</x-dc>
+</body>
+</html>

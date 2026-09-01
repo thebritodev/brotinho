@@ -374,12 +374,23 @@ export function padraoDoDia(data: AppData, hoje = new Date()): string | null {
 export function stats(data: AppData) {
   const dias = daysCaredFor(data);
   const compostas = data.composts.length;
-  const padroes = patterns(data).length;
+  /*
+    O terceiro número era a contagem de padrões, e não devia ser.
+
+    Os três vivem sob o título "Seu crescimento", ou seja, prometem contar o
+    que **a pessoa** fez. "Padrões: 5" contava frases que o app gerou — sobe
+    sozinho sem ela fazer nada, e cai se ela desligar a análise dos registros.
+    Um número que ela não controla, num lugar que diz respeito a ela.
+
+    Registros escritos é do mesmo tipo dos outros dois: uma coisa que ela fez,
+    quando ela fez.
+  */
+  const escritos = data.journal.length;
 
   return [
     { value: dias, label: dias === 1 ? 'dia cuidado' : 'dias cuidados' },
     { value: compostas, label: compostas === 1 ? 'compostagem' : 'compostagens' },
-    { value: padroes, label: padroes === 1 ? 'padrão' : 'padrões' },
+    { value: escritos, label: escritos === 1 ? 'registro' : 'registros' },
   ];
 }
 

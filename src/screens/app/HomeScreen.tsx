@@ -15,7 +15,6 @@ import {
   MoodSelector,
   PalavraDoHumor,
   CrossedCard,
-  StatRow,
   VoltaCard,
   type IconName,
 } from '../../components';
@@ -36,7 +35,6 @@ import {
   padraoDoDia,
   prontoParaColher,
   sproutStage,
-  stats,
 } from '../../state/derived';
 import { fonts, radius, useTema } from '../../theme';
 
@@ -66,11 +64,17 @@ export function HomeScreen({
   const { data, setTodayMood, setTodayPalavra, markStageSeen, colherPlanta } = useAppState();
 
   /**
-   * O broto domina a tela: sangra até as bordas, ignorando a margem lateral
-   * da tela. Junto com as carinhas, o bloco fica em torno de 70% da área útil
-   * — o que sobra depois da barra de status e da navegação de baixo.
+   * O broto domina a tela, mas divide a primeira dobra com a pergunta.
+   *
+   * Era 0,46 da altura. Com ele nesse tamanho, quem abria o app precisava
+   * rolar para responder "como você está hoje?" — que é a única coisa que a
+   * tela pede todos os dias. Em 0,38 a saudação, o broto, as carinhas e as
+   * palavras cabem juntos, e quem abre para responder e fechar nunca rola.
+   *
+   * Continua sangrando até as bordas: o desenho não ficou pequeno, ficou do
+   * tamanho do trabalho dele.
    */
-  const sproutSize = Math.min(width, height * 0.46);
+  const sproutSize = Math.min(width, height * 0.38);
   // `useWindowDimensions` devolve 0 no primeiro quadro, e aí a conta daria
   // tamanho negativo — que no SVG é inválido, não apenas feio. O piso segura
   // esse quadro; do segundo em diante a largura real assume.
@@ -98,25 +102,19 @@ export function HomeScreen({
     [humorMarcado],
   );
 
-  const growth = useMemo(() => stats(data), [data]);
-
   /**
    * A frase da saudação, escolhida pelo dia — ver `data/saudacao.ts`.
    *
-   * Depende de `growth` porque o tom muda para quem já tem estrada. Não depende
-   * do relógio a cada render: a escolha é estável dentro do mesmo dia.
+   * O tom muda para quem já tem estrada, daí os dias cuidados. Vinha de
+   * `stats()`, pelo primeiro dos três números; com os números fora desta tela,
+   * ela pergunta direto a quem sabe. Não depende do relógio a cada render: a
+   * escolha é estável dentro do mesmo dia.
    */
+  const diasCuidados = daysCaredFor(data);
   const saudacao = useMemo(
-    () => saudacaoDoDia({ agora: new Date(), diasCuidados: growth[0].value }),
-    [growth],
+    () => saudacaoDoDia({ agora: new Date(), diasCuidados }),
+    [diasCuidados],
   );
-
-  /**
-   * No primeiro dia os três números são zero, e "Seu crescimento" vira um
-   * placar vazio no exato momento em que devia dar as boas-vindas. Enquanto não
-   * há o que contar, a seção diz o que vem a seguir.
-   */
-  const semNadaAindaParaContar = growth.every((s) => s.value === 0);
   const padrao = useMemo(() => padraoDoDia(data), [data]);
   /**
    * O que mostrar enquanto ainda não há padrão nenhum — ver
@@ -396,28 +394,19 @@ export function HomeScreen({
         />
       </View>
 
-      <View>
-        <Text style={{ color: colors.textPrimary, fontFamily: fonts.display.semiBold, fontSize: 19, marginBottom: 12 }}>
-          {semNadaAindaParaContar ? 'Seu broto' : 'Seu crescimento'}
-        </Text>
-        {semNadaAindaParaContar ? (
-          <Card>
-            <Text
-              style={{
-                fontFamily: fonts.body.regular,
-                fontSize: 15,
-                lineHeight: 15 * 1.55,
-                color: palette.brown700,
-              }}
-            >
-              Ele começa hoje. Registre um humor, escreva o que veio à cabeça ou
-              composte um pensamento — qualquer um dos três já faz o dia contar.
-            </Text>
-          </Card>
-        ) : (
-          <StatRow stats={growth} />
-        )}
-      </View>
+      {/*
+        "Seu crescimento" saiu daqui, e mora no Perfil.
+
+        Os três números são memória, e memória se consulta — não se responde. A
+        tela inicial tem um trabalho por dia, que é perguntar como a pessoa
+        está, e cada bloco a mais empurra essa pergunta para baixo da dobra.
+
+        Nada se perdeu: o Perfil já mostrava os mesmos três, com o mesmo
+        `StatRow`. E o texto de boas-vindas que aparecia aqui enquanto tudo era
+        zero também não faz falta — quem chega agora vê a apresentação da
+        primeira semana, que diz a mesma coisa e diz melhor. Ver
+        `data/primeiraSemana.ts`.
+      */}
 
       {/*
         Um cartão, dois conteúdos, e a ordem importa.
