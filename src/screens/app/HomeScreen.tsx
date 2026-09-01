@@ -21,6 +21,7 @@ import {
 } from '../../components';
 import { toqueLeve } from '../../services/toque';
 import { saudacaoDoDia } from '../../data/saudacao';
+import { proximoPasso } from '../../data/primeiraSemana';
 import { sugestaoParaOHumor } from '../../data/sugestao';
 import { useAppState } from '../../state/AppStateProvider';
 import type { Plant } from '../../state/types';
@@ -117,6 +118,14 @@ export function HomeScreen({
    */
   const semNadaAindaParaContar = growth.every((s) => s.value === 0);
   const padrao = useMemo(() => padraoDoDia(data), [data]);
+  /**
+   * O que mostrar enquanto ainda não há padrão nenhum — ver
+   * `data/primeiraSemana.ts`.
+   *
+   * Divide o mesmo cartão com os padrões, e sempre perde para eles: uma
+   * observação sobre a própria pessoa vale mais que uma apresentação do app.
+   */
+  const passo = useMemo(() => (padrao ? null : proximoPasso(data)), [padrao, data]);
   const memoria = useMemo(() => lembranca(data), [data]);
   const passou = useMemo(() => atravessou(data), [data]);
   const [lendoMemoria, setLendoMemoria] = useState(false);
@@ -388,14 +397,41 @@ export function HomeScreen({
         )}
       </View>
 
-      {/* Só aparece quando há registros suficientes — inventar um "padrão"
-          para quem acabou de instalar seria falso. */}
+      {/*
+        Um cartão, dois conteúdos, e a ordem importa.
+
+        "Seu broto percebeu" só aparece com registros suficientes — inventar um
+        padrão para quem acabou de instalar seria falso. Só que `patterns` pede
+        cinco registros, então esse espaço ficava vazio exatamente na primeira
+        semana, que é quando as pessoas somem. Enquanto não há padrão, o mesmo
+        cartão mostra uma parte do app que ainda não foi descoberta; assim que
+        houver, os padrões tomam o lugar e não voltam a sair.
+      */}
       {!!padrao && (
         <View>
           <Text style={{ color: colors.textPrimary, fontFamily: fonts.display.semiBold, fontSize: 19, marginBottom: 12 }}>
             Seu broto percebeu
           </Text>
           <InsightCard text={padrao} />
+        </View>
+      )}
+
+      {!!passo && (
+        <View>
+          <Text style={{ color: colors.textPrimary, fontFamily: fonts.display.semiBold, fontSize: 19, marginBottom: 12 }}>
+            Tem isto aqui também
+          </Text>
+          {passo.destino ? (
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel={passo.frase}
+              onPress={() => (passo.destino === 'praticas' ? onOpenPractices() : onOpenGarden())}
+            >
+              <InsightCard text={passo.frase} />
+            </Pressable>
+          ) : (
+            <InsightCard text={passo.frase} />
+          )}
         </View>
       )}
     </ScrollView>

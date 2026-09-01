@@ -519,6 +519,90 @@ Isso cobre "quantos chegam ao fim" e "quantos pagam". O que fica de fora é
 justamente **qual passo** derruba. Fica assim, com o motivo escrito, até haver um
 motivo forte o bastante para pagar o preço.
 
+## Pesquisa de 31 de agosto — a resposta, e a semana vazia
+
+### A decisão que fecha uma porta de propósito
+
+**O texto do diário nunca sai do aparelho.** Decidido pelo dono do app em
+31/08/2026, sem prazo de revisão, e registrado aqui porque é a decisão que
+define o que este app pode e não pode virar.
+
+O caminho que ela fecha é o do *Rosebud*, que lê as entradas num modelo em
+servidor. Fechar custa: é o recurso mais vendável da categoria. Mas as
+avaliações deles dizem que o retorno da IA é **inconstante**, e privacidade é
+das queixas mais repetidas contra os concorrentes — trocaríamos o nosso
+diferencial pelo problema deles.
+
+Modelo **no próprio aparelho** manteria a promessa, e é para onde o mercado foi:
+70 a 80% dos recursos de IA lançados em 2026 rodam local. Fica registrado como
+o único caminho possível para IA de verdade aqui, com o preço escrito: exige
+*development build* — ou seja, acaba o Expo Go, que o `AGENTS.md` fixa de
+propósito — e soma de 0,6 a 2 GB ao download, sem rodar em Android de entrada.
+
+### O achado de retenção que reorganizou a prioridade
+
+> **Quem tem um único momento de "aha" está a caminho de sair.**
+
+Não é o onboarding que segura, é a repetição. A mesma fonte diz que, no primeiro
+minuto, a pessoa não precisa chegar ao valor completo — precisa sentir que
+*poderia* funcionar, que é o que os passos de espelho já fazem.
+
+Isso mudou a ordem das coisas: mexer nos catorze passos vale menos que criar um
+momento que se repete. Daí os dois recursos abaixo.
+
+### O broto responde ao que a pessoa escreve
+
+Salvar era o momento mais aberto do app e o mais mudo: vibração, a folha virava,
+silêncio. A pessoa acabava de contar o dia dela para alguém que não respondia.
+
+→ `data/resposta.ts`. Sem modelo e sem rede, montada do que o app já sabe — e o
+app **já lia** o texto localmente em `ventThemes` e `livedValues`, sob o
+interruptor de análise. Não é caminho novo; é um caminho existente que ninguém
+tinha usado para conversar.
+
+E fica **mais específica** que IA genérica, porque tem a memória daquela pessoa:
+*"esse assunto já apareceu 3 vezes"*, *"da última vez que você escreveu num dia
+assim, no dia seguinte marcou Leve"*. Um modelo que só leu o parágrafo de agora
+não diria nenhuma das duas.
+
+Três regras, guardadas por `testa-resposta.js`:
+
+1. **Só fato verificável, nunca interpretação.** "Você parece estar sofrendo"
+   não é conferível, e é o tipo de afirmação que a diretriz 1.4.1 desaconselha.
+2. **Nunca a notícia ruim.** O app sabe quando o dia seguinte foi pior, e cala.
+   Mesma regra de `atravessou`.
+3. **Calar é resposta válida.** Frase genérica depois de um desabafo denuncia
+   que ninguém prestou atenção.
+
+### A primeira semana estava vazia, e ninguém tinha reparado
+
+`patterns` exige cinco registros. Ou seja, o cartão "Seu broto percebeu" fica
+**vazio exatamente na janela em que mais de 90% das pessoas somem** — e o app
+tem treze temas, quarenta e uma práticas, jardim, composta e resumo de terapia
+que quem chega nunca encontra.
+
+→ `data/primeiraSemana.ts`, no mesmo cartão, perdendo sempre para os padrões
+reais. Uma apresentação por aparição, do centro para a periferia: o diário, as
+práticas, a palavra do humor, o jardim.
+
+**Não conta dias seguidos e não marca falta**, pela mesma razão clínica que
+descartou a ofensiva no topo desta página: quem some por duas semanas e volta
+continua de onde parou. E **cala aos catorze dias** — continuar apontando
+caminhos para quem já mora aqui vira o balão de dica que ninguém desliga.
+
+### Indicação: analisado e descartado, com o motivo
+
+Programa de referência precisa de link único por pessoa e rastreamento
+confiável — servidor e identificadores. Contradiz a decisão do topo desta seção.
+A mesma fonte diz que o certo é **amplificar a recomendação natural em vez de
+fabricá-la**, e que o maior inimigo de um programa desses é a fricção, não o
+tamanho do prêmio.
+
+O que sobra de honesto aqui é a planta colhida — prova de cuidado, não
+pontuação. Fica registrado como possibilidade, **não adotada**: compartilhar um
+app de saúde mental é expor algo íntimo, e só funcionaria discreto, opcional e
+sem nunca insistir.
+
 ## Fontes
 
 - [Clinical review of user engagement with mental health smartphone apps](https://pmc.ncbi.nlm.nih.gov/articles/PMC10270395/)
