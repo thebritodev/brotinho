@@ -1,42 +1,28 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { AccessibilityInfo, Animated, Easing, View } from 'react-native';
 
-import { type Mood, useTema } from '../../theme';
+import { type Mood } from '../../theme';
 import { caixaDoMascote, medidasDoMascote } from './geometriaDoBroto';
 import { Sprout, type Decoration, type SproutStage } from './Sprout';
 
 /**
- * Uma camada do halo. No escuro nao ha halo — ver o comentario de `Sprout`.
- */
-function CamadaDoHalo({ mood, lado }: { mood: Mood; lado: number }) {
-  const { moodColorsFundo, tema } = useTema();
-  if (tema === 'escuro') return null;
-  return (
-    <View
-      style={{
-        width: lado,
-        height: lado,
-        borderRadius: lado / 2,
-        backgroundColor: moodColorsFundo[mood],
-      }}
-    />
-  );
-}
-
-/**
- * O broto reagindo à troca de humor: o disco de fundo faz a transição de cor
- * e a planta dá uma balançada, como folha pegando vento.
+ * O broto reagindo à troca de humor: a planta dá uma balançada, como folha
+ * pegando vento.
  *
- * O disco de fundo sai de dentro do SVG e vira duas Views empilhadas — a de
- * baixo com a cor anterior, a de cima com a nova aparecendo por opacidade.
- * Animar opacidade roda na thread nativa; animar `fill` de SVG, não.
+ * **Havia um disco de fundo aqui, e ele foi embora.** Ele pintava a cor do
+ * humor atrás do broto, e existia em duas camadas empilhadas justamente para
+ * atravessar de uma cor à outra por opacidade — animar opacidade roda na
+ * thread nativa; animar `fill` de SVG, não.
+ *
+ * O disco saiu depois de cinco tentativas de acertar a cor dele no tema
+ * escuro, todas reprovadas por quem usa o app, e da constatação de que a cor
+ * ali era o quarto lugar da mesma tela a dizer o humor — atrás da carinha do
+ * broto, da carinha marcada e da palavra escolhida. Sem ele, some junto toda a
+ * travessia: as duas camadas, a opacidade animada e o prazo de segurança que
+ * garantia a cor certa se a animação não completasse.
+ *
+ * O que sobrou é o balanço, que nunca foi do disco: é a planta reagindo.
  */
-
-/** Proporções do círculo original dentro da viewBox 200x220 do Sprout. */
-const CIRCLE_RATIO = 0.96;
-const CIRCLE_OFFSET = 0.02;
-
-const FADE_MS = 520;
 
 /**
  * Respiração: uma escala lenta e contínua. O valor é de propósito quase
@@ -56,8 +42,6 @@ type Props = {
   stage?: SproutStage;
   size?: number;
   decorations?: Decoration[];
-  /** Desliga o disco de fundo, para telas que não querem a cor do humor. */
-  showBg?: boolean;
   /** Balança uma vez ao aparecer, mesmo sem troca de humor. */
   swayOnMount?: boolean;
   /** Respiração contínua. Só faz sentido no broto grande, em tela parada. */
@@ -74,17 +58,10 @@ export function AnimatedSprout({
   stage = 2,
   size = 140,
   decorations = [],
-  showBg = true,
   swayOnMount = false,
   breathe = false,
   swayOn = null,
 }: Props) {
-  const { tema } = useTema();
-  /** Cor que fica por baixo enquanto a nova entra. */
-  const [previous, setPrevious] = useState<Mood>(mood);
-  const [current, setCurrent] = useState<Mood>(mood);
-
-  const fade = useRef(new Animated.Value(1)).current;
   const sway = useRef(new Animated.Value(0)).current;
   const breath = useRef(new Animated.Value(0)).current;
 
@@ -100,16 +77,6 @@ export function AnimatedSprout({
       sub.remove();
     };
   }, []);
-
-  /**
-   * Iguala as duas camadas na cor nova. Chamado no fim da transição e também
-   * por um prazo de segurança: se a animação não completar, a cor certa
-   * precisa aparecer do mesmo jeito.
-   */
-  const settle = () => {
-    setPrevious(mood);
-    fade.setValue(1);
-  };
 
   /** A oscilação amortecida, reutilizada pela troca de humor e pela entrada. */
   const balancar = () => {
@@ -168,31 +135,20 @@ export function AnimatedSprout({
     return () => clearTimeout(id);
   }, [swayOnMount, reduceMotion]);
 
+  /**
+   * Balança quando o humor muda — e não na montagem.
+   *
+   * Era um `useState` com o humor anterior, porque a camada de baixo do disco
+   * precisava dele para desaparecer. Sem disco, ninguém precisa do valor
+   * antigo depois de comparar: uma referência basta, e não pede render.
+   */
+  const humorVisto = useRef(mood);
   useEffect(() => {
-    if (mood === current) return;
-
-    setPrevious(current);
-    setCurrent(mood);
-    fade.setValue(0);
-
-    if (reduceMotion) {
-      // Quem pediu menos movimento ainda vê a cor trocar, só que sem balanço.
-      fade.setValue(1);
-      return;
-    }
-
-    Animated.timing(fade, {
-      toValue: 1,
-      duration: FADE_MS,
-      easing: Easing.out(Easing.quad),
-      useNativeDriver: true,
-    }).start(() => settle());
-
+    if (humorVisto.current === mood) return;
+    humorVisto.current = mood;
+    if (reduceMotion) return;
     balancar();
-
-    const seguranca = setTimeout(settle, FADE_MS + 300);
-    return () => clearTimeout(seguranca);
-  }, [mood]);
+  }, [mood, reduceMotion]);
 
   /*
     A moldura acompanha o quadro do broto.
@@ -202,14 +158,7 @@ export function AnimatedSprout({
     vazia acima do broto, e ele descia para o meio da tela. Encolhendo a
     moldura junto, o broto sobe e continua do mesmo tamanho.
   */
-  const semHalo = !showBg || tema === 'escuro';
-  const quadro = medidasDoMascote(
-    caixaDoMascote(stage, decorations.length > 0, semHalo),
-    size,
-  );
-
-  const diameter = size * CIRCLE_RATIO;
-  const offset = size * CIRCLE_OFFSET;
+  const quadro = medidasDoMascote(caixaDoMascote(stage, decorations.length > 0), size);
 
   const rotate = sway.interpolate({
     inputRange: SWAY.map((_, i) => i),
@@ -220,37 +169,15 @@ export function AnimatedSprout({
 
   return (
     <View style={{ width: size, height: quadro.altura }}>
-      {showBg && (
-        /*
-          Duas camadas, pela travessia entre humores: a de baixo é o humor
-          anterior, a de cima entra por opacidade. O que cada camada desenha
-          depende do tema — ver `CamadaDoHalo`, e o comentário longo em
-          `Sprout`.
-        */
-        <View>
-          <View style={{ position: 'absolute', left: offset, top: offset }}>
-            <CamadaDoHalo mood={previous} lado={diameter} />
-          </View>
-          <Animated.View style={{ position: 'absolute', left: offset, top: offset, opacity: fade }}>
-            <CamadaDoHalo mood={current} lado={diameter} />
-          </Animated.View>
-        </View>
-      )}
-
-      {/* A planta balança; o disco de fundo fica parado. */}
       <Animated.View
         style={{
           /*
-            Centrado aqui, e não na moldura de fora.
+            Centrado, porque o desenho é mais estreito que a moldura.
 
-            O desenho ficou mais estreito que a moldura onde não há halo — a
-            caixa fecha em volta da planta e do vaso —, e sem centrar ele grudava
-            na borda esquerda, com meio broto para fora da tela.
-
-            A primeira tentativa pôs `alignItems: 'center'` na moldura, e isso
-            empurrou o halo duzentos pixels para a direita: ele é filho absoluto
-            com `left`, e no Yoga o alinhamento do pai ainda o alcança. Centrar
-            só esta camada deixa o halo exatamente onde sempre esteve.
+            A moldura tem a largura de `size`, que é o tamanho pedido por quem
+            chama; o desenho fecha em volta da planta e do vaso, e sobra espaço
+            dos lados. Sem centrar ele grudava na borda esquerda, com meio broto
+            para fora da tela.
           */
           width: size,
           alignItems: 'center',
@@ -261,19 +188,7 @@ export function AnimatedSprout({
           transform: [{ rotate }, { scale }],
         }}
       >
-        {/*
-          `showBg={false}` porque o halo é desenhado aqui em camadas, e
-          `molduraDoHalo` para o enquadramento saber que ele existe mesmo
-          assim — as duas coisas são diferentes, ver `Sprout`.
-        */}
-        <Sprout
-          mood={current}
-          stage={stage}
-          size={size}
-          decorations={decorations}
-          showBg={false}
-          molduraDoHalo={showBg}
-        />
+        <Sprout mood={mood} stage={stage} size={size} decorations={decorations} />
       </Animated.View>
     </View>
   );

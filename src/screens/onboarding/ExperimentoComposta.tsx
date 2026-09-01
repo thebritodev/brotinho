@@ -191,7 +191,6 @@ export function ExperimentoComposta({ thought, onChangeThought, reps, onRep }: P
         mood="feliz"
         stage={pronto ? 2 : 1}
         size={Math.min(width * 0.34, 130)}
-        showBg={false}
         swayOn={reps}
       />
 

@@ -696,7 +696,7 @@ export function JournalScreen({
 
             {!entries.length && (
               <View style={{ alignItems: 'center', gap: 12, paddingVertical: 28 }}>
-                <Sprout mood="neutro" stage={1} size={92} showBg={false} />
+                <Sprout mood="neutro" stage={1} size={92} />
                 <Text
                   style={{
                     fontFamily: fonts.body.regular,
@@ -713,7 +713,7 @@ export function JournalScreen({
             {/* Vazio por filtro é diferente de vazio por não ter escrito nada. */}
             {!!entries.length && !visiveis.length && (
               <View style={{ alignItems: 'center', gap: 8, paddingVertical: 28 }}>
-                <Sprout mood="neutro" stage={1} size={72} showBg={false} />
+                <Sprout mood="neutro" stage={1} size={72} />
                 <Text
                   style={{
                     fontFamily: fonts.body.regular,

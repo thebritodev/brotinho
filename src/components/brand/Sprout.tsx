@@ -182,19 +182,6 @@ type Props = {
   decorations?: Decoration[];
   size?: number;
   showPot?: boolean;
-  showBg?: boolean;
-  /**
-   * Há um halo desenhado **por fora**, e o enquadramento precisa reservar
-   * espaço para ele.
-   *
-   * Existe por causa do `AnimatedSprout`: ele pinta o halo em camadas próprias,
-   * para atravessar de um humor ao outro, e por isso pede `showBg={false}` aqui.
-   * Sem esta distinção, "não desenho halo" e "não há halo atrás de mim" viram a
-   * mesma coisa — e o recorte disparou no tema claro, encolhendo a caixa por
-   * dentro de um disco que continuava do tamanho antigo. O broto saiu grande e
-   * torto dentro do próprio halo.
-   */
-  molduraDoHalo?: boolean;
 };
 
 /**
@@ -207,10 +194,8 @@ export function Sprout({
   decorations = [],
   size = 160,
   showPot = true,
-  showBg = true,
-  molduraDoHalo = false,
 }: Props) {
-  const { moodColorsFundo, palette, tema } = useTema();
+  const { palette } = useTema();
   const stemTopY = STEM_TOP_Y[stage];
   const bulbR = BULB_R[stage];
   const midY = (POT_TOP_Y + stemTopY) / 2;
@@ -242,9 +227,8 @@ export function Sprout({
     de um terço a mais de desenho.
   */
   const temEnfeite = decorations.length > 0;
-  const semHalo = !(showBg || molduraDoHalo) || tema === 'escuro';
   const caixa = showPot
-    ? caixaDoMascote(stage, temEnfeite, semHalo)
+    ? caixaDoMascote(stage, temEnfeite)
     : caixaDaPlanta(stage, temEnfeite);
 
   /*
@@ -266,49 +250,23 @@ export function Sprout({
   return (
     <Svg viewBox={comoViewBox(caixa)} width={largura} height={altura}>
       {/*
-        O halo: dois mecanismos, porque a luz do ambiente é outra.
+        Não há fundo de humor atrás do broto, e isso é decisão, não falta.
 
-        No **claro** é o que sempre foi: um disco da cor do humor. Pastel sobre
-        creme já é discreto, ninguém reclamou, e não se mexe no que funciona.
+        Havia um disco da cor do humor aqui. Ele passou por seis versões — tom
+        escurecido, tom médio saturado, tom escuro próprio, gradiente
+        dissolvido, luz de trás, e enfim ausência no tema escuro — e nenhuma
+        parou de pé. O que resolveu foi olhar o conjunto das reclamações em vez
+        de cada uma: todas eram sobre a cor do fundo, e nenhuma sobre a falta
+        dela.
 
-        No **escuro** ele foi refeito, e a correção não era de tom — era de
-        direção da luz. Todas as tentativas anteriores pintaram o fundo com uma
-        cor **mais escura** que a planta, e num tema escuro isso lê como sombra
-        em volta: um buraco colorido. Escurecer, clarear ou dissolver aquele
-        disco não resolvia, porque o problema não era o quanto de cor, e sim de
-        onde vinha a luz.
+        Numa tela onde o humor já é dito pela carinha do próprio broto, pela
+        carinha marcada e pela palavra escolhida, o fundo era o quarto a dizer a
+        mesma coisa — o único que dava trabalho, e o único que ninguém pediu.
 
-        No **escuro não há fundo nenhum**, e foi assim que isto se resolveu.
-
-        Foram cinco tentativas de pintar aquele fundo — pastel escurecido, tom
-        médio saturado, tom escuro próprio, gradiente dissolvido, luz de trás —
-        e as cinco foram reprovadas por quem usa o app. Olhando o conjunto das
-        reclamações, todas eram sobre a **cor do humor no escuro**, nunca sobre
-        o tema escuro. A resposta não era achar o sexto tom: era aceitar que
-        naquela tela, naquele tamanho, não cabe cor de humor no fundo.
-
-        E nada se perde ao tirar. O humor continua dito três vezes na mesma
-        tela: a carinha do próprio broto, a carinha marcada e a palavra
-        escolhida. O fundo era o quarto lugar a dizer a mesma coisa — o único
-        que dava trabalho, e o único que ninguém pediu.
-
-        `moodColorsFundo` continua existindo e continua sendo tom escuro: ele é
-        o disco pequeno do jardim e da colheita, que fica **sobre cartão** e não
-        sobre a tela, e ali funciona.
-
-        O halo é desenhado no enquadramento com vaso, e por isso anda com ele:
-        sem vaso a caixa fecha em volta da planta, e o disco, que é maior que
-        ela, deixa de ser disco e vira fundo cheio. Nenhuma tela pede as duas
-        coisas juntas hoje — todas que escondem o vaso escondem o halo também.
+        `moodColorsFundo` continua existindo, para o disco pequeno do jardim e
+        da colheita: ali ele é uma pastilha sobre cartão, do tamanho de um
+        ícone, e nunca foi o problema.
       */}
-      {showBg && tema !== 'escuro' && (
-        <Circle
-          cx={100}
-          cy={100}
-          r={96}
-          fill={moodColorsFundo[mood] ?? moodColorsFundo.neutro}
-        />
-      )}
 
       {showPot && (
         <G>

@@ -26,7 +26,7 @@ export function InsightCard({ text }: { text: string }) {
         padding: 16,
       }}
     >
-      <Sprout mood="leve" stage={2} size={56} showPot={false} showBg={false} />
+      <Sprout mood="leve" stage={2} size={56} showPot={false} />
       <Text
         style={{
           flex: 1,

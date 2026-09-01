@@ -243,16 +243,19 @@ export function viewBoxDaPlanta(stage: SproutStage, temEnfeite = false): string 
   return comoViewBox(caixaDaPlanta(stage, temEnfeite));
 }
 
-/** O enquadramento de sempre, desenhado em volta do halo. */
-export const CAIXA_COM_HALO: Caixa = { x: 0, y: 0, largura: 200, altura: 224 };
+/**
+ * A largura que define a escala do mascote na tela.
+ *
+ * É a largura do enquadramento antigo, `0 0 200 224`, que existiu enquanto
+ * havia um disco de humor atrás do broto. O disco saiu, mas o número fica: ele
+ * é o que faz o broto ter hoje exatamente o tamanho que sempre teve, em vez de
+ * mudar de tamanho junto com a caixa. Ver `medidasDoMascote`.
+ */
+export const LARGURA_DE_REFERENCIA = 200;
 
-/** A caixa que o mascote usa: a de sempre, ou a fechada quando não há halo. */
-export function caixaDoMascote(
-  stage: SproutStage,
-  temEnfeite: boolean,
-  semHalo: boolean,
-): Caixa {
-  return semHalo ? caixaComVaso(stage, temEnfeite) : CAIXA_COM_HALO;
+/** A caixa que o mascote usa: fechada em volta da planta e do vaso. */
+export function caixaDoMascote(stage: SproutStage, temEnfeite: boolean): Caixa {
+  return caixaComVaso(stage, temEnfeite);
 }
 
 /**
@@ -271,6 +274,6 @@ export function caixaDoMascote(
  * tamanho dele, que era o pedido.
  */
 export function medidasDoMascote(caixa: Caixa, size: number) {
-  const escala = size / CAIXA_COM_HALO.largura;
+  const escala = size / LARGURA_DE_REFERENCIA;
   return { largura: caixa.largura * escala, altura: caixa.altura * escala };
 }

@@ -42,7 +42,7 @@ export function VoltaCard({ dias }: { dias: number }) {
       accessible
       accessibilityLabel={`Que bom te ver de novo. Faz ${tempo}, e nada se perdeu.`}
     >
-      <Sprout mood="feliz" stage={3} size={72} showBg={false} showPot={false} />
+      <Sprout mood="feliz" stage={3} size={72} showPot={false} />
 
       <View style={{ flex: 1, gap: 3 }}>
         <Text style={{ fontFamily: fonts.display.bold, fontSize: 17, color: colors.primaryStrong }}>

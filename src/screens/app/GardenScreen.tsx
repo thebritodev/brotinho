@@ -98,7 +98,7 @@ export function GardenScreen({ onBack }: { onBack: () => void }) {
 
         {data.garden.length === 0 ? (
           <View style={{ alignItems: 'center', gap: 10, paddingVertical: 20 }}>
-            <Sprout mood="leve" stage={3} size={96} showBg={false} />
+            <Sprout mood="leve" stage={3} size={96} />
             <Text
               style={{
                 fontFamily: fonts.body.regular,
@@ -150,7 +150,6 @@ export function GardenScreen({ onBack }: { onBack: () => void }) {
                       mood={planta.mood ?? 'leve'}
                       stage={3}
                       size={54}
-                      showBg={false}
                       showPot={false}
                       decorations={ehEnfeite(planta.valor) ? [planta.valor] : []}
                     />

@@ -129,7 +129,7 @@ export function PrivacyScreen({ onBack }: { onBack: () => void }) {
             padding: 16,
           }}
         >
-          <Sprout mood="leve" stage={2} size={66} showPot={false} showBg={false} />
+          <Sprout mood="leve" stage={2} size={66} showPot={false} />
           <Text
             style={{
               flex: 1,

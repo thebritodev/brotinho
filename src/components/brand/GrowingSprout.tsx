@@ -58,7 +58,6 @@ export function GrowingSprout({ size, ate = 3 }: { size: number; ate?: SproutSta
       mood="feliz"
       stage={stage}
       size={size}
-      showBg={false}
       breathe
       // Cada salto de estágio dispara a balançada.
       swayOn={stage}

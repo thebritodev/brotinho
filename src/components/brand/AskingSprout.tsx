@@ -109,7 +109,6 @@ export function AskingSprout({ title, sub, kicker, reageA = null, compacto = fal
         mood="feliz"
         stage={3}
         size={sproutSize}
-        showBg={false}
         breathe
         swayOn={reageA}
       />

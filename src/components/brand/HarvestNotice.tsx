@@ -118,7 +118,6 @@ export function HarvestNotice({
             mood={planta.mood ?? 'feliz'}
             stage={3}
             size={116}
-            showBg={false}
             showPot={false}
             decorations={ehEnfeite(planta.valor) ? [planta.valor] : []}
           />

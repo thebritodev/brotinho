@@ -257,7 +257,7 @@ export function WindowScene({ width, agora }: { width: number; agora?: Date }) {
           top: height * SILL_Y - sproutSize * 1.12,
         }}
       >
-        <AnimatedSprout mood="feliz" stage={3} size={sproutSize} showBg={false} breathe />
+        <AnimatedSprout mood="feliz" stage={3} size={sproutSize} breathe />
       </View>
     </View>
   );

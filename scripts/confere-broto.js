@@ -211,7 +211,7 @@ async function main() {
 
     // --- F. a caixa sem halo cabe planta e vaso, e rende mais desenho -----
     for (const stage of estagios) {
-      const semHalo = g.caixaComVaso(stage, false);
+      const semHalo = g.caixaDoMascote(stage, false);
       const cabeTudo =
         semHalo.x <= esq + 0.01 &&
         semHalo.x + semHalo.largura >= dir - 0.01 &&
@@ -228,14 +228,25 @@ async function main() {
         pediu para subir o broto, nao para aumenta-lo, e o teste passou a
         cobrar isso.
       */
-      const comHalo = g.medidasDoMascote(g.CAIXA_COM_HALO, 200);
-      const sem = g.medidasDoMascote(semHalo, 200);
-      const mesmaEscala = Math.abs(comHalo.largura / 200 - sem.largura / semHalo.largura) < 0.001;
-      confere(`sem halo o desenho nao muda de tamanho — estágio ${stage}`, mesmaEscala);
+      /*
+        A escala do desenho e sempre `size / 200`, venha de qual caixa vier.
+
+        E o que faz o broto ter o mesmo tamanho em qualquer tela e em qualquer
+        tema. Ja se perdeu uma vez: uma versao amarrou a altura do quadro e
+        deixou o desenho crescer 65% no escuro — sumia o vazio, e trocar de
+        tema virava trocar de app.
+      */
+      const medida = g.medidasDoMascote(semHalo, 200);
+      const escala = medida.largura / semHalo.largura;
       confere(
-        `sem halo o quadro encolhe — estágio ${stage}`,
-        sem.altura < comHalo.altura * 0.95,
-        `${(100 - (sem.altura / comHalo.altura) * 100).toFixed(0)}% mais baixo`,
+        `a escala do desenho e a de referencia — estágio ${stage}`,
+        Math.abs(escala - 200 / g.LARGURA_DE_REFERENCIA) < 0.001,
+        `${escala.toFixed(3)} px por unidade`,
+      );
+      confere(
+        `o quadro abraca o desenho, sem faixa vazia — estágio ${stage}`,
+        medida.altura < 224 * 0.95,
+        `${(100 - (medida.altura / 224) * 100).toFixed(0)}% mais baixo que o enquadramento antigo`,
       );
     }
   }
