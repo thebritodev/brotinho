@@ -1,46 +1,24 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { AccessibilityInfo, Animated, Easing, View } from 'react-native';
 
-import Svg, { Circle, Defs, RadialGradient, Stop } from 'react-native-svg';
-
 import { type Mood, useTema } from '../../theme';
 import { Sprout, type Decoration, type SproutStage } from './Sprout';
 
 /**
- * Uma camada do halo: disco de cor no claro, luz de tras no escuro.
- *
- * Os dois mecanismos vivem aqui pelo mesmo motivo de `Sprout` — no escuro,
- * fundo mais escuro que a planta le como sombra em volta, e o que funciona e
- * luz vindo de tras. La o comentario longo; aqui so a repeticao do desenho,
- * porque esta tela precisa de **duas** camadas para atravessar de um humor ao
- * outro por opacidade.
+ * Uma camada do halo. No escuro nao ha halo — ver o comentario de `Sprout`.
  */
 function CamadaDoHalo({ mood, lado }: { mood: Mood; lado: number }) {
-  const { moodColors, moodColorsFundo, tema } = useTema();
-  if (tema !== 'escuro') {
-    return (
-      <View
-        style={{
-          width: lado,
-          height: lado,
-          borderRadius: lado / 2,
-          backgroundColor: moodColorsFundo[mood],
-        }}
-      />
-    );
-  }
-  const id = `luz-anim-${mood}`;
+  const { moodColorsFundo, tema } = useTema();
+  if (tema === 'escuro') return null;
   return (
-    <Svg width={lado} height={lado} viewBox="0 0 100 100">
-      <Defs>
-        <RadialGradient id={id} cx="50%" cy="50%" r="50%">
-          <Stop offset="0%" stopColor={moodColors[mood]} stopOpacity={0.22} />
-          <Stop offset="40%" stopColor={moodColors[mood]} stopOpacity={0.12} />
-          <Stop offset="100%" stopColor={moodColors[mood]} stopOpacity={0} />
-        </RadialGradient>
-      </Defs>
-      <Circle cx={50} cy={50} r={50} fill={`url(#${id})`} />
-    </Svg>
+    <View
+      style={{
+        width: lado,
+        height: lado,
+        borderRadius: lado / 2,
+        backgroundColor: moodColorsFundo[mood],
+      }}
+    />
   );
 }
 

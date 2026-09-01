@@ -1,5 +1,5 @@
 import React from 'react';
-import Svg, { Circle, Defs, Ellipse, G, Path, RadialGradient, Rect, Stop } from 'react-native-svg';
+import Svg, { Circle, Ellipse, G, Path, Rect } from 'react-native-svg';
 
 import { tracos, type Mood, useTema } from '../../theme';
 import {
@@ -194,7 +194,7 @@ export function Sprout({
   showPot = true,
   showBg = true,
 }: Props) {
-  const { moodColors, moodColorsFundo, palette, tema } = useTema();
+  const { moodColorsFundo, palette, tema } = useTema();
   const stemTopY = STEM_TOP_Y[stage];
   const bulbR = BULB_R[stage];
   const midY = (POT_TOP_Y + stemTopY) / 2;
@@ -234,13 +234,19 @@ export function Sprout({
         disco não resolvia, porque o problema não era o quanto de cor, e sim de
         onde vinha a luz.
 
-        Num ambiente escuro o que se vê é luz **vindo de trás** do objeto. Então
-        aqui a cor é a pastilha clara do humor — a mesma de `moodColors`, que a
-        carinha e o gráfico já usam — a 22% no centro, desvanecendo até zero. A
-        planta fica iluminada por trás, sem borda de círculo em lugar nenhum, e
-        os humores voltam a se distinguir: dourado no feliz, azulado no ansioso,
-        acinzentado no triste. Um gradiente mais fraco os deixava todos iguais,
-        que foi o defeito da tentativa anterior a esta.
+        No **escuro não há fundo nenhum**, e foi assim que isto se resolveu.
+
+        Foram cinco tentativas de pintar aquele fundo — pastel escurecido, tom
+        médio saturado, tom escuro próprio, gradiente dissolvido, luz de trás —
+        e as cinco foram reprovadas por quem usa o app. Olhando o conjunto das
+        reclamações, todas eram sobre a **cor do humor no escuro**, nunca sobre
+        o tema escuro. A resposta não era achar o sexto tom: era aceitar que
+        naquela tela, naquele tamanho, não cabe cor de humor no fundo.
+
+        E nada se perde ao tirar. O humor continua dito três vezes na mesma
+        tela: a carinha do próprio broto, a carinha marcada e a palavra
+        escolhida. O fundo era o quarto lugar a dizer a mesma coisa — o único
+        que dava trabalho, e o único que ninguém pediu.
 
         `moodColorsFundo` continua existindo e continua sendo tom escuro: ele é
         o disco pequeno do jardim e da colheita, que fica **sobre cartão** e não
@@ -251,26 +257,14 @@ export function Sprout({
         ela, deixa de ser disco e vira fundo cheio. Nenhuma tela pede as duas
         coisas juntas hoje — todas que escondem o vaso escondem o halo também.
       */}
-      {showBg &&
-        (tema === 'escuro' ? (
-          <>
-            <Defs>
-              <RadialGradient id={`luz-${mood}`} cx="50%" cy="50%" r="50%">
-                <Stop offset="0%" stopColor={moodColors[mood]} stopOpacity={0.22} />
-                <Stop offset="40%" stopColor={moodColors[mood]} stopOpacity={0.12} />
-                <Stop offset="100%" stopColor={moodColors[mood]} stopOpacity={0} />
-              </RadialGradient>
-            </Defs>
-            <Circle cx={100} cy={100} r={105} fill={`url(#luz-${mood})`} />
-          </>
-        ) : (
-          <Circle
-            cx={100}
-            cy={100}
-            r={96}
-            fill={moodColorsFundo[mood] ?? moodColorsFundo.neutro}
-          />
-        ))}
+      {showBg && tema !== 'escuro' && (
+        <Circle
+          cx={100}
+          cy={100}
+          r={96}
+          fill={moodColorsFundo[mood] ?? moodColorsFundo.neutro}
+        />
+      )}
 
       {showPot && (
         <G>
