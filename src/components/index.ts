@@ -16,6 +16,7 @@ export { HarvestNotice } from './brand/HarvestNotice';
 export { ProgressStem } from './brand/ProgressStem';
 export { BalaoDoBroto } from './brand/BalaoDoBroto';
 export { InsightCard } from './brand/InsightCard';
+export { LinksDaAssinatura } from './brand/LinksDaAssinatura';
 export { AjudaAgora } from './brand/AjudaAgora';
 export { CrossedCard } from './brand/CrossedCard';
 export { MemoryCard } from './brand/MemoryCard';

@@ -10,6 +10,8 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { PrivacyPolicyScreen } from '../app/PrivacyPolicyScreen';
+
 import {
   AnimatedSprout,
   AskingSprout,
@@ -18,6 +20,7 @@ import {
   GrowingSprout,
   Icon,
   Input,
+  LinksDaAssinatura,
   ProgressStem,
   ScreenTransition,
 } from '../../components';
@@ -101,6 +104,13 @@ export function OnboardingScreen() {
   const [restaurado, setRestaurado] = useState(false);
 
   const [step, setStep] = useState(0);
+  /**
+   * A política aberta pelo link do paywall.
+   *
+   * Ela cobre o onboarding e volta para o mesmo passo — não é uma saída nem
+   * avança nada. Ver `LinksDaAssinatura` para por que a Apple pede este link.
+   */
+  const [vendoPolitica, setVendoPolitica] = useState(false);
   const [draft, setDraft] = useState<Draft>({
     name: data.profile.name,
     nomeDoBroto: data.profile.nomeDoBroto,
@@ -657,6 +667,10 @@ export function OnboardingScreen() {
   */
   if (!restaurado) return <View style={{ flex: 1, backgroundColor: colors.bg }} />;
 
+  if (vendoPolitica) {
+    return <PrivacyPolicyScreen onBack={() => setVendoPolitica(false)} />;
+  }
+
   return (
     <KeyboardAvoidingView
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
@@ -806,6 +820,13 @@ export function OnboardingScreen() {
             {isPaywall ? plan.fine : 'Próximo passo: escolher seu plano'}
           </Text>
         )}
+
+        {/*
+          Os dois links que a diretriz 3.1.2 exige antes da compra: nome,
+          duração e preço já estavam na tela; os termos e a política não
+          estavam em paywall nenhum do app.
+        */}
+        {isPaywall && <LinksDaAssinatura aoAbrirPolitica={() => setVendoPolitica(true)} />}
 
         {showSecondary && (
           <Pressable

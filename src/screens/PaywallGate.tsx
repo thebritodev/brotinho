@@ -2,9 +2,10 @@ import React, { useState } from 'react';
 import { ActivityIndicator, Platform, Pressable, ScrollView, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { Button } from '../components';
+import { Button, LinksDaAssinatura } from '../components';
 import { PLANS, PRODUTO_DO_PLANO, type PlanKey } from '../data/onboarding';
 import { Paywall } from './onboarding/Paywall';
+import { PrivacyPolicyScreen } from './app/PrivacyPolicyScreen';
 import { useAssinatura } from '../state/SubscriptionProvider';
 import { fonts, useTema } from '../theme';
 
@@ -23,6 +24,8 @@ export function PaywallGate() {
   const [plano, setPlano] = useState<PlanKey>('anual');
   const [ocupado, setOcupado] = useState<'comprando' | 'restaurando' | null>(null);
   const [aviso, setAviso] = useState<string | null>(null);
+  /** A política abre por cima do paywall e volta para ele — não é uma saída. */
+  const [vendoPolitica, setVendoPolitica] = useState(false);
 
   const detalhes = PLANS[plano];
   const daLoja = planos.find((p) => p.id === PRODUTO_DO_PLANO[plano]);
@@ -44,6 +47,10 @@ export function PaywallGate() {
     setOcupado(null);
     if (!ok) setAviso('Não encontrei uma assinatura ativa nesta conta da loja.');
   };
+
+  if (vendoPolitica) {
+    return <PrivacyPolicyScreen onBack={() => setVendoPolitica(false)} />;
+  }
 
   return (
     <View style={{ flex: 1, backgroundColor: colors.bg, paddingTop: insets.top }}>
@@ -114,6 +121,13 @@ export function PaywallGate() {
         >
           {detalhes.fine}
         </Text>
+
+        {/*
+          Os dois links que a diretriz 3.1.2 exige antes da compra. Ver
+          `LinksDaAssinatura` para por que os termos apontam para o contrato
+          padrão da Apple e a privacidade abre aqui dentro.
+        */}
+        <LinksDaAssinatura aoAbrirPolitica={() => setVendoPolitica(true)} />
 
         {/*
           Como no paywall do onboarding: sem loja, sem link.
