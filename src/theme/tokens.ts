@@ -396,15 +396,91 @@ export type Tema = 'claro' | 'escuro';
  */
 export type PreferenciaDeTema = 'sistema' | 'claro' | 'escuro';
 
+
+/**
+ * Um tom por tema de prática — o quadrado atrás do ícone na lista.
+ *
+ * ## Por que um conjunto próprio, e não a paleta
+ *
+ * Os tons vinham das entradas da paleta, e três pares repetiam: Ansiedade e
+ * Luto dividiam `blue100`, Tristeza e Estresse `slate100`, Autoestima e
+ * Gratidão `yellow100`. Não dava para separar mexendo nelas: `blue100` **é** a
+ * cor do humor ansioso, `yellow100` a do feliz — trocar mudaria as carinhas.
+ * Daí um conjunto à parte, que não é usado por mais ninguém.
+ *
+ * ## O que estava errado no escuro
+ *
+ * `brown100` e `cream300` são o mesmo hex (#38332C): Solidão e Culpa tinham
+ * quadrados idênticos. E cinco dos treze ficavam com contraste de 1,02 a 1,22
+ * contra o cartão — sumiam. Os que funcionavam iam a 2,69. O conjunto inteiro
+ * variava de 1,02 a 2,69 sem nenhum critério.
+ *
+ * ## Como estes foram feitos
+ *
+ * Treze matizes igualmente espaçadas, 27,7° entre elas. Para cada uma, a
+ * *lightness* é **resolvida** para atingir uma luminância alvo — não fixada.
+ * A distinção é o ponto: lightness não é luminância. Com L=25% no HSL um
+ * amarelo tem quase o dobro da luminância de um azul, porque o olho pesa verde
+ * 0,72 e azul 0,07 — e foi assim que os azuis sumiram e os amarelos saltaram.
+ *
+ * Resolvendo por luminância, os treze saem com o mesmo contraste: **1,25**
+ * contra o cartão branco no claro, **1,60** contra o #2C2823 no escuro. O
+ * ícone fica em 9,5 e 7,5 no pior caso, bem acima dos 4,5 exigidos.
+ *
+ * ## O que estes tons não fazem
+ *
+ * Não identificam o tema sozinhos. A saturação é baixa de propósito — subi-la
+ * até separar bem dava #DBE513 e #A1F155, neon, o oposto do tom do app. Com
+ * treze temas e uma paleta sóbria não existe conjunto que seja ao mesmo tempo
+ * muito distinto e discreto, e escolhi discreto. No claro, o par mais parecido
+ * (Solidão e Tristeza) fica a 6,2 de distância: quase iguais.
+ *
+ * Quem diferencia um tema do outro é o **ícone**. O tom é apoio.
+ */
+export const tintsDosTemas = {
+  raiva: '#F3E2DF',
+  procrastinacao: '#EEE4D4',
+  autoestima: '#E6E8C3',
+  gratidao: '#DAEACA',
+  foco: '#D0ECCF',
+  comparacao: '#CFECDB',
+  estresse: '#CDEBE8',
+  ansiedade: '#D9E7F0',
+  solidao: '#E1E4F3',
+  tristeza: '#E7E3F4',
+  insonia: '#EEE0F3',
+  luto: '#F3E0EF',
+  culpa: '#F3E0E7',
+} as const;
+
+export type TintDoTema = keyof typeof tintsDosTemas;
+
+export const tintsDosTemasEscuros: Record<TintDoTema, string> = {
+  raiva: '#633F3A',
+  procrastinacao: '#544732',
+  autoestima: '#494A2C',
+  gratidao: '#3D4E2E',
+  foco: '#30512F',
+  comparacao: '#2F4F3D',
+  estresse: '#2E4F4B',
+  ansiedade: '#344C59',
+  solidao: '#3F476A',
+  tristeza: '#4F4170',
+  insonia: '#5D3D67',
+  luto: '#653B5C',
+  culpa: '#673C4B',
+};
+
 /** Os dois temas, para o provedor escolher e para o teste de contraste medir. */
 export const TEMAS = {
-  claro: { palette, colors, moodColors, moodColorsFundo, shadows },
+  claro: { palette, colors, moodColors, moodColorsFundo, shadows, tintsDosTemas },
   escuro: {
     palette: paletteEscura,
     colors: coresEscuras,
     moodColors: moodColorsEscuros,
     moodColorsFundo: moodColorsFundoEscuros,
     shadows: sombrasEscuras,
+    tintsDosTemas: tintsDosTemasEscuros,
   },
 } as const;
 
