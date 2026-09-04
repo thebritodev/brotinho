@@ -22,7 +22,7 @@ export function PracticesScreen({
   /** Prática para abrir de saída, vinda da oferta da Home. */
   alvo?: { topico: string; pratica: string } | null;
 }) {
-  const { colors, palette, shadows } = useTema();
+  const { colors, palette, shadows, tintsDosTemas } = useTema();
   const { data } = useAppState();
   const feitas = vezesPorPratica(data);
 
@@ -68,7 +68,7 @@ export function PracticesScreen({
         <PracticeDetailScreen
           practice={practice}
           topicKey={topic.key}
-          tint={palette[topic.tint]}
+          tint={tintsDosTemas[topic.key]}
           onBack={() => setPracticeKey(null)}
           onEscreverNoDiario={onEscreverNoDiario}
         />
@@ -120,7 +120,7 @@ export function PracticesScreen({
                   width: 62,
                   height: 62,
                   borderRadius: radius.md,
-                  backgroundColor: palette[topic.tint],
+                  backgroundColor: tintsDosTemas[topic.key],
                   alignItems: 'center',
                   justifyContent: 'center',
                   overflow: 'hidden',
@@ -315,14 +315,19 @@ export function PracticesScreen({
             subtitle={resumoDoTema(t.intro)}
             icon={t.icon}
             /*
-              A chave vira cor **aqui**, com a paleta do tema que está no ar.
+              A chave vira cor **aqui**, com o tema que está no ar.
 
-              O `tint` mora em `practices.ts`, que é dado e não componente: ele
-              guarda o nome do tom, não o tom. Quem resolve é quem desenha, e
-              por isso o mesmo tema fica pastel no claro e escuro no escuro,
-              em vez de pastel nos dois com um ícone quase branco por cima.
+              `practices.ts` é dado, não componente: se ele importasse a cor,
+              ficaria com a do tema claro para sempre, e no escuro o quadrado
+              seguiria pastel com um ícone quase branco por cima — invisível.
+              Por isso ele guarda só a chave do tema, e quem desenha resolve.
+
+              A chave é a **do próprio tema** ("ansiedade", "luto"): antes havia
+              um campo `tint` ao lado, que só podia repetir o `key` ou estar
+              errado. Três pares repetiam de fato, e no escuro dois eram o
+              mesmo hex — Solidão e Culpa com quadrados idênticos.
             */
-            tint={palette[t.tint]}
+            tint={tintsDosTemas[t.key]}
             style={{ flexGrow: 1 }}
             onPress={() => setTopicKey(t.key)}
           />

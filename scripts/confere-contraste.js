@@ -85,6 +85,13 @@ function razao(frente, fundo) {
   for (const [nomeDoTema, t] of Object.entries(TEMAS)) {
     console.log(`\n— tema ${nomeDoTema} —`);
     const c = t.colors;
+    /*
+      A tinta dos icones e titulos. Ela **troca** entre os temas: `brown900` e
+      quase preto no claro e quase branco no escuro, porque quem escreve
+      `palette.brown900` quer "a cor mais forte deste tema", nao uma cor
+      especifica. Medir o icone contra o tom exige a do tema em questao.
+    */
+    const tintaForte = t.palette.brown900;
 
     /*
       As cores de humor ficaram de fora deste arquivo, de propósito.
@@ -185,6 +192,65 @@ function razao(frente, fundo) {
     for (const [humor, cor] of Object.entries(t.moodColors)) {
       linha(`carinha "${humor}" sobre a cor do humor`, TINTA_DA_CARINHA, cor, AA_GRANDE);
     }
+
+    /*
+      Os treze tons dos temas de pratica -- e aqui a regua de luminancia e a
+      certa, ao contrario dos tres casos acima.
+
+      A diferenca nao e de rigor, e de funcao. Cor de humor codifica **qual**
+      humor: quem distingue e a matiz, e cobrar luminancia dela reprova cor que
+      funciona -- foi o erro que este arquivo cometeu tres vezes. O tom do tema
+      nao codifica nada: quem diz "Ansiedade" e o icone e o titulo. O quadrado
+      so precisa ser visivel e nao gritar, e isso e luminancia pura.
+
+      Por isso os treze tem contraste **igual** de proposito, e e por isso que
+      da para medi-los com um piso e um teto em vez de caso a caso.
+
+      As reguas abaixo sao as falhas reais que existiam antes de o conjunto
+      ganhar tons proprios, e nenhuma delas era pega por nada:
+
+      - cinco dos treze ficavam entre 1,02 e 1,22 contra o cartao: sumiam;
+      - `brown100` e `cream300` sao o mesmo hex, entao Solidao e Culpa tinham
+        quadrados identicos no tema escuro;
+      - e o teto impede a volta do erro que ja apareceu no halo do humor:
+        pastilha clara usada como superficie acende a tela escura.
+    */
+    const tons = Object.entries(t.tintsDosTemas);
+
+    for (const [tema, cor] of tons) {
+      linha(`icone do tema "${tema}" sobre o tom`, tintaForte, cor, AA_GRANDE);
+
+      const r = razao(cor, c.surface);
+      const ok = r >= 1.15 && r <= 2.2;
+      if (!ok) falhas += 1;
+      console.log(
+        `  ${ok ? 'ok   ' : 'FALHA'} ${`tom do tema "${tema}" aparece no cartao`.padEnd(44)} ` +
+          `${r.toFixed(2)} (entre 1.15 e 2.2)`,
+      );
+    }
+
+    /*
+      E que dois temas nao tenham o mesmo quadrado.
+
+      O piso e baixo de proposito: nao estou exigindo que os treze sejam bem
+      distintos -- essa briga foi perdida na hora de escolher tons discretos
+      em vez de neon, e quem diferencia e o icone. O que nao pode e colidir.
+    */
+    let perto = { a: '', b: '', d: Infinity };
+    for (let i = 0; i < tons.length; i += 1) {
+      for (let j = i + 1; j < tons.length; j += 1) {
+        const [x, y] = [canais(tons[i][1]), canais(tons[j][1])];
+        const d = Math.hypot(x[0] - y[0], x[1] - y[1], x[2] - y[2]);
+        if (d < perto.d) perto = { a: tons[i][0], b: tons[j][0], d };
+      }
+    }
+    const distinto = perto.d >= 4;
+    if (!distinto) falhas += 1;
+    console.log(
+      `  ${distinto ? 'ok   ' : 'FALHA'} ` +
+        `${`tons mais parecidos: ${perto.a}/${perto.b}`.padEnd(44)} ` +
+        `${perto.d.toFixed(1)} (minimo 4)`,
+    );
   }
   console.log(`\n${falhas} falha(s) de contraste`);
   process.exit(falhas === 0 ? 0 : 1);

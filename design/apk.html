@@ -1,0 +1,14 @@
+<meta charset="utf-8">
+<title>Brotinho — build de desenvolvimento</title>
+<body style="margin:0;background:#FBF6EC;font-family:system-ui;display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;gap:16px;padding:24px">
+  <div style="font-size:22px;font-weight:800;color:#2E4A3B">Brotinho · build de desenvolvimento</div>
+  <div style="font-size:14px;color:#5B5548;max-width:420px;text-align:center">Aponte a câmera do Android. Baixa o APK; o Android vai pedir permissão para instalar de fonte desconhecida.</div>
+  <div id="qr" style="background:#fff;padding:20px;border-radius:18px;box-shadow:0 6px 24px rgba(58,54,48,.14)"></div>
+  <div style="font-size:12px;color:#8A8375;font-family:ui-monospace,monospace;word-break:break-all;max-width:460px;text-align:center" id="u"></div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script>
+  const alvo='https://expo.dev/artifacts/eas/AtdXQj8JKrwIfkdK_afywRANIPhTlsQqGLdk8ylqaSM.apk';
+  document.getElementById('u').textContent=alvo;
+  new QRCode(document.getElementById('qr'),{text:alvo,width:300,height:300,correctLevel:QRCode.CorrectLevel.M});
+</script>
+</body>

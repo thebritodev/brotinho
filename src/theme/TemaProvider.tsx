@@ -8,6 +8,7 @@ import {
   type PreferenciaDeTema,
   type Sombras,
   type Tema,
+  type TintDoTema,
 } from './tokens';
 import type { Mood } from './tokens';
 
@@ -43,6 +44,14 @@ export type ConteudoDoTema = {
   /** A mesma cor quando ela é superfície atrás do desenho — ver `tokens`. */
   moodColorsFundo: Record<Mood, string>;
   shadows: Sombras;
+  /**
+   * Um tom por tema de prática — o quadrado atrás do ícone na lista.
+   *
+   * Vem por aqui, e não da paleta, porque os treze precisam ser distintos
+   * **entre si**, e a paleta não tem treze entradas livres: as que sobravam
+   * eram cores de humor, e mexer nelas mudaria as carinhas. Ver `tokens`.
+   */
+  tintsDosTemas: Record<TintDoTema, string>;
 };
 
 function resolver(preferencia: PreferenciaDeTema, doSistema: 'light' | 'dark' | null): Tema {
@@ -65,6 +74,7 @@ const TemaContext = createContext<ConteudoDoTema>({
   moodColors: TEMAS.claro.moodColors,
   moodColorsFundo: TEMAS.claro.moodColorsFundo,
   shadows: TEMAS.claro.shadows,
+  tintsDosTemas: TEMAS.claro.tintsDosTemas,
 });
 
 export function TemaProvider({
@@ -85,6 +95,7 @@ export function TemaProvider({
       moodColors: TEMAS[tema].moodColors,
       moodColorsFundo: TEMAS[tema].moodColorsFundo,
       shadows: TEMAS[tema].shadows,
+      tintsDosTemas: TEMAS[tema].tintsDosTemas,
     }),
     [tema],
   );

@@ -31,7 +31,11 @@ const RAIZ = path.join(__dirname, '..');
     process.execPath,
     [tsc, '--outDir', saida, '--module', 'esnext', '--target', 'es2020',
       '--moduleResolution', 'bundler', '--strict', '--skipLibCheck', '--jsx', 'react-jsx',
-      path.join(RAIZ, 'src', 'data', 'practices.ts')],
+      path.join(RAIZ, 'src', 'data', 'practices.ts'),
+      // Os tons dos temas moram aqui. `practices.ts` so importa o **tipo**
+      // deles, e tipo nao sobrevive a compilacao: sem pedir o arquivo
+      // explicitamente, nao haveria `tokens.js` para conferir a cobertura.
+      path.join(RAIZ, 'src', 'theme', 'tokens.ts')],
     { stdio: 'inherit', cwd: RAIZ },
   );
 
@@ -70,10 +74,11 @@ const RAIZ = path.join(__dirname, '..');
     fs.writeFileSync(a, corpo);
   }
 
-  const alvo = achar('practices.js');
+  const comoUrl = (p) => 'file://' + p.split(path.sep).join('/');
   const { PRACTICE_TOPICS, ANCORA_RAPIDA, resumoDoTema, ORCAMENTO_DO_RESUMO } = await import(
-    'file://' + alvo.split(path.sep).join('/'),
+    comoUrl(achar('practices.js')),
   );
+  const { tintsDosTemas } = await import(comoUrl(achar('tokens.js')));
 
   const problemas = [];
   const erro = (onde, o_que) => problemas.push(`${onde}: ${o_que}`);
@@ -96,9 +101,23 @@ const RAIZ = path.join(__dirname, '..');
     if (!texto(tema.key)) erro(t, 'tema sem chave');
     if (chavesDeTema.has(tema.key)) erro(t, 'chave de tema repetida');
     chavesDeTema.add(tema.key);
-    for (const campo of ['title', 'icon', 'tint', 'intro']) {
+    for (const campo of ['title', 'icon', 'intro']) {
       if (!texto(tema[campo])) erro(t, `tema sem ${campo}`);
     }
+    /*
+      O tom do quadradinho nao e mais um campo daqui: ele vem de
+      `tintsDosTemas`, indexado pela propria chave do tema.
+      
+      Antes havia um campo `tint` ao lado, e a unica coisa que este checador
+      sabia perguntar era se ele nao estava vazio -- o que passava de olhos
+      fechados por tres temas que repetiam o tom de outro e por dois que, no
+      tema escuro, tinham exatamente o mesmo hex.
+      
+      A pergunta util e a de cobertura: existe tom para esta chave? O
+      TypeScript ja exige isso, mas so de quem escreve `PRACTICE_TOPICS` com o
+      tipo na mao; um tema montado dinamicamente escaparia.
+    */
+    if (!texto(tintsDosTemas[tema.key])) erro(t, 'tema sem tom em tintsDosTemas');
     if (!Array.isArray(tema.practices) || !tema.practices.length) {
       erro(t, 'tema sem práticas');
       continue;
