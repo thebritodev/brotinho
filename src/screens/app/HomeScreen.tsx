@@ -60,7 +60,7 @@ export function HomeScreen({
   onOpenReminders,
   onOpenGarden,
 }: Props) {
-  const { colors, palette } = useTema();
+  const { colors, palette, shadows } = useTema();
   const insets = useSafeAreaInsets();
   const { width, height } = useWindowDimensions();
   const { data, setTodayMood, setTodayPalavra, markStageSeen, colherPlanta } = useAppState();
@@ -340,21 +340,31 @@ export function HomeScreen({
         )}
       </View>
 
+      {/*
+        O único cartão de destaque da tela.
+
+        O verde era pintado aqui, por cima do branco do `Card`. Virou o tom
+        `destaque`, que é o mesmo verde em vidro — e assim ele acompanha o tema
+        em vez de precisar de uma cor escrita à mão. Ver `vidros` em `tokens`.
+      */}
       <Card
         onPress={onOpenComposta}
         label="Composta: repita em voz alta um pensamento que incomoda"
         padding={18}
-        style={{ backgroundColor: colors.primarySoft, gap: 12 }}
+        tom="destaque"
+        style={{ gap: 12 }}
       >
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
+          {/* O disco do microfone: 46 e levantado, como no documento. */}
           <View
             style={{
-              width: 44,
-              height: 44,
-              borderRadius: 22,
+              width: 46,
+              height: 46,
+              borderRadius: 23,
               backgroundColor: colors.surface,
               alignItems: 'center',
               justifyContent: 'center',
+              ...shadows.sm,
             }}
           >
             <Icon name="mic" size={24} color={colors.primaryStrong} />

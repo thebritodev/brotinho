@@ -152,6 +152,13 @@ export const radius = {
   lg: 18,
   xl: 28,
   pill: 999,
+  /*
+    O botão tem raio próprio, e fora da escada, porque no documento ele é 16 —
+    entre o cartão (18) e a pastilha (14) — em todas as vinte e poucas
+    aparições. Arredondar para um dos vizinhos seria escolher a escada em vez
+    do desenho; e a escada existe para dar consistência, não para vencer dele.
+  */
+  botao: 16,
 } as const;
 
 export const borderWidth = 1.5;
@@ -446,6 +453,101 @@ export const moodColorsFundoEscuros: Record<Mood, string> = {
  * própria diferença de cor, não a sombra. Mantida com opacidade maior para o
  * pouco que rende, e preta em vez de marrom.
  */
+export type Vidro = { experimental_backgroundImage: string } | { backgroundColor: string };
+
+/**
+ * Uma superfície em gradiente, com a cor sólida de recuo.
+ *
+ * O ângulo é 150° para superfície e 180° para botão — é a diferença entre luz
+ * que vem de lado, atravessando um cartão deitado, e luz que vem de cima, num
+ * objeto levantado. O `solido` é a parada do meio, para onde não há Fabric.
+ */
+const vidro = (de: string, para: string, solido: string, angulo = 150): Vidro =>
+  NA_FABRIC
+    ? { experimental_backgroundImage: `linear-gradient(${angulo}deg, ${de}, ${para})` }
+    : { backgroundColor: solido };
+
+/**
+ * As superfícies de vidro do redesenho.
+ *
+ * ## O que é "vidro" aqui
+ *
+ * O cartão deixou de ser branco opaco. Ele é um branco **translúcido** com um
+ * gradiente muito curto no sentido 150°, e é a translucidez que faz o efeito:
+ * o papel creme da página aparece por baixo, então o cartão pega a luz de
+ * ambiente do fundo em vez de recortar um retângulo branco no meio dela.
+ *
+ * Junto com o anel de luz das sombras, é isso que o documento chama de vidro.
+ *
+ * ## Por que não `expo-linear-gradient`
+ *
+ * Porque é módulo nativo, e acrescentar um obriga a refazer o development
+ * build antes de qualquer teste no aparelho. Para um gradiente de duas paradas
+ * de branco, não compensa.
+ *
+ * `experimental_backgroundImage` faz o mesmo sem dependência nova — e o nome
+ * diz o quanto dá para contar com ele, então vale a mesma regra das sombras:
+ * onde a Fabric está de pé sai o gradiente, onde não está sai a cor sólida do
+ * meio das duas paradas. A diferença entre as duas é um brilho de sobra; a
+ * translucidez, que é o que importa, os dois caminhos entregam.
+ *
+ * **No navegador sai sempre a versão sólida**, porque `react-native-web` não
+ * implementa a propriedade. Quem quiser ver o gradiente tem de olhar no
+ * aparelho.
+ */
+/**
+ * O botão principal, que deixou de ser uma chapada de verde.
+ *
+ * Ele é um gradiente vertical curto com uma sombra longa da própria cor e um
+ * fio de luz na aresta de cima. O efeito é de peça **levantada** da tela — e é
+ * o que separa o botão de tudo o mais, num app onde quase toda superfície é
+ * clara e discreta. É a única coisa em qualquer tela que projeta sombra colorida.
+ *
+ * **No escuro ele clareia em vez de escurecer.** O verde escuro do tema claro
+ * sobre um fundo quase preto sumiria; ali o botão vira verde claro com texto
+ * escuro. É a mesma inversão que `textInverse` já fazia — "a cor que se lê
+ * sobre o verde" muda de lado entre os temas.
+ */
+export const botaoPrimario = {
+  claro: {
+    ...vidro('#5A8A6F', '#42705A', '#4C7B62', 180),
+    sombra: sombra(
+      [
+        { offsetX: 0, offsetY: 18, blurRadius: 34, spreadDistance: -14, color: 'rgba(46,74,59,0.7)' },
+        { offsetX: 0, offsetY: 1, blurRadius: 0, color: 'rgba(255,255,255,0.22)', inset: true },
+      ],
+      { shadowColor: '#2E4A3B', shadowOffset: { width: 0, height: 6 }, shadowOpacity: 0.3, shadowRadius: 14, elevation: 4 },
+    ),
+  },
+  escuro: {
+    ...vidro('#9CC9AE', '#7FAF92', '#8DBCA0', 180),
+    sombra: sombra(
+      [{ offsetX: 0, offsetY: 20, blurRadius: 36, spreadDistance: -16, color: 'rgba(0,0,0,0.8)' }],
+      { shadowColor: '#000000', shadowOffset: { width: 0, height: 6 }, shadowOpacity: 0.5, shadowRadius: 14, elevation: 4 },
+    ),
+  },
+} as const;
+
+export const vidros = {
+  claro: {
+    /** O cartão comum — 34 dos 54 do documento. */
+    cartao: vidro('rgba(255,255,255,0.92)', 'rgba(255,255,255,0.76)', 'rgba(255,255,255,0.85)'),
+    /** O cartão que puxa para o verde: Composta, convites, o que chama para agir. */
+    destaque: vidro('rgba(255,255,255,0.8)', 'rgba(227,237,230,0.74)', 'rgba(241,246,242,0.85)'),
+  },
+  escuro: {
+    /*
+      No escuro o cartão é branco a 8%, não um cinza opaco.
+
+      Pela mesma razão do claro, invertida: o fundo escuro tem a luz de âmbar
+      do halo passando por ele, e um cartão opaco cortaria essa luz num
+      retângulo. A 8% ele clareia o que estiver atrás sem apagar.
+    */
+    cartao: vidro('rgba(255,255,255,0.08)', 'rgba(255,255,255,0.04)', 'rgba(255,255,255,0.06)'),
+    destaque: vidro('rgba(255,255,255,0.09)', 'rgba(156,201,174,0.1)', 'rgba(190,220,203,0.09)'),
+  },
+} as const;
+
 /**
  * As sombras do tema escuro.
  *
@@ -565,7 +667,16 @@ export const tintsDosTemasEscuros: Record<TintDoTema, string> = {
 
 /** Os dois temas, para o provedor escolher e para o teste de contraste medir. */
 export const TEMAS = {
-  claro: { palette, colors, moodColors, moodColorsFundo, shadows, tintsDosTemas },
+  claro: {
+    palette,
+    colors,
+    moodColors,
+    moodColorsFundo,
+    shadows,
+    tintsDosTemas,
+    vidros: vidros.claro,
+    botaoPrimario: botaoPrimario.claro,
+  },
   escuro: {
     palette: paletteEscura,
     colors: coresEscuras,
@@ -573,6 +684,8 @@ export const TEMAS = {
     moodColorsFundo: moodColorsFundoEscuros,
     shadows: sombrasEscuras,
     tintsDosTemas: tintsDosTemasEscuros,
+    vidros: vidros.escuro,
+    botaoPrimario: botaoPrimario.escuro,
   },
 } as const;
 

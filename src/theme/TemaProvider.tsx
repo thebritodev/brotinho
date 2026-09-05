@@ -6,9 +6,11 @@ import {
   type Cores,
   type Palette,
   type PreferenciaDeTema,
+  type Sombra,
   type Sombras,
   type Tema,
   type TintDoTema,
+  type Vidro,
 } from './tokens';
 import type { Mood } from './tokens';
 
@@ -52,6 +54,10 @@ export type ConteudoDoTema = {
    * eram cores de humor, e mexer nelas mudaria as carinhas. Ver `tokens`.
    */
   tintsDosTemas: Record<TintDoTema, string>;
+  /** As superfícies translúcidas do redesenho — ver `vidros` em `tokens`. */
+  vidros: { cartao: Vidro; destaque: Vidro };
+  /** O gradiente e a sombra do botão principal — ver `botaoPrimario`. */
+  botaoPrimario: Vidro & { sombra: Sombra };
 };
 
 function resolver(preferencia: PreferenciaDeTema, doSistema: 'light' | 'dark' | null): Tema {
@@ -75,6 +81,8 @@ const TemaContext = createContext<ConteudoDoTema>({
   moodColorsFundo: TEMAS.claro.moodColorsFundo,
   shadows: TEMAS.claro.shadows,
   tintsDosTemas: TEMAS.claro.tintsDosTemas,
+  vidros: TEMAS.claro.vidros,
+  botaoPrimario: TEMAS.claro.botaoPrimario,
 });
 
 export function TemaProvider({
@@ -96,6 +104,8 @@ export function TemaProvider({
       moodColorsFundo: TEMAS[tema].moodColorsFundo,
       shadows: TEMAS[tema].shadows,
       tintsDosTemas: TEMAS[tema].tintsDosTemas,
+      vidros: TEMAS[tema].vidros,
+      botaoPrimario: TEMAS[tema].botaoPrimario,
     }),
     [tema],
   );

@@ -50,10 +50,19 @@ export function Button({
   onPress,
   style,
 }: Props) {
-  const { colors } = useTema();
+  const { colors, botaoPrimario } = useTema();
   const VARIANT = variantes(colors);
   const v = VARIANT[variant] ?? VARIANT.primary;
   const s = SIZE[size] ?? SIZE.lg;
+  /*
+    Só o principal ganha o relevo.
+
+    O secundário e o fantasma continuam chapados de propósito: o relevo é o
+    que diz "é aqui", e numa tela com três botões levantados nenhum deles diz
+    mais nada. Ver `botaoPrimario` em `tokens`.
+  */
+  const ehPrincipal = variant === 'primary';
+  const { sombra, ...fundoDoPrincipal } = botaoPrimario;
 
   return (
     <Pressable
@@ -69,10 +78,12 @@ export function Button({
           alignItems: 'center',
           justifyContent: 'center',
           gap: 8,
-          borderRadius: radius.md,
+          borderRadius: radius.botao,
           borderWidth: variant === 'ghost' ? borderWidth : 0,
           borderColor: v.borderColor,
-          backgroundColor: v.background,
+          ...(ehPrincipal
+            ? { ...fundoDoPrincipal, ...(disabled ? null : sombra) }
+            : { backgroundColor: v.background }),
           paddingVertical: s.paddingVertical,
           paddingHorizontal: s.paddingHorizontal,
           opacity: disabled ? 0.5 : 1,
