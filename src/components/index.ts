@@ -16,7 +16,6 @@ export { HarvestNotice } from './brand/HarvestNotice';
 export { ProgressStem } from './brand/ProgressStem';
 export { BalaoDoBroto } from './brand/BalaoDoBroto';
 export { LuzDeEstufa } from './brand/LuzDeEstufa';
-export { BrilhoDeAmbiente } from './brand/BrilhoDeAmbiente';
 export { GraoDePapel } from './brand/GraoDePapel';
 export { alturaDoMascote } from './brand/geometriaDoBroto';
 export { InsightCard } from './brand/InsightCard';

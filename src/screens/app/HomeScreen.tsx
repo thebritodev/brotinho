@@ -5,7 +5,6 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import {
   AnimatedSprout,
   BalaoDoBroto,
-  BrilhoDeAmbiente,
   LuzDeEstufa,
   alturaDoMascote,
   Button,
@@ -194,15 +193,6 @@ export function HomeScreen({
 
   return (
     <View style={{ flex: 1 }}>
-      {/*
-        A luz do cômodo fica **atrás de tudo**, fora da rolagem.
-
-        Fora porque ela é do ambiente, não do conteúdo: se rolasse junto, a
-        fonte de luz subiria com o dedo, e a tela deixaria de ter um lugar de
-        onde a luz vem. É a mesma razão de ela sangrar para fora dos quatro
-        lados — luz de ambiente não começa dentro da tela.
-      */}
-      <BrilhoDeAmbiente larguraDaTela={width} />
     <ScrollView
       contentContainerStyle={{
         paddingTop: insets.top + 20,

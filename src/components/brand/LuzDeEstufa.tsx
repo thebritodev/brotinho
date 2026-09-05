@@ -65,8 +65,18 @@ import { useTema } from '../../theme';
 /** O halo nos dois temas e nos dois tons. Documento de redesenho, seções 3 e 13. */
 const LUZ = {
   claro: {
-    quente: ['rgba(255,252,240,0.95)', 'rgba(252,239,199,0.72)', 'rgba(252,239,199,0)'],
-    verde: ['rgba(240,247,242,0.95)', 'rgba(227,237,230,0.62)', 'rgba(227,237,230,0)'],
+    quente: [
+      'rgba(255,252,240,0.95)',
+      'rgba(252,239,199,0.72)',
+      'rgba(252,239,199,0.2)',
+      'rgba(252,239,199,0)',
+    ],
+    verde: [
+      'rgba(240,247,242,0.95)',
+      'rgba(227,237,230,0.62)',
+      'rgba(227,237,230,0.18)',
+      'rgba(227,237,230,0)',
+    ],
   },
   escuro: {
     /*
@@ -78,8 +88,18 @@ const LUZ = {
       escura deste app: papel à noite não vira carvão, vira marrom quente sob
       um abajur.
     */
-    quente: ['rgba(215,185,95,0.3)', 'rgba(215,185,95,0.1)', 'rgba(33,30,26,0)'],
-    verde: ['rgba(76,123,98,0.35)', 'rgba(76,123,98,0.12)', 'rgba(33,30,26,0)'],
+    quente: [
+      'rgba(215,185,95,0.3)',
+      'rgba(215,185,95,0.1)',
+      'rgba(215,185,95,0.035)',
+      'rgba(33,30,26,0)',
+    ],
+    verde: [
+      'rgba(76,123,98,0.35)',
+      'rgba(76,123,98,0.12)',
+      'rgba(76,123,98,0.04)',
+      'rgba(33,30,26,0)',
+    ],
   },
 } as const;
 
@@ -97,43 +117,50 @@ const PULSO_MS = 7000;
 const PULSO_ESCALA = 1.045;
 
 /**
- * Onde a luz mora dentro da tela do SVG, e por que ela sobra de propósito.
+ * Uma luz só, com cauda longa — e por que não são duas.
  *
- * ## O problema que estes números resolvem
+ * ## O que o documento faz, e por que copiar não deu
  *
- * O documento escreve `radial-gradient(circle at 50% 38%, …)` num `div` de
- * 300 por 300 com `border-radius: 50%`. Copiando isso ao pé da letra aparece
- * uma **borda circular dura**: o padrão do CSS é `farthest-corner`, então a
- * luz só apaga a 0,56 do lado — mas o círculo termina a 0,38 acima do centro,
- * e ali ela ainda tem quase 40% de opacidade. O desenho é cortado no meio da
- * transição.
+ * Lá há **duas** camadas de luz: um brilho de ambiente de 470 e o halo do
+ * broto de 300. Elas funcionam juntas porque os centros ficam a uns 110
+ * pixels um do outro — o broto vem logo depois da saudação, e as duas manchas
+ * se sobrepõem tanto que leem como um campo só.
  *
- * No documento isso não aparece porque **há uma segunda camada**: um brilho
- * de ambiente de 470 por 470 atrás da página inteira, que mascara a emenda do
- * halo. Reproduzir as duas camadas seria o caminho fiel; este é o curto, e dá
- * o mesmo resultado com metade das peças.
+ * Na nossa tela inicial há o balão de fala entre a saudação e o broto. Ele
+ * empurra o desenho para baixo, e os dois centros passam a ficar a uns 370
+ * pixels de distância: longe demais para se fundirem. O resultado foram **dois
+ * círculos** atrás do broto, cada um com o seu centro visível.
  *
- * ## A regra
+ * Em vez de acertar a posição de duas luzes numa tela cujo layout é diferente
+ * do documento, esta faz o mesmo trabalho com uma: o que as duas camadas dão
+ * é **duas escalas** — um núcleo definido e um campo largo e fraco. Isso cabe
+ * numa curva só, com uma parada a mais.
  *
- * A luz apaga **antes** de qualquer borda. Com a parada final em 70% do raio,
- * basta que `0,7 × raio` seja menor que a menor distância do centro até uma
- * borda — que é a de cima, `cy`. Daí `cy` 45% e raio 62%: a luz zera a 0,434
- * do lado, com folga de 1,6% em cima, 11,6% embaixo e 6,6% nos lados.
+ * As paradas são 0, 30%, 62% e 100%: o núcleo com a opacidade do documento,
+ * uma cauda longa a 20% dela, e o zero na borda. Um centro, nenhuma emenda.
  *
- * A curva é a mesma do documento (paradas em 0, 40% e 70%); o que muda é que
- * ela cabe. E o `cy` acima do meio é o que põe o claro na cabeça em vez de no
- * vaso — mesma intenção do 38% de lá.
+ * ## Por que a luz apaga exatamente na borda
+ *
+ * Copiar o CSS ao pé da letra deixava uma **borda circular dura**: o padrão do
+ * CSS é `farthest-corner`, então a luz do documento só apaga a 0,56 do lado,
+ * mas o círculo dele termina a 0,38 acima do centro — e ali ela ainda tem
+ * quase 40% de opacidade. Lá isso some debaixo do brilho de ambiente; aqui não
+ * havia o que esconder.
+ *
+ * Com a parada final em 100% do raio, basta o raio ser menor que a distância
+ * do centro até a borda mais próxima, que é a de cima. Daí `cy` 45% e raio
+ * 45%: a luz zera exatamente no topo e antes das outras três bordas.
  *
  * ## A sobra
  *
- * A luz visível é um círculo de 0,868 do lado da tela, então a tela é 1,152
- * vez a luz. Essa margem é transparente: se o quadro do broto for menor e
- * cortá-la, não se perde nada — corta-se pixel vazio.
+ * A luz visível é um círculo de 0,9 do lado da tela, então a tela é 1,112 vez
+ * a luz. Essa margem é transparente: se o quadro do broto a cortar, corta
+ * pixel vazio.
  */
 const CENTRO_Y = '45%';
-const RAIO = '62%';
+const RAIO = '45%';
 /** A tela do SVG dividida pela luz visível — ver acima. */
-const SOBRA = 1.152;
+const SOBRA = 1.112;
 
 export function LuzDeEstufa({
   diametro: diametroPedido,
@@ -229,8 +256,9 @@ export function LuzDeEstufa({
             */}
             <RadialGradient id={`halo-${id}`} cx="50%" cy={CENTRO_Y} r={RAIO}>
               <Stop offset="0" stopColor={cores[0]} />
-              <Stop offset="0.4" stopColor={cores[1]} />
-              <Stop offset="0.7" stopColor={cores[2]} />
+              <Stop offset="0.3" stopColor={cores[1]} />
+              <Stop offset="0.62" stopColor={cores[2]} />
+              <Stop offset="1" stopColor={cores[3]} />
             </RadialGradient>
           </Defs>
           <Ellipse
