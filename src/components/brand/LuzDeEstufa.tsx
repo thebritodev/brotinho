@@ -96,6 +96,45 @@ export type TomDaLuz = 'quente' | 'verde';
 const PULSO_MS = 7000;
 const PULSO_ESCALA = 1.045;
 
+/**
+ * Onde a luz mora dentro da tela do SVG, e por que ela sobra de propósito.
+ *
+ * ## O problema que estes números resolvem
+ *
+ * O documento escreve `radial-gradient(circle at 50% 38%, …)` num `div` de
+ * 300 por 300 com `border-radius: 50%`. Copiando isso ao pé da letra aparece
+ * uma **borda circular dura**: o padrão do CSS é `farthest-corner`, então a
+ * luz só apaga a 0,56 do lado — mas o círculo termina a 0,38 acima do centro,
+ * e ali ela ainda tem quase 40% de opacidade. O desenho é cortado no meio da
+ * transição.
+ *
+ * No documento isso não aparece porque **há uma segunda camada**: um brilho
+ * de ambiente de 470 por 470 atrás da página inteira, que mascara a emenda do
+ * halo. Reproduzir as duas camadas seria o caminho fiel; este é o curto, e dá
+ * o mesmo resultado com metade das peças.
+ *
+ * ## A regra
+ *
+ * A luz apaga **antes** de qualquer borda. Com a parada final em 70% do raio,
+ * basta que `0,7 × raio` seja menor que a menor distância do centro até uma
+ * borda — que é a de cima, `cy`. Daí `cy` 45% e raio 62%: a luz zera a 0,434
+ * do lado, com folga de 1,6% em cima, 11,6% embaixo e 6,6% nos lados.
+ *
+ * A curva é a mesma do documento (paradas em 0, 40% e 70%); o que muda é que
+ * ela cabe. E o `cy` acima do meio é o que põe o claro na cabeça em vez de no
+ * vaso — mesma intenção do 38% de lá.
+ *
+ * ## A sobra
+ *
+ * A luz visível é um círculo de 0,868 do lado da tela, então a tela é 1,152
+ * vez a luz. Essa margem é transparente: se o quadro do broto for menor e
+ * cortá-la, não se perde nada — corta-se pixel vazio.
+ */
+const CENTRO_Y = '45%';
+const RAIO = '62%';
+/** A tela do SVG dividida pela luz visível — ver acima. */
+const SOBRA = 1.152;
+
 export function LuzDeEstufa({
   diametro: diametroPedido,
   tom = 'quente',
@@ -119,8 +158,17 @@ export function LuzDeEstufa({
   const id = useId().replace(/[^a-zA-Z0-9]/g, '');
   const cores = LUZ[tema][tom];
 
-  /* O repouso encolhe para que o pico da pulsação caiba no que foi pedido. */
-  const diametro = diametroPedido / PULSO_ESCALA;
+  /*
+    Dois tamanhos, e é importante não confundi-los.
+
+    `luz` é o que se vê — o diâmetro pedido, encolhido para que o **pico** da
+    pulsação caiba nele, e não o repouso.
+
+    `tela` é a caixa do SVG, maior, porque o gradiente precisa de espaço para
+    apagar. A diferença é anel transparente.
+  */
+  const luz = diametroPedido / PULSO_ESCALA;
+  const tela = luz * SOBRA;
 
   const pulso = useRef(new Animated.Value(0)).current;
   useEffect(() => {
@@ -172,24 +220,24 @@ export function LuzDeEstufa({
         pointerEvents="none"
         style={{ position: 'absolute', opacity: opacidade, transform: [{ scale: escala }] }}
       >
-        <Svg width={diametro} height={diametro}>
+        <Svg width={tela} height={tela}>
           <Defs>
             {/*
               O centro do gradiente sobe para 38% da altura **do círculo**, que
               é onde fica a cabeça. Centrado no desenho inteiro, ele acenderia o
               vaso em vez do rosto.
             */}
-            <RadialGradient id={`halo-${id}`} cx="50%" cy="38%" r="50%">
+            <RadialGradient id={`halo-${id}`} cx="50%" cy={CENTRO_Y} r={RAIO}>
               <Stop offset="0" stopColor={cores[0]} />
               <Stop offset="0.4" stopColor={cores[1]} />
               <Stop offset="0.7" stopColor={cores[2]} />
             </RadialGradient>
           </Defs>
           <Ellipse
-            cx={diametro / 2}
-            cy={diametro / 2}
-            rx={diametro / 2}
-            ry={diametro / 2}
+            cx={tela / 2}
+            cy={tela / 2}
+            rx={tela / 2}
+            ry={tela / 2}
             fill={`url(#halo-${id})`}
           />
         </Svg>

@@ -49,6 +49,12 @@ const SWAY_STEP_MS = 110;
  * `@keyframes sway`: `0%,100% { rotate(-1.2deg) }`, `50% { rotate(1.2deg) }`,
  * nove segundos, `ease-in-out`, com origem em `50% 88%`.
  *
+ * A amplitude e a origem são as do documento. **O ciclo não**: seis segundos
+ * em vez de nove, a pedido, depois de ver no aparelho. Nove funciona numa
+ * página parada, onde a única coisa que se move é o desenho; num telefone na
+ * mão, com o resto da tela viva, lê como lentidão. Fica registrado que este é
+ * o único número aqui que não vem do documento.
+ *
  * São **±1,2 grau**. Eu tinha posto 2,5 e depois 3 — o dobro — porque estava
  * escolhendo no olho em vez de ler o documento.
  *
@@ -65,7 +71,7 @@ const SWAY_STEP_MS = 110;
  * faz 0 valer -1,2° e 1 valer +1,2°.
  */
 const BAMBOLEIO_GRAUS = 1.2;
-const BAMBOLEIO_MS = 9000;
+const BAMBOLEIO_MS = 6000;
 
 type Props = {
   mood: Mood;
