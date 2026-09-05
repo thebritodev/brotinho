@@ -55,6 +55,20 @@ function Gradientes({ id }: { id: string }) {
   return (
     <Defs>
       {/* A luz vem de cima à esquerda, e é ela que define os três centros. */}
+      {/*
+        A sombra difusa do chão, que espalha em volta da base.
+
+        É a segunda das duas sombras do documento — lá ela é um `div` de 210
+        por 26 atrás do desenho, e some antes da borda (parada em 70%). A de
+        contato, colada no vaso, continua sendo a elipse chapada logo abaixo.
+
+        Sozinha, a de contato faz o vaso pousar mas não faz o ar em volta dele
+        escurecer, e o desenho fica recortado sobre o papel.
+      */}
+      <RadialGradient id={`chao-${id}`} cx="50%" cy="50%" r="50%">
+        <Stop offset="0" stopColor={tracos.contorno} stopOpacity={0.2} />
+        <Stop offset="0.7" stopColor={tracos.contorno} stopOpacity={0} />
+      </RadialGradient>
       <RadialGradient id={`bulbo-${id}`} cx="34%" cy="28%" r="78%">
         <Stop offset="0" stopColor={tracos.bulboLuz} />
         <Stop offset="0.62" stopColor={tracos.folhaClara} />
@@ -423,7 +437,23 @@ export function Sprout({
         planta balança.
       */}
       {showPot && parte !== 'planta' && (
-        <Ellipse cx={100} cy={219} rx={40} ry={7} fill={tracos.contorno} opacity={0.13} />
+        <G>
+          {/*
+            Duas sombras, e é assim no documento.
+
+            A **difusa** vem primeiro e é larga: 46,9 por 5,8 em unidades de
+            desenho, centrada em 206,6 — ou seja, atrás da parte de baixo do
+            vaso, não embaixo dele. Ela escurece o ar em volta da base, e o
+            vaso passa por cima da maior parte dela.
+
+            A **de contato** é a linha estreita colada na base, que já existia.
+
+            As medidas saíram das do documento (210 por 26, `bottom: 26`) e da
+            escala dele — svg de 300 de altura para uma `viewBox` de 134.
+          */}
+          <Ellipse cx={100} cy={206.6} rx={46.9} ry={5.8} fill={`url(#chao-${idDoGradiente})`} />
+          <Ellipse cx={100} cy={219} rx={40} ry={7} fill={tracos.contorno} opacity={0.13} />
+        </G>
       )}
 
       {parte === 'sombra' ? null : (
