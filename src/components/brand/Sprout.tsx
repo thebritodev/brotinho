@@ -1,5 +1,15 @@
-import React from 'react';
-import Svg, { Circle, Ellipse, G, Path, Rect } from 'react-native-svg';
+import React, { useId } from 'react';
+import Svg, {
+  Circle,
+  Defs,
+  Ellipse,
+  G,
+  LinearGradient,
+  Path,
+  RadialGradient,
+  Rect,
+  Stop,
+} from 'react-native-svg';
 
 import { tracos, type Mood, useTema } from '../../theme';
 import {
@@ -22,8 +32,48 @@ import {
 export { ehEnfeite };
 export type { Decoration, SproutStage };
 
+/**
+ * Os três gradientes que dão volume ao broto.
+ *
+ * ## Por que os ids são gerados
+ *
+ * `fill="url(#bulbo)"` procura o gradiente por id, e id em SVG não tem escopo
+ * por documento aqui: a tela do jardim desenha um broto por planta, a de
+ * valores desenha cinco, e todos declarariam `#bulbo`. Vence um, e qual é
+ * indefinido — o tipo de falha que aparece numa tela só, depois de meses.
+ * `useId` dá um sufixo estável por instância, e cada broto passa a referenciar
+ * o seu.
+ *
+ * ## Por que não são tokens de tema
+ *
+ * Pela mesma razão que `tracos` existe: o personagem não segue o tema. A luz
+ * em volta dele muda entre claro e escuro — o halo, o papel, o céu —, mas o
+ * broto é o mesmo de dia e de noite. Um bulbo que clareasse no tema escuro
+ * viraria um negativo de si mesmo.
+ */
+function Gradientes({ id }: { id: string }) {
+  return (
+    <Defs>
+      {/* A luz vem de cima à esquerda, e é ela que define os três centros. */}
+      <RadialGradient id={`bulbo-${id}`} cx="34%" cy="28%" r="78%">
+        <Stop offset="0" stopColor={tracos.bulboLuz} />
+        <Stop offset="0.62" stopColor={tracos.folhaClara} />
+        <Stop offset="1" stopColor={tracos.bulboSombra} />
+      </RadialGradient>
+      <LinearGradient id={`folha-${id}`} x1="0" y1="0" x2="0" y2="1">
+        <Stop offset="0" stopColor={tracos.folhaLuz} />
+        <Stop offset="1" stopColor={tracos.folhaSombra} />
+      </LinearGradient>
+      <LinearGradient id={`vaso-${id}`} x1="0" y1="0" x2="1" y2="1">
+        <Stop offset="0" stopColor={tracos.vasoLuz} />
+        <Stop offset="0.55" stopColor={tracos.vaso} />
+        <Stop offset="1" stopColor={tracos.vasoSombra} />
+      </LinearGradient>
+    </Defs>
+  );
+}
+
 function Face({ mood, cx, cy }: { mood: Mood; cx: number; cy: number }) {
-  const { palette } = useTema();
   const f = CARAS[mood] ?? CARAS.neutro;
 
   /*
@@ -51,6 +101,25 @@ function Face({ mood, cx, cy }: { mood: Mood; cx: number; cy: number }) {
     <G>
       {eye(-9)}
       {eye(9)}
+      {/*
+        O brilho do olho, e por que ele fica fora da função `eye`.
+
+        `eye` desenha os dois casos que a tabela `CARAS` conhece: o ponto e o
+        arco. O arco é um olho fechado — sono, alívio —, e olho fechado não
+        reflete luz. Desenhar o brilho aqui, condicionado ao tipo, mantém a
+        função com uma responsabilidade e evita um ponto branco boiando sobre
+        uma pálpebra.
+
+        Ele fica **acima e à esquerda** da pupila nos dois olhos, e não
+        espelhado: reflexo aponta para a fonte de luz, e a luz do desenho vem
+        de um lugar só. Espelhar daria dois olhos de vidro olhando para fora.
+      */}
+      {f.eye === 'circle' && (
+        <G fill="#FFFFFF" opacity={0.8}>
+          <Circle cx={cx - 8.2} cy={cy - 3} r={0.9} />
+          <Circle cx={cx + 9.8} cy={cy - 3} r={0.9} />
+        </G>
+      )}
       <Path
         d={f.mouth}
         transform={`translate(${cx} ${cy})`}
@@ -59,27 +128,54 @@ function Face({ mood, cx, cy }: { mood: Mood; cx: number; cy: number }) {
         strokeLinecap="round"
         fill="none"
       />
+      {/*
+        As bochechas.
+
+        São o único calor do personagem — todo o resto dele é verde, marrom e
+        barro. A 30% de opacidade não leem como maquiagem: leem como sangue
+        sob a pele, que é a diferença entre um personagem vivo e um ícone.
+
+        Ficam em `±16`, fora do raio dos olhos e dentro do bulbo mesmo no
+        estágio 1, onde ele tem 20 de raio.
+      */}
+      <G fill={tracos.bochecha} opacity={0.3}>
+        <Ellipse cx={cx - 16} cy={cy + 4} rx={4.4} ry={3} />
+        <Ellipse cx={cx + 16} cy={cy + 4} rx={4.4} ry={3} />
+      </G>
     </G>
   );
 }
 
+/**
+ * Uma folha.
+ *
+ * `iluminada` diz se ela pega o gradiente ou fica no tom de sombra chapado —
+ * e a distinção não é enfeite. A folha de trás do broto está **atrás** dele:
+ * dar a ela o mesmo gradiente da da frente apaga a profundidade que o desenho
+ * inteiro está tentando construir. Ela fica no tom escuro, sem nervura fina e
+ * sem brilho de borda, que é como uma folha na sombra se comporta.
+ */
 function Leaf({
   x,
   y,
   rotate,
   scale = 1,
   color,
+  gradiente,
+  iluminada = false,
 }: {
   x: number;
   y: number;
   rotate: number;
   scale?: number;
   color?: string;
+  gradiente?: string;
+  iluminada?: boolean;
 }) {
-  const { palette } = useTema();
   // O padrão saiu da assinatura: valor de parâmetro é avaliado antes do corpo,
   // e ali o gancho ainda não rodou.
-  const preenchimento = color ?? tracos.folha;
+  const preenchimento =
+    color ?? (iluminada && gradiente ? `url(#${gradiente})` : tracos.folhaSombra);
   return (
     <G transform={`translate(${x} ${y}) rotate(${rotate}) scale(${scale})`}>
       <Path
@@ -89,14 +185,41 @@ function Leaf({
         strokeWidth={TRACO_DA_FOLHA}
         strokeLinejoin="round"
       />{/* TRACO_DA_FOLHA afinou junto com o resto — ver `geometriaDoBroto`. */}
+      {/* A nervura principal, que já existia. */}
       <Path
-        d="M -2 -2 C -10 -8 -18 -14 -26 -18"
+        d="M -2 -2 C -12 -9 -22 -15 -31 -18"
         stroke={tracos.contornoFolha}
-        strokeWidth={1.6}
+        strokeWidth={1.5}
         strokeLinecap="round"
         fill="none"
-        opacity={0.5}
+        opacity={iluminada ? 0.45 : 0.4}
       />
+      {iluminada && (
+        <G>
+          {/* Uma nervura secundária: uma só, saindo da principal. */}
+          <Path
+            d="M -10 -6 C -14 -12 -17 -16 -19 -19"
+            stroke={tracos.contornoFolha}
+            strokeWidth={1}
+            opacity={0.25}
+            fill="none"
+          />
+          {/*
+            O brilho na borda de baixo.
+
+            É o que faz a folha parecer ter espessura em vez de ser um recorte
+            de papel: a luz que passa raspando pega a quina virada para cima.
+          */}
+          <Path
+            d="M -18 3 C -26 2 -33 -2 -36 -7"
+            stroke="#FFFFFF"
+            strokeWidth={1.6}
+            opacity={0.3}
+            strokeLinecap="round"
+            fill="none"
+          />
+        </G>
+      )}
     </G>
   );
 }
@@ -197,7 +320,8 @@ export function Sprout({
   size = 160,
   showPot = true,
 }: Props) {
-  const { palette } = useTema();
+  /* Um sufixo por instância — ver `Gradientes`. */
+  const idDoGradiente = useId().replace(/[^a-zA-Z0-9]/g, '');
   const stemTopY = STEM_TOP_Y[stage];
   const bulbR = BULB_R[stage];
   const midY = (POT_TOP_Y + stemTopY) / 2;
@@ -251,6 +375,7 @@ export function Sprout({
 
   return (
     <Svg viewBox={comoViewBox(caixa)} width={largura} height={altura}>
+      <Gradientes id={idDoGradiente} />
       {/*
         Não há fundo de humor atrás do broto, e isso é decisão, não falta.
 
@@ -272,60 +397,138 @@ export function Sprout({
 
       {showPot && (
         <G>
+          {/*
+            A sombra no chão.
+
+            Sem ela o vaso não pousa em lugar nenhum — fica um objeto recortado
+            boiando sobre o fundo. É uma elipse achatada, larga e fraca: sombra
+            de luz difusa de ambiente, não de holofote.
+          */}
+          <Ellipse cx={100} cy={219} rx={40} ry={7} fill={tracos.contorno} opacity={0.13} />
+
           <Path
             d="M 62 170 C 62 166 66 164 70 164 L 130 164 C 134 164 138 166 138 170 L 128 210 C 127 216 121 220 113 220 L 87 220 C 79 220 73 216 72 210 Z"
-            fill={tracos.vaso}
+            fill={`url(#vaso-${idDoGradiente})`}
             stroke={tracos.contorno}
-            strokeWidth={2.2}
+            strokeWidth={2}
             strokeLinejoin="round"
           />
+          {/*
+            As duas listras do barro trocaram de papel.
+
+            Eram dois riscos escuros horizontais, paralelos, a 178 e 192 — que
+            liam como frisos decorativos do vaso. Agora são **verticais** e
+            fazem volume: uma faixa de luz no lado que pega o sol, uma de
+            sombra no lado que não pega. É a mesma quantidade de traço, dizendo
+            que o vaso é redondo em vez de dizendo que ele é listrado.
+          */}
           <Path
-            d="M 74 178 L 126 178"
-            stroke={tracos.contorno}
-            strokeWidth={1.6}
-            opacity={0.35}
+            d="M 121 166 L 112 219"
+            stroke="#FFFFFF"
+            strokeWidth={5}
+            opacity={0.16}
             strokeLinecap="round"
           />
           <Path
-            d="M 78 192 L 122 192"
-            stroke={tracos.contorno}
-            strokeWidth={1.6}
-            opacity={0.25}
+            d="M 76 168 C 78 190 82 208 86 218"
+            stroke={tracos.vasoRisco}
+            strokeWidth={4}
+            opacity={0.18}
             strokeLinecap="round"
+            fill="none"
           />
+
           <Rect
             x={58}
             y={156}
             width={84}
             height={15}
             rx={7.5}
-            fill={tracos.vaso}
+            fill={`url(#vaso-${idDoGradiente})`}
             stroke={tracos.contorno}
-            strokeWidth={2.2}
+            strokeWidth={2}
           />
-          <Ellipse cx={100} cy={163.5} rx={34} ry={4.5} fill={tracos.contorno} opacity={0.15} />
+          {/* A luz na aresta de cima da borda. */}
+          <Path
+            d="M 66 159.5 L 132 159.5"
+            stroke="#FFFFFF"
+            strokeWidth={2.4}
+            opacity={0.3}
+            strokeLinecap="round"
+          />
+          {/*
+            A terra.
+
+            Era o contorno a 15% e lia como uma sombra qualquer dentro do vaso.
+            Agora é marrom de terra, mais escura e mais opaca: o broto está
+            plantado em alguma coisa, e dá para ver o quê.
+          */}
+          <Ellipse cx={100} cy={164} rx={33} ry={4.2} fill={tracos.terra} opacity={0.28} />
         </G>
       )}
 
+      {/*
+        A haste ficou mais clara que o contorno das folhas.
+
+        Era `contornoFolha`, o mesmo verde-escuro do traço — e uma haste da cor
+        do contorno não lê como caule, lê como um vinco entre as folhas. Em
+        `green700` ela vira uma peça com cor própria, atrás das folhas.
+      */}
       <Path
         d={`M ${CX} ${POT_TOP_Y} C ${CX - 6} ${midY} ${CX + 6} ${midY - 10} ${CX} ${stemTopY}`}
-        stroke={tracos.contornoFolha}
-        strokeWidth={3.6}
+        stroke={tracos.haste}
+        strokeWidth={3.8}
         strokeLinecap="round"
         fill="none"
       />
 
-      {LEAVES_BY_STAGE[stage].map((l, i) => (
-        <Leaf key={i} {...l} />
-      ))}
+      {/*
+        Quais folhas pegam luz: as que apontam para a esquerda, de onde ela vem.
+
+        As tabelas guardam a rotação de cada folha, e uma virada para 215° está
+        de costas para a fonte. Em vez de marcar folha por folha na tabela — o
+        tipo de dado que se desatualiza quando alguém mexe num ângulo —, a
+        pergunta é feita ao próprio ângulo, e continua certa se as posições
+        mudarem.
+      */}
+      {LEAVES_BY_STAGE[stage].map((l, i) => {
+        const voltadaParaALuz = Math.cos(((l.rotate + 90) * Math.PI) / 180) <= 0;
+        return (
+          <Leaf
+            key={i}
+            {...l}
+            gradiente={`folha-${idDoGradiente}`}
+            iluminada={voltadaParaALuz}
+          />
+        );
+      })}
 
       <Circle
         cx={CX}
         cy={stemTopY - 4}
         r={bulbR}
-        fill={tracos.folhaClara}
+        fill={`url(#bulbo-${idDoGradiente})`}
         stroke={tracos.contornoFolha}
         strokeWidth={2.2}
+      />
+      {/*
+        A curva sob o queixo.
+
+        Um arco fraco no terço de baixo do bulbo, do lado da sombra. É o que
+        separa uma esfera de um círculo: sem ele o gradiente sozinho ainda lê
+        como um disco com degradê. Escala com o raio, porque o bulbo cresce
+        entre os estágios e um arco fixo escorregaria para fora dele.
+      */}
+      <Path
+        d={`M ${CX - bulbR * 0.78} ${stemTopY - 4 + bulbR * 0.3} `
+          + `C ${CX - bulbR * 0.6} ${stemTopY - 4 + bulbR * 0.74} `
+          + `${CX - bulbR * 0.15} ${stemTopY - 4 + bulbR * 0.96} `
+          + `${CX + bulbR * 0.3} ${stemTopY - 4 + bulbR * 0.89}`}
+        stroke={tracos.bulboCurva}
+        strokeWidth={3}
+        opacity={0.3}
+        strokeLinecap="round"
+        fill="none"
       />
 
       <Face mood={mood} cx={CX} cy={stemTopY - 4} />

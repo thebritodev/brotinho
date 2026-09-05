@@ -626,4 +626,41 @@ export const tracos = {
   vaso: '#C08363',
   /** Papel dentro de um desenho — a folha do caderno ilustrado, a lua. */
   papel: palette.cream100,
+
+  /*
+    Os tons de luz e sombra de cada peça do broto, para o desenho modelado.
+
+    As três cores acima eram chapadas: uma cor por peça, contorno em volta,
+    fim. O desenho novo modela o volume, e volume precisa de três tons — o que
+    pega a luz, o do corpo, e o que fica na sombra.
+
+    **Os tons do corpo são os mesmos de antes**, e isso não é acaso: o desenho
+    novo pegou cada cor chapada e construiu um gradiente em volta dela. `vaso`
+    é a parada do meio do vaso; `folhaClara` é a do meio do bulbo. Quem já
+    desenhava com esses valores continua desenhando igual, e é por isso que as
+    ilustrações das práticas não precisaram mudar junto.
+
+    Só a folha foge à regra: o gradiente dela vai de #7E9E87 a #5F7F69, e
+    `folha` (#6F9079) cai entre os dois em vez de ser uma das paradas. O
+    desenho antigo tinha escolhido a média.
+  */
+  /** Bulbo: a cabeça do broto, iluminada em cima à esquerda. */
+  bulboLuz: '#C6DACB',
+  bulboSombra: '#87A493',
+  /** A sombra interna que dá curvatura ao bulbo, sob a linha do queixo. */
+  bulboCurva: '#5A7A66',
+  /** Folha da frente, em gradiente; a de trás fica no tom escuro, chapada. */
+  folhaLuz: '#7E9E87',
+  folhaSombra: '#5F7F69',
+  /** Vaso: barro, com a luz batendo de cima à esquerda. */
+  vasoLuz: '#D0906E',
+  vasoSombra: '#A26B4F',
+  /** A listra escura no lado sem luz do vaso. */
+  vasoRisco: '#7A4426',
+  /** A terra na boca do vaso. */
+  terra: '#4A3323',
+  /** A haste, mais clara que o contorno das folhas para não virar um vinco. */
+  haste: palette.green700,
+  /** As bochechas — o único calor no personagem inteiro. */
+  bochecha: palette.terracotta400,
 } as const;
