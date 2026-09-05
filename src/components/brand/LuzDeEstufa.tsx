@@ -62,20 +62,35 @@ import { useTema } from '../../theme';
  * do app, desenha o broto inteiro, e faz gradiente radial nas duas plataformas.
  */
 
-/** O halo nos dois temas e nos dois tons. Documento de redesenho, seções 3 e 13. */
+/**
+ * O halo nos dois temas e nos dois tons — **cor e opacidade separadas**.
+ *
+ * Isto era `'rgba(252,239,199,0.72)'` numa string só, e é a razão de o círculo
+ * aparecer chapado no aparelho enquanto no navegador saía degradê: o
+ * `stopColor` do `react-native-svg` **descarta o canal alfa** no Android. Sem
+ * o alfa, as quatro paradas viram opacas, e um gradiente de quatro tons opacos
+ * do mesmo creme é um disco.
+ *
+ * A transparência tem de ir em `stopOpacity`, num atributo próprio. O
+ * `Sprout` já fazia assim na sombra do chão; aqui não, e por isso o defeito
+ * aparecia só nesta peça — e só no aparelho, que foi o que me manteve errando
+ * enquanto eu conferia no navegador.
+ *
+ * Documento de redesenho, seções 3 e 13.
+ */
 const LUZ = {
   claro: {
     quente: [
-      'rgba(255,252,240,0.95)',
-      'rgba(252,239,199,0.72)',
-      'rgba(252,239,199,0.2)',
-      'rgba(252,239,199,0)',
+      ['#FFFCF0', 0.95],
+      ['#FCEFC7', 0.72],
+      ['#FCEFC7', 0.2],
+      ['#FCEFC7', 0],
     ],
     verde: [
-      'rgba(240,247,242,0.95)',
-      'rgba(227,237,230,0.62)',
-      'rgba(227,237,230,0.18)',
-      'rgba(227,237,230,0)',
+      ['#F0F7F2', 0.95],
+      ['#E3EDE6', 0.62],
+      ['#E3EDE6', 0.18],
+      ['#E3EDE6', 0],
     ],
   },
   escuro: {
@@ -89,16 +104,16 @@ const LUZ = {
       um abajur.
     */
     quente: [
-      'rgba(215,185,95,0.3)',
-      'rgba(215,185,95,0.1)',
-      'rgba(215,185,95,0.035)',
-      'rgba(33,30,26,0)',
+      ['#D7B95F', 0.3],
+      ['#D7B95F', 0.1],
+      ['#D7B95F', 0.035],
+      ['#211E1A', 0],
     ],
     verde: [
-      'rgba(76,123,98,0.35)',
-      'rgba(76,123,98,0.12)',
-      'rgba(76,123,98,0.04)',
-      'rgba(33,30,26,0)',
+      ['#4C7B62', 0.35],
+      ['#4C7B62', 0.12],
+      ['#4C7B62', 0.04],
+      ['#211E1A', 0],
     ],
   },
 } as const;
@@ -159,6 +174,8 @@ const PULSO_ESCALA = 1.045;
  */
 const CENTRO_Y = '45%';
 const RAIO = '45%';
+/** Núcleo, meio, cauda longa e o zero na borda. */
+const PARADAS = ['0', '0.3', '0.62', '1'] as const;
 /** A tela do SVG dividida pela luz visível — ver acima. */
 const SOBRA = 1.112;
 
@@ -255,10 +272,14 @@ export function LuzDeEstufa({
               vaso em vez do rosto.
             */}
             <RadialGradient id={`halo-${id}`} cx="50%" cy={CENTRO_Y} r={RAIO}>
-              <Stop offset="0" stopColor={cores[0]} />
-              <Stop offset="0.3" stopColor={cores[1]} />
-              <Stop offset="0.62" stopColor={cores[2]} />
-              <Stop offset="1" stopColor={cores[3]} />
+              {PARADAS.map((offset, i) => (
+                <Stop
+                  key={offset}
+                  offset={offset}
+                  stopColor={cores[i][0]}
+                  stopOpacity={cores[i][1]}
+                />
+              ))}
             </RadialGradient>
           </Defs>
           <Ellipse
