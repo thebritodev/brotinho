@@ -56,7 +56,7 @@ export function GardenScreen({ onBack }: { onBack: () => void }) {
       >
         {/* O broto de agora */}
         <View style={{ alignItems: 'center', gap: 10 }}>
-          <AnimatedSprout mood={humorDeHoje} stage={sproutStage(data)} size={tamanho} breathe />
+          <AnimatedSprout mood={humorDeHoje} stage={sproutStage(data)} size={tamanho} bamboleia />
           <Text style={{ color: colors.textPrimary, fontFamily: fonts.display.bold, fontSize: 19 }}>Crescendo agora</Text>
           <Text
             style={{

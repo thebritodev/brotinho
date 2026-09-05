@@ -286,8 +286,18 @@ export function HomeScreen({
           onPress={onOpenGarden}
           style={{ marginHorizontal: -20 }}
         >
-          <LuzDeEstufa diametro={alturaDoMascote(stage, sproutSize)}>
-            <AnimatedSprout mood={mood} stage={stage} size={sproutSize} breathe bamboleia />
+          {/*
+            O halo é 77% da largura da tela, que é a proporção do documento.
+
+            Ali ele mede 300 num aparelho de 390. Tentei antes a outra regra
+            que o documento também satisfaz — diâmetro igual à altura do
+            desenho, 300 para um broto de 300 — e ela dá 270 aqui, que é
+            pequeno demais na prática. As duas coincidem lá porque o broto
+            deles ocupa a tela inteira em altura; o nosso é mais baixo, e aí as
+            duas regras se separam. Vale a da tela, que é a que se vê.
+          */}
+          <LuzDeEstufa diametro={Math.round(width * 0.77)}>
+            <AnimatedSprout mood={mood} stage={stage} size={sproutSize} bamboleia />
           </LuzDeEstufa>
         </Pressable>
         <Text style={{ color: colors.textPrimary, fontFamily: fonts.body.bold, fontSize: 16 }}>

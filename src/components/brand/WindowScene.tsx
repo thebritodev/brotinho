@@ -273,7 +273,7 @@ export function WindowScene({ width, agora }: { width: number; agora?: Date }) {
             medidasDoMascote(caixaDoMascote(3, false), sproutSize).altura,
         }}
       >
-        <AnimatedSprout mood="feliz" stage={3} size={sproutSize} breathe />
+        <AnimatedSprout mood="feliz" stage={3} size={sproutSize} bamboleia />
       </View>
     </View>
   );

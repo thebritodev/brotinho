@@ -461,7 +461,7 @@ export function OnboardingScreen() {
 
     [PASSO.LEMBRETE]: (
       <Centered>
-        <AnimatedSprout mood="feliz" stage={3} size={brotoMedio} breathe />
+        <AnimatedSprout mood="feliz" stage={3} size={brotoMedio} bamboleia />
         <View style={{ gap: 10 }}>
           <Text
             style={{
