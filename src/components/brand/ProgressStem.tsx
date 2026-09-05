@@ -9,6 +9,19 @@ import { useTema } from '../../theme';
  *
  * Eram dez pontinhos iguais. Trocar por um broto que cresce faz a barra de
  * progresso contar a mesma história do app: você avança, ele cresce.
+ *
+ * ## O que o redesenho mudou aqui
+ *
+ * Quase nada de forma, e é o resultado que interessa: o documento desenha este
+ * caule com a **mesma** folha, a mesma altura de 22, a mesma margem de 8 e o
+ * mesmo espaçamento. O que ele muda é o verde do trecho percorrido, de
+ * `green600` para `green700`.
+ *
+ * Não é preciosismo. Este é o único indicador de progresso do app, e ele fica
+ * num fundo creme, em traço de 3 pixels: no tom mais claro, "o que já foi" e
+ * "o que falta" se separavam por pouco mais do que a diferença entre um bege e
+ * um verde acinzentado. Um tom mais fundo é o que faz a distinção sobreviver a
+ * uma tela ao sol.
  */
 
 const ALTURA = 22;
@@ -46,7 +59,7 @@ export function ProgressStem({ step, total, width }: Props) {
         />
         <Path
           d={`M${margem} ${y} L${Math.max(margem, feitoAte)} ${y}`}
-          stroke={colors.primary}
+          stroke={colors.primaryStrong}
           strokeWidth={3}
           strokeLinecap="round"
         />
@@ -63,7 +76,7 @@ export function ProgressStem({ step, total, width }: Props) {
             >
               <Path
                 d={FOLHA}
-                fill={feita ? colors.primary : palette.brown200}
+                fill={feita ? colors.primaryStrong : palette.brown200}
                 opacity={feita ? 1 : 0.7}
               />
             </G>
