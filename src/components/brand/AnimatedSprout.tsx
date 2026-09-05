@@ -49,11 +49,12 @@ const SWAY_STEP_MS = 110;
  * `@keyframes sway`: `0%,100% { rotate(-1.2deg) }`, `50% { rotate(1.2deg) }`,
  * nove segundos, `ease-in-out`, com origem em `50% 88%`.
  *
- * A amplitude e a origem são as do documento. **O ciclo não**: seis segundos
- * em vez de nove, a pedido, depois de ver no aparelho. Nove funciona numa
- * página parada, onde a única coisa que se move é o desenho; num telefone na
- * mão, com o resto da tela viva, lê como lentidão. Fica registrado que este é
- * o único número aqui que não vem do documento.
+ * A amplitude e a origem são as do documento. **O ciclo não**: quatro
+ * segundos em vez de nove, a pedido, depois de ver no aparelho — passou por
+ * nove e por seis no caminho. Nove funciona numa página parada, onde a única
+ * coisa que se move é o desenho; num telefone na mão, com o resto da tela
+ * viva, lê como lentidão. Fica registrado que este é o único número aqui que
+ * não vem do documento.
  *
  * São **±1,2 grau**. Eu tinha posto 2,5 e depois 3 — o dobro — porque estava
  * escolhendo no olho em vez de ler o documento.
@@ -71,7 +72,7 @@ const SWAY_STEP_MS = 110;
  * faz 0 valer -1,2° e 1 valer +1,2°.
  */
 const BAMBOLEIO_GRAUS = 1.2;
-const BAMBOLEIO_MS = 6000;
+const BAMBOLEIO_MS = 4000;
 
 type Props = {
   mood: Mood;
@@ -247,6 +248,20 @@ export function AnimatedSprout({
 
   return (
     <View style={{ width: size, height: quadro.altura }}>
+      {/*
+        A sombra sai antes, e fica de fora do giro.
+
+        Ela é projetada pelo vaso no chão, e chão não balança. Desenhada junto
+        com a planta, girava com ela: o vaso parado e a mancha embaixo indo de
+        um lado para o outro.
+
+        As duas passadas usam a mesma `viewBox` e o mesmo tamanho, então se
+        sobrepõem exatamente — não há posição para acertar à mão.
+      */}
+      <View style={{ position: 'absolute', width: size, alignItems: 'center' }} pointerEvents="none">
+        <Sprout mood={mood} stage={stage} size={size} decorations={decorations} parte="sombra" />
+      </View>
+
       <Animated.View
         style={{
           /*
@@ -272,7 +287,13 @@ export function AnimatedSprout({
           transform: [{ rotate }, { rotate: inclinacao }, { scale }],
         }}
       >
-        <Sprout mood={mood} stage={stage} size={size} decorations={decorations} />
+        <Sprout
+          mood={mood}
+          stage={stage}
+          size={size}
+          decorations={decorations}
+          parte="planta"
+        />
       </Animated.View>
     </View>
   );

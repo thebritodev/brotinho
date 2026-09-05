@@ -301,12 +301,28 @@ function Decorations({ list, cx, cy }: { list: Decoration[]; cx: number; cy: num
   );
 }
 
+/**
+ * Qual parte do desenho sair.
+ *
+ * Existe por causa do balanço: a sombra de chão é projetada pelo vaso **no
+ * chão**, e chão não balança. Desenhada junto, ela girava com a planta — o
+ * vaso ficava parado e a mancha embaixo dele ia de um lado para o outro, que é
+ * o oposto do que sombra faz.
+ *
+ * Separar em duas passadas do mesmo componente, em vez de mover a elipse para
+ * fora, mantém a geometria única: as duas usam a mesma `viewBox` e o mesmo
+ * tamanho, então se sobrepõem exatamente sem ninguém precisar recalcular onde
+ * fica a base do vaso.
+ */
+export type ParteDoBroto = 'tudo' | 'planta' | 'sombra';
+
 type Props = {
   mood?: Mood;
   stage?: SproutStage;
   decorations?: Decoration[];
   size?: number;
   showPot?: boolean;
+  parte?: ParteDoBroto;
 };
 
 /**
@@ -319,6 +335,7 @@ export function Sprout({
   decorations = [],
   size = 160,
   showPot = true,
+  parte = 'tudo',
 }: Props) {
   /* Um sufixo por instância — ver `Gradientes`. */
   const idDoGradiente = useId().replace(/[^a-zA-Z0-9]/g, '');
@@ -395,17 +412,24 @@ export function Sprout({
         ícone, e nunca foi o problema.
       */}
 
+      {/*
+        A sombra no chão.
+
+        Sem ela o vaso não pousa em lugar nenhum — fica um objeto recortado
+        boiando sobre o fundo. É uma elipse achatada, larga e fraca: sombra de
+        luz difusa de ambiente, não de holofote.
+
+        Sai numa passada própria (`parte`) para poder ficar parada enquanto a
+        planta balança.
+      */}
+      {showPot && parte !== 'planta' && (
+        <Ellipse cx={100} cy={219} rx={40} ry={7} fill={tracos.contorno} opacity={0.13} />
+      )}
+
+      {parte === 'sombra' ? null : (
+        <>
       {showPot && (
         <G>
-          {/*
-            A sombra no chão.
-
-            Sem ela o vaso não pousa em lugar nenhum — fica um objeto recortado
-            boiando sobre o fundo. É uma elipse achatada, larga e fraca: sombra
-            de luz difusa de ambiente, não de holofote.
-          */}
-          <Ellipse cx={100} cy={219} rx={40} ry={7} fill={tracos.contorno} opacity={0.13} />
-
           <Path
             d="M 62 170 C 62 166 66 164 70 164 L 130 164 C 134 164 138 166 138 170 L 128 210 C 127 216 121 220 113 220 L 87 220 C 79 220 73 216 72 210 Z"
             fill={`url(#vaso-${idDoGradiente})`}
@@ -533,6 +557,8 @@ export function Sprout({
 
       <Face mood={mood} cx={CX} cy={stemTopY - 4} />
       <Decorations list={decorations} cx={CX} cy={stemTopY - 4} />
+        </>
+      )}
     </Svg>
   );
 }
