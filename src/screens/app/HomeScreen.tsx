@@ -286,7 +286,7 @@ export function HomeScreen({
           style={{ marginHorizontal: -20 }}
         >
           <LuzDeEstufa tamanho={sproutSize}>
-            <AnimatedSprout mood={mood} stage={stage} size={sproutSize} breathe />
+            <AnimatedSprout mood={mood} stage={stage} size={sproutSize} breathe bamboleia />
           </LuzDeEstufa>
         </Pressable>
         <Text style={{ color: colors.textPrimary, fontFamily: fonts.body.bold, fontSize: 16 }}>

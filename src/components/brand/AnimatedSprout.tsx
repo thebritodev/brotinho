@@ -37,6 +37,21 @@ const BREATH_OUT_MS = 4200;
 const SWAY = [0, 6, -4.5, 2.5, -1.2, 0];
 const SWAY_STEP_MS = 110;
 
+/**
+ * O bambolear de sempre: a planta pegando uma brisa que não acaba.
+ *
+ * É outra coisa do balanço acima, e por isso mora noutro valor animado. Aquele
+ * é **reação** — a planta levou um toque e responde, forte e amortecido. Este
+ * é **estado**: ela está viva e o ar mexe com ela, o tempo todo, de leve.
+ *
+ * Dois graus e meio para cada lado, num ciclo de nove segundos. A amplitude é
+ * quase nada de propósito: numa tela onde a pessoa vai ficar parada, movimento
+ * que se nota vira movimento que incomoda. O que se quer é que a tela não
+ * pareça uma fotografia — e para isso um grau a mais já seria demais.
+ */
+const BAMBOLEIO_GRAUS = 2.5;
+const BAMBOLEIO_MS = 9000;
+
 type Props = {
   mood: Mood;
   stage?: SproutStage;
@@ -51,6 +66,8 @@ type Props = {
    * Serve para o broto responder a um toque sem o pai precisar de timers.
    */
   swayOn?: string | number | null;
+  /** A brisa contínua. Como a respiração, só no broto grande de tela parada. */
+  bamboleia?: boolean;
 };
 
 export function AnimatedSprout({
@@ -61,9 +78,19 @@ export function AnimatedSprout({
   swayOnMount = false,
   breathe = false,
   swayOn = null,
-}: Props) {
+  bamboleia = false,
+}: Props) {
   const sway = useRef(new Animated.Value(0)).current;
   const breath = useRef(new Animated.Value(0)).current;
+  /*
+    A brisa tem valor próprio, e não divide o `sway`.
+
+    Se dividissem, o balanço de reação zeraria a brisa no meio dela — ou pior,
+    a brisa sobrescreveria a reação em curso. Separados, os dois giros se
+    compõem na lista de `transform`, que é o que se quer: a planta responde ao
+    toque **enquanto** continua ao vento.
+  */
+  const brisa = useRef(new Animated.Value(0)).current;
 
   const [reduceMotion, setReduceMotion] = useState(false);
   useEffect(() => {
@@ -119,6 +146,31 @@ export function AnimatedSprout({
     return () => laco.stop();
   }, [breathe, reduceMotion]);
 
+  useEffect(() => {
+    if (!bamboleia || reduceMotion) {
+      brisa.setValue(0);
+      return;
+    }
+    /*
+      Meio segundo de atraso antes de começar: a tela ainda está entrando
+      quando o componente monta, e duas animações estreando juntas fazem o
+      broto parecer que tremeu em vez de que respirou.
+    */
+    const meia = (para: number) =>
+      Animated.timing(brisa, {
+        toValue: para,
+        duration: BAMBOLEIO_MS / 2,
+        easing: Easing.inOut(Easing.sin),
+        useNativeDriver: true,
+      });
+    const laco = Animated.loop(Animated.sequence([meia(1), meia(-1)]));
+    const id = setTimeout(() => laco.start(), 500);
+    return () => {
+      clearTimeout(id);
+      laco.stop();
+    };
+  }, [bamboleia, reduceMotion]);
+
   /** Guarda o valor já visto, para não balançar na montagem. */
   const swayVisto = useRef(swayOn);
   useEffect(() => {
@@ -167,6 +219,11 @@ export function AnimatedSprout({
 
   const scale = breath.interpolate({ inputRange: [0, 1], outputRange: [1, BREATH_SCALE] });
 
+  const inclinacao = brisa.interpolate({
+    inputRange: [-1, 1],
+    outputRange: [`-${BAMBOLEIO_GRAUS}deg`, `${BAMBOLEIO_GRAUS}deg`],
+  });
+
   return (
     <View style={{ width: size, height: quadro.altura }}>
       <Animated.View
@@ -185,7 +242,7 @@ export function AnimatedSprout({
           // e não um adesivo rodando no meio.
           transformOrigin: 'center bottom',
           // Girar e crescer a partir do pé: o vaso fica parado no chão.
-          transform: [{ rotate }, { scale }],
+          transform: [{ rotate }, { rotate: inclinacao }, { scale }],
         }}
       >
         <Sprout mood={mood} stage={stage} size={size} decorations={decorations} />

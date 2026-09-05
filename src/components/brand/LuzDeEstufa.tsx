@@ -122,18 +122,30 @@ export function LuzDeEstufa({
   const lado = medida ? Math.max(medida.largura, medida.altura) : tamanho;
 
   /*
-    O halo é maior que o broto de propósito.
+    O halo tem **exatamente** o tamanho do desenho, e a luz se espalha por
+    dentro dele.
 
-    Em 1,0 ele viraria um contorno aceso rente ao desenho. A luz precisa
-    escapar do objeto que ilumina — o desenho fica dentro dela, não do lado.
+    Antes era 1,32 vez maior, para a luz escapar do objeto que ilumina. Só que
+    um filho absoluto maior que o pai transborda, e transbordo precisa de
+    `overflow: visible` para não virar um retângulo cortado — e `overflow:
+    visible` é a mesma propriedade que deixa ele pintar **por cima dos
+    vizinhos**. No aparelho o halo cobria o balão de fala acima e a pergunta
+    abaixo. Não dava para ter as duas: ou ele é cortado, ou ele invade.
+
+    A saída é não transbordar. O halo passa a caber na caixa, e o alcance da
+    luz vem do gradiente em vez do tamanho: a parada transparente foi de 70%
+    para 100% do raio, então ela apaga na borda em vez de bem antes dela. O
+    espalhamento visível é o mesmo; o que sumiu foi a sobra que ninguém via e
+    que atrapalhava todo mundo.
   */
-  const halo = lado * 1.32;
+  const larguraDoHalo = medida?.largura ?? tamanho;
+  const alturaDoHalo = medida?.altura ?? tamanho;
   /*
     A sombra é larga e rasa, na proporção do documento: 210 por 26 num broto de
     300, ou seja 0,7 por 0,087. Mais alta que isso ela deixa de parecer sombra
     no chão e passa a parecer um buraco embaixo do vaso.
   */
-  const larguraDoChao = (medida?.largura ?? lado) * 0.86;
+  const larguraDoChao = larguraDoHalo * 0.86;
   const alturaDoChao = lado * 0.087;
 
   return (
@@ -143,20 +155,6 @@ export function LuzDeEstufa({
         {
           alignItems: 'center',
           justifyContent: 'center',
-          /*
-            Sem isto o halo vira um retângulo.
-
-            Ele é 1,32 vez o broto e mora num `position: absolute` que
-            transborda a caixa — e caixa que transborda é cortada: o
-            `react-native-web` põe `overflow: hidden` em toda `View`, e o
-            Android faz o mesmo. O que aparecia era a mancha serrada num
-            retângulo do tamanho exato do desenho, que é o oposto de luz.
-
-            Foi assim que apareceu na Composta, onde o broto é menor e a
-            diferença fica óbvia. Na tela inicial passou despercebido porque
-            ali o broto é grande e o corte caía fora do que se olha.
-          */
-          overflow: 'visible',
         },
         style,
       ]}
@@ -176,15 +174,26 @@ export function LuzDeEstufa({
         Ancorar no rodapé acerta em qualquer tamanho de broto, sem depender de
         adivinhar a altura do desenho a partir da do halo.
       */}
-      <Svg width={halo} height={halo} style={{ position: 'absolute' }} pointerEvents="none">
+      <Svg
+        width={larguraDoHalo}
+        height={alturaDoHalo}
+        style={{ position: 'absolute' }}
+        pointerEvents="none"
+      >
         <Defs>
           <RadialGradient id={`halo-${id}`} cx="50%" cy="38%" r="50%">
             <Stop offset="0" stopColor={cores.halo[0]} />
-            <Stop offset="0.42" stopColor={cores.halo[1]} />
-            <Stop offset="0.7" stopColor={cores.halo[2]} />
+            <Stop offset="0.5" stopColor={cores.halo[1]} />
+            <Stop offset="1" stopColor={cores.halo[2]} />
           </RadialGradient>
         </Defs>
-        <Ellipse cx={halo / 2} cy={halo / 2} rx={halo / 2} ry={halo / 2} fill={`url(#halo-${id})`} />
+        <Ellipse
+          cx={larguraDoHalo / 2}
+          cy={alturaDoHalo / 2}
+          rx={larguraDoHalo / 2}
+          ry={alturaDoHalo / 2}
+          fill={`url(#halo-${id})`}
+        />
       </Svg>
 
       {!semChao && (
