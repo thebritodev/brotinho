@@ -38,28 +38,34 @@ const SWAY = [0, 6, -4.5, 2.5, -1.2, 0];
 const SWAY_STEP_MS = 110;
 
 /**
- * O bambolear de sempre: a planta pegando uma brisa que não acaba.
+ * A brisa: a planta viva, mexendo de leve o tempo todo.
  *
  * É outra coisa do balanço acima, e por isso mora noutro valor animado. Aquele
  * é **reação** — a planta levou um toque e responde, forte e amortecido. Este
- * é **estado**: ela está viva e o ar mexe com ela, o tempo todo, de leve.
+ * é **estado**: ela está viva e o ar mexe com ela, sempre, quase nada.
  *
- * **Nove segundos era o número do documento, e no aparelho é arrasto.** Num
- * mockup de navegador, parado numa página, uma travessia lenta lê como calma.
- * Na mão, com a tela viva, ela lê como travamento: o olho não completa o
- * movimento, só percebe que alguma coisa está fora do lugar e devagar.
+ * ## Os números são os do documento
  *
- * Quatro segundos é o ciclo de uma folha ao vento fraco de verdade, e é o que
- * o olho reconhece como algo vivo em vez de algo lento. A amplitude subiu
- * junto, de 2,5 para 3 graus: travessia mais curta precisa de um pouco mais de
- * percurso para não virar tremida.
+ * `@keyframes sway`: `0%,100% { rotate(-1.2deg) }`, `50% { rotate(1.2deg) }`,
+ * nove segundos, `ease-in-out`, com origem em `50% 88%`.
  *
- * Continua pequena de propósito. Numa tela onde a pessoa fica parada olhando,
- * movimento que se nota vira movimento que incomoda — o que se quer é só que a
- * tela não pareça uma fotografia.
+ * São **±1,2 grau**. Eu tinha posto 2,5 e depois 3 — o dobro — porque estava
+ * escolhendo no olho em vez de ler o documento.
+ *
+ * ## O laço, que estava quebrado
+ *
+ * A ida saía de 0 e chegava a 1; a volta ia de 1 a **-1**, na mesma duração.
+ * Metade da distância no mesmo tempo da distância inteira: o movimento
+ * acelerava de repente ao dobrar a esquina, toda vez. Era esse solavanco o
+ * "cortado, sem laço perfeito" — e ele também explica por que nove segundos
+ * pareceram arrasto: um movimento que engasga chama atenção para a lentidão.
+ *
+ * Agora vai de 0 a 1 e volta de 1 a 0, com a mesma distância nas duas metades
+ * e as duas pontas no mesmo valor. A emenda deixa de existir, e a interpolação
+ * faz 0 valer -1,2° e 1 valer +1,2°.
  */
-const BAMBOLEIO_GRAUS = 3;
-const BAMBOLEIO_MS = 4000;
+const BAMBOLEIO_GRAUS = 1.2;
+const BAMBOLEIO_MS = 9000;
 
 type Props = {
   mood: Mood;
@@ -172,7 +178,7 @@ export function AnimatedSprout({
         easing: Easing.inOut(Easing.sin),
         useNativeDriver: true,
       });
-    const laco = Animated.loop(Animated.sequence([meia(1), meia(-1)]));
+    const laco = Animated.loop(Animated.sequence([meia(1), meia(0)]));
     const id = setTimeout(() => laco.start(), 500);
     return () => {
       clearTimeout(id);
@@ -229,7 +235,7 @@ export function AnimatedSprout({
   const scale = breath.interpolate({ inputRange: [0, 1], outputRange: [1, BREATH_SCALE] });
 
   const inclinacao = brisa.interpolate({
-    inputRange: [-1, 1],
+    inputRange: [0, 1],
     outputRange: [`-${BAMBOLEIO_GRAUS}deg`, `${BAMBOLEIO_GRAUS}deg`],
   });
 
@@ -247,9 +253,15 @@ export function AnimatedSprout({
           */
           width: size,
           alignItems: 'center',
-          // O caule nasce na base: girar pelo pé é o que faz parecer planta,
-          // e não um adesivo rodando no meio.
-          transformOrigin: 'center bottom',
+          /*
+            Origem em `50% 88%`, como no documento — e não na base.
+
+            Girar pelo pé faz a planta parecer presa ao chão, o que é certo;
+            mas 100% da altura é a borda de baixo do **quadro**, que fica um
+            pouco abaixo do vaso. Girando dali, o vaso descreve um arco visível
+            em vez de ficar plantado. Em 88% o eixo cai dentro do próprio vaso.
+          */
+          transformOrigin: '50% 88%',
           // Girar e crescer a partir do pé: o vaso fica parado no chão.
           transform: [{ rotate }, { rotate: inclinacao }, { scale }],
         }}

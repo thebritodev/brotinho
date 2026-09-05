@@ -326,3 +326,22 @@ export function medidasDoMascote(caixa: Caixa, size: number) {
   const escala = size / LARGURA_DE_REFERENCIA;
   return { largura: caixa.largura * escala, altura: caixa.altura * escala };
 }
+
+/**
+ * A altura do desenho na tela — e, por tabela, o diâmetro do halo de luz.
+ *
+ * No documento de redesenho, o halo da tela inicial é um círculo de 300 sobre
+ * um broto de 300 de altura. A regra é essa: **diâmetro igual à altura do
+ * desenho**, não uma fração inventada dela.
+ *
+ * Existe como função, e não como medida tirada em tempo de execução, porque
+ * medir se mostrou pouco confiável: `onLayout` não dispara no
+ * `react-native-web`, então a versão que media ficava com o valor de recuo no
+ * navegador — e era justamente no navegador que eu conferia. Um número que só
+ * está certo onde não dá para olhar não serve.
+ *
+ * Aqui não há o que falhar: é a mesma tabela que desenha o broto.
+ */
+export function alturaDoMascote(stage: SproutStage, size: number, temEnfeite = false) {
+  return medidasDoMascote(caixaDoMascote(stage, temEnfeite), size).altura;
+}

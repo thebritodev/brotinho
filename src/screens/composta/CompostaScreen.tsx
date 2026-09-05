@@ -4,6 +4,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import {
   LuzDeEstufa,
+  alturaDoMascote,
   AjudaAgora,
   Button,
   Chip,
@@ -249,7 +250,7 @@ export function CompostaScreen({
         >
           <View style={{ alignItems: 'center', gap: 12 }}>
             {/* Halo verde: aqui a tela inteira e verde — ver `LuzDeEstufa`. */}
-            <LuzDeEstufa tamanho={120} tom="verde">
+            <LuzDeEstufa diametro={alturaDoMascote(2, 120)} tom="verde">
               <Sprout mood="leve" stage={2} size={120} />
             </LuzDeEstufa>
             <Text
@@ -588,7 +589,7 @@ export function CompostaScreen({
               </View>
             </View>
 
-            <LuzDeEstufa tamanho={150} tom="verde">
+            <LuzDeEstufa diametro={alturaDoMascote(estágio, 150)} tom="verde">
               <Sprout mood={humor} stage={estágio} size={150} />
             </LuzDeEstufa>
             <FallingWords tick={session.repTick} thought={thought.trim() || SUGESTOES[0]} />

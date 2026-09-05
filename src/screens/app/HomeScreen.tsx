@@ -6,6 +6,7 @@ import {
   AnimatedSprout,
   BalaoDoBroto,
   LuzDeEstufa,
+  alturaDoMascote,
   Button,
   Card,
   GrowthNotice,
@@ -285,7 +286,7 @@ export function HomeScreen({
           onPress={onOpenGarden}
           style={{ marginHorizontal: -20 }}
         >
-          <LuzDeEstufa tamanho={sproutSize}>
+          <LuzDeEstufa diametro={alturaDoMascote(stage, sproutSize)}>
             <AnimatedSprout mood={mood} stage={stage} size={sproutSize} breathe bamboleia />
           </LuzDeEstufa>
         </Pressable>

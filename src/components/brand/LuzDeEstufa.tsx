@@ -1,63 +1,72 @@
-import React, { useId, useState } from 'react';
-import { View, type LayoutChangeEvent, type StyleProp, type ViewStyle } from 'react-native';
+import React, { useEffect, useId, useRef } from 'react';
+import { Animated, Easing, View, type StyleProp, type ViewStyle } from 'react-native';
 import Svg, { Defs, Ellipse, RadialGradient, Stop } from 'react-native-svg';
 
 import { useTema } from '../../theme';
 
 /**
- * A luz que cai sobre o broto, e a sombra que ele projeta no chão.
+ * A luz que cai sobre o broto.
  *
  * ## O que isto substitui
  *
  * Havia um disco da cor do humor atrás do broto. Ele passou por seis versões e
  * nenhuma parou de pé, até a conclusão de que o problema não era o tom: numa
  * tela onde o humor já é dito pela carinha do broto, pela carinha marcada e
- * pela palavra escolhida, o disco era o quarto a dizer a mesma coisa. Saiu, e
- * a tela ficou melhor.
+ * pela palavra escolhida, o disco era o quarto a dizer a mesma coisa.
  *
- * Isto **não é aquilo de volta**. A diferença é o que a mancha significa: ela
- * não codifica nada. É luz de janela caindo numa planta, igual todo dia,
- * qualquer que seja o humor — o mesmo papel do sol na cena da janela do
- * onboarding. Uma pessoa triste vê a mesma luz de uma pessoa contente.
+ * Isto **não é aquilo de volta**: esta mancha não codifica nada. É luz de
+ * janela caindo numa planta, igual todo dia, qualquer que seja o humor.
+ *
+ * ## Os números vêm do documento, e são estes
+ *
+ * No documento, o bloco da tela inicial é um contêiner de 300 de altura com
+ * três coisas centradas: o halo de 300 por 300, a sombra de chão, e o broto de
+ * 215 por 300. Disso saem as duas regras que importam:
+ *
+ * - **o diâmetro do halo é a altura do desenho** — 300 e 300, não uma fração
+ *   arbitrária dela;
+ * - **o halo é mais largo que o broto** (300 contra 215) e ainda assim cabe,
+ *   porque o contêiner é mais largo que o desenho.
+ *
+ * Quem calcula o diâmetro é `alturaDoMascote`, na geometria — a mesma tabela
+ * que desenha o broto. E o quadro tem `minWidth`/`minHeight` do tamanho do
+ * halo, então ele **nunca** transborda: ou o desenho é maior e manda no
+ * tamanho, ou o halo é, e o quadro cresce até ele.
+ *
+ * Antes disso o halo foi, em ordem: 1,32 vez o desenho (transbordava e cobria
+ * os vizinhos), a caixa inteira esticada (virou um oval, porque a caixa é mais
+ * larga que alta), e o dobro da distância até o topo (ficou minúsculo, porque
+ * essa distância não tem relação nenhuma com o desenho). Os três são o mesmo
+ * erro: inventar o tamanho em vez de ler o do documento.
+ *
+ * A quarta versão media o quadro com `onLayout` — e `onLayout` **não dispara
+ * no react-native-web**. O valor ficava no recuo justamente no navegador, que
+ * era onde eu conferia: um número que só está certo onde não dá para olhar.
+ *
+ * ## Por que ele pulsa
+ *
+ * `@keyframes halo` no documento: `scale(1)`/`opacity .95` ↔ `scale(1.045)`/
+ * `opacity 1`, sete segundos, ida e volta.
+ *
+ * Não é enfeite — é o que faz a mancha ser lida como **luz** em vez de forma.
+ * Parada, ela vira um oval desenhado atrás do broto, que é exatamente o que o
+ * disco de humor era. Luz respira um pouco.
+ *
+ * O diâmetro de base é dividido pelo pico da pulsação para que o **crescimento**
+ * caiba na caixa, e não só o repouso.
  *
  * ## Por que SVG e não gradiente de CSS
  *
  * `experimental_backgroundImage` aceita `radial-gradient` no React Native, e o
- * nome diz o quanto se pode contar com ele. `react-native-svg` já é dependência
- * do app, desenha o broto inteiro, e faz gradiente radial há anos nas duas
- * plataformas. Entre uma API experimental e uma biblioteca que já está aqui, a
- * escolha é a chata.
- *
- * ## Só o halo, e por quê
- *
- * Houve aqui uma segunda camada: uma sombra difusa no chão, para o vaso pousar
- * na tela. Ela saiu porque **já havia uma** — o próprio `Sprout` desenha a
- * sombra de contato, colada na base do vaso. As duas somadas davam uma mancha
- * cinza chapada embaixo da planta, sem forma, que é o oposto do que sombra
- * nenhuma faz. Uma sombra boa é melhor que duas.
- *
- * O que sobrou é o halo: centro no terço de cima, que é onde fica a cabeça —
- * luz centrada no desenho inteiro acenderia o vaso em vez do rosto.
+ * nome diz o quanto dá para contar com ele. `react-native-svg` já é dependência
+ * do app, desenha o broto inteiro, e faz gradiente radial nas duas plataformas.
  */
 
-/**
- * Dois tons de luz, e a diferença é de lugar, não de gosto.
- *
- * `quente` é a luz da tela inicial: sol de janela, creme, a mesma todo dia.
- *
- * `verde` é a da Composta e da respiração guiada. Ali o broto não está numa
- * janela — está no meio de um exercício, e a tela inteira é verde: o cartão, o
- * botão, o contador. Uma luz creme no meio disso apareceria como uma segunda
- * fonte, de outro ambiente. O verde some no conjunto, que é o que se quer de
- * luz: notar o que ela ilumina, não ela.
- */
-export type TomDaLuz = 'quente' | 'verde';
-
-/** As manchas, nos dois temas. Ver o documento de redesenho, seções 3, 4 e 13. */
+/** O halo nos dois temas e nos dois tons. Documento de redesenho, seções 3 e 13. */
 const LUZ = {
   claro: {
-    halo: ['rgba(255,252,240,0.95)', 'rgba(252,239,199,0.72)', 'rgba(252,239,199,0)'],
-    haloVerde: ['rgba(240,247,242,0.95)', 'rgba(227,237,230,0.62)', 'rgba(227,237,230,0)'],
+    quente: ['rgba(255,252,240,0.95)', 'rgba(252,239,199,0.72)', 'rgba(252,239,199,0)'],
+    verde: ['rgba(240,247,242,0.95)', 'rgba(227,237,230,0.62)', 'rgba(227,237,230,0)'],
   },
   escuro: {
     /*
@@ -69,112 +78,122 @@ const LUZ = {
       escura deste app: papel à noite não vira carvão, vira marrom quente sob
       um abajur.
     */
-    halo: ['rgba(215,185,95,0.3)', 'rgba(215,185,95,0.1)', 'rgba(33,30,26,0)'],
-    haloVerde: ['rgba(76,123,98,0.35)', 'rgba(76,123,98,0.12)', 'rgba(33,30,26,0)'],
+    quente: ['rgba(215,185,95,0.3)', 'rgba(215,185,95,0.1)', 'rgba(33,30,26,0)'],
+    verde: ['rgba(76,123,98,0.35)', 'rgba(76,123,98,0.12)', 'rgba(33,30,26,0)'],
   },
 } as const;
 
+/**
+ * `quente` é a luz da tela inicial: sol de janela, creme, a mesma todo dia.
+ *
+ * `verde` é a da Composta. Ali o broto não está numa janela — está no meio de
+ * um exercício, e a tela inteira é verde. Uma luz creme no meio disso
+ * apareceria como uma segunda fonte, de outro ambiente.
+ */
+export type TomDaLuz = 'quente' | 'verde';
+
+/** `@keyframes halo` do documento: sete segundos, ida e volta. */
+const PULSO_MS = 7000;
+const PULSO_ESCALA = 1.045;
+
 export function LuzDeEstufa({
-  tamanho,
+  diametro: diametroPedido,
   tom = 'quente',
   children,
   style,
 }: {
   /**
-   * O `size` que o broto recebeu — usado só até ele se medir.
+   * O diâmetro do halo, em pixels de tela.
    *
-   * **Não é o tamanho em pixels do desenho**, e essa confusão custou uma
-   * versão: `Sprout` trata `size` como escala sobre uma caixa de 200, então
-   * `size={120}` desenha 53 por 80. O halo, calculado a partir de 120, saía
-   * três vezes maior que o broto — uma mancha clara enorme em volta de uma
-   * plantinha, com a borda cortada pela caixa.
-   *
-   * Por isso a medida real vem do `onLayout`. Isto aqui é só o palpite do
-   * primeiro quadro, antes de haver medida.
+   * Deve ser a **altura do desenho** — use `alturaDoMascote(stage, size)`, que
+   * é a mesma tabela usada para desenhar. Passar o `size` do broto aqui seria
+   * errado: `Sprout` trata `size` como escala sobre uma caixa de 200, então
+   * `size={120}` desenha 53 por 80.
    */
-  tamanho: number;
+  diametro: number;
   tom?: TomDaLuz;
   children: React.ReactNode;
   style?: StyleProp<ViewStyle>;
 }) {
   const { tema } = useTema();
   const id = useId().replace(/[^a-zA-Z0-9]/g, '');
-  const doTema = LUZ[tema];
-  const cores = tom === 'verde' ? doTema.haloVerde : doTema.halo;
+  const cores = LUZ[tema][tom];
 
-  const [medida, setMedida] = useState<{ largura: number; altura: number } | null>(null);
-  const aoMedir = (e: LayoutChangeEvent) => {
-    const { width, height } = e.nativeEvent.layout;
-    if (width > 0 && height > 0) setMedida({ largura: width, altura: height });
-  };
+  /* O repouso encolhe para que o pico da pulsação caiba no que foi pedido. */
+  const diametro = diametroPedido / PULSO_ESCALA;
 
-  /*
-    O halo é um **círculo**, e cabe na caixa. As duas coisas custaram uma
-    versão cada.
+  const pulso = useRef(new Animated.Value(0)).current;
+  useEffect(() => {
+    /*
+      Laço perfeito: sai de 0, vai a 1, volta a 0. As duas pontas são o mesmo
+      valor, então a emenda não aparece.
 
-    Primeiro ele era 1,32 vez o desenho, para a luz escapar do objeto que
-    ilumina. Um filho absoluto maior que o pai transborda, e transbordo exige
-    `overflow: visible` para não virar retângulo cortado — que é a mesma
-    propriedade que o deixa pintar por cima dos vizinhos. No aparelho ele
-    cobria o balão de fala acima e a pergunta abaixo.
+      Vale registrar o erro gêmeo que estava no balanço do broto: lá a volta ia
+      de 1 a **-1** com a mesma duração da ida de 0 a 1 — o dobro da distância
+      no mesmo tempo. O movimento acelerava de repente ao dobrar a esquina, e
+      foi isso, e não a lentidão, o "cortado" que apareceu no aparelho.
+    */
+    const meia = (para: number) =>
+      Animated.timing(pulso, {
+        toValue: para,
+        duration: PULSO_MS / 2,
+        easing: Easing.inOut(Easing.sin),
+        useNativeDriver: true,
+      });
+    const laco = Animated.loop(Animated.sequence([meia(1), meia(0)]));
+    laco.start();
+    return () => laco.stop();
+  }, []);
 
-    Aí eu o fiz preencher a caixa e estiquei o gradiente até 100% do raio para
-    compensar o tamanho perdido. Pior: a caixa do broto é mais alta que larga,
-    então virou um **oval**, e a parada transparente lá na borda deixou de ter
-    onde desbotar. Deixou de parecer luz e passou a parecer uma forma desenhada
-    atrás do broto — que é exatamente o que o disco de humor era, e que já
-    tinha sido removido uma vez.
-
-    Luz não tem contorno. Então: círculo, não elipse; centrado na cabeça, que é
-    onde ela bate; com diâmetro limitado pelo que cabe acima desse centro, para
-    não voltar a transbordar; e apagando de volta em 70% do raio, como no
-    documento. O resultado é uma mancha macia perto do rosto, sem borda.
-  */
-  const larguraDaCaixa = medida?.largura ?? tamanho;
-  const alturaDaCaixa = medida?.altura ?? tamanho;
-  /* A luz bate na cabeça, e a cabeça fica no terço de cima do desenho. */
-  const centroY = alturaDaCaixa * 0.36;
-  /*
-    O diâmetro é o dobro da distância até o topo — é o maior círculo que cabe
-    sem estourar por cima. Limitado também pela largura, para um broto largo e
-    baixo não ganhar um halo que vaza pelos lados.
-  */
-  const diametro = Math.min(centroY * 2, larguraDaCaixa);
-
+  const escala = pulso.interpolate({ inputRange: [0, 1], outputRange: [1, PULSO_ESCALA] });
+  const opacidade = pulso.interpolate({ inputRange: [0, 1], outputRange: [0.95, 1] });
 
   return (
     <View
-      onLayout={aoMedir}
       style={[
         {
           alignItems: 'center',
           justifyContent: 'center',
+          /*
+            O quadro nunca é menor que o halo.
+
+            Com `minWidth`/`minHeight`, ou o desenho é maior e manda no
+            tamanho, ou o halo é e o quadro cresce até ele. Nos dois casos o
+            halo cabe — e halo que cabe não precisa de `overflow: visible`, que
+            é a propriedade que o deixava pintar por cima dos vizinhos.
+          */
+          minWidth: diametroPedido,
+          minHeight: diametroPedido,
         },
         style,
       ]}
     >
-      <Svg
-        width={larguraDaCaixa}
-        height={alturaDaCaixa}
-        style={{ position: 'absolute' }}
+      <Animated.View
         pointerEvents="none"
+        style={{ position: 'absolute', opacity: opacidade, transform: [{ scale: escala }] }}
       >
-        <Defs>
-          <RadialGradient id={`halo-${id}`} cx="50%" cy="50%" r="50%">
-            <Stop offset="0" stopColor={cores[0]} />
-            <Stop offset="0.42" stopColor={cores[1]} />
-            <Stop offset="0.7" stopColor={cores[2]} />
-          </RadialGradient>
-        </Defs>
-        <Ellipse
-          cx={larguraDaCaixa / 2}
-          cy={centroY}
-          rx={diametro / 2}
-          ry={diametro / 2}
-          fill={`url(#halo-${id})`}
-        />
-      </Svg>
-
+        <Svg width={diametro} height={diametro}>
+          <Defs>
+            {/*
+              O centro do gradiente sobe para 38% da altura **do círculo**, que
+              é onde fica a cabeça. Centrado no desenho inteiro, ele acenderia o
+              vaso em vez do rosto.
+            */}
+            <RadialGradient id={`halo-${id}`} cx="50%" cy="38%" r="50%">
+              <Stop offset="0" stopColor={cores[0]} />
+              <Stop offset="0.4" stopColor={cores[1]} />
+              <Stop offset="0.7" stopColor={cores[2]} />
+            </RadialGradient>
+          </Defs>
+          <Ellipse
+            cx={diametro / 2}
+            cy={diametro / 2}
+            rx={diametro / 2}
+            ry={diametro / 2}
+            fill={`url(#halo-${id})`}
+          />
+        </Svg>
+      </Animated.View>
       {children}
     </View>
   );
