@@ -19,7 +19,16 @@ type Props = {
 
 /** Switch — alternador liga/desliga das configurações. */
 export function Switch({ checked = false, onChange, label }: Props) {
-  const { colors, palette, shadows } = useTema();
+  const { palette, shadows, botaoPrimario, colors } = useTema();
+  /*
+    A chave ligada usa o mesmo verde do botão principal.
+    
+    São as duas únicas peças "ligadas" do app, e antes uma era chapada e a
+    outra também — mas de tons diferentes, porque uma lia `colors.primary` e a
+    outra o gradiente. Compartilhar o token faz as duas dizerem "ligado" com a
+    mesma voz.
+  */
+  const { sombra: _sombraDoBotao, ...verdeLigado } = botaoPrimario;
   return (
     <Pressable
       accessibilityRole="switch"
@@ -33,7 +42,7 @@ export function Switch({ checked = false, onChange, label }: Props) {
         width: 46,
         height: 26,
         borderRadius: radius.pill,
-        backgroundColor: checked ? colors.primary : palette.brown200,
+        ...(checked ? verdeLigado : { backgroundColor: palette.brown200 }),
         justifyContent: 'center',
       }}
     >
