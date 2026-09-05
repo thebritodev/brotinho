@@ -263,7 +263,16 @@ export function HomeScreen({
         demais, o bico vira um V grudado na cabeça dele; longe demais, deixa de
         apontar para alguma coisa.
       */}
-      <BalaoDoBroto style={{ marginBottom: -14 }}>
+      {/*
+        O balão fica **acima** do bloco do broto.
+
+        O bico avança 14 pontos para dentro dele — é o que faz o balão apontar
+        para o desenho. Enquanto a luz atrás do broto era translúcida isso não
+        importava; agora ela é opaca (termina na cor do fundo, para não depender
+        de alfa em gradiente — ver `LuzDeEstufa`), e sem o `zIndex` ela pinta
+        por cima da ponta do bico.
+      */}
+      <BalaoDoBroto style={{ marginBottom: -14, zIndex: 1 }}>
         <Text
           style={{
             fontFamily: fonts.body.regular,

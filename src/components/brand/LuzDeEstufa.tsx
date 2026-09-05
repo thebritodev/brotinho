@@ -63,35 +63,15 @@ import { useTema } from '../../theme';
  */
 
 /**
- * O halo nos dois temas e nos dois tons — **cor e opacidade separadas**.
+ * A luz, guardada como o documento a escreve: **cor e opacidade**.
  *
- * Isto era `'rgba(252,239,199,0.72)'` numa string só, e é a razão de o círculo
- * aparecer chapado no aparelho enquanto no navegador saía degradê: o
- * `stopColor` do `react-native-svg` **descarta o canal alfa** no Android. Sem
- * o alfa, as quatro paradas viram opacas, e um gradiente de quatro tons opacos
- * do mesmo creme é um disco.
- *
- * A transparência tem de ir em `stopOpacity`, num atributo próprio. O
- * `Sprout` já fazia assim na sombra do chão; aqui não, e por isso o defeito
- * aparecia só nesta peça — e só no aparelho, que foi o que me manteve errando
- * enquanto eu conferia no navegador.
- *
- * Documento de redesenho, seções 3 e 13.
+ * Estes são os valores de lá, sem tradução. O que muda é como eles chegam ao
+ * SVG — ver `paradasOpacas` logo abaixo.
  */
 const LUZ = {
   claro: {
-    quente: [
-      ['#FFFCF0', 0.95],
-      ['#FCEFC7', 0.72],
-      ['#FCEFC7', 0.2],
-      ['#FCEFC7', 0],
-    ],
-    verde: [
-      ['#F0F7F2', 0.95],
-      ['#E3EDE6', 0.62],
-      ['#E3EDE6', 0.18],
-      ['#E3EDE6', 0],
-    ],
+    quente: [['#FFFCF0', 0.95], ['#FCEFC7', 0.72], ['#FCEFC7', 0.2], ['#FCEFC7', 0]],
+    verde: [['#F0F7F2', 0.95], ['#E3EDE6', 0.62], ['#E3EDE6', 0.18], ['#E3EDE6', 0]],
   },
   escuro: {
     /*
@@ -103,20 +83,44 @@ const LUZ = {
       escura deste app: papel à noite não vira carvão, vira marrom quente sob
       um abajur.
     */
-    quente: [
-      ['#D7B95F', 0.3],
-      ['#D7B95F', 0.1],
-      ['#D7B95F', 0.035],
-      ['#211E1A', 0],
-    ],
-    verde: [
-      ['#4C7B62', 0.35],
-      ['#4C7B62', 0.12],
-      ['#4C7B62', 0.04],
-      ['#211E1A', 0],
-    ],
+    quente: [['#D7B95F', 0.3], ['#D7B95F', 0.1], ['#D7B95F', 0.035], ['#D7B95F', 0]],
+    verde: [['#4C7B62', 0.35], ['#4C7B62', 0.12], ['#4C7B62', 0.04], ['#4C7B62', 0]],
   },
 } as const;
+
+/**
+ * As paradas, já compostas sobre o fundo — **sem canal alfa nenhum**.
+ *
+ * ## Por que não dá para usar transparência aqui
+ *
+ * A primeira versão escreveu as paradas como `rgba(…, 0.72)`. No Android o
+ * `stopColor` do `react-native-svg` **descarta o alfa**, e as quatro paradas
+ * do mesmo creme viraram quatro tons opacos: um disco chapado.
+ *
+ * A segunda passou o alfa em `stopOpacity`, que é a forma correta em SVG. No
+ * aparelho a luz **sumiu**.
+ *
+ * As duas falharam do mesmo jeito e por baixo é o mesmo motivo: nesta
+ * biblioteca, neste Android, a transparência dentro de gradiente não é
+ * confiável. Insistir nela é apostar de novo.
+ *
+ * ## O que isto faz em vez disso
+ *
+ * A luz não apaga por alfa: ela **termina na cor do fundo**. Cada parada é a
+ * cor do documento já misturada com `colors.bg` na opacidade que ele pede, e
+ * o resultado vai para o SVG opaco. Sobre um fundo liso — que é o caso aqui,
+ * na tela inicial e na Composta — o que se vê é exatamente o mesmo.
+ *
+ * A conta acontece no tema, então trocar o fundo continua acertando as
+ * paradas. O que isto não suporta é a luz sobre algo que não seja `colors.bg`:
+ * ali a borda apareceria, porque ela é a cor do fundo e não o nada.
+ */
+const misturar = (cor: string, alfa: number, fundo: string) => {
+  const canais = (h: string) => [1, 3, 5].map((i) => parseInt(h.substr(i, 2), 16));
+  const [f, c] = [canais(fundo), canais(cor)];
+  const hex = c.map((v, i) => Math.round(v * alfa + f[i] * (1 - alfa)).toString(16).padStart(2, '0'));
+  return `#${hex.join('')}`;
+};
 
 /**
  * `quente` é a luz da tela inicial: sol de janela, creme, a mesma todo dia.
@@ -198,9 +202,9 @@ export function LuzDeEstufa({
   children: React.ReactNode;
   style?: StyleProp<ViewStyle>;
 }) {
-  const { tema } = useTema();
+  const { tema, colors } = useTema();
   const id = useId().replace(/[^a-zA-Z0-9]/g, '');
-  const cores = LUZ[tema][tom];
+  const cores = LUZ[tema][tom].map(([cor, alfa]) => misturar(cor, alfa, colors.bg));
 
   /*
     Dois tamanhos, e é importante não confundi-los.
@@ -238,7 +242,6 @@ export function LuzDeEstufa({
   }, []);
 
   const escala = pulso.interpolate({ inputRange: [0, 1], outputRange: [1, PULSO_ESCALA] });
-  const opacidade = pulso.interpolate({ inputRange: [0, 1], outputRange: [0.95, 1] });
 
   return (
     <View
@@ -262,7 +265,13 @@ export function LuzDeEstufa({
     >
       <Animated.View
         pointerEvents="none"
-        style={{ position: 'absolute', opacity: opacidade, transform: [{ scale: escala }] }}
+        /*
+          Só escala. O documento também anima a opacidade de 0,95 a 1, mas ali
+          o disco é translúcido; aqui ele é opaco e termina na cor do fundo, e
+          baixar a opacidade de uma forma opaca só a lava por igual — some o
+          efeito e sobra o custo.
+        */
+        style={{ position: 'absolute', transform: [{ scale: escala }] }}
       >
         <Svg width={tela} height={tela}>
           <Defs>
@@ -273,12 +282,7 @@ export function LuzDeEstufa({
             */}
             <RadialGradient id={`halo-${id}`} cx="50%" cy={CENTRO_Y} r={RAIO}>
               {PARADAS.map((offset, i) => (
-                <Stop
-                  key={offset}
-                  offset={offset}
-                  stopColor={cores[i][0]}
-                  stopOpacity={cores[i][1]}
-                />
+                <Stop key={offset} offset={offset} stopColor={cores[i]} />
               ))}
             </RadialGradient>
           </Defs>
