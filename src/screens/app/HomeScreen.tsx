@@ -5,6 +5,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import {
   AnimatedSprout,
   BalaoDoBroto,
+  LuzDeEstufa,
   Button,
   Card,
   GrowthNotice,
@@ -202,21 +203,47 @@ export function HomeScreen({
     >
       <View style={{ flexDirection: 'row', alignItems: 'center' }}>
         <View style={{ flex: 1 }}>
-          <Text style={{ color: colors.textPrimary, fontFamily: fonts.display.bold, fontSize: 24 }}>Oi, {name}</Text>
+          <Text style={{ color: colors.textPrimary, fontFamily: fonts.display.bold, fontSize: 25 }}>Oi, {name}</Text>
         </View>
-        <View style={{ flexDirection: 'row', gap: 4 }}>
+        <View style={{ flexDirection: 'row', gap: 6 }}>
           <IconButton
             accessibilityLabel="Lembretes"
             icon={<Icon name="bell" />}
             onPress={onOpenReminders}
+            forma="vidro"
           />
           <IconButton
             accessibilityLabel="Configurações"
             icon={<Icon name="settings" />}
             onPress={onOpenSettings}
+            forma="vidro"
           />
         </View>
       </View>
+
+      {/*
+        A pergunta do dia, em versalete.
+
+        Ela não é conteúdo: é o que emoldura a saudação, do mesmo jeito que uma
+        linha de olho emoldura um título. Em caixa alta espaçada e no cinza de
+        apoio ela lê como rótulo — a pessoa passa por ela sem parar, que é o
+        certo, porque quem tem algo a dizer aqui é o broto logo abaixo.
+
+        Ficou colada no "Oi, Ana" (o `gap` do container é comido por uma margem
+        negativa) porque as duas são uma unidade só: nome e pergunta.
+      */}
+      <Text
+        style={{
+          marginTop: -14,
+          fontFamily: fonts.body.bold,
+          fontSize: 13,
+          letterSpacing: 1.3,
+          textTransform: 'uppercase',
+          color: colors.textSecondary,
+        }}
+      >
+        Vamos cuidar de você hoje?
+      </Text>
 
       {voltando && <VoltaCard dias={ausente} />}
 
@@ -258,7 +285,9 @@ export function HomeScreen({
           onPress={onOpenGarden}
           style={{ marginHorizontal: -20 }}
         >
-          <AnimatedSprout mood={mood} stage={stage} size={sproutSize} breathe />
+          <LuzDeEstufa tamanho={sproutSize}>
+            <AnimatedSprout mood={mood} stage={stage} size={sproutSize} breathe />
+          </LuzDeEstufa>
         </Pressable>
         <Text style={{ color: colors.textPrimary, fontFamily: fonts.body.bold, fontSize: 16 }}>
           Como você está se sentindo hoje?

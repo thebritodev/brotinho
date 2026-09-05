@@ -15,6 +15,7 @@ export { GrowthNotice } from './brand/GrowthNotice';
 export { HarvestNotice } from './brand/HarvestNotice';
 export { ProgressStem } from './brand/ProgressStem';
 export { BalaoDoBroto } from './brand/BalaoDoBroto';
+export { LuzDeEstufa } from './brand/LuzDeEstufa';
 export { InsightCard } from './brand/InsightCard';
 export { LinksDaAssinatura } from './brand/LinksDaAssinatura';
 export { AjudaAgora } from './brand/AjudaAgora';
