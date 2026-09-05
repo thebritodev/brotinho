@@ -140,7 +140,19 @@ type Props = {
 };
 
 /** Icon — conjunto de ícones em contorno, no mesmo peso de traço do mascote. */
-export function Icon({ name, size = 22, color, strokeWidth = 2 }: Props) {
+/*
+  O traço afinou de 2 para 1,8.
+
+  É o valor do documento de redesenho, e o mais usado nele: 140 ocorrências
+  contra 112 do 2 — e as de 2 são o contorno do broto, que é personagem e tem
+  peso próprio, não ícone de interface.
+
+  Dois décimos parecem nada escrito assim, mas é a mesma decisão que já afinou
+  o contorno do mascote de 3 para 2,2: é a espessura, mais que a forma, que
+  separa "parece brinquedo" de "parece objeto". Num ícone de 22 pontos, 1,8 é
+  cerca de 10% menos tinta em cada traço, e o conjunto inteiro assenta.
+*/
+export function Icon({ name, size = 22, color, strokeWidth = 1.8 }: Props) {
   // O padrão era '#3A3630' escrito à mão — o `brown900` do tema claro. Vindo do
   // tema, ele acompanha: no escuro o ícone sem cor explícita clareia junto.
   const { colors } = useTema();
