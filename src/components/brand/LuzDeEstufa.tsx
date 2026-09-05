@@ -1,6 +1,6 @@
 import React, { useEffect, useId, useRef } from 'react';
 import { Animated, Easing, View, type StyleProp, type ViewStyle } from 'react-native';
-import Svg, { Defs, Ellipse, RadialGradient, Stop } from 'react-native-svg';
+import Svg, { Circle } from 'react-native-svg';
 
 import { useTema } from '../../theme';
 
@@ -115,11 +115,59 @@ const LUZ = {
  * paradas. O que isto não suporta é a luz sobre algo que não seja `colors.bg`:
  * ali a borda apareceria, porque ela é a cor do fundo e não o nada.
  */
+const canais = (h: string) => [1, 3, 5].map((i) => parseInt(h.substr(i, 2), 16));
+const paraHex = (c: number[]) =>
+  `#${c.map((v) => Math.round(v).toString(16).padStart(2, '0')).join('')}`;
+
+/** A cor do documento composta sobre o fundo, na opacidade que ele pede. */
 const misturar = (cor: string, alfa: number, fundo: string) => {
-  const canais = (h: string) => [1, 3, 5].map((i) => parseInt(h.substr(i, 2), 16));
   const [f, c] = [canais(fundo), canais(cor)];
-  const hex = c.map((v, i) => Math.round(v * alfa + f[i] * (1 - alfa)).toString(16).padStart(2, '0'));
-  return `#${hex.join('')}`;
+  return paraHex(c.map((v, i) => v * alfa + f[i] * (1 - alfa)));
+};
+
+/**
+ * A luz desenhada como **anéis concêntricos opacos**, e não como gradiente.
+ *
+ * ## Por que não gradiente
+ *
+ * Três tentativas de `<RadialGradient>` deram três resultados errados no
+ * aparelho, todas certas no navegador:
+ *
+ * 1. alfa dentro de `rgba()` no `stopColor` — o Android descarta o alfa, e as
+ *    paradas viram opacas: um disco chapado;
+ * 2. alfa em `stopOpacity`, que é a forma correta em SVG — a luz sumiu;
+ * 3. paradas opacas terminando na cor do fundo — a luz sumiu de novo.
+ *
+ * A terceira não tem alfa em lugar nenhum, então o problema deixou de poder
+ * ser transparência. O que sobra em comum entre as três é a **geometria do
+ * gradiente em porcentagem** (`cx`, `cy` e `r` como `'45%'`), que resolve
+ * contra a caixa do elemento — e isso é território de bug antigo no
+ * `react-native-svg` do Android. Quando não resolve, o preenchimento colapsa
+ * para uma cor só: opaca na tentativa 1 (disco visível) e igual ao fundo nas
+ * tentativas 2 e 3 (invisível). É a única explicação que cobre as três.
+ *
+ * ## O que isto faz
+ *
+ * Desenha a mesma curva com círculos: do maior ao menor, cada um numa cor
+ * interpolada entre as paradas do documento, todos opacos, todos com raio em
+ * **pixel absoluto**. Não há gradiente, porcentagem, alfa nem unidade de
+ * caixa — só a primitiva mais simples que o SVG tem.
+ *
+ * Com 48 anéis num raio de ~135, cada faixa tem menos de 3 pixels, e a maior
+ * diferença entre duas cores vizinhas é de um ponto por canal. Não há degrau
+ * para ver.
+ */
+const ANEIS = 48;
+
+/** A cor da luz a `t` do centro (0 a 1), pelas paradas do documento. */
+const corEm = (t: number, paradas: string[], posicoes: readonly number[]) => {
+  const i = posicoes.findIndex((p, k) => k > 0 && t <= p);
+  const fim = i === -1 ? posicoes.length - 1 : i;
+  const ini = Math.max(0, fim - 1);
+  const vao = posicoes[fim] - posicoes[ini];
+  const f = vao === 0 ? 0 : (t - posicoes[ini]) / vao;
+  const [a, b] = [canais(paradas[ini]), canais(paradas[fim])];
+  return paraHex(a.map((v, k) => v + (b[k] - v) * f));
 };
 
 /**
@@ -176,10 +224,11 @@ const PULSO_ESCALA = 1.045;
  * a luz. Essa margem é transparente: se o quadro do broto a cortar, corta
  * pixel vazio.
  */
-const CENTRO_Y = '45%';
-const RAIO = '45%';
-/** Núcleo, meio, cauda longa e o zero na borda. */
-const PARADAS = ['0', '0.3', '0.62', '1'] as const;
+/** Onde o centro da luz cai na tela, e até onde ela vai. */
+const CENTRO_Y = 0.45;
+const RAIO = 0.45;
+/** Núcleo, meio, cauda longa e a cor do fundo na borda. */
+const PARADAS = [0, 0.3, 0.62, 1] as const;
 /** A tela do SVG dividida pela luz visível — ver acima. */
 const SOBRA = 1.112;
 
@@ -266,33 +315,39 @@ export function LuzDeEstufa({
       <Animated.View
         pointerEvents="none"
         /*
-          Só escala. O documento também anima a opacidade de 0,95 a 1, mas ali
-          o disco é translúcido; aqui ele é opaco e termina na cor do fundo, e
-          baixar a opacidade de uma forma opaca só a lava por igual — some o
-          efeito e sobra o custo.
+          Largura e altura explícitas.
+
+          Uma `View` absoluta sem dimensão pega o tamanho do filho na web, mas
+          no Android o resultado depende do Yoga e do `overflow` — e uma caixa
+          de zero por zero recorta o SVG inteiro. Como a luz sumiu no aparelho
+          e apareceu no navegador, esta era uma das duas suspeitas; custa uma
+          linha eliminá-la.
         */
-        style={{ position: 'absolute', transform: [{ scale: escala }] }}
+        style={{
+          position: 'absolute',
+          width: tela,
+          height: tela,
+          transform: [{ scale: escala }],
+        }}
       >
         <Svg width={tela} height={tela}>
-          <Defs>
-            {/*
-              O centro do gradiente sobe para 38% da altura **do círculo**, que
-              é onde fica a cabeça. Centrado no desenho inteiro, ele acenderia o
-              vaso em vez do rosto.
-            */}
-            <RadialGradient id={`halo-${id}`} cx="50%" cy={CENTRO_Y} r={RAIO}>
-              {PARADAS.map((offset, i) => (
-                <Stop key={offset} offset={offset} stopColor={cores[i]} />
-              ))}
-            </RadialGradient>
-          </Defs>
-          <Ellipse
-            cx={tela / 2}
-            cy={tela / 2}
-            rx={tela / 2}
-            ry={tela / 2}
-            fill={`url(#halo-${id})`}
-          />
+          {/*
+            Do maior para o menor: o de fora é a cor do fundo, o de dentro é o
+            núcleo. Desenhados nesta ordem, cada um cobre o anterior e o que
+            sobra de cada é o anel.
+          */}
+          {Array.from({ length: ANEIS }, (_, i) => {
+            const t = 1 - i / (ANEIS - 1);
+            return (
+              <Circle
+                key={i}
+                cx={tela / 2}
+                cy={tela * CENTRO_Y}
+                r={tela * RAIO * t}
+                fill={corEm(t, cores, PARADAS)}
+              />
+            );
+          })}
         </Svg>
       </Animated.View>
       {children}
