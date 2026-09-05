@@ -44,13 +44,22 @@ const SWAY_STEP_MS = 110;
  * é **reação** — a planta levou um toque e responde, forte e amortecido. Este
  * é **estado**: ela está viva e o ar mexe com ela, o tempo todo, de leve.
  *
- * Dois graus e meio para cada lado, num ciclo de nove segundos. A amplitude é
- * quase nada de propósito: numa tela onde a pessoa vai ficar parada, movimento
- * que se nota vira movimento que incomoda. O que se quer é que a tela não
- * pareça uma fotografia — e para isso um grau a mais já seria demais.
+ * **Nove segundos era o número do documento, e no aparelho é arrasto.** Num
+ * mockup de navegador, parado numa página, uma travessia lenta lê como calma.
+ * Na mão, com a tela viva, ela lê como travamento: o olho não completa o
+ * movimento, só percebe que alguma coisa está fora do lugar e devagar.
+ *
+ * Quatro segundos é o ciclo de uma folha ao vento fraco de verdade, e é o que
+ * o olho reconhece como algo vivo em vez de algo lento. A amplitude subiu
+ * junto, de 2,5 para 3 graus: travessia mais curta precisa de um pouco mais de
+ * percurso para não virar tremida.
+ *
+ * Continua pequena de propósito. Numa tela onde a pessoa fica parada olhando,
+ * movimento que se nota vira movimento que incomoda — o que se quer é só que a
+ * tela não pareça uma fotografia.
  */
-const BAMBOLEIO_GRAUS = 2.5;
-const BAMBOLEIO_MS = 9000;
+const BAMBOLEIO_GRAUS = 3;
+const BAMBOLEIO_MS = 4000;
 
 type Props = {
   mood: Mood;

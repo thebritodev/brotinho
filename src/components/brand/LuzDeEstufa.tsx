@@ -28,16 +28,16 @@ import { useTema } from '../../theme';
  * plataformas. Entre uma API experimental e uma biblioteca que já está aqui, a
  * escolha é a chata.
  *
- * ## As duas peças
+ * ## Só o halo, e por quê
  *
- * O **halo** é quente e fica atrás; o centro sobe para 38% da altura porque é
- * onde fica a cabeça do broto, e luz centrada no desenho inteiro acenderia o
- * vaso em vez do rosto.
+ * Houve aqui uma segunda camada: uma sombra difusa no chão, para o vaso pousar
+ * na tela. Ela saiu porque **já havia uma** — o próprio `Sprout` desenha a
+ * sombra de contato, colada na base do vaso. As duas somadas davam uma mancha
+ * cinza chapada embaixo da planta, sem forma, que é o oposto do que sombra
+ * nenhuma faz. Uma sombra boa é melhor que duas.
  *
- * A **sombra no chão** é larga e rasa — 210 por 26 — e existe para o vaso
- * pousar na tela em vez de flutuar. É diferente da elipse que o próprio `Sprout`
- * desenha: aquela é a sombra de contato, colada na base do vaso; esta é a
- * mancha difusa em volta, que só faz sentido quando há luz de ambiente.
+ * O que sobrou é o halo: centro no terço de cima, que é onde fica a cabeça —
+ * luz centrada no desenho inteiro acenderia o vaso em vez do rosto.
  */
 
 /**
@@ -58,7 +58,6 @@ const LUZ = {
   claro: {
     halo: ['rgba(255,252,240,0.95)', 'rgba(252,239,199,0.72)', 'rgba(252,239,199,0)'],
     haloVerde: ['rgba(240,247,242,0.95)', 'rgba(227,237,230,0.62)', 'rgba(227,237,230,0)'],
-    chao: ['rgba(58,54,48,0.2)', 'rgba(58,54,48,0)'],
   },
   escuro: {
     /*
@@ -72,14 +71,12 @@ const LUZ = {
     */
     halo: ['rgba(215,185,95,0.3)', 'rgba(215,185,95,0.1)', 'rgba(33,30,26,0)'],
     haloVerde: ['rgba(76,123,98,0.35)', 'rgba(76,123,98,0.12)', 'rgba(33,30,26,0)'],
-    chao: ['rgba(0,0,0,0.55)', 'rgba(0,0,0,0)'],
   },
 } as const;
 
 export function LuzDeEstufa({
   tamanho,
   tom = 'quente',
-  semChao = false,
   children,
   style,
 }: {
@@ -97,56 +94,53 @@ export function LuzDeEstufa({
    */
   tamanho: number;
   tom?: TomDaLuz;
-  /**
-   * Some com a sombra do chão.
-   *
-   * Para quando o broto não está pousado em nada — dentro do círculo da
-   * respiração, por exemplo, onde ele flutua no meio de um disco. Sombra ali
-   * viraria uma mancha dentro do círculo, projetada por nada.
-   */
-  semChao?: boolean;
   children: React.ReactNode;
   style?: StyleProp<ViewStyle>;
 }) {
   const { tema } = useTema();
   const id = useId().replace(/[^a-zA-Z0-9]/g, '');
   const doTema = LUZ[tema];
-  const cores = { halo: tom === 'verde' ? doTema.haloVerde : doTema.halo, chao: doTema.chao };
+  const cores = tom === 'verde' ? doTema.haloVerde : doTema.halo;
 
   const [medida, setMedida] = useState<{ largura: number; altura: number } | null>(null);
   const aoMedir = (e: LayoutChangeEvent) => {
     const { width, height } = e.nativeEvent.layout;
     if (width > 0 && height > 0) setMedida({ largura: width, altura: height });
   };
-  /* O lado maior do desenho: é ele que a luz precisa cobrir. */
-  const lado = medida ? Math.max(medida.largura, medida.altura) : tamanho;
 
   /*
-    O halo tem **exatamente** o tamanho do desenho, e a luz se espalha por
-    dentro dele.
+    O halo é um **círculo**, e cabe na caixa. As duas coisas custaram uma
+    versão cada.
 
-    Antes era 1,32 vez maior, para a luz escapar do objeto que ilumina. Só que
-    um filho absoluto maior que o pai transborda, e transbordo precisa de
-    `overflow: visible` para não virar um retângulo cortado — e `overflow:
-    visible` é a mesma propriedade que deixa ele pintar **por cima dos
-    vizinhos**. No aparelho o halo cobria o balão de fala acima e a pergunta
-    abaixo. Não dava para ter as duas: ou ele é cortado, ou ele invade.
+    Primeiro ele era 1,32 vez o desenho, para a luz escapar do objeto que
+    ilumina. Um filho absoluto maior que o pai transborda, e transbordo exige
+    `overflow: visible` para não virar retângulo cortado — que é a mesma
+    propriedade que o deixa pintar por cima dos vizinhos. No aparelho ele
+    cobria o balão de fala acima e a pergunta abaixo.
 
-    A saída é não transbordar. O halo passa a caber na caixa, e o alcance da
-    luz vem do gradiente em vez do tamanho: a parada transparente foi de 70%
-    para 100% do raio, então ela apaga na borda em vez de bem antes dela. O
-    espalhamento visível é o mesmo; o que sumiu foi a sobra que ninguém via e
-    que atrapalhava todo mundo.
+    Aí eu o fiz preencher a caixa e estiquei o gradiente até 100% do raio para
+    compensar o tamanho perdido. Pior: a caixa do broto é mais alta que larga,
+    então virou um **oval**, e a parada transparente lá na borda deixou de ter
+    onde desbotar. Deixou de parecer luz e passou a parecer uma forma desenhada
+    atrás do broto — que é exatamente o que o disco de humor era, e que já
+    tinha sido removido uma vez.
+
+    Luz não tem contorno. Então: círculo, não elipse; centrado na cabeça, que é
+    onde ela bate; com diâmetro limitado pelo que cabe acima desse centro, para
+    não voltar a transbordar; e apagando de volta em 70% do raio, como no
+    documento. O resultado é uma mancha macia perto do rosto, sem borda.
   */
-  const larguraDoHalo = medida?.largura ?? tamanho;
-  const alturaDoHalo = medida?.altura ?? tamanho;
+  const larguraDaCaixa = medida?.largura ?? tamanho;
+  const alturaDaCaixa = medida?.altura ?? tamanho;
+  /* A luz bate na cabeça, e a cabeça fica no terço de cima do desenho. */
+  const centroY = alturaDaCaixa * 0.36;
   /*
-    A sombra é larga e rasa, na proporção do documento: 210 por 26 num broto de
-    300, ou seja 0,7 por 0,087. Mais alta que isso ela deixa de parecer sombra
-    no chão e passa a parecer um buraco embaixo do vaso.
+    O diâmetro é o dobro da distância até o topo — é o maior círculo que cabe
+    sem estourar por cima. Limitado também pela largura, para um broto largo e
+    baixo não ganhar um halo que vaza pelos lados.
   */
-  const larguraDoChao = larguraDoHalo * 0.86;
-  const alturaDoChao = lado * 0.087;
+  const diametro = Math.min(centroY * 2, larguraDaCaixa);
+
 
   return (
     <View
@@ -159,65 +153,28 @@ export function LuzDeEstufa({
         style,
       ]}
     >
-      {/*
-        Duas camadas, e cada uma se ancora onde faz sentido.
-
-        O **halo** é centrado no desenho: é luz caindo sobre ele.
-
-        A **sombra** se ancora no rodapé do quadro, que é onde a base do vaso
-        está. Na primeira versão as duas moravam no mesmo SVG centrado, e a
-        sombra caía num ponto calculado do halo — 88% da altura dele. Como o
-        halo é maior que o broto, aquilo pousava bem **abaixo** do vaso: virou
-        uma mancha escura atravessando a pergunta "Como você está se sentindo
-        hoje?", solta no meio da tela, sem nada por cima que a projetasse.
-
-        Ancorar no rodapé acerta em qualquer tamanho de broto, sem depender de
-        adivinhar a altura do desenho a partir da do halo.
-      */}
       <Svg
-        width={larguraDoHalo}
-        height={alturaDoHalo}
+        width={larguraDaCaixa}
+        height={alturaDaCaixa}
         style={{ position: 'absolute' }}
         pointerEvents="none"
       >
         <Defs>
-          <RadialGradient id={`halo-${id}`} cx="50%" cy="38%" r="50%">
-            <Stop offset="0" stopColor={cores.halo[0]} />
-            <Stop offset="0.5" stopColor={cores.halo[1]} />
-            <Stop offset="1" stopColor={cores.halo[2]} />
+          <RadialGradient id={`halo-${id}`} cx="50%" cy="50%" r="50%">
+            <Stop offset="0" stopColor={cores[0]} />
+            <Stop offset="0.42" stopColor={cores[1]} />
+            <Stop offset="0.7" stopColor={cores[2]} />
           </RadialGradient>
         </Defs>
         <Ellipse
-          cx={larguraDoHalo / 2}
-          cy={alturaDoHalo / 2}
-          rx={larguraDoHalo / 2}
-          ry={alturaDoHalo / 2}
+          cx={larguraDaCaixa / 2}
+          cy={centroY}
+          rx={diametro / 2}
+          ry={diametro / 2}
           fill={`url(#halo-${id})`}
         />
       </Svg>
 
-      {!semChao && (
-      <Svg
-        width={larguraDoChao}
-        height={alturaDoChao}
-        style={{ position: 'absolute', bottom: 0 }}
-        pointerEvents="none"
-      >
-        <Defs>
-          <RadialGradient id={`chao-${id}`} cx="50%" cy="50%" r="50%">
-            <Stop offset="0" stopColor={cores.chao[0]} />
-            <Stop offset="0.7" stopColor={cores.chao[1]} />
-          </RadialGradient>
-        </Defs>
-        <Ellipse
-          cx={larguraDoChao / 2}
-          cy={alturaDoChao / 2}
-          rx={larguraDoChao / 2}
-          ry={alturaDoChao / 2}
-          fill={`url(#chao-${id})`}
-        />
-      </Svg>
-      )}
       {children}
     </View>
   );
