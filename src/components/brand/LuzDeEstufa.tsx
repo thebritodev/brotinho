@@ -116,13 +116,22 @@ const LUZ = {
  * ali a borda apareceria, porque ela é a cor do fundo e não o nada.
  */
 const canais = (h: string) => [1, 3, 5].map((i) => parseInt(h.substr(i, 2), 16));
+/** Arredonda e prende em 0–255: empurrar além do alfa pode estourar o canal. */
 const paraHex = (c: number[]) =>
-  `#${c.map((v) => Math.round(v).toString(16).padStart(2, '0')).join('')}`;
+  `#${c
+    .map((v) => Math.round(Math.max(0, Math.min(255, v))).toString(16).padStart(2, '0'))
+    .join('')}`;
 
-/** A cor do documento composta sobre o fundo, na opacidade que ele pede. */
-const misturar = (cor: string, alfa: number, fundo: string) => {
+/**
+ * A cor do documento, empurrada para longe do fundo por `alfa × força`.
+ *
+ * Com força 1 isto é exatamente a composição normal: `fundo + (cor − fundo) ×
+ * alfa`. Acima de 1 continua na mesma reta, além do que o alfa alcançaria — é
+ * o que permite aprofundar o tom sem trocar a matiz.
+ */
+const empurrar = (cor: string, alfa: number, fundo: string, forca: number) => {
   const [f, c] = [canais(fundo), canais(cor)];
-  return paraHex(c.map((v, i) => v * alfa + f[i] * (1 - alfa)));
+  return paraHex(f.map((v, i) => v + (c[i] - v) * alfa * forca));
 };
 
 /**
@@ -162,22 +171,38 @@ const ANEIS = 48;
 /**
  * Quanto a luz é mais forte aqui do que no documento. **É o único botão.**
  *
+ * ## Por que precisa existir
+ *
  * O documento foi desenhado numa maquete de navegador, e ali os valores dele
  * bastam. Num telefone não: no tema claro o núcleo é `#FFFCF0` sobre um fundo
- * `#FBF6EC` — quatro pontos de diferença por canal, o mesmo creme. A parada
- * mais visível, a de 30%, separava-se do fundo por 27 pontos num canal só.
+ * `#FBF6EC` — quatro pontos de diferença por canal, o mesmo creme.
  *
- * Isso ficou provado, e não suposto: um marcador de diagnóstico no lugar da
- * luz apareceu no aparelho, o que descartou montagem, geometria e recorte de
- * uma vez. Sobrou intensidade.
+ * Isso ficou provado, não suposto: um marcador berrante posto no lugar da luz
+ * apareceu no aparelho, o que descartou montagem, geometria e recorte de uma
+ * vez. Sobrou intensidade.
  *
- * Multiplicando as opacidades por 1,8, a parada de 30% passa de 27 para 37
- * pontos de diferença no claro, e de 18/16/7 para 33/28/12 no escuro. A curva
- * e as cores continuam sendo as de lá; só a força muda.
+ * ## Por que ele multiplica a distância, e não a opacidade
  *
- * Se ainda estiver fraca ou já estiver forte demais, é este número.
+ * A primeira versão disto multiplicava o alfa — e **satura**. Em alfa 1,0 a
+ * cor já é o `#FCEFC7` puro, que difere do fundo em 37 pontos num canal só;
+ * dobrar o multiplicador não muda mais nada porque não há para onde ir.
+ *
+ * Aqui o multiplicador atua na **distância até o fundo**: cada parada é
+ * empurrada para longe dele na direção da própria cor, e passar de 1 apenas
+ * continua na mesma reta, aprofundando o tom em vez de parar. Os canais são
+ * limitados a 0–255 no fim. A matiz do documento é preservada; o que muda é
+ * quanto dela chega à tela.
+ *
+ * ## Os números
+ *
+ * Claro em 3,0 e escuro em 2,4, e não o mesmo nos dois: sobre creme a luz
+ * compete com um fundo quase branco e precisa de mais; sobre `#211E1A`
+ * qualquer âmbar já salta, e o mesmo empurrão viraria holofote.
+ *
+ * A parada de 30% — a mais visível — passa a diferir do fundo em 80 pontos no
+ * claro (eram 27) e em 55/47/21 no escuro (eram 18/16/7).
  */
-const FORCA = 1.8;
+const FORCA = { claro: 3, escuro: 2.4 } as const;
 
 /** A cor da luz a `t` do centro (0 a 1), pelas paradas do documento. */
 const corEm = (t: number, paradas: string[], posicoes: readonly number[]) => {
@@ -274,7 +299,7 @@ export function LuzDeEstufa({
   const { tema, colors } = useTema();
   const id = useId().replace(/[^a-zA-Z0-9]/g, '');
   const cores = LUZ[tema][tom].map(([cor, alfa]) =>
-    misturar(cor, Math.min(1, alfa * FORCA), colors.bg),
+    empurrar(cor, alfa, colors.bg, FORCA[tema]),
   );
 
   /*
