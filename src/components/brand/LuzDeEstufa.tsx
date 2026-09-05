@@ -1,5 +1,5 @@
-import React, { useId } from 'react';
-import { View, type StyleProp, type ViewStyle } from 'react-native';
+import React, { useId, useState } from 'react';
+import { View, type LayoutChangeEvent, type StyleProp, type ViewStyle } from 'react-native';
 import Svg, { Defs, Ellipse, RadialGradient, Stop } from 'react-native-svg';
 
 import { useTema } from '../../theme';
@@ -40,10 +40,24 @@ import { useTema } from '../../theme';
  * mancha difusa em volta, que só faz sentido quando há luz de ambiente.
  */
 
-/** As duas manchas, nos dois temas. Ver o documento de redesenho, seção 3. */
+/**
+ * Dois tons de luz, e a diferença é de lugar, não de gosto.
+ *
+ * `quente` é a luz da tela inicial: sol de janela, creme, a mesma todo dia.
+ *
+ * `verde` é a da Composta e da respiração guiada. Ali o broto não está numa
+ * janela — está no meio de um exercício, e a tela inteira é verde: o cartão, o
+ * botão, o contador. Uma luz creme no meio disso apareceria como uma segunda
+ * fonte, de outro ambiente. O verde some no conjunto, que é o que se quer de
+ * luz: notar o que ela ilumina, não ela.
+ */
+export type TomDaLuz = 'quente' | 'verde';
+
+/** As manchas, nos dois temas. Ver o documento de redesenho, seções 3, 4 e 13. */
 const LUZ = {
   claro: {
     halo: ['rgba(255,252,240,0.95)', 'rgba(252,239,199,0.72)', 'rgba(252,239,199,0)'],
+    haloVerde: ['rgba(240,247,242,0.95)', 'rgba(227,237,230,0.62)', 'rgba(227,237,230,0)'],
     chao: ['rgba(58,54,48,0.2)', 'rgba(58,54,48,0)'],
   },
   escuro: {
@@ -57,23 +71,55 @@ const LUZ = {
       um abajur.
     */
     halo: ['rgba(215,185,95,0.3)', 'rgba(215,185,95,0.1)', 'rgba(33,30,26,0)'],
+    haloVerde: ['rgba(76,123,98,0.35)', 'rgba(76,123,98,0.12)', 'rgba(33,30,26,0)'],
     chao: ['rgba(0,0,0,0.55)', 'rgba(0,0,0,0)'],
   },
 } as const;
 
 export function LuzDeEstufa({
   tamanho,
+  tom = 'quente',
+  semChao = false,
   children,
   style,
 }: {
-  /** A largura do broto — o halo é dimensionado a partir dela. */
+  /**
+   * O `size` que o broto recebeu — usado só até ele se medir.
+   *
+   * **Não é o tamanho em pixels do desenho**, e essa confusão custou uma
+   * versão: `Sprout` trata `size` como escala sobre uma caixa de 200, então
+   * `size={120}` desenha 53 por 80. O halo, calculado a partir de 120, saía
+   * três vezes maior que o broto — uma mancha clara enorme em volta de uma
+   * plantinha, com a borda cortada pela caixa.
+   *
+   * Por isso a medida real vem do `onLayout`. Isto aqui é só o palpite do
+   * primeiro quadro, antes de haver medida.
+   */
   tamanho: number;
+  tom?: TomDaLuz;
+  /**
+   * Some com a sombra do chão.
+   *
+   * Para quando o broto não está pousado em nada — dentro do círculo da
+   * respiração, por exemplo, onde ele flutua no meio de um disco. Sombra ali
+   * viraria uma mancha dentro do círculo, projetada por nada.
+   */
+  semChao?: boolean;
   children: React.ReactNode;
   style?: StyleProp<ViewStyle>;
 }) {
   const { tema } = useTema();
   const id = useId().replace(/[^a-zA-Z0-9]/g, '');
-  const cores = LUZ[tema];
+  const doTema = LUZ[tema];
+  const cores = { halo: tom === 'verde' ? doTema.haloVerde : doTema.halo, chao: doTema.chao };
+
+  const [medida, setMedida] = useState<{ largura: number; altura: number } | null>(null);
+  const aoMedir = (e: LayoutChangeEvent) => {
+    const { width, height } = e.nativeEvent.layout;
+    if (width > 0 && height > 0) setMedida({ largura: width, altura: height });
+  };
+  /* O lado maior do desenho: é ele que a luz precisa cobrir. */
+  const lado = medida ? Math.max(medida.largura, medida.altura) : tamanho;
 
   /*
     O halo é maior que o broto de propósito.
@@ -81,17 +127,40 @@ export function LuzDeEstufa({
     Em 1,0 ele viraria um contorno aceso rente ao desenho. A luz precisa
     escapar do objeto que ilumina — o desenho fica dentro dela, não do lado.
   */
-  const halo = tamanho * 1.32;
+  const halo = lado * 1.32;
   /*
     A sombra é larga e rasa, na proporção do documento: 210 por 26 num broto de
     300, ou seja 0,7 por 0,087. Mais alta que isso ela deixa de parecer sombra
     no chão e passa a parecer um buraco embaixo do vaso.
   */
-  const larguraDoChao = tamanho * 0.7;
-  const alturaDoChao = tamanho * 0.087;
+  const larguraDoChao = (medida?.largura ?? lado) * 0.86;
+  const alturaDoChao = lado * 0.087;
 
   return (
-    <View style={[{ alignItems: 'center', justifyContent: 'center' }, style]}>
+    <View
+      onLayout={aoMedir}
+      style={[
+        {
+          alignItems: 'center',
+          justifyContent: 'center',
+          /*
+            Sem isto o halo vira um retângulo.
+
+            Ele é 1,32 vez o broto e mora num `position: absolute` que
+            transborda a caixa — e caixa que transborda é cortada: o
+            `react-native-web` põe `overflow: hidden` em toda `View`, e o
+            Android faz o mesmo. O que aparecia era a mancha serrada num
+            retângulo do tamanho exato do desenho, que é o oposto de luz.
+
+            Foi assim que apareceu na Composta, onde o broto é menor e a
+            diferença fica óbvia. Na tela inicial passou despercebido porque
+            ali o broto é grande e o corte caía fora do que se olha.
+          */
+          overflow: 'visible',
+        },
+        style,
+      ]}
+    >
       {/*
         Duas camadas, e cada uma se ancora onde faz sentido.
 
@@ -118,6 +187,7 @@ export function LuzDeEstufa({
         <Ellipse cx={halo / 2} cy={halo / 2} rx={halo / 2} ry={halo / 2} fill={`url(#halo-${id})`} />
       </Svg>
 
+      {!semChao && (
       <Svg
         width={larguraDoChao}
         height={alturaDoChao}
@@ -138,6 +208,7 @@ export function LuzDeEstufa({
           fill={`url(#chao-${id})`}
         />
       </Svg>
+      )}
       {children}
     </View>
   );

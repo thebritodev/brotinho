@@ -3,6 +3,7 @@ import { Pressable, ScrollView, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import {
+  LuzDeEstufa,
   AjudaAgora,
   Button,
   Chip,
@@ -247,7 +248,10 @@ export function CompostaScreen({
           showsVerticalScrollIndicator={false}
         >
           <View style={{ alignItems: 'center', gap: 12 }}>
-            <Sprout mood="leve" stage={2} size={120} />
+            {/* Halo verde: aqui a tela inteira e verde — ver `LuzDeEstufa`. */}
+            <LuzDeEstufa tamanho={120} tom="verde">
+              <Sprout mood="leve" stage={2} size={120} />
+            </LuzDeEstufa>
             <Text
               style={{
                 color: colors.textPrimary,
@@ -584,7 +588,9 @@ export function CompostaScreen({
               </View>
             </View>
 
-            <Sprout mood={humor} stage={estágio} size={150} />
+            <LuzDeEstufa tamanho={150} tom="verde">
+              <Sprout mood={humor} stage={estágio} size={150} />
+            </LuzDeEstufa>
             <FallingWords tick={session.repTick} thought={thought.trim() || SUGESTOES[0]} />
           </View>
 

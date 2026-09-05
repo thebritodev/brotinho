@@ -2,7 +2,7 @@ import { setAudioModeAsync, useAudioPlayer } from 'expo-audio';
 import React, { useEffect, useRef, useState } from 'react';
 import { Animated, Easing, Text, View } from 'react-native';
 
-import { Button } from '../../components';
+import { Button, Sprout } from '../../components';
 import type { BreathingPhase } from '../../data/practices';
 import { toqueMedio } from '../../services/toque';
 import { useAppState } from '../../state/AppStateProvider';
@@ -139,13 +139,31 @@ export function BreathingGuide({ phases, cycles, onDone, onCancel }: Props) {
             backgroundColor: palette.green100,
             alignItems: 'center',
             justifyContent: 'center',
+            gap: 2,
             transform: [{ scale }],
           }}
         >
+          {/*
+            O broto dentro do círculo, respirando junto.
+
+            O disco inflava e esvaziava sozinho, com um número no meio. Quem
+            está no exercício olha para ele por dois minutos seguidos, e um
+            número crescendo e encolhendo é um cronômetro — a pessoa fica
+            contando em vez de respirando.
+
+            Com o broto ali, é ele que infla: a mesma animação passa a ser
+            alguém respirando junto, que é o que o exercício pede que ela faça.
+            O número continua, menor e abaixo dele, para quem quiser conferir.
+
+            Sem vaso e sem sombra de chão: ele não está pousado em nada aqui,
+            está no meio do ar dentro de um disco. Uma sombra ali seria
+            projetada por nada, e o vaso encheria o círculo de barro.
+          */}
+          <Sprout mood="leve" stage={2} size={92} showPot={false} />
           <Text
             style={{
               fontFamily: fonts.display.bold,
-              fontSize: 54,
+              fontSize: 30,
               color: colors.primaryStrong,
             }}
           >
