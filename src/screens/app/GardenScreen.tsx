@@ -35,7 +35,7 @@ const ROTULO_HUMOR: Record<Mood, string> = {
 };
 
 export function GardenScreen({ onBack }: { onBack: () => void }) {
-  const { colors, moodColorsFundo, palette, shadows } = useTema();
+  const { colors, moodColorsFundo, palette, shadows, vidros } = useTema();
   const insets = useSafeAreaInsets();
   const { width } = useWindowDimensions();
   const { data } = useAppState();
@@ -129,7 +129,7 @@ export function GardenScreen({ onBack }: { onBack: () => void }) {
                     flexDirection: 'row',
                     alignItems: 'center',
                     gap: 14,
-                    backgroundColor: colors.surface,
+                    ...vidros.cartao,
                     borderRadius: radius.lg,
                     padding: 14,
                     ...shadows.sm,

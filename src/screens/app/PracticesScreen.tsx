@@ -22,7 +22,7 @@ export function PracticesScreen({
   /** Prática para abrir de saída, vinda da oferta da Home. */
   alvo?: { topico: string; pratica: string } | null;
 }) {
-  const { colors, palette, shadows, tintsDosTemas } = useTema();
+  const { colors, palette, shadows, tintsDosTemas, vidros } = useTema();
   const { data } = useAppState();
   const feitas = vezesPorPratica(data);
 
@@ -290,7 +290,7 @@ export function PracticesScreen({
                     paddingVertical: 8,
                     paddingHorizontal: 12,
                     borderRadius: radius.pill,
-                    backgroundColor: colors.surface,
+                    ...vidros.cartao,
                     ...shadows.sm,
                   }}
                 >

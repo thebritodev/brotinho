@@ -41,7 +41,7 @@ export function CompostaScreen({
   /** Repassado ao CVV: a saída de quem não quer falar com ninguém agora. */
   aoFazerExercicio?: () => void;
 }) {
-  const { colors, palette, shadows } = useTema();
+  const { colors, palette, shadows, vidros } = useTema();
   const insets = useSafeAreaInsets();
   const { data, addCompost } = useAppState();
 
@@ -624,7 +624,7 @@ export function CompostaScreen({
                 flexDirection: 'row',
                 alignItems: 'center',
                 gap: 12,
-                backgroundColor: colors.surface,
+                ...vidros.cartao,
                 borderRadius: radius.lg,
                 padding: 14,
                 ...shadows.sm,

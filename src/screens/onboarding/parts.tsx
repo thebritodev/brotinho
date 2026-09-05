@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Modal, Pressable, Text, View, StyleSheet } from 'react-native';
 
 import { Button, Chip } from '../../components';
-import { radius, fonts, useTema, type Cores, type Sombras } from '../../theme';
+import { radius, fonts, useTema, type Cores, type Sombras, type Vidro } from '../../theme';
 import { TimeWheel } from './TimeWheel';
 
 /**
@@ -11,9 +11,9 @@ import { TimeWheel } from './TimeWheel';
  * Virou função porque o objeto no topo do arquivo era montado uma vez, na
  * carga do módulo, e ficaria com a cor do tema de abertura para sempre.
  */
-export const cardStyle = (colors: Cores, shadows: Sombras) =>
+export const cardStyle = (vidros: { cartao: Vidro }, shadows: Sombras) =>
   ({
-    backgroundColor: colors.surface,
+    ...vidros.cartao,
     borderRadius: radius.lg,
     ...shadows.sm,
   }) as const;
@@ -83,7 +83,7 @@ type TimeFieldProps = {
 
 /** Linha "Lembrete diário — 21:00" que abre a roda de horário em um modal. */
 export function TimeField({ label, value, onChange }: TimeFieldProps) {
-  const { colors, shadows } = useTema();
+  const { colors, shadows, vidros } = useTema();
   const [open, setOpen] = useState(false);
 
   return (
@@ -92,7 +92,7 @@ export function TimeField({ label, value, onChange }: TimeFieldProps) {
         accessibilityRole="button"
         onPress={() => setOpen(true)}
         style={{
-          ...cardStyle(colors, shadows),
+          ...cardStyle(vidros, shadows),
           flexDirection: 'row',
           alignItems: 'center',
           justifyContent: 'space-between',

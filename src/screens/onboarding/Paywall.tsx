@@ -2,7 +2,7 @@ import React from 'react';
 import { Pressable, Text, View } from 'react-native';
 
 import { Icon } from '../../components';
-import { fonts, useTema, type Cores, type Palette } from '../../theme';
+import { fonts, radius, useTema, type Cores, type Palette, type Sombra, type Vidro } from '../../theme';
 import { PLANS, PRODUTO_DO_PLANO, type PlanKey } from '../../data/onboarding';
 import { useAssinatura } from '../../state/SubscriptionProvider';
 
@@ -11,42 +11,42 @@ import { useAssinatura } from '../../state/SubscriptionProvider';
 
   O `'#fff'` de fundo virou `colors.surface`: no escuro, cartão branco sobre
   fundo escuro seria a única coisa acesa da tela.
+
+  Agora recebem também o vidro e a sombra, que substituíram o branco chapado e
+  o raio escrito à mão. Eram as duas últimas superfícies do app com raio fora
+  da escada — 14 e 12, de quando o cartão era 12 — e por isso as únicas que
+  ficariam com o canto do desenho antigo depois da mudança de geometria.
 */
+type Vidros = { cartao: Vidro; destaque: Vidro };
+
 const planCardStyle = (
-  colors: Cores,
+  vidros: Vidros,
+  sombra: Sombra,
   palette: Palette,
   selected: boolean,
   accent: boolean,
 ) => ({
   position: 'relative' as const,
-  backgroundColor: accent ? palette.green50 : colors.surface,
-  borderRadius: 14,
+  ...(accent ? vidros.destaque : vidros.cartao),
+  borderRadius: radius.lg,
   paddingVertical: 18,
   paddingHorizontal: 16,
   borderWidth: selected ? 2 : 1.5,
-  borderColor: selected ? palette.green500 : palette.brown200,
-  ...(selected
-    ? {
-        shadowColor: palette.brown900,
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.1,
-        shadowRadius: 14,
-        elevation: 4,
-      }
-    : null),
+  borderColor: selected ? palette.green500 : 'transparent',
+  ...(selected ? sombra : null),
 });
 
-const planRowStyle = (colors: Cores, palette: Palette, selected: boolean) => ({
+const planRowStyle = (vidros: Vidros, palette: Palette, selected: boolean) => ({
   flexDirection: 'row' as const,
   alignItems: 'center' as const,
   justifyContent: 'space-between' as const,
   gap: 12,
   paddingVertical: 14,
   paddingHorizontal: 16,
-  borderRadius: 12,
-  backgroundColor: colors.surface,
+  borderRadius: radius.md,
+  ...vidros.cartao,
   borderWidth: selected ? 2 : 1.5,
-  borderColor: selected ? palette.green500 : palette.brown200,
+  borderColor: selected ? palette.green500 : 'transparent',
 });
 
 type Props = {
@@ -56,7 +56,7 @@ type Props = {
 
 /** Tela de planos — destaque para o anual, com mensal ao lado e as demais opções abaixo. */
 export function Paywall({ plan, onSelectPlan }: Props) {
-  const { colors, palette } = useTema();
+  const { colors, palette, vidros, shadows } = useTema();
   const { planos } = useAssinatura();
 
   /**
@@ -131,7 +131,7 @@ export function Paywall({ plan, onSelectPlan }: Props) {
         <Pressable
           accessibilityRole="button"
           onPress={() => onSelectPlan('mensal')}
-          style={[planCardStyle(colors, palette, plan === 'mensal', false), { flex: 1 }]}
+          style={[planCardStyle(vidros, shadows.md, palette, plan === 'mensal', false), { flex: 1 }]}
         >
           <Text style={{ fontFamily: fonts.display.bold, fontSize: 17, color: palette.brown900 }}>
             Mensal
@@ -160,7 +160,7 @@ export function Paywall({ plan, onSelectPlan }: Props) {
         <Pressable
           accessibilityRole="button"
           onPress={() => onSelectPlan('anual')}
-          style={[planCardStyle(colors, palette, plan === 'anual', true), { flex: 1 }]}
+          style={[planCardStyle(vidros, shadows.md, palette, plan === 'anual', true), { flex: 1 }]}
         >
           <View
             style={{
@@ -226,7 +226,7 @@ export function Paywall({ plan, onSelectPlan }: Props) {
         </Text>
         <View style={{ gap: 8 }}>
           {(['semanal', 'vitalicio'] as PlanKey[]).map((key) => (
-            <Pressable accessibilityRole="button" key={key} onPress={() => onSelectPlan(key)} style={planRowStyle(colors, palette, plan === key)}>
+            <Pressable accessibilityRole="button" key={key} onPress={() => onSelectPlan(key)} style={planRowStyle(vidros, palette, plan === key)}>
               <View style={{ gap: 2 }}>
                 <Text
                   style={{ fontFamily: fonts.display.bold, fontSize: 15, color: palette.brown900 }}

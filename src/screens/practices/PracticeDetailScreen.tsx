@@ -7,7 +7,7 @@ import { PracticeIllustration } from '../../components/brand/PracticeIllustratio
 import type { Practice } from '../../data/practices';
 import { useAppState } from '../../state/AppStateProvider';
 import { useBotaoVoltar } from '../../navigation/useBotaoVoltar';
-import { toqueDeConclusao } from '../../services/toque';
+import { toqueDeConclusao } from '../../services/toque';
 import { vezesPorPratica } from '../../state/derived';
 import { fonts, radius, useTema } from '../../theme';
 import { BreathingGuide } from './BreathingGuide';
@@ -38,7 +38,7 @@ export function PracticeDetailScreen({
   onBack,
   onEscreverNoDiario,
 }: Props) {
-  const { colors, palette, shadows } = useTema();
+  const { colors, palette, shadows, vidros } = useTema();
   const insets = useSafeAreaInsets();
   const { data, registrarPratica } = useAppState();
   const [mode, setMode] = useState<Mode>('read');
@@ -293,7 +293,7 @@ export function PracticeDetailScreen({
 
         <View
           style={{
-            backgroundColor: colors.surface,
+            ...vidros.cartao,
             borderRadius: radius.lg,
             padding: 18,
             ...shadows.sm,
