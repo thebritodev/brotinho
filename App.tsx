@@ -19,6 +19,7 @@ import { View } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
+import { GraoDePapel } from './src/components';
 import { ErrorBoundary } from './src/components/ErrorBoundary';
 import { RootNavigator } from './src/navigation/RootNavigator';
 import { AppLockGate } from './src/screens/AppLockGate';
@@ -80,6 +81,18 @@ function Moldura({ children }: { children: React.ReactNode }) {
     <View style={{ flex: 1, backgroundColor: colors.bg }}>
       <StatusBar style={tema === 'escuro' ? 'light' : 'dark'} />
       {children}
+      {/*
+        O grão vem **depois** dos filhos, e é o que faz ele cobrir a tela.
+
+        Posto antes, ficaria atrás de todo cartão e de todo fundo de tela — ou
+        seja, visível só nas frestas. O documento o desenha por cima de tudo,
+        em `multiply`, e é assim que ele atravessa cartão, botão e ilustração
+        de uma vez, como o grão do papel atravessa o que foi impresso nele.
+
+        `pointerEvents="none"` está dentro do componente: uma camada que cobre
+        a tela inteira e não deixa passar toque desligaria o app.
+      */}
+      <GraoDePapel />
     </View>
   );
 }
