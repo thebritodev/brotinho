@@ -1,6 +1,6 @@
 import React, { useEffect, useId, useRef } from 'react';
 import { Animated, Easing, View, type StyleProp, type ViewStyle } from 'react-native';
-import Svg, { Circle, Rect } from 'react-native-svg';
+import Svg, { Circle } from 'react-native-svg';
 
 import { useTema } from '../../theme';
 
@@ -160,23 +160,24 @@ const misturar = (cor: string, alfa: number, fundo: string) => {
 const ANEIS = 48;
 
 /**
- * TEMPORÁRIO — diagnóstico do halo que não aparece no aparelho.
+ * Quanto a luz é mais forte aqui do que no documento. **É o único botão.**
  *
- * Três desenhos diferentes desta luz saíram certos no navegador e errados no
- * telefone, e eu não tenho como reproduzir o telefone daqui. Em vez de tentar
- * uma quarta variação no escuro, esta chave troca a luz por marcadores que não
- * há como confundir, e o que aparece na tela responde qual é a camada culpada:
+ * O documento foi desenhado numa maquete de navegador, e ali os valores dele
+ * bastam. Num telefone não: no tema claro o núcleo é `#FFFCF0` sobre um fundo
+ * `#FBF6EC` — quatro pontos de diferença por canal, o mesmo creme. A parada
+ * mais visível, a de 30%, separava-se do fundo por 27 pontos num canal só.
  *
- * - **azul e vermelho aparecem** — o componente monta e desenha. O problema é
- *   a luz ser sutil demais no aparelho, e a conversa passa a ser de força.
- * - **azul aparece, vermelho não** — o SVG desenha, mas o círculo não. Aí é
- *   geometria: raio, centro ou recorte.
- * - **nada aparece** — não é desenho, é montagem: a camada não chega à tela,
- *   ou chega com zero de tamanho, ou é coberta por outra coisa.
+ * Isso ficou provado, e não suposto: um marcador de diagnóstico no lugar da
+ * luz apareceu no aparelho, o que descartou montagem, geometria e recorte de
+ * uma vez. Sobrou intensidade.
  *
- * Voltar para `false` desliga tudo isto.
+ * Multiplicando as opacidades por 1,8, a parada de 30% passa de 27 para 37
+ * pontos de diferença no claro, e de 18/16/7 para 33/28/12 no escuro. A curva
+ * e as cores continuam sendo as de lá; só a força muda.
+ *
+ * Se ainda estiver fraca ou já estiver forte demais, é este número.
  */
-const DIAGNOSTICO = true;
+const FORCA = 1.8;
 
 /** A cor da luz a `t` do centro (0 a 1), pelas paradas do documento. */
 const corEm = (t: number, paradas: string[], posicoes: readonly number[]) => {
@@ -272,7 +273,9 @@ export function LuzDeEstufa({
 }) {
   const { tema, colors } = useTema();
   const id = useId().replace(/[^a-zA-Z0-9]/g, '');
-  const cores = LUZ[tema][tom].map(([cor, alfa]) => misturar(cor, alfa, colors.bg));
+  const cores = LUZ[tema][tom].map(([cor, alfa]) =>
+    misturar(cor, Math.min(1, alfa * FORCA), colors.bg),
+  );
 
   /*
     Dois tamanhos, e é importante não confundi-los.
@@ -350,25 +353,12 @@ export function LuzDeEstufa({
         }}
       >
         <Svg width={tela} height={tela}>
-          {DIAGNOSTICO && (
-            <>
-              {/* A caixa inteira da camada. */}
-              <Rect x={0} y={0} width={tela} height={tela} fill="#0000FF" />
-              {/* A luz, no tamanho e na posição exatos que ela teria. */}
-              <Circle
-                cx={tela / 2}
-                cy={tela * CENTRO_Y}
-                r={tela * RAIO}
-                fill="#FF0000"
-              />
-            </>
-          )}
           {/*
             Do maior para o menor: o de fora é a cor do fundo, o de dentro é o
             núcleo. Desenhados nesta ordem, cada um cobre o anterior e o que
             sobra de cada é o anel.
           */}
-          {!DIAGNOSTICO && Array.from({ length: ANEIS }, (_, i) => {
+          {Array.from({ length: ANEIS }, (_, i) => {
             const t = 1 - i / (ANEIS - 1);
             return (
               <Circle
