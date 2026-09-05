@@ -287,16 +287,26 @@ export function HomeScreen({
           style={{ marginHorizontal: -20 }}
         >
           {/*
-            O halo é 77% da largura da tela, que é a proporção do documento.
+            O halo tem o diâmetro da altura do desenho — a regra do documento.
 
-            Ali ele mede 300 num aparelho de 390. Tentei antes a outra regra
-            que o documento também satisfaz — diâmetro igual à altura do
-            desenho, 300 para um broto de 300 — e ela dá 270 aqui, que é
-            pequeno demais na prática. As duas coincidem lá porque o broto
-            deles ocupa a tela inteira em altura; o nosso é mais baixo, e aí as
-            duas regras se separam. Vale a da tela, que é a que se vê.
+            Lá o bloco é um contêiner de 300 com um halo de 300 e um broto de
+            300 de altura: as três medidas são a mesma. Isso satisfaz duas
+            regras ao mesmo tempo, e elas só coincidem porque o broto deles
+            ocupa a tela toda em altura. O nosso é menor, e aí se separam:
+            "altura do desenho" dá 270, "77% da largura da tela" dá 317.
+
+            Passei pelas duas. A da tela deixa a luz sobrando 44% da largura
+            da planta de cada lado, contra 20% no documento — grande demais. A
+            do desenho dá 30%, que é o mais perto que dá para chegar sem
+            distorcer, já que o nosso broto é proporcionalmente mais estreito
+            que o de lá.
+
+            Vale registrar por que a regra certa pareceu pequena na primeira
+            vez: naquele momento o gradiente ainda estava com raio de 50% em
+            vez do `farthest-corner` do CSS, e a luz **visível** era 189, não
+            270. O tamanho estava certo e a culpa era da curva.
           */}
-          <LuzDeEstufa diametro={Math.round(width * 0.77)}>
+          <LuzDeEstufa diametro={alturaDoMascote(stage, sproutSize)}>
             <AnimatedSprout mood={mood} stage={stage} size={sproutSize} bamboleia />
           </LuzDeEstufa>
         </Pressable>
