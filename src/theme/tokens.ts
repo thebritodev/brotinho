@@ -1,3 +1,5 @@
+import type { BoxShadowValue } from 'react-native';
+
 /**
  * Design tokens do Brotinho.
  * Porte direto das CSS custom properties do protótipo web (`:root { --green-900: ... }`).
@@ -131,42 +133,96 @@ export const spacing = {
   16: 64,
 } as const;
 
+/**
+ * Os raios do redesenho.
+ *
+ * Eram 6/8/12/16. O desenho novo trabalha em 10/14/18/28, e a mudanca e mais
+ * do que cosmetica: com sombra longa e anel de luz na borda, canto de 12
+ * parece corte, nao dobra. O cartao e a peca que define o resto, e ele e 18
+ * -- o raio mais frequente do documento inteiro, 91 ocorrencias.
+ *
+ * Os nomes nao mudaram, e e o que faz esta linha valer por trinta e nove:
+ * `radius.lg` aparece em 39 lugares e todos passam a 18 de uma vez. Renomear
+ * para `cartao`/`chip` seria mais bonito e obrigaria a tocar em 72 chamadas
+ * para nao mudar nada de comportamento.
+ */
 export const radius = {
-  sm: 6,
-  md: 8,
-  lg: 12,
-  xl: 16,
+  sm: 10,
+  md: 14,
+  lg: 18,
+  xl: 28,
   pill: 999,
 } as const;
 
 export const borderWidth = 1.5;
 
 /**
- * Equivalentes RN das sombras `--shadow-*`.
- * `shadow*` cobre iOS/web, `elevation` cobre Android.
+ * As sombras do redesenho — e por que elas sao duas coisas, nao uma.
+ *
+ * ## O que mudou
+ *
+ * A sombra antiga era um borrao macio embaixo do cartao: um deslocamento
+ * pequeno, opacidade 0,07, e pronto. A do desenho novo tem **duas camadas**,
+ * e o efeito vem da combinacao:
+ *
+ * 1. um **anel de luz por dentro** da borda -- `inset 0 0 0 1px` em branco
+ *    quase opaco. E ele que da o aspecto de vidro: a borda superior do cartao
+ *    parece pegar a luz do ambiente.
+ * 2. uma sombra **longa, deslocada e recolhida** -- `0 16px 32px -20px`. O
+ *    raio grande espalha, e o spread negativo puxa de volta, entao ela cai
+ *    longe do cartao sem virar mancha em volta dele.
+ *
+ * Nenhuma das duas cabe na API antiga: `shadowOffset`/`shadowOpacity` fazem
+ * **uma** sombra, sem `inset` e sem spread.
+ *
+ * ## Por que ha dois caminhos aqui
+ *
+ * `boxShadow` aceita lista e `inset`, e existe no React Native 0.81 -- mas so
+ * desenha na **Nova Arquitetura**. Este projeto nao declara `newArchEnabled`,
+ * entao ele herda o padrao do SDK, e herdado nao e o mesmo que sabido: se eu
+ * apostar em `boxShadow` e a Fabric estiver desligada, o app perde **todas** as
+ * sombras de uma vez, sem erro nenhum, e a falha aparece so no aparelho.
+ *
+ * Entao a escolha e feita em tempo de execucao, olhando se a Fabric esta de
+ * pe. Onde ela esta, sai o desenho novo; onde nao esta, sai a sombra antiga,
+ * que e pior mas existe. Isto e para ser apagado quando o projeto declarar a
+ * arquitetura explicitamente -- ai sobra so um caminho.
  */
+const NA_FABRIC = typeof global !== 'undefined' && !!(global as { nativeFabricUIManager?: unknown }).nativeFabricUIManager;
+
+/** Uma sombra do desenho novo, com o recuo da antiga para quem nao tem Fabric. */
+const sombra = (nova: BoxShadowValue[], antiga: SombraLegada): Sombra =>
+  NA_FABRIC ? { boxShadow: nova } : antiga;
+
+/** Branco do anel de luz: forte no claro, quase nada no escuro. */
+const ANEL_CLARO: BoxShadowValue = {
+  offsetX: 0, offsetY: 0, blurRadius: 0, spreadDistance: 1,
+  color: 'rgba(255,255,255,0.9)', inset: true,
+};
+const ANEL_ESCURO: BoxShadowValue = { ...ANEL_CLARO, color: 'rgba(255,255,255,0.1)' };
+
 export const shadows = {
-  sm: {
-    shadowColor: palette.brown900,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.07,
-    shadowRadius: 8,
-    elevation: 2,
-  },
-  md: {
-    shadowColor: palette.brown900,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.1,
-    shadowRadius: 16,
-    elevation: 4,
-  },
-  lg: {
-    shadowColor: palette.brown900,
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.13,
-    shadowRadius: 28,
-    elevation: 8,
-  },
+  /** Cartao de lista, chip, botao pequeno. */
+  sm: sombra(
+    [ANEL_CLARO, { offsetX: 0, offsetY: 10, blurRadius: 22, spreadDistance: -14, color: 'rgba(58,54,48,0.6)' }],
+    { shadowColor: palette.brown900, shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.07, shadowRadius: 8, elevation: 2 },
+  ),
+  /** Cartao principal de uma tela. */
+  md: sombra(
+    [ANEL_CLARO, { offsetX: 0, offsetY: 16, blurRadius: 32, spreadDistance: -20, color: 'rgba(58,54,48,0.6)' }],
+    { shadowColor: palette.brown900, shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.1, shadowRadius: 16, elevation: 4 },
+  ),
+  /**
+   * O que flutua sobre a tela: folha de baixo, modal, o aparelho no mockup.
+   *
+   * Esta nao leva anel -- e a unica das tres sem ele. Uma folha que sobe por
+   * cima do conteudo ja se separa pela distancia; somar borda luminosa faria
+   * dela um objeto recortado em vez de uma camada acima.
+   */
+  lg: sombra(
+    [{ offsetX: 0, offsetY: 26, blurRadius: 60, spreadDistance: -22, color: 'rgba(58,54,48,0.45)' }],
+    { shadowColor: palette.brown900, shadowOffset: { width: 0, height: 8 }, shadowOpacity: 0.13, shadowRadius: 28, elevation: 8 },
+  ),
 } as const;
 
 // ===========================================================================
@@ -184,13 +240,23 @@ export const shadows = {
 */
 export type Palette = { [K in keyof typeof palette]: string };
 export type Cores = { [K in keyof typeof colors]: string };
-export type Sombra = {
+/** A sombra da API antiga: uma camada, sem `inset`, sem spread. */
+export type SombraLegada = {
   shadowColor: string;
   shadowOffset: { width: number; height: number };
   shadowOpacity: number;
   shadowRadius: number;
   elevation: number;
 };
+
+/**
+ * Uma sombra, do jeito que der.
+ *
+ * Os dois formatos sao espalhados em `style` do mesmo jeito (`...shadows.sm`),
+ * entao os 28 lugares que consomem sombra nao sabem qual dos dois receberam --
+ * e e por isso que trocar o desenho inteiro nao encostou em nenhum deles.
+ */
+export type Sombra = { boxShadow: BoxShadowValue[] } | SombraLegada;
 export type Sombras = { [K in keyof typeof shadows]: Sombra };
 
 /**
@@ -380,10 +446,36 @@ export const moodColorsFundoEscuros: Record<Mood, string> = {
  * própria diferença de cor, não a sombra. Mantida com opacidade maior para o
  * pouco que rende, e preta em vez de marrom.
  */
+/**
+ * As sombras do tema escuro.
+ *
+ * **Nao sao as claras com a cor trocada**, e antes eram: a versao anterior
+ * espalhava `shadows.sm` e sobrescrevia `shadowColor`. Isso parou de funcionar
+ * quando a sombra virou lista -- espalhar uma lista e depois pousar
+ * `shadowColor` ao lado dela produz um objeto com os dois formatos misturados,
+ * do qual o React Native usa um e ignora o outro sem reclamar.
+ *
+ * O anel de luz e a diferenca de fundo entre os temas. No claro ele e branco
+ * a 90%: a borda do cartao pega a luz e o cartao parece vidro sobre papel. No
+ * escuro, o mesmo branco desenharia um contorno aceso em volta de cada cartao.
+ * Ali ele cai para 10% -- o suficiente para a borda existir, longe de brilhar.
+ *
+ * A sombra em si escurece e se alonga, porque o fundo tambem escureceu: sombra
+ * de marrom sobre `#211E1A` nao aparece, e a saida e preto puro com mais raio.
+ */
 export const sombrasEscuras: Sombras = {
-  sm: { ...shadows.sm, shadowColor: '#000000', shadowOpacity: 0.3 },
-  md: { ...shadows.md, shadowColor: '#000000', shadowOpacity: 0.38 },
-  lg: { ...shadows.lg, shadowColor: '#000000', shadowOpacity: 0.45 },
+  sm: sombra(
+    [ANEL_ESCURO, { offsetX: 0, offsetY: 18, blurRadius: 36, spreadDistance: -22, color: '#000000' }],
+    { shadowColor: '#000000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.3, shadowRadius: 8, elevation: 2 },
+  ),
+  md: sombra(
+    [ANEL_ESCURO, { offsetX: 0, offsetY: 20, blurRadius: 40, spreadDistance: -22, color: '#000000' }],
+    { shadowColor: '#000000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.38, shadowRadius: 16, elevation: 4 },
+  ),
+  lg: sombra(
+    [{ offsetX: 0, offsetY: 26, blurRadius: 60, spreadDistance: -22, color: 'rgba(28,24,20,0.6)' }],
+    { shadowColor: '#000000', shadowOffset: { width: 0, height: 8 }, shadowOpacity: 0.45, shadowRadius: 28, elevation: 8 },
+  ),
 };
 
 export type Tema = 'claro' | 'escuro';
