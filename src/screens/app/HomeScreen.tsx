@@ -296,26 +296,23 @@ export function HomeScreen({
           style={{ marginHorizontal: -20 }}
         >
           {/*
-            O halo tem o diâmetro da altura do desenho — a regra do documento.
+            A luz vai até onde o quadro dela ainda cabe na tela.
 
-            Lá o bloco é um contêiner de 300 com um halo de 300 e um broto de
-            300 de altura: as três medidas são a mesma. Isso satisfaz duas
-            regras ao mesmo tempo, e elas só coincidem porque o broto deles
-            ocupa a tela toda em altura. O nosso é menor, e aí se separam:
-            "altura do desenho" dá 270, "77% da largura da tela" dá 317.
+            O documento faz o halo do tamanho da altura do desenho — 300 e 300,
+            porque lá o broto ocupa a tela toda em altura. O nosso é mais baixo
+            (270 numa tela de 412), e essa regra deixava a luz pequena demais
+            para o gosto de quem olha.
 
-            Passei pelas duas. A da tela deixa a luz sobrando 44% da largura
-            da planta de cada lado, contra 20% no documento — grande demais. A
-            do desenho dá 30%, que é o mais perto que dá para chegar sem
-            distorcer, já que o nosso broto é proporcionalmente mais estreito
-            que o de lá.
+            O teto não é estético, é geométrico: o quadro da luz precisa ser
+            1,112 vez ela (a queda do gradiente precisa de margem — ver
+            `LuzDeEstufa`), então a maior luz que cabe numa tela de 412 é 370.
+            Passar disso faz o quadro ficar mais largo que a tela, e aí a
+            queda é cortada nos lados: volta a borda dura.
 
-            Vale registrar por que a regra certa pareceu pequena na primeira
-            vez: naquele momento o gradiente ainda estava com raio de 50% em
-            vez do `farthest-corner` do CSS, e a luz **visível** era 189, não
-            270. O tamanho estava certo e a culpa era da curva.
+            Em 0,9 da largura a luz fica 37% maior que a do documento e o
+            quadro fecha exatamente na tela.
           */}
-          <LuzDeEstufa diametro={alturaDoMascote(stage, sproutSize)}>
+          <LuzDeEstufa diametro={Math.round(width * 0.9)}>
             <AnimatedSprout mood={mood} stage={stage} size={sproutSize} bamboleia />
           </LuzDeEstufa>
         </Pressable>
