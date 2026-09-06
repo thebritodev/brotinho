@@ -20,7 +20,6 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 import { GraoDePapel } from './src/components';
-import { relatar } from './src/services/diagnostico';
 import { ErrorBoundary } from './src/components/ErrorBoundary';
 import { RootNavigator } from './src/navigation/RootNavigator';
 import { AppLockGate } from './src/screens/AppLockGate';
@@ -29,9 +28,6 @@ import { SubscriptionProvider } from './src/state/SubscriptionProvider';
 import { useTema } from './src/theme';
 
 void SplashScreen.preventAutoHideAsync();
-
-// TEMPORARIO: sinal de vida do canal de diagnostico — ver `diagnostico.ts`.
-relatar('app-abriu');
 
 function AppInterno() {
   const [fontsLoaded, fontError] = useFonts({

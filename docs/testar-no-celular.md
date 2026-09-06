@@ -1,7 +1,23 @@
-# Rodar o Brotinho no Expo Go
+# Rodar o Brotinho no celular
 
-Serve para ver o app no celular em segundos, sem gerar build. É onde o
-desenvolvimento acontece; a build é para o que o Expo Go não consegue mostrar.
+> **Este documento descrevia o Expo Go, e o Expo Go não vale mais aqui.**
+>
+> A Play Store subiu o Expo Go para o SDK 57, e o cliente recusa qualquer
+> projeto que não seja da versão dele — este está no 54. A saída não foi subir
+> de SDK, foi parar de depender do Expo Go: o projeto tem `expo-dev-client`, e
+> o perfil `development` do `eas.json` gera um **development build**, um app
+> próprio com o mesmo runtime do projeto.
+>
+> ```
+> npx eas build --profile development --platform android
+> ```
+>
+> Continua valendo tudo o que está abaixo sobre o servidor de desenvolvimento, o
+> túnel, o firewall e o servidor de transcrição. O que trocou é **quem lê o QR**:
+> o development build, não o Expo Go. Ver `AGENTS.md`.
+
+Serve para ver o app no celular sem gerar build nova a cada mudança: o
+development build baixa o JavaScript do servidor, igual o Expo Go fazia.
 
 ---
 
@@ -129,24 +145,24 @@ exportar, trazer de volta, gravação de áudio, vibração.
 
 ---
 
-## Por que o SDK está preso no 54
+## Por que o SDK continua no 54
 
-Está escrito no `AGENTS.md`, e vale repetir aqui porque é onde a pessoa vai
-procurar: o Expo Go instalado no aparelho de teste é o **54.0.8**. Um app em SDK
-55 simplesmente não abre nele.
+O motivo **mudou**, e o que estava escrito aqui ficou errado. Dizia que o Expo
+Go do aparelho era o 54.0.8 e que por isso o projeto não podia subir. Esse
+motivo acabou quando a Play Store atualizou o Expo Go: hoje ele é 57, e o
+projeto deixou de depender dele.
 
-Antes de subir de SDK, confirme qual versão do Expo Go o aparelho tem de fato —
-a Play Store diz "atualizado" e entrega cliente antigo com alguma frequência.
-O manifesto que o `npm start` serve carrega `runtimeVersion: exposdk:54.0.0`, e
-é esse número que precisa bater.
+O motivo de agora é de produto, não de ferramenta: a 1.0 foi revisada pela Apple
+com este runtime, e trocar de SDK troca o que ela já revisou. Ver `AGENTS.md`.
 
 ---
 
 ## Quando a build é obrigatória
 
 - Testar **cobrança** (compra, restaurar, sandbox).
-- Testar o **ditado que não sai do aparelho** — o do Expo Go passa por um
-  servidor, ainda que seja o seu.
+- Testar o **ditado do diário** e a contagem da Composta: os dois usam
+  `ExpoSpeechRecognition`, módulo nativo que o Expo Go nunca teve. No
+  development build funcionam.
 - Qualquer coisa que dependa do `app.json`: ícone, splash, permissões,
   `privacyManifests`.
 
