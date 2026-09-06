@@ -15,6 +15,7 @@ import {
   subscribeSpeech,
 } from '../../services/speech';
 import { pararEApagar } from '../../services/apagarGravacao';
+import { janelaDoSistema } from '../../services/janelaDoSistema';
 import { criarConferidor, type Conferidor } from './casaFrase';
 
 /**
@@ -275,7 +276,9 @@ export function useCompostSession({ targetSeconds, frase, onFinish }: Options): 
   const iniciarAcustico = useCallback(async () => {
     setPorFrase(false);
     try {
-      const permission = await AudioModule.requestRecordingPermissionsAsync();
+      const permission = await janelaDoSistema(() =>
+        AudioModule.requestRecordingPermissionsAsync(),
+      );
       if (!permission.granted) {
         // Sem microfone a prática não precisa morrer: o botão manual assume.
         setManual(true);

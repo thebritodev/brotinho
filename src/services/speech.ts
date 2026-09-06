@@ -1,5 +1,7 @@
 import { requireOptionalNativeModule } from 'expo';
 
+import { janelaDoSistema } from './janelaDoSistema';
+
 /**
  * Reconhecimento de fala do próprio aparelho.
  *
@@ -30,7 +32,9 @@ export function isNativeSpeechAvailable(): boolean {
 export async function requestSpeechPermissions(): Promise<boolean> {
   if (!speechModule) return false;
   try {
-    const result = await speechModule.requestPermissionsAsync();
+    // A caixa de permissão pausa a atividade no Android, e o bloqueio do app
+    // lia isso como "a pessoa saiu" — ver `janelaDoSistema`.
+    const result = await janelaDoSistema(() => speechModule.requestPermissionsAsync());
     return result.granted;
   } catch {
     return false;

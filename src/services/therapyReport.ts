@@ -2,6 +2,7 @@ import * as Print from 'expo-print';
 import * as Sharing from 'expo-sharing';
 
 import { VALUES } from '../components';
+import { janelaDoSistema } from './janelaDoSistema';
 import { findPractice, findTopic } from '../data/practices';
 import { daysCaredFor, livedValues, moodWeek, patterns, ventThemes } from '../state/derived';
 import type { AppData } from '../state/types';
@@ -181,9 +182,13 @@ export async function shareTherapyPdf(data: AppData): Promise<void> {
     throw new Error('Compartilhamento não disponível neste aparelho.');
   }
 
-  await Sharing.shareAsync(uri, {
-    mimeType: 'application/pdf',
-    dialogTitle: 'Resumo para terapia',
-    UTI: 'com.adobe.pdf',
-  });
+  // Ver `janelaDoSistema`: a folha do sistema pausa o app, e o bloqueio lia
+  // isso como saída.
+  await janelaDoSistema(() =>
+    Sharing.shareAsync(uri, {
+      mimeType: 'application/pdf',
+      dialogTitle: 'Resumo para terapia',
+      UTI: 'com.adobe.pdf',
+    }),
+  );
 }

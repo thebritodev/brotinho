@@ -1,8 +1,13 @@
 import * as LocalAuthentication from 'expo-local-authentication';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { AppState, Platform, Pressable, Text, View } from 'react-native';
+import { AppState, Platform, Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { Button, Sprout } from '../components';
+import {
+  aoFecharJanelaDoSistema,
+  janelaDoSistema,
+  temJanelaDoSistema,
+} from '../services/janelaDoSistema';
 import { useAppState } from '../state/AppStateProvider';
 import { fonts, useTema } from '../theme';
 
@@ -44,11 +49,25 @@ export function AppLockGate({ children }: { children: React.ReactNode }) {
         return;
       }
 
-      const result = await LocalAuthentication.authenticateAsync({
-        promptMessage: 'Desbloqueie seu diário',
-        cancelLabel: 'Cancelar',
-        disableDeviceFallback: false,
-      });
+      /*
+        O prompt de biometria é uma janela do sistema como qualquer outra: ele
+        pausa a atividade, e sem marcá-lo o próprio bloqueio se rebloquearia
+        ao abrir a tela que existe para destrancá-lo.
+
+        `avisaAoFechar: false` porque esta é a única janela que não precisa da
+        rede de segurança: quando ela abre o diário **já está trancado**, não
+        há o que proteger, e avisar só criaria a chance de retrancar no
+        instante seguinte a um desbloqueio bem-sucedido.
+      */
+      const result = await janelaDoSistema(
+        () =>
+          LocalAuthentication.authenticateAsync({
+            promptMessage: 'Desbloqueie seu diário',
+            cancelLabel: 'Cancelar',
+            disableDeviceFallback: false,
+          }),
+        { avisaAoFechar: false },
+      );
 
       if (result.success) setUnlocked(true);
       else setFailed(true);
@@ -89,25 +108,47 @@ export function AppLockGate({ children }: { children: React.ReactNode }) {
     return () => sub.remove();
   }, [hydrated, enabled, unlocked, authenticate]);
 
+  const trancar = useCallback(() => {
+    setUnlocked(false);
+    setFailed(false);
+  }, []);
+
   /**
-   * Rebloqueia ao voltar do segundo plano.
+   * Rebloqueia quando a pessoa **sai do app**.
    *
    * Só em `background`, nunca em `inactive`: no iOS o próprio prompt de
    * biometria põe o app em `inactive`, e rebloquear ali seria o app se
    * trancando por causa da tela que abriu para destrancá-lo.
+   *
+   * E nunca por causa de uma janela que o próprio app abriu. No Android a
+   * caixa de permissão pausa a atividade, e o React Native traduz essa pausa
+   * para o mesmo `background` de quem larga o celular na mesa — ver
+   * `janelaDoSistema`, que é onde essa distinção mora. Sem isto, pedir o
+   * microfone trancava o diário, e a Composta não conseguia começar nenhuma
+   * vez: a caixa aparecia, o bloqueio caía por cima dela, e a permissão nunca
+   * chegava a ser respondida.
    */
   useEffect(() => {
     if (!enabled) return;
     const sub = AppState.addEventListener('change', (state) => {
-      if (state === 'background') {
-        setUnlocked(false);
-        setFailed(false);
-      }
+      if (state !== 'background') return;
+      if (temJanelaDoSistema()) return;
+      trancar();
     });
     return () => sub.remove();
-  }, [enabled]);
+  }, [enabled, trancar]);
 
-  if (!enabled || unlocked) return <>{children}</>;
+  /**
+   * A contrapartida: sair do app **enquanto** a caixa do sistema estava aberta
+   * não pode deixar o diário destrancado. Quando a última janela fecha e o app
+   * não está na frente, a pessoa saiu mesmo — e o bloqueio cai ali.
+   */
+  useEffect(() => {
+    if (!enabled) return;
+    return aoFecharJanelaDoSistema(trancar);
+  }, [enabled, trancar]);
+
+  const trancado = enabled && !unlocked;
 
   /*
     A tela inteira é o botão.
@@ -120,19 +161,22 @@ export function AppLockGate({ children }: { children: React.ReactNode }) {
     Agora tocar em qualquer lugar pede de novo, e o botão está sempre lá em vez
     de aparecer como consequência de um erro.
   */
-  return (
+  const camada = trancado ? (
     <Pressable
       accessibilityRole="button"
       accessibilityLabel="Desbloquear"
+      accessibilityViewIsModal
       onPress={authenticate}
-      style={{
-        flex: 1,
-        backgroundColor: colors.bg,
-        alignItems: 'center',
-        justifyContent: 'center',
-        gap: 24,
-        padding: 32,
-      }}
+      style={[
+        StyleSheet.absoluteFill,
+        {
+          backgroundColor: colors.bg,
+          alignItems: 'center',
+          justifyContent: 'center',
+          gap: 24,
+          padding: 32,
+        },
+      ]}
     >
       <Sprout mood="neutro" stage={2} size={140} />
       <Text
@@ -162,5 +206,36 @@ export function AppLockGate({ children }: { children: React.ReactNode }) {
         Desbloquear
       </Button>
     </Pressable>
+  ) : null;
+
+  /*
+    O bloqueio é uma **camada por cima**, e não o app trocado por outra tela.
+
+    Antes, trancado, este componente devolvia a tela de bloqueio *no lugar* dos
+    filhos. Isso desmonta o app inteiro: o `MainTabs` perde a aba em que a
+    pessoa estava e a tela que estava aberta dentro dela, a Composta perde a
+    frase escrita e a sessão em andamento, o diário perde o rascunho. Ao
+    desbloquear, tudo remontava do zero — e o zero é a tela inicial.
+
+    Era a segunda metade da queixa: "quando eu desbloqueio volta para a tela de
+    início". Qualquer interrupção cobrava esse preço — uma ligação, uma
+    notificação, olhar as horas.
+
+    Com os filhos montados atrás, desbloquear devolve exatamente o lugar de
+    onde se saiu. A camada é opaca e cobre a tela inteira, então nada do que
+    está atrás aparece; `accessibilityElementsHidden` faz o mesmo pelo leitor
+    de tela, que atravessaria a camada sem isso.
+  */
+  return (
+    <View style={{ flex: 1 }}>
+      <View
+        style={{ flex: 1 }}
+        accessibilityElementsHidden={trancado}
+        importantForAccessibility={trancado ? 'no-hide-descendants' : 'auto'}
+      >
+        {children}
+      </View>
+      {camada}
+    </View>
   );
 }

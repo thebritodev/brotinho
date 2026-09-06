@@ -2,6 +2,7 @@ import * as Notifications from 'expo-notifications';
 import { Platform } from 'react-native';
 
 import { planejarLembretes, planejarResumos } from '../data/lembretes';
+import { janelaDoSistema } from './janelaDoSistema';
 
 /**
  * Lembrete diário — o app promete no onboarding "ele vai te esperar todo dia às X".
@@ -78,7 +79,7 @@ export async function requestNotificationPermission(): Promise<boolean> {
   if (current.granted) return true;
   if (!current.canAskAgain) return false;
 
-  const asked = await Notifications.requestPermissionsAsync();
+  const asked = await janelaDoSistema(() => Notifications.requestPermissionsAsync());
   return asked.granted;
 }
 

@@ -6,6 +6,7 @@ import {
 } from 'expo-audio';
 import { useCallback, useEffect, useRef, useState } from 'react';
 
+import { janelaDoSistema } from '../../services/janelaDoSistema';
 import {
   isNativeSpeechAvailable,
   requestSpeechPermissions,
@@ -106,7 +107,9 @@ export function useVoiceNote({ onText }: Options) {
   // --- Caminho de nuvem (Expo Go) ---------------------------------------
 
   const startCloud = useCallback(async () => {
-    const permission = await AudioModule.requestRecordingPermissionsAsync();
+    const permission = await janelaDoSistema(() =>
+      AudioModule.requestRecordingPermissionsAsync(),
+    );
     if (!permission.granted) {
       setError('Preciso da sua permissão para usar o microfone.');
       return;

@@ -1,5 +1,6 @@
 import { File, Paths } from 'expo-file-system';
 
+import { janelaDoSistema } from './janelaDoSistema';
 import { limparExportacoes } from './limparExportacoes';
 import * as Sharing from 'expo-sharing';
 
@@ -169,11 +170,15 @@ async function entregar(nome: string, conteudo: string, tipo: string, uti: strin
   arquivo.create({ overwrite: true });
   arquivo.write(conteudo);
 
-  await Sharing.shareAsync(arquivo.uri, {
-    mimeType: tipo,
-    dialogTitle: 'Meus dados do Brotinho',
-    UTI: uti,
-  });
+  // A folha de compartilhar é do sistema e pausa o app — sem marcar isso, o
+  // bloqueio cai por cima dela. Ver `janelaDoSistema`.
+  await janelaDoSistema(() =>
+    Sharing.shareAsync(arquivo.uri, {
+      mimeType: tipo,
+      dialogTitle: 'Meus dados do Brotinho',
+      UTI: uti,
+    }),
+  );
 }
 
 /** O arquivo para ler: texto, com o diário por extenso. */
