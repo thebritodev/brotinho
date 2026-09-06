@@ -39,7 +39,22 @@
  */
 const LIMIAR = 0.75;
 
-/** Nunca aceita menos que isto, por mais curto que seja o alvo. */
+/**
+ * Nunca aceita menos que isto, por mais curto que seja o alvo — **desde que o
+ * alvo tenha esse tanto de palavras.**
+ *
+ * A segunda metade da frase faltava, e o custo foi alto: quem escrevia um
+ * pensamento de uma palavra só — "burro", "fracasso", "sozinha", que é
+ * exatamente como muito pensamento difícil aparece na cabeça — tinha um alvo
+ * de uma palavra e um mínimo de duas. A condição pedia mais palavras do que
+ * existiam, e **nenhuma repetição podia ser contada, nunca**. A pessoa repetia
+ * em voz alta, o reconhecimento transcrevia certo, e o contador ficava em zero
+ * até a prática acabar.
+ *
+ * O piso não afrouxa nada nesse caso, porque a palavra-chave continua
+ * obrigatória: num alvo de uma palavra, a chave **é** a palavra. Exigir uma de
+ * uma é exigir aquela exata, não é exigir menos.
+ */
 const MINIMO_ABSOLUTO = 2;
 
 /** A partir deste tamanho, duas palavras casam pelo começo. */
@@ -98,7 +113,10 @@ export type Conferidor = {
 export function criarConferidor(alvo: string): Conferidor {
   const alvoPalavras = palavrasDoAlvo(alvo);
   const chave = palavraChave(alvoPalavras);
-  const minimo = Math.max(MINIMO_ABSOLUTO, Math.ceil(alvoPalavras.length * LIMIAR));
+  const minimo = Math.min(
+    alvoPalavras.length,
+    Math.max(MINIMO_ABSOLUTO, Math.ceil(alvoPalavras.length * LIMIAR)),
+  );
 
   /**
    * Até onde a transcrição já foi contada. O reconhecimento entrega o texto

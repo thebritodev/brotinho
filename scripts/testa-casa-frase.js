@@ -70,6 +70,37 @@ const GRUPOS = [
       ['ERRADA: fala longa', 'eu sou uma pessoa que gosta de café pela manhã', 0],
     ],
   ],
+  /*
+    Pensamento de uma palavra só.
+
+    Muito pensamento difícil aparece assim na cabeça — não como uma frase, como
+    uma palavra. O app aceita, o campo aceita, e a conferência **nunca contava
+    nenhuma repetição**: o alvo tinha uma palavra e o mínimo era dois, então a
+    condição pedia mais palavras do que existiam. Quem escrevia uma palavra só
+    repetia em voz alta até o tempo acabar com o contador em zero.
+
+    Os casos ERRADA estão aqui porque o conserto poderia ter afrouxado a
+    conferência, e não afrouxou: num alvo de uma palavra, a palavra-chave é a
+    própria palavra, e ela continua obrigatória.
+  */
+  [
+    'burro',
+    [
+      ['repete igual, 3 vezes', 'burro burro burro', 3],
+      ['uma vez', 'burro', 1],
+      ['no meio de outras palavras', 'eu sou muito burro mesmo', 1],
+      ['ERRADA: outra palavra', 'esperto', 0],
+      ['ERRADA: começa igual mas é outra', 'burocracia', 0],
+      ['ERRADA: fala solta', 'hoje eu acordei tarde e perdi a hora', 0],
+    ],
+  ],
+  [
+    'fracasso',
+    [
+      ['duas vezes', 'fracasso fracasso', 2],
+      ['ERRADA: nada a ver', 'sucesso', 0],
+    ],
+  ],
 ];
 
 (async () => {
