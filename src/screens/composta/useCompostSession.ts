@@ -15,6 +15,7 @@ import {
   subscribeSpeech,
 } from '../../services/speech';
 import { pararEApagar } from '../../services/apagarGravacao';
+import { relatar } from '../../services/diagnostico';
 import { janelaDoSistema } from '../../services/janelaDoSistema';
 import { criarConferidor, type Conferidor } from './casaFrase';
 
@@ -216,6 +217,8 @@ export function useCompostSession({ targetSeconds, frase, onFinish }: Options): 
 
   /** Conferidor da frase e cancelamentos dos eventos nativos, no modo por frase. */
   const conferidor = useRef<Conferidor | null>(null);
+  /** Quantas leituras de volume chegaram — só para o diagnóstico. */
+  const contouVolume = useRef(0);
   const cancelamentos = useRef<(() => void)[]>([]);
 
   const soltarEventos = useCallback(() => {
@@ -279,6 +282,7 @@ export function useCompostSession({ targetSeconds, frase, onFinish }: Options): 
       const permission = await janelaDoSistema(() =>
         AudioModule.requestRecordingPermissionsAsync(),
       );
+      relatar('acustico-permissao', String(permission.granted));
       if (!permission.granted) {
         // Sem microfone a prática não precisa morrer: o botão manual assume.
         setManual(true);
@@ -289,9 +293,11 @@ export function useCompostSession({ targetSeconds, frase, onFinish }: Options): 
       await setAudioModeAsync({ playsInSilentMode: true, allowsRecording: true });
       await recorder.prepareToRecordAsync();
       recorder.record();
+      relatar('acustico-gravando');
       setManual(false);
       setRunning(true);
-    } catch {
+    } catch (erro) {
+      relatar('acustico-quebrou', String(erro).slice(0, 80));
       setManual(true);
       setRunning(true);
     }
@@ -308,8 +314,11 @@ export function useCompostSession({ targetSeconds, frase, onFinish }: Options): 
    */
   const iniciarPorFrase = useCallback(async (): Promise<boolean> => {
     const alvo = frase.trim();
+    relatar('frase-modulo', String(isNativeSpeechAvailable()));
     if (!alvo || !isNativeSpeechAvailable()) return false;
-    if (!(await requestSpeechPermissions())) return false;
+    const permitido = await requestSpeechPermissions();
+    relatar('frase-permissao', String(permitido));
+    if (!permitido) return false;
 
     conferidor.current = criarConferidor(alvo);
 
@@ -318,6 +327,7 @@ export function useCompostSession({ targetSeconds, frase, onFinish }: Options): 
     const desistir = () => {
       if (!vivo) return;
       vivo = false;
+      relatar('frase-desistiu');
       soltarEventos();
       stopNativeSpeech();
       void iniciarAcustico();
@@ -326,14 +336,20 @@ export function useCompostSession({ targetSeconds, frase, onFinish }: Options): 
     cancelamentos.current = [
       subscribeSpeech('result', (evento: { results?: { transcript?: string }[] }) => {
         const texto = evento?.results?.[0]?.transcript;
+        relatar('frase-resultado', `letras=${texto ? texto.length : 0}`);
         if (!texto || !conferidor.current) return;
-        somarReps(conferidor.current.conferir(texto));
+        const casou = conferidor.current.conferir(texto);
+        relatar('frase-casou', casou);
+        somarReps(casou);
       }),
 
       // O volume vem do próprio reconhecimento: dois donos para o mesmo
       // microfone dá conflito nas duas plataformas.
       subscribeSpeech('volumechange', (evento: { value?: number }) => {
         const v = evento?.value;
+        contouVolume.current += 1;
+        // Só as primeiras: uma a cada 150 ms encheria o registro do túnel.
+        if (contouVolume.current <= 4) relatar('frase-volume', v == null ? 'nulo' : v.toFixed(2));
         if (v == null) return;
         // A escala do módulo vai de -2 a 10, e abaixo de 0 é inaudível.
         const audivel = v > VOLUME_AUDIVEL;
@@ -353,6 +369,7 @@ export function useCompostSession({ targetSeconds, frase, onFinish }: Options): 
          * O resto — sem modelo offline, microfone ocupado, falha de captura —
          * é motivo real para desistir.
          */
+        relatar('frase-erro', evento?.error ?? 'sem-codigo');
         if (evento?.error === 'no-speech' || evento?.error === 'aborted') return;
         desistir();
       }),
@@ -369,6 +386,7 @@ export function useCompostSession({ targetSeconds, frase, onFinish }: Options): 
          * ciclo de religar que nunca funciona.
          */
         reinicios += 1;
+        relatar('frase-religou', reinicios);
         if (reinicios > MAX_REINICIOS) {
           desistir();
           return;
@@ -386,7 +404,9 @@ export function useCompostSession({ targetSeconds, frase, onFinish }: Options): 
 
     try {
       startPhraseSpeech(alvo, INTERVALO_DO_VOLUME_MS);
-    } catch {
+      relatar('frase-comecou');
+    } catch (erro) {
+      relatar('frase-nao-comecou', String(erro).slice(0, 80));
       soltarEventos();
       return false;
     }
@@ -406,6 +426,8 @@ export function useCompostSession({ targetSeconds, frase, onFinish }: Options): 
     setReps(0);
     setLevel(0);
     setSilent(false);
+    contouVolume.current = 0;
+    relatar('sessao-comecou');
 
     if (await iniciarPorFrase()) return;
     await iniciarAcustico();
@@ -455,10 +477,14 @@ export function useCompostSession({ targetSeconds, frase, onFinish }: Options): 
 
   // Modo com microfone: cada leitura do medidor alimenta a máquina.
   const lastDuration = useRef(0);
+  /** Quantas leituras do medidor chegaram — só para o diagnóstico. */
+  const contouMedidor = useRef(0);
   useEffect(() => {
     if (!running || manual) return;
 
     const db = recorderState.metering;
+    contouMedidor.current += 1;
+    if (contouMedidor.current <= 4) relatar('medidor', db == null ? 'nulo' : db.toFixed(1));
     if (db == null) return;
 
     const m = machine.current;
