@@ -1,3 +1,4 @@
+import Constants from 'expo-constants';
 import { NativeModules } from 'react-native';
 
 /**
@@ -30,8 +31,35 @@ import { NativeModules } from 'react-native';
  * URL nem chega a ser montada.
  */
 
-/** O endereço do servidor de desenvolvimento, tirado da URL do próprio bundle. */
+/**
+ * O endereço do servidor de desenvolvimento.
+ *
+ * São três tentativas, em ordem de confiabilidade, e a primeira versão disto
+ * usava só a última — que é justamente a que não funciona aqui. Na arquitetura
+ * nova do React Native o `SourceCode` deixou de aparecer em `NativeModules` e
+ * virou um TurboModule; o objeto vinha vazio, `servidor()` devolvia `null`, e
+ * cada chamada de `relatar` saía calada. Uma sessão inteira de diagnóstico não
+ * relatou nada, e não havia como distinguir isso de "o código não rodou".
+ *
+ * `getDevServer` é a função que o próprio React Native usa para isto, e ela lê
+ * o TurboModule certo nas duas arquiteturas.
+ */
 function servidor(): string | null {
+  try {
+    const { url, bundleLoadedFromServer } = (
+      require('react-native/Libraries/Core/Devtools/getDevServer') as {
+        default: () => { url: string; bundleLoadedFromServer: boolean };
+      }
+    ).default();
+    if (bundleLoadedFromServer && url) return url.replace(/\/$/, '');
+  } catch {
+    // Caminho interno do React Native: se um dia mudar, as outras tentativas
+    // continuam valendo.
+  }
+
+  const host = Constants.expoConfig?.hostUri;
+  if (host) return host.startsWith('http') ? host : `http://${host}`;
+
   const url = (NativeModules as { SourceCode?: { scriptURL?: string } }).SourceCode?.scriptURL;
   if (!url) return null;
   const m = /^(https?:\/\/[^/]+)/.exec(url);
