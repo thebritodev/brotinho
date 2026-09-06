@@ -45,6 +45,14 @@ const MANHA = [
   'Um minuto para você, antes de todo o resto.',
   'Bom dia. Dá para parar um pouco?',
   'O que você faria hoje se ninguém cobrasse nada?',
+  'Antes das mensagens e dos avisos: você.',
+  'Que humor entrou com você no dia?',
+  'Não precisa estar bem para começar.',
+  'Como está o corpo hoje, antes da cabeça?',
+  'O dia ainda está inteiro.',
+  'Se hoje for difícil, você já sabe onde deixar isso.',
+  'Qual foi a primeira coisa que veio à sua cabeça hoje?',
+  'O que você está adiando desde ontem?',
 ];
 
 const TARDE = [
@@ -55,6 +63,14 @@ const TARDE = [
   'O dia já mudou desde que você acordou?',
   'Se der, para um minuto.',
   'Nada urgente. Só um respiro.',
+  'Como está a segunda metade do dia?',
+  'O que mudou desde a manhã?',
+  'Se a manhã foi pesada, ela não precisa seguir até a noite.',
+  'Pausa não é atraso.',
+  'O que está ocupando mais espaço agora?',
+  'Dá para largar um pouco do que você está segurando?',
+  'Um copo de água e um minuto aqui.',
+  'O que você diria agora se alguém perguntasse de verdade?',
 ];
 
 const NOITE = [
@@ -65,6 +81,14 @@ const NOITE = [
   'Descarrega aqui antes de deitar.',
   'O que você quer deixar no dia de hoje?',
   'Como o seu corpo está agora?',
+  'O dia acabou. O que ficou?',
+  'Antes de o sono vir, esvazia um pouco.',
+  'O que você carregou o dia inteiro?',
+  'Nem todo dia rende. Este também conta.',
+  'Tem alguma coisa que você não disse hoje?',
+  'Como você está agora que ninguém está pedindo nada?',
+  'Fecha o dia do seu jeito.',
+  'O que valeu hoje, mesmo que pouco?',
 ];
 
 const MADRUGADA = [
@@ -73,6 +97,12 @@ const MADRUGADA = [
   'Ninguém precisa ler. Só escrever já solta.',
   'Se o pensamento não para, ele cansa mais rápido no papel.',
   'Insônia costuma vir acompanhada. Quer contar?',
+  'Acordado a esta hora? O broto também está.',
+  'De madrugada tudo parece maior do que é.',
+  'O que não está deixando você dormir?',
+  'Escrever agora ajuda a dormir depois.',
+  'Ninguém está esperando resposta. Só escreve.',
+  'A noite exagera. Amanhã isso muda de tamanho.',
 ];
 
 /**
@@ -87,11 +117,28 @@ const POR_DIA_DA_SEMANA: Record<number, string[]> = {
   0: [
     'Domingo à noite pesa. Quer falar sobre isso?',
     'A semana começa amanhã, mas ainda não começou.',
+    'O domingo pode ser só domingo.',
   ],
-  1: ['Segunda já passou. Como foi?', 'Primeiro dia vencido.'],
-  3: ['Metade da semana. Como você está segurando?'],
-  5: ['Sexta. O que você quer deixar nesta semana?', 'A semana acabou. E você?'],
-  6: ['Sábado também vale parar um pouco.'],
+  1: [
+    'Segunda já passou. Como foi?',
+    'Primeiro dia vencido.',
+    'Segunda pesa. Não precisa dar conta de tudo hoje.',
+  ],
+  2: [
+    'Terça é o dia que ninguém comemora. Como está o seu?',
+    'A semana ainda está toda pela frente. Devagar.',
+  ],
+  3: [
+    'Metade da semana. Como você está segurando?',
+    'O meio é sempre a parte mais longa.',
+  ],
+  4: ['Quinta já é quase.', 'Falta pouco para a semana virar.'],
+  5: [
+    'Sexta. O que você quer deixar nesta semana?',
+    'A semana acabou. E você?',
+    'Sexta. Dá para soltar um pouco.',
+  ],
+  6: ['Sábado também vale parar um pouco.', 'Sábado não precisa ser produtivo.'],
 };
 
 /**
@@ -102,6 +149,9 @@ const VETERANO = [
   'Seu broto já tem história. Continua.',
   'Você tem cuidado disso faz um tempo.',
   'Tem bastante coisa sua guardada aqui.',
+  'Seu broto cresceu junto com você.',
+  'Você tem voltado. Isso é a parte difícil.',
+  'Tem um caminho seu guardado aqui.',
 ];
 
 /** A partir de quantos dias cuidados as frases de veterano entram no sorteio. */
@@ -109,7 +159,14 @@ const DIAS_PARA_VETERANO = 21;
 
 // --- Quem sumiu: nunca cobra, nunca conta dias ----------------------------
 
-const AUSENCIA: Record<Exclude<Faixa, 'presente'>, string[]> = {
+/**
+ * Exportado porque o checador precisa conferir **pertencimento**, e não
+ * palavra-chave. Ele procurava um punhado de palavras ('continua',
+ * 'esperando', 'pressa') para decidir se o texto era da faixa certa — o que
+ * reprova qualquer frase nova que diga a mesma coisa com outras palavras, e
+ * foi o que aconteceu na primeira frase acrescentada depois dele.
+ */
+export const AUSENCIA: Record<Exclude<Faixa, 'presente'>, string[]> = {
   curta: [
     'Sem pressa. Quando quiser, ele está aqui.',
     'Seu broto não regride. Ele só espera.',
@@ -117,6 +174,10 @@ const AUSENCIA: Record<Exclude<Faixa, 'presente'>, string[]> = {
     'Nada se perdeu por aqui.',
     'Uma linha já conta.',
     'Você pode voltar do jeito que estiver.',
+    'Está tudo do jeito que ficou.',
+    'Aqui não existe atraso.',
+    'Aparecer hoje já basta.',
+    'Sem explicação nenhuma: é só entrar.',
   ],
   media: [
     'Seu broto continua aqui, do mesmo jeito que você deixou.',
@@ -124,6 +185,10 @@ const AUSENCIA: Record<Exclude<Faixa, 'presente'>, string[]> = {
     'Voltar não recomeça nada. É só continuar.',
     'Quando quiser, é só abrir.',
     'Ele não tem pressa nenhuma.',
+    'O tempo aqui não corre contra você.',
+    'Continua tudo no lugar.',
+    'Ele espera o tempo que for.',
+    'Nada aqui precisa ser retomado do começo.',
   ],
   longa: [
     'Seu jardim continua seu.',
@@ -131,6 +196,10 @@ const AUSENCIA: Record<Exclude<Faixa, 'presente'>, string[]> = {
     'Se um dia fizer sentido de novo, ele está aqui.',
     'Nada aqui expira.',
     'A porta continua aberta.',
+    'Ele continua aqui, sem cobrar nada.',
+    'O que você deixou aqui continua seu.',
+    'Sem recomeço: dá para continuar de onde parou.',
+    'Se hoje fizer sentido, ele está aberto.',
   ],
 };
 
@@ -299,6 +368,16 @@ export function planejarResumos({
 
   return plano;
 }
+
+/**
+ * Só para o teste: o repertório de cada faixa horária, separado.
+ *
+ * A regra "sem repetir na mesma semana" vale para **qualquer** horário que a
+ * pessoa escolha, e o checador só conseguia conferir o horário que ele mesmo
+ * usava. A madrugada tinha cinco frases: quem punha o lembrete às três da
+ * manhã via a mesma frase duas vezes por semana, e nada acusava.
+ */
+export const REPERTORIO_POR_HORA = { MANHA, TARDE, NOITE, MADRUGADA } as const;
 
 /** Só para o teste conferir que nenhuma frase quebra as regras. */
 export const TODAS_AS_FRASES: string[] = [

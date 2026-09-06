@@ -63,9 +63,8 @@ const COBRANCA = [
   };
 
   const alvo = achar('lembretes.js');
-  const { planejarLembretes, planejarResumos, TODAS_AS_FRASES } = await import(
-    'file://' + alvo.split(path.sep).join('/')
-  );
+  const { planejarLembretes, planejarResumos, TODAS_AS_FRASES, AUSENCIA, REPERTORIO_POR_HORA } =
+    await import('file://' + alvo.split(path.sep).join('/'));
   const saud = achar('saudacao.js');
   const { saudacaoDoDia, TODAS_AS_SAUDACOES } = await import(
     'file://' + saud.split(path.sep).join('/')
@@ -132,6 +131,49 @@ const COBRANCA = [
     primeiraSemana.join(' | '),
   );
 
+  /*
+    A variedade de quem abre o app todo dia, em cada horário.
+
+    Esta verificação precisa ser feita de um jeito específico, e a primeira
+    tentativa passou pelo motivo errado. Olhar a fila de sete dias de uma vez
+    **não** exercita o repertório da hora: a fila projeta ausência crescente, e
+    do segundo dia em diante o texto já vem das faixas de ausência. Só o
+    primeiro aviso de cada agendamento sai do repertório do horário.
+
+    E é assim que a vida real funciona: quem abre o app hoje faz o app reagendar
+    hoje, e amanhã de novo. O que essa pessoa recebe é sempre o **primeiro** da
+    fila, um por dia — então é isso que se mede aqui, catorze agendamentos
+    seguidos, um por dia.
+
+    Com a madrugada em cinco frases, catorze dias rendiam cinco textos: a
+    semente do sorteio é o dia do mês, e `dia % 5` volta a se repetir na sexta
+    manhã. Nada acusava, porque nenhuma verificação chegava a olhar por ali.
+  */
+  for (const [faixa, hora] of [['manhã', 8], ['tarde', 15], ['noite', 21], ['madrugada', 3]]) {
+    const textos = [];
+    for (let d = 0; d < 14; d += 1) {
+      const dia = new Date(2026, 7, 1 + d, 0, 15, 0);
+      const [primeiro] = planejarLembretes({
+        agora: dia, hora, minuto: 0, ausenciaHoje: 0, diasCuidados: 0, quantidade: 1,
+      });
+      textos.push(primeiro.texto);
+    }
+    const diferentes = new Set(textos).size;
+    checa(
+      `catorze dias às ${String(hora).padStart(2, '0')}h (${faixa}) trazem ao menos dez textos`,
+      diferentes >= 10,
+      `${diferentes} diferentes em 14`,
+    );
+  }
+
+  for (const [nome, lista] of Object.entries(REPERTORIO_POR_HORA)) {
+    checa(
+      `a faixa ${nome.toLowerCase()} tem frase para a semana inteira`,
+      lista.length >= 7,
+      `${lista.length} frases`,
+    );
+  }
+
   // --- O espaçamento de quem some -----------------------------------------
   const intervalos = presente.map((l, i) =>
     i === 0 ? 0 : Math.round((l.quando - presente[i - 1].quando) / 86400000),
@@ -147,14 +189,26 @@ const COBRANCA = [
     agora, hora: 9, minuto: 0, ausenciaHoje: 9, diasCuidados: 30, quantidade: 10,
   });
   checa('quem sumiu também recebe fila', sumida.length === 10);
+  /*
+    Pertencimento, e não palavra-chave.
+
+    Isto procurava um punhado de palavras ('continua', 'esperando', 'pressa')
+    para decidir se o texto era da faixa certa. Funcionava por acidente: as
+    cinco frases da faixa por acaso continham uma delas. A primeira frase nova
+    que dizia a mesma coisa com outras palavras — "Ele espera o tempo que for."
+    — reprovou, sem nada de errado com ela.
+
+    Conferir se o texto está na lista da faixa é o que a verificação queria
+    dizer desde o começo, e não quebra quando o repertório cresce.
+  */
   checa(
     'quem sumiu recebe texto da faixa certa',
-    sumida[0].texto.includes('continua') ||
-      sumida[0].texto.includes('esperando') ||
-      sumida[0].texto.includes('pressa') ||
-      sumida[0].texto.includes('abrir') ||
-      sumida[0].texto.includes('recomeça'),
+    AUSENCIA.media.includes(sumida[0].texto),
     sumida[0].texto,
+  );
+  checa(
+    'toda a fila de quem sumiu vem da mesma faixa',
+    sumida.every((l) => AUSENCIA.media.includes(l.texto) || AUSENCIA.longa.includes(l.texto)),
   );
 
   // --- Quem nunca registrou nada ------------------------------------------
