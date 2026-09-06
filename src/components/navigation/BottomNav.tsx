@@ -2,7 +2,7 @@ import React from 'react';
 import { Pressable, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { borderWidth, fonts, useTema } from '../../theme';
+import { fonts, useTema } from '../../theme';
 import { BrotinhoMark, MARK_PEACH } from '../brand/BrotinhoMark';
 import { Icon, type IconName } from '../core/Icon';
 
@@ -18,6 +18,25 @@ const RAISE = 22;
  * um disco de 64 pontos pairando ali — hoje só a Composta.
  */
 export const ALTURA_ERGUIDA = RAISE;
+
+/**
+ * O arredondamento do topo da barra — 28, do documento.
+ *
+ * Ele só faz sentido agora. Enquanto a barra reservava espaço no layout, o
+ * canto arredondado não tinha o que revelar: atrás dele havia a mesma faixa
+ * lisa da cor do fundo, e curvar um retângulo contra outro retângulo da mesma
+ * cor não desenha nada. Com a tela passando por trás, o canto passa a mostrar
+ * o conteúdo — que é o que faz a barra ler como um painel apoiado sobre a
+ * página em vez de uma tarja colada na base.
+ *
+ * O documento arredonda também os cantos de baixo, em 44. Aquilo é o canto do
+ * aparelho no mockup, não da barra: no celular ela encosta na borda da tela, e
+ * arredondar ali abriria dois buracos de fundo nos cantos inferiores.
+ */
+const RAIO_DO_TOPO = 28;
+
+/** O fio do documento: recuado 40 de cada lado, e não uma borda de ponta a ponta. */
+const RECUO_DO_FIO = 40;
 const CENTER_SIZE = 64;
 
 type SideTab = { key: Exclude<TabKey, 'home'>; label: string; icon: IconName };
@@ -38,7 +57,7 @@ type Props = {
  * sem nada para ouvir.
  */
 export function BottomNav({ active = 'home', onChange }: Props) {
-  const { colors, shadows } = useTema();
+  const { colors, palette, shadows } = useTema();
   const insets = useSafeAreaInsets();
 
   const lateral = (t: SideTab) => {
@@ -106,10 +125,33 @@ export function BottomNav({ active = 'home', onChange }: Props) {
           paddingTop: 10,
           paddingBottom: 10 + insets.bottom,
           backgroundColor: colors.surface,
-          borderTopWidth: borderWidth,
-          borderTopColor: colors.border,
+          borderTopLeftRadius: RAIO_DO_TOPO,
+          borderTopRightRadius: RAIO_DO_TOPO,
+          ...shadows.barra,
         }}
       >
+        {/*
+          O fio, no lugar da borda que ia de ponta a ponta.
+
+          Uma borda de ponta a ponta num painel de canto arredondado acompanha a
+          curva e morre na quina, apontando para o canto em vez de separar a
+          barra do que está atrás. O documento troca por um fio de 1,5 recuado
+          40 de cada lado: ele fica inteiro na parte reta do topo, e quem separa
+          o painel da página é a sombra.
+        */}
+        <View
+          pointerEvents="none"
+          style={{
+            position: 'absolute',
+            top: 0,
+            left: RECUO_DO_FIO,
+            right: RECUO_DO_FIO,
+            height: 1.5,
+            borderRadius: 1,
+            backgroundColor: palette.brown100,
+          }}
+        />
+
         {lateral(LEFT)}
         {/*
           Lugar reservado para o botão central, que é posicionado por cima.

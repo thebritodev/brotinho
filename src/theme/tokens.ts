@@ -230,6 +230,23 @@ export const shadows = {
     [{ offsetX: 0, offsetY: 26, blurRadius: 60, spreadDistance: -22, color: 'rgba(58,54,48,0.45)' }],
     { shadowColor: palette.brown900, shadowOffset: { width: 0, height: 8 }, shadowOpacity: 0.13, shadowRadius: 28, elevation: 8 },
   ),
+  /**
+   * A barra de abas, e e a unica sombra do app que aponta para cima.
+   *
+   * Ela existe porque a barra deixou de reservar espaco no layout: a tela
+   * passa por tras dela agora, e sem nada separando os dois o painel encosta
+   * direto no conteudo. O documento resolve com sombra para cima em vez de
+   * borda -- `0 -18px 36px -24px`, numeros dele.
+   *
+   * **Na Fabric desligada, no Android, esta sombra nao existe.** O `elevation`
+   * so sabe desenhar sombra para baixo; nao ha valor legado que faca o que
+   * esta linha faz. O recuo assumido e ficar sem ela, e nao trocar por uma
+   * sombra que cai para o lado errado.
+   */
+  barra: sombra(
+    [{ offsetX: 0, offsetY: -18, blurRadius: 36, spreadDistance: -24, color: 'rgba(58,54,48,0.55)' }],
+    { shadowColor: palette.brown900, shadowOffset: { width: 0, height: -6 }, shadowOpacity: 0.1, shadowRadius: 14, elevation: 0 },
+  ),
 } as const;
 
 // ===========================================================================
@@ -577,6 +594,10 @@ export const sombrasEscuras: Sombras = {
   lg: sombra(
     [{ offsetX: 0, offsetY: 26, blurRadius: 60, spreadDistance: -22, color: 'rgba(28,24,20,0.6)' }],
     { shadowColor: '#000000', shadowOffset: { width: 0, height: 8 }, shadowOpacity: 0.45, shadowRadius: 28, elevation: 8 },
+  ),
+  barra: sombra(
+    [{ offsetX: 0, offsetY: -18, blurRadius: 36, spreadDistance: -24, color: '#000000' }],
+    { shadowColor: '#000000', shadowOffset: { width: 0, height: -6 }, shadowOpacity: 0.3, shadowRadius: 14, elevation: 0 },
   ),
 };
 
