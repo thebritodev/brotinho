@@ -61,6 +61,36 @@ const MINIMO_ABSOLUTO = 2;
 const TAMANHO_PARA_PREFIXO = 5;
 
 /**
+ * O par de gênero do português: a mesma palavra terminada em `o` ou em `a`.
+ *
+ * O casamento por prefixo compara as cinco primeiras letras, e por isso não
+ * enxerga gênero em palavra curta: numa de cinco letras o prefixo é a palavra
+ * inteira, e numa de quatro nem chega a valer. "demitida" contava por
+ * "demitido" (oito letras), mas **"burra" não contava por "burro"** e "feia"
+ * não contava por "feio".
+ *
+ * O buraco só aparece nas palavras curtas, e as palavras curtas são justamente
+ * como o pensamento difícil costuma chegar — "burro", "chato", "feio". Quem
+ * escreve no masculino e repete no feminino, ou o contrário, perdia a contagem
+ * inteira.
+ *
+ * **O preço, dito com todas as letras:** trocar a última vogal nem sempre é
+ * flexão. "bola" e "bolo" passam a casar, e são palavras diferentes. Numa
+ * prática em que a pessoa repete em voz alta a frase que ela mesma escreveu, a
+ * chance de dizer o par de gênero de outra palavra é remota — e este arquivo já
+ * escolheu de que lado errar: contar a mais é melhor do que travar quem está
+ * fazendo tudo certo.
+ */
+const TAMANHO_PARA_GENERO = 4;
+
+function mesmoRadicalComGeneroTrocado(a: string, b: string): boolean {
+  if (a.length !== b.length || a.length < TAMANHO_PARA_GENERO) return false;
+  if (a.slice(0, -1) !== b.slice(0, -1)) return false;
+  const fim = [a[a.length - 1], b[b.length - 1]];
+  return fim.includes('a') && fim.includes('o');
+}
+
+/**
  * Palavras curtas demais casam por acidente com qualquer coisa. Ficam de fora
  * do alvo — mas só quando sobra alvo suficiente sem elas.
  */
@@ -86,9 +116,10 @@ export function palavrasDoAlvo(alvo: string): string[] {
   return fortes.length >= 2 ? fortes : todas;
 }
 
-/** Iguais, ou longas o bastante para casarem pelo começo. */
+/** Iguais, do mesmo gênero, ou longas o bastante para casarem pelo começo. */
 export function mesmaPalavra(a: string, b: string): boolean {
   if (a === b) return true;
+  if (mesmoRadicalComGeneroTrocado(a, b)) return true;
   if (a.length < TAMANHO_PARA_PREFIXO || b.length < TAMANHO_PARA_PREFIXO) return false;
   return a.slice(0, TAMANHO_PARA_PREFIXO) === b.slice(0, TAMANHO_PARA_PREFIXO);
 }

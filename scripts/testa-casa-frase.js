@@ -101,6 +101,41 @@ const GRUPOS = [
       ['ERRADA: nada a ver', 'sucesso', 0],
     ],
   ],
+  /*
+    Flexão de gênero em palavra curta.
+
+    O casamento por prefixo compara as cinco primeiras letras, e por isso não
+    enxergava gênero em palavra curta: numa de cinco o prefixo é a palavra
+    inteira, e numa de quatro nem chega a valer. "demitida" já contava por
+    "demitido"; "burra" não contava por "burro".
+
+    Os ERRADA aqui são o que a regra não pode arrastar junto: trocar a última
+    vogal só vale quando o resto da palavra é idêntico, e só entre `o` e `a`.
+  */
+  [
+    'burro',
+    [
+      ['flexão de gênero', 'burra', 1],
+      ['flexão, três vezes', 'burra burra burra', 3],
+      ['ERRADA: muda mais que a última letra', 'burla', 0],
+      ['ERRADA: outra vogal no fim', 'burre', 0],
+      ['ERRADA: mesma raiz, tamanho outro', 'burrice', 0],
+    ],
+  ],
+  [
+    'feio',
+    [
+      ['quatro letras também flexionam', 'feia', 1],
+      ['ERRADA: nada a ver', 'boa', 0],
+    ],
+  ],
+  [
+    'sou fraco',
+    [
+      ['a frase toda no feminino', 'sou fraca', 1],
+      ['ERRADA: o oposto continua sendo o oposto', 'sou forte', 0],
+    ],
+  ],
 ];
 
 /*
