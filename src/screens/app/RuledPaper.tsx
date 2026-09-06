@@ -78,8 +78,8 @@ export function RuledPaper({
       {Array.from({ length: LINE_COUNT }).map((_, i) => (
         <View
           key={i}
-          pointerEvents="none"
           style={{
+            pointerEvents: 'none',
             position: 'absolute',
             left: 0,
             right: 0,
@@ -90,8 +90,8 @@ export function RuledPaper({
         />
       ))}
       <View
-        pointerEvents="none"
         style={{
+          pointerEvents: 'none',
           position: 'absolute',
           top: 0,
           bottom: 0,

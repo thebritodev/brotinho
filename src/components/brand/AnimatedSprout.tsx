@@ -258,7 +258,9 @@ export function AnimatedSprout({
         As duas passadas usam a mesma `viewBox` e o mesmo tamanho, então se
         sobrepõem exatamente — não há posição para acertar à mão.
       */}
-      <View style={{ position: 'absolute', width: size, alignItems: 'center' }} pointerEvents="none">
+      <View
+        style={{ position: 'absolute', width: size, alignItems: 'center', pointerEvents: 'none' }}
+      >
         <Sprout mood={mood} stage={stage} size={size} decorations={decorations} parte="sombra" />
       </View>
 

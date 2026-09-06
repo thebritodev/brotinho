@@ -360,7 +360,6 @@ export function LuzDeEstufa({
       ]}
     >
       <Animated.View
-        pointerEvents="none"
         /*
           Largura e altura explícitas.
 
@@ -371,6 +370,7 @@ export function LuzDeEstufa({
           linha eliminá-la.
         */
         style={{
+          pointerEvents: 'none',
           position: 'absolute',
           width: tela,
           height: tela,

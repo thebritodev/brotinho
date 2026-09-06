@@ -507,9 +507,8 @@ export function JournalScreen({
               tela anunciaria "Ag Ag Ag" antes do diário.
             */}
             <Text
-              style={[paperTextStyle, { position: 'absolute', opacity: 0 }]}
+              style={[paperTextStyle, { position: 'absolute', opacity: 0, pointerEvents: 'none' }]}
               onTextLayout={medirPouso}
-              pointerEvents="none"
               accessibilityElementsHidden
               importantForAccessibility="no-hide-descendants"
               aria-hidden
@@ -551,10 +550,10 @@ export function JournalScreen({
 
           {outgoing !== null && (
             <Animated.View
-              pointerEvents="none"
               style={[
                 StyleSheet.absoluteFill,
                 {
+                  pointerEvents: 'none',
                   transformOrigin: 'left center',
                   backfaceVisibility: 'hidden',
                   transform: [{ perspective: 1400 }, { rotateY: pageRotation }],

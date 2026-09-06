@@ -89,7 +89,7 @@ function Moldura({ children }: { children: React.ReactNode }) {
         em `multiply`, e é assim que ele atravessa cartão, botão e ilustração
         de uma vez, como o grão do papel atravessa o que foi impresso nele.
 
-        `pointerEvents="none"` está dentro do componente: uma camada que cobre
+        `pointerEvents: none` está no estilo dele: uma camada que cobre
         a tela inteira e não deixa passar toque desligaria o app.
       */}
       <GraoDePapel />

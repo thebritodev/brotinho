@@ -90,7 +90,7 @@ export function FallingWords({ tick, thought }: Props) {
   const remove = (id: number) => setParticles((prev) => prev.filter((p) => p.id !== id));
 
   return (
-    <View style={StyleSheet.absoluteFill} pointerEvents="none">
+    <View style={[StyleSheet.absoluteFill, { pointerEvents: 'none' }]}>
       {particles.map((p) => (
         <Falling key={p.id} p={p} onDone={remove} />
       ))}

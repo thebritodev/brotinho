@@ -117,7 +117,24 @@ export function BottomNav({ active = 'home', onChange }: Props) {
       completa a ideia — sem ele a tira invisível continuaria engolindo o
       toque de quem mira no que está atrás dela.
     */
-    <View pointerEvents="box-none" style={{ marginTop: -RAISE, paddingTop: RAISE, zIndex: 2 }}>
+    <View
+      /*
+        `box-none` fica na prop, e é o único lugar do app onde ela continua.
+
+        O React Native depreciou a prop em favor do estilo, e as outras doze
+        camadas do app migraram. Estas duas não podem: o `react-native-web`
+        **descarta** `box-none` quando ele vem pelo estilo — medido, o
+        `pointer-events` computado volta a ser `auto`. E `auto` aqui é o defeito
+        que a tira erguida tinha antes de existir: ela engole o toque de quem
+        mira no conteúdo atrás dela.
+
+        No aparelho o estilo funcionaria. Só que o app também roda na web, e
+        trocar comportamento de toque por causa de um aviso de depreciação é
+        pagar caro por arrumação.
+      */
+      pointerEvents="box-none"
+      style={{ marginTop: -RAISE, paddingTop: RAISE, zIndex: 2 }}
+    >
       <View
         style={{
           flexDirection: 'row',
@@ -140,8 +157,8 @@ export function BottomNav({ active = 'home', onChange }: Props) {
           o painel da página é a sombra.
         */}
         <View
-          pointerEvents="none"
           style={{
+            pointerEvents: 'none',
             position: 'absolute',
             top: 0,
             left: RECUO_DO_FIO,
@@ -176,6 +193,9 @@ export function BottomNav({ active = 'home', onChange }: Props) {
         {lateral(RIGHT)}
       </View>
 
+      {/* `box-none` pela prop, pelo mesmo motivo da camada de cima. Esta faixa
+          atravessa a largura toda: com `auto`, ela engoliria o toque nos
+          rótulos das duas abas laterais. */}
       <View
         pointerEvents="box-none"
         style={{ position: 'absolute', top: 0, left: 0, right: 0, alignItems: 'center' }}

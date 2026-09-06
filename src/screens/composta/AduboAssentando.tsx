@@ -115,8 +115,7 @@ export function AduboAssentando({ frase }: { frase: string }) {
     <View
       accessibilityElementsHidden
       importantForAccessibility="no-hide-descendants"
-      pointerEvents="none"
-      style={StyleSheet.absoluteFill}
+      style={[StyleSheet.absoluteFill, { pointerEvents: 'none' }]}
     >
       {sementes.map((s) => (
         <Palavra key={`${s.texto}-${s.x}`} semente={s} animar={animar} />

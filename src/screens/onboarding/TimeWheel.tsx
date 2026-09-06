@@ -200,8 +200,8 @@ export function TimeWheel({ value, onChange, icon = 'moon' }: Props) {
       >
         {/* Faixa de destaque atrás do número escolhido. */}
         <View
-          pointerEvents="none"
           style={{
+            pointerEvents: 'none',
             position: 'absolute',
             left: 0,
             right: 0,
