@@ -24,6 +24,7 @@ import { AduboAssentando } from './AduboAssentando';
 import { FallingWords } from './FallingWords';
 import { useCompostSession } from './useCompostSession';
 import { useBotaoVoltar } from '../../navigation/useBotaoVoltar';
+import { ALTURA_ERGUIDA } from '../../components/navigation/BottomNav';
 
 /** Segundos de voz necessários para completar uma compostagem. */
 const TARGET_SECONDS = 35;
@@ -328,7 +329,10 @@ export function CompostaScreen({
           style={{
             paddingHorizontal: 20,
             paddingTop: 12,
-            paddingBottom: 16,
+            // O broto da barra de abas paira 22 pontos acima dela, e desde que
+            // a barra deixou de reservar esse espaço ele cairia em cima deste
+            // botão. O rodapé cresce o mesmo tanto, e o botão fica onde estava.
+            paddingBottom: 16 + ALTURA_ERGUIDA,
             backgroundColor: colors.bg,
             borderTopWidth: 1,
             borderTopColor: colors.border,

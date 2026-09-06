@@ -10,6 +10,14 @@ export type TabKey = 'home' | 'diario' | 'perfil';
 
 /** Quanto o botão do meio sobe acima da faixa. */
 const RAISE = 22;
+
+/**
+ * A altura que o botão central ocupa **acima** da barra.
+ *
+ * Exportada porque uma tela com barra de ação no rodapé precisa saber que há
+ * um disco de 64 pontos pairando ali — hoje só a Composta.
+ */
+export const ALTURA_ERGUIDA = RAISE;
 const CENTER_SIZE = 64;
 
 type SideTab = { key: Exclude<TabKey, 'home'>; label: string; icon: IconName };
@@ -73,9 +81,24 @@ export function BottomNav({ active = 'home', onChange }: Props) {
   };
 
   return (
-    // O espaço de cima é transparente e existe só para o botão central subir
-    // sem sair dos limites do pai — no Android o que vaza pode ser cortado.
-    <View style={{ paddingTop: RAISE }}>
+    /*
+      A barra paira sobre a tela; não empurra uma faixa na frente dela.
+
+      O espaço de cima é transparente e existe para o botão central subir sem
+      sair dos limites do pai — no Android o que vaza pode ser cortado. Só que
+      ele também era **reservado no layout**: a tela terminava 22 pontos acima
+      da barra, e esses 22 pontos viravam uma faixa lisa da cor do fundo,
+      cobrindo o que a tela tinha ali e passando por trás da metade de cima do
+      broto. Era o que se via na tela inicial: os chips de palavra cortados,
+      uma tira bege, e só então a barra.
+
+      A margem negativa devolve esse espaço à tela: a barra continua ocupando
+      no layout só a altura dela mesma, e a parte erguida passa a ficar **por
+      cima** do conteúdo, não na frente de um vazio. `box-none` é o que
+      completa a ideia — sem ele a tira invisível continuaria engolindo o
+      toque de quem mira no que está atrás dela.
+    */
+    <View pointerEvents="box-none" style={{ marginTop: -RAISE, paddingTop: RAISE, zIndex: 2 }}>
       <View
         style={{
           flexDirection: 'row',
