@@ -106,7 +106,7 @@ export function stopNativeSpeech(): void {
 
 /** Assina um evento nativo. Devolve a função de cancelamento. */
 export function subscribeSpeech(
-  event: 'result' | 'end' | 'error' | 'volumechange',
+  event: 'result' | 'end' | 'error' | 'volumechange' | 'speechstart' | 'speechend',
   listener: (payload: never) => void,
 ): () => void {
   if (!speechModule) return () => {};

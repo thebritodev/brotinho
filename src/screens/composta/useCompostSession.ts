@@ -17,7 +17,14 @@ import {
 import { pararEApagar } from '../../services/apagarGravacao';
 import { relatar } from '../../services/diagnostico';
 import { janelaDoSistema } from '../../services/janelaDoSistema';
-import { criarConferidor, type Conferidor } from './casaFrase';
+import {
+  criarConferidor,
+  mesmaPalavra,
+  palavraChave,
+  palavras,
+  palavrasDoAlvo,
+  type Conferidor,
+} from './casaFrase';
 
 /**
  * Sessão de compostagem: escuta enquanto a pessoa repete a frase em voz alta,
@@ -126,6 +133,34 @@ const INTERVALO_DO_VOLUME_MS = 150;
 const VOLUME_AUDIVEL = 0.5;
 
 /**
+ * Por quanto tempo um sinal de fala continua valendo, no modo por frase.
+ *
+ * ## Por que o tempo deixou de vir do volume
+ *
+ * O contador de segundos vinha inteiro do evento `volumechange`, e no aparelho
+ * ele **nunca chega**. O motivo é o reconhecimento dentro do aparelho: a partir
+ * do Android 13 o módulo usa `createOnDeviceSpeechRecognizer`, e esse
+ * reconhecedor não reporta `onRmsChanged` — que é de onde o `volumechange`
+ * nasce. Sem uma leitura sequer, `secs` ficava em zero para sempre: o relógio
+ * não andava, a prática não tinha como terminar, e a tela dizia "Estou aqui,
+ * ouvindo" enquanto a pessoa repetia a frase em voz alta sem nada acontecer.
+ *
+ * Medido no aparelho: numa sessão de 40 segundos falando, zero `volumechange`
+ * e sete transcrições. O sinal existia; era só o outro.
+ *
+ * ## O que conta como fala agora
+ *
+ * Qualquer prova de que o reconhecedor está ouvindo alguém: uma transcrição
+ * chegando, um `speechstart`, ou — onde ele existe — um `volumechange` audível.
+ * O relógio anda enquanto houver prova recente, e para quando ela envelhece.
+ *
+ * Um segundo e meio é maior que a pausa entre duas palavras e menor que a
+ * pausa entre duas repetições, então frase falada devagar continua contando e
+ * silêncio de verdade para de contar.
+ */
+const MEMORIA_DA_VOZ_MS = 1500;
+
+/**
  * Quantas vezes religar o reconhecimento antes de cair para o acústico.
  *
  * Uma sessão dura 30 a 40 segundos e o reconhecedor encerra depois de alguns
@@ -219,6 +254,10 @@ export function useCompostSession({ targetSeconds, frase, onFinish }: Options): 
   const conferidor = useRef<Conferidor | null>(null);
   /** Quantas leituras de volume chegaram — só para o diagnóstico. */
   const contouVolume = useRef(0);
+  /** Quando chegou a última prova de que alguém está falando. */
+  const ultimaVoz = useRef(0);
+  /** Se este aparelho reporta volume. Onde reporta, o anel segue o volume. */
+  const temVolume = useRef(false);
   const cancelamentos = useRef<(() => void)[]>([]);
 
   const soltarEventos = useCallback(() => {
@@ -322,6 +361,12 @@ export function useCompostSession({ targetSeconds, frase, onFinish }: Options): 
 
     conferidor.current = criarConferidor(alvo);
 
+    // TEMPORARIO: para saber se a transcrição traz as palavras do alvo. São
+    // contagens, nunca as palavras — nem as do alvo, nem as ditas.
+    const alvoEmPalavras = palavrasDoAlvo(alvo);
+    const chaveDoAlvo = palavraChave(alvoEmPalavras);
+    let relatados = 0;
+
     let vivo = true;
     let reinicios = 0;
     const desistir = () => {
@@ -336,10 +381,27 @@ export function useCompostSession({ targetSeconds, frase, onFinish }: Options): 
     cancelamentos.current = [
       subscribeSpeech('result', (evento: { results?: { transcript?: string }[] }) => {
         const texto = evento?.results?.[0]?.transcript;
-        relatar('frase-resultado', `letras=${texto ? texto.length : 0}`);
+        // Transcrição chegando é a prova mais direta de que alguém está
+        // falando — e é a única que este aparelho dá.
+        if (texto) ultimaVoz.current = Date.now();
         if (!texto || !conferidor.current) return;
         const casou = conferidor.current.conferir(texto);
-        relatar('frase-casou', casou);
+
+        if (relatados < 12) {
+          relatados += 1;
+          const ditas = palavras(texto);
+          const acertadas = alvoEmPalavras.filter((alvoP) =>
+            ditas.some((d) => mesmaPalavra(alvoP, d)),
+          );
+          relatar(
+            'frase-acertos',
+            `${acertadas.length}de${alvoEmPalavras.length}` +
+              ` chave=${acertadas.includes(chaveDoAlvo) ? 1 : 0}` +
+              ` minimo=${conferidor.current.minimo}` +
+              ` ditas=${ditas.length} letras=${texto.length} rep=${casou}`,
+          );
+        }
+
         somarReps(casou);
       }),
 
@@ -351,10 +413,23 @@ export function useCompostSession({ targetSeconds, frase, onFinish }: Options): 
         // Só as primeiras: uma a cada 150 ms encheria o registro do túnel.
         if (contouVolume.current <= 4) relatar('frase-volume', v == null ? 'nulo' : v.toFixed(2));
         if (v == null) return;
+        temVolume.current = true;
         // A escala do módulo vai de -2 a 10, e abaixo de 0 é inaudível.
         const audivel = v > VOLUME_AUDIVEL;
         setLevel(Math.max(0, Math.min(1, v / 10)));
-        acumular(audivel, INTERVALO_DO_VOLUME_MS / 1000);
+        // O relógio não anda mais daqui: onde este evento não existe, ele
+        // ficava parado para sempre. Ver `MEMORIA_DA_VOZ_MS`.
+        if (audivel) ultimaVoz.current = Date.now();
+      }),
+
+      // O reconhecedor avisa quando ouve alguém começar a falar. Nem todo
+      // aparelho manda, então isto soma prova, não substitui as outras.
+      subscribeSpeech('speechstart', () => {
+        relatar('frase-fala-comecou');
+        ultimaVoz.current = Date.now();
+      }),
+      subscribeSpeech('speechend', () => {
+        relatar('frase-fala-terminou');
       }),
 
       subscribeSpeech('error', (evento: { error?: string }) => {
@@ -427,6 +502,8 @@ export function useCompostSession({ targetSeconds, frase, onFinish }: Options): 
     setLevel(0);
     setSilent(false);
     contouVolume.current = 0;
+    temVolume.current = false;
+    ultimaVoz.current = 0;
     relatar('sessao-comecou');
 
     if (await iniciarPorFrase()) return;
@@ -480,7 +557,7 @@ export function useCompostSession({ targetSeconds, frase, onFinish }: Options): 
   /** Quantas leituras do medidor chegaram — só para o diagnóstico. */
   const contouMedidor = useRef(0);
   useEffect(() => {
-    if (!running || manual) return;
+    if (!running || manual || porFrase) return;
 
     const db = recorderState.metering;
     contouMedidor.current += 1;
@@ -529,7 +606,26 @@ export function useCompostSession({ targetSeconds, frase, onFinish }: Options): 
     setLevel(voiced ? nivel : nivel * 0.3);
 
     step(voiced, dt);
-  }, [running, manual, recorderState.metering, recorderState.durationMillis, step]);
+  }, [running, manual, porFrase, recorderState.metering, recorderState.durationMillis, step]);
+
+  /**
+   * Modo por frase: o relógio anda enquanto houver prova recente de fala.
+   *
+   * Antes ele era movido pelo `volumechange`, que não existe no reconhecimento
+   * dentro do aparelho — ver `MEMORIA_DA_VOZ_MS`. Aqui a batida é do app, e o
+   * que ela pergunta a cada 100 ms é "houve prova de fala há pouco?".
+   */
+  useEffect(() => {
+    if (!running || !porFrase) return;
+    const id = setInterval(() => {
+      const falando = Date.now() - ultimaVoz.current < MEMORIA_DA_VOZ_MS;
+      // Onde o volume existe, o anel já segue o volume e não deve piscar por
+      // cima disso. Onde não existe, ele ao menos reage à fala.
+      if (!temVolume.current) setLevel(falando ? 0.55 : 0);
+      acumular(falando, TICK / 1000);
+    }, TICK);
+    return () => clearInterval(id);
+  }, [running, porFrase, acumular]);
 
   // Modo manual: o botão pressionado faz as vezes da voz.
   useEffect(() => {
