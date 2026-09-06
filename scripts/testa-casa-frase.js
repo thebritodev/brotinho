@@ -103,6 +103,81 @@ const GRUPOS = [
   ],
 ];
 
+/*
+  Os casos acima entregam a frase inteira de uma vez. O reconhecimento nao faz
+  isso: manda parciais que crescem, marca `isFinal` no fim de cada fala, e
+  **recomeca do zero na fala seguinte**.
+
+  Foi essa diferenca que deixou passar o defeito mais caro desta tela. O
+  conferidor guardava um indice de "ate onde ja contei", que so faz sentido
+  numa transcricao que cresce para sempre. Como cada fala chegava com uma
+  palavra so, o indice ficava em 1, o laco comecava depois do fim, e da segunda
+  repeticao em diante nada contava. No aparelho: cinco repeticoes, uma contada.
+
+  Estes fluxos sao transcritos do que o aparelho relatou -- as parciais de duas
+  letras que crescem para oito, e o recomeco a cada fala.
+
+  Cada passo e [transcricao, isFinal].
+*/
+const FLUXOS = [
+  {
+    nome: 'cinco falas, como o aparelho manda',
+    alvo: 'burro',
+    passos: [
+      ['bu', false], ['burro', false], ['burro', true],
+      ['bu', false], ['burro', false], ['burro', true],
+      ['bu', false], ['burro', false], ['burro', true],
+      ['bu', false], ['burro', false], ['burro', true],
+      ['bu', false], ['burro', false], ['burro', true],
+    ],
+    esperado: 5,
+  },
+  {
+    nome: 'sem isFinal: o encolhimento denuncia a fala nova',
+    alvo: 'burro',
+    passos: [
+      ['bu', false], ['burro', false],
+      ['bu', false], ['burro', false],
+      ['bu', false], ['burro', false],
+    ],
+    esperado: 3,
+  },
+  {
+    nome: 'parcial revisto na mesma fala nao conta duas vezes',
+    alvo: 'burro',
+    passos: [['burro', false], ['burros', false], ['burro', false], ['burro', true]],
+    esperado: 1,
+  },
+  {
+    nome: 'parcial repetido nao conta de novo',
+    alvo: 'burro',
+    passos: [['burro', false], ['burro', false], ['burro', false]],
+    esperado: 1,
+  },
+  {
+    nome: 'frase longa, tres falas',
+    alvo: 'vou ser demitido',
+    passos: [
+      ['vou', false], ['vou ser', false], ['vou ser demitido', true],
+      ['vou', false], ['vou ser demitido', true],
+      ['vou ser demitido', true],
+    ],
+    esperado: 3,
+  },
+  {
+    nome: 'duas repeticoes dentro de uma fala so',
+    alvo: 'burro',
+    passos: [['burro', false], ['burro burro', false], ['burro burro', true]],
+    esperado: 2,
+  },
+  {
+    nome: 'ERRADO: fala que nao e a frase nao conta',
+    alvo: 'burro',
+    passos: [['es', false], ['esperto', false], ['esperto', true], ['esperto', true]],
+    esperado: 0,
+  },
+];
+
 (async () => {
   const saida = pastaTemporaria('casa-frase');
 
@@ -144,6 +219,23 @@ const GRUPOS = [
     }
   }
 
+
+  console.log('');
+  console.log('Fluxos, como o reconhecimento entrega de verdade');
+  for (const { nome, alvo, passos, esperado } of FLUXOS) {
+    total += 1;
+    const conferidor = criarConferidor(alvo);
+    let contou = 0;
+    for (const [texto, isFinal] of passos) {
+      contou += conferidor.conferir(texto);
+      if (isFinal) conferidor.encerrarFala();
+    }
+    const ok = contou === esperado;
+    if (!ok) falhas += 1;
+    console.log(
+      `  ${(ok ? 'ok' : 'FALHA').padEnd(5)} ${nome.padEnd(48)} contou ${String(contou).padStart(2)} · esperado ${esperado}`,
+    );
+  }
 
   console.log(`\n${total} casos · ${falhas} falha(s)`);
   process.exit(falhas === 0 ? 0 : 1);

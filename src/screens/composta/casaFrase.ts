@@ -100,10 +100,17 @@ export function palavraChave(alvoPalavras: string[]): string {
 
 export type Conferidor = {
   /**
-   * Recebe a transcrição acumulada e devolve quantas repetições **novas**
-   * apareceram desde a última chamada.
+   * Recebe a transcrição da fala em curso e devolve quantas repetições
+   * **novas** apareceram desde a última chamada.
    */
   conferir: (transcricao: string) => number;
+  /**
+   * Fecha a fala em curso: a próxima transcrição pertence a outra.
+   *
+   * Quem chama sabe disso pelo `isFinal` do reconhecimento. Sem este aviso o
+   * conferidor não tem como saber — ver o comentário em `criarConferidor`.
+   */
+  encerrarFala: () => void;
   /** Quantas palavras do alvo precisam aparecer. Útil para explicar e testar. */
   minimo: number;
   /** A palavra sem a qual nada conta. */
@@ -118,67 +125,107 @@ export function criarConferidor(alvo: string): Conferidor {
     Math.max(MINIMO_ABSOLUTO, Math.ceil(alvoPalavras.length * LIMIAR)),
   );
 
-  /**
-   * Até onde a transcrição já foi contada. O reconhecimento entrega o texto
-   * inteiro a cada evento, crescendo — sem isto, a mesma repetição seria
-   * contada de novo a cada palavra nova que chegasse.
-   */
-  let consumidas = 0;
-
   /** A janela nunca precisa ser muito maior que o alvo. */
   const maxJanela = alvoPalavras.length * 2 + 2;
 
   const casaAlgumaDoAlvo = (dita: string) => alvoPalavras.find((p) => mesmaPalavra(p, dita));
 
+  /**
+   * Quantas repetições cabem neste texto, do começo ao fim. Sem estado: o mesmo
+   * texto dá sempre o mesmo número.
+   */
+  function quantasNoTexto(ditas: string[]): number {
+    let repeticoes = 0;
+    let janela: string[] = [];
+
+    for (let i = 0; i < ditas.length; i++) {
+      janela.push(ditas[i]);
+      if (janela.length > maxJanela) janela.shift();
+
+      const acertadas = alvoPalavras.filter((p) => janela.some((d) => mesmaPalavra(p, d)));
+      const temChave = acertadas.some((p) => p === chave);
+
+      if (acertadas.length >= minimo && temChave) {
+        repeticoes += 1;
+
+        /**
+         * O casamento fecha antes de a frase acabar, e a cauda que sobra
+         * entraria na próxima repetição, disparando cedo. Então engole também
+         * as palavras seguintes que ainda são do alvo.
+         *
+         * **Mas só as que ainda não foram usadas nesta repetição.** Sem essa
+         * trava, "vou ser demitido vou ser demitido vou ser demitido" era
+         * engolido inteiro de uma vez e contava 1 em vez de 3: a palavra
+         * repetida é justamente o sinal de que a próxima repetição começou.
+         */
+        const usadas = new Set(acertadas);
+        let fim = i;
+        while (fim + 1 < ditas.length) {
+          const alvoDaProxima = casaAlgumaDoAlvo(ditas[fim + 1]);
+          if (!alvoDaProxima || usadas.has(alvoDaProxima)) break;
+          usadas.add(alvoDaProxima);
+          fim += 1;
+        }
+
+        i = fim;
+        janela = [];
+      }
+    }
+
+    return repeticoes;
+  }
+
+  /** Quantas repetições a fala em curso já rendeu. */
+  let jaContadas = 0;
+  /** Quantas palavras tinha a transcrição anterior, para notar que ela encolheu. */
+  let tamanhoAnterior = 0;
+
   return {
     minimo,
     chave,
+
+    encerrarFala() {
+      jaContadas = 0;
+      tamanhoAnterior = 0;
+    },
+
     conferir(transcricao) {
       const ditas = palavras(transcricao);
 
-      // Resultados parciais são revistos, e às vezes encolhem. Quando isso
-      // acontece, o índice antigo não vale mais.
-      if (ditas.length < consumidas) consumidas = 0;
+      /*
+        Rede de segurança para quem não avisa o fim da fala.
 
-      let repeticoes = 0;
-      let janela: string[] = [];
+        A transcrição de uma fala só cresce. Encolher quer dizer que o
+        reconhecimento começou outra — foi assim que o aparelho se comportou:
+        oito letras, depois duas. Onde o `isFinal` chega, `encerrarFala` já
+        resolveu antes disto; onde não chega, isto resolve.
 
-      for (let i = consumidas; i < ditas.length; i++) {
-        janela.push(ditas[i]);
-        if (janela.length > maxJanela) janela.shift();
+        É o encolhimento, e não a diferença de texto, porque parcial revisto
+        troca palavra sem trocar de fala: "burro" virando "burros" é a mesma
+        repetição sendo reescrita, e contá-la de novo seria contar a mais.
+      */
+      if (ditas.length < tamanhoAnterior) jaContadas = 0;
+      tamanhoAnterior = ditas.length;
 
-        const acertadas = alvoPalavras.filter((p) => janela.some((d) => mesmaPalavra(p, d)));
-        const temChave = acertadas.some((p) => p === chave);
+      /*
+        O total do texto inteiro, menos o que esta fala já rendeu.
 
-        if (acertadas.length >= minimo && temChave) {
-          repeticoes += 1;
+        A versão anterior guardava um índice de "até onde já contei" e seguia
+        dali. Isso presume que a transcrição só cresce e nunca recomeça — e o
+        reconhecimento contínuo do Android recomeça a cada fala, mandando
+        `isFinal` sem encerrar a sessão. O índice ficava em 1, cada fala nova
+        chegava com uma palavra só, o laço começava depois do fim, e **da
+        segunda repetição em diante nada era contado**. Cinco repetições
+        viravam uma.
 
-          /**
-           * O casamento fecha antes de a frase acabar, e a cauda que sobra
-           * entraria na próxima repetição, disparando cedo. Então engole também
-           * as palavras seguintes que ainda são do alvo.
-           *
-           * **Mas só as que ainda não foram usadas nesta repetição.** Sem essa
-           * trava, "vou ser demitido vou ser demitido vou ser demitido" era
-           * engolido inteiro de uma vez e contava 1 em vez de 3: a palavra
-           * repetida é justamente o sinal de que a próxima repetição começou.
-           */
-          const usadas = new Set(acertadas);
-          let fim = i;
-          while (fim + 1 < ditas.length) {
-            const alvoDaProxima = casaAlgumaDoAlvo(ditas[fim + 1]);
-            if (!alvoDaProxima || usadas.has(alvoDaProxima)) break;
-            usadas.add(alvoDaProxima);
-            fim += 1;
-          }
-
-          consumidas = fim + 1;
-          i = fim;
-          janela = [];
-        }
-      }
-
-      return repeticoes;
+        Contar o texto todo e subtrair o que já foi contado dá o mesmo
+        resultado quando a transcrição cresce, e não depende de índice nenhum
+        quando ela é reescrita.
+      */
+      const total = quantasNoTexto(ditas);
+      const novas = Math.max(0, total - jaContadas);
+      jaContadas = total;
+      return novas;
     },
   };
 }

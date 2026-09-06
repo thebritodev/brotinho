@@ -379,7 +379,9 @@ export function useCompostSession({ targetSeconds, frase, onFinish }: Options): 
     };
 
     cancelamentos.current = [
-      subscribeSpeech('result', (evento: { results?: { transcript?: string }[] }) => {
+      subscribeSpeech(
+        'result',
+        (evento: { results?: { transcript?: string }[]; isFinal?: boolean }) => {
         const texto = evento?.results?.[0]?.transcript;
         // Transcrição chegando é a prova mais direta de que alguém está
         // falando — e é a única que este aparelho dá.
@@ -403,7 +405,22 @@ export function useCompostSession({ targetSeconds, frase, onFinish }: Options): 
         }
 
         somarReps(casou);
-      }),
+
+        /*
+          `isFinal` fecha a fala: o que vier depois é outra.
+
+          Isto era ignorado, e o conferidor não tinha como saber onde uma fala
+          acabava. No reconhecimento contínuo do Android a sessão não termina
+          junto — `onSegmentResults` manda `isFinal` e segue ouvindo — então
+          não havia nem o evento `end` para servir de pista. Cinco repetições
+          contavam uma.
+        */
+        if (evento?.isFinal) {
+          relatar('frase-fala-encerrada');
+          conferidor.current?.encerrarFala();
+        }
+        },
+      ),
 
       // O volume vem do próprio reconhecimento: dois donos para o mesmo
       // microfone dá conflito nas duas plataformas.
