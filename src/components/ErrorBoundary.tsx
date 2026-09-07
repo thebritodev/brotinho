@@ -2,7 +2,6 @@ import * as SplashScreen from 'expo-splash-screen';
 import React from 'react';
 import { Pressable, ScrollView, Text, View } from 'react-native';
 
-import { relatar } from '../services/diagnostico';
 import { colors, palette, radius } from '../theme';
 
 /**
@@ -48,8 +47,6 @@ export class ErrorBoundary extends React.Component<Props, State> {
       pista, nenhum caminho, e nem o erro que o app já tinha capturado.
     */
     void SplashScreen.hideAsync().catch(() => {});
-
-    relatar('erro-render', String(erro?.message ?? erro).slice(0, 120));
 
     // Em produção não há para onde mandar isto sem um servidor — e mandar
     // exigiria enviar dados da pessoa, que é justamente o que o app promete

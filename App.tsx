@@ -22,7 +22,6 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { GraoDePapel } from './src/components';
 import { ErrorBoundary } from './src/components/ErrorBoundary';
 import { RootNavigator } from './src/navigation/RootNavigator';
-import { relatar } from './src/services/diagnostico';
 import { AppLockGate } from './src/screens/AppLockGate';
 import { AppStateProvider } from './src/state/AppStateProvider';
 import { SubscriptionProvider } from './src/state/SubscriptionProvider';
@@ -52,9 +51,6 @@ setTimeout(() => {
   void SplashScreen.hideAsync().catch(() => {});
 }, 4000);
 
-// TEMPORARIO: marcos ate a splash sair — ver `services/diagnostico.ts`.
-relatar('1-modulo-carregado');
-
 function AppInterno() {
   const [fontsLoaded, fontError] = useFonts({
     Baloo2_400Regular,
@@ -69,11 +65,7 @@ function AppInterno() {
   });
 
   useEffect(() => {
-    relatar('2-fontes', `carregadas=${fontsLoaded} erro=${!!fontError}`);
-    if (fontsLoaded || fontError) {
-      void SplashScreen.hideAsync();
-      relatar('3-splash-escondida');
-    }
+    if (fontsLoaded || fontError) void SplashScreen.hideAsync();
   }, [fontsLoaded, fontError]);
 
   // Sem as fontes o layout "salta" ao carregá-las; a splash cobre esse intervalo.
