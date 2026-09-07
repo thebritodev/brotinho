@@ -3,7 +3,7 @@ import { Pressable, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { fonts, useTema } from '../../theme';
-import { BrotinhoMark, MARK_PEACH } from '../brand/BrotinhoMark';
+import { BrotinhoMark, MARK_DISCO } from '../brand/BrotinhoMark';
 import { Icon, type IconName } from '../core/Icon';
 
 export type TabKey = 'home' | 'diario' | 'perfil';
@@ -214,7 +214,7 @@ export function BottomNav({ active = 'home', onChange }: Props) {
             // O disco do símbolo cobre o botão inteiro. A cor por baixo é a
             // mesma dele: o desenho é um pouco menor que o quadrado do SVG, e
             // sem isso sobraria um fio branco na borda.
-            backgroundColor: MARK_PEACH,
+            backgroundColor: MARK_DISCO,
             overflow: 'hidden',
             /*
               O disco não recua mais quando a aba está fechada.

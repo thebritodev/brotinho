@@ -1,53 +1,89 @@
 import React from 'react';
-import Svg, { Circle, G, Path } from 'react-native-svg';
+import Svg, { Circle, Ellipse, Path } from 'react-native-svg';
 
 /**
- * BrotinhoMark — o símbolo do app: duas folhas e um caule dentro de um disco.
+ * BrotinhoMark — o símbolo do app: um trevo de três laços sobre um disco.
  *
- * As cores são fixas de propósito. Este mesmo desenho vira o ícone na tela
- * inicial do celular, e ícone de app não muda de cor junto com o tema — por
- * isso elas não saem de `theme/tokens`.
+ * As cores são fixas de propósito. Este mesmo desenho é o botão central da
+ * barra de abas, e botão de marca não muda de cor junto com o tema — por isso
+ * elas não saem de `theme/tokens`.
  */
-export const MARK_PEACH = '#EFB183';
-export const MARK_GREEN = '#8CB68B';
+
+/** O disco. Mesma matiz do verde que o app usa na notificação (`app.json`). */
+export const MARK_DISCO = '#5B8A72';
+
+/** O traço. O creme do papel do app, o mesmo `cream100` da paleta clara. */
+export const MARK_TRACO = '#FBF6EC';
 
 /**
  * O desenho vive num quadrado de 100×100, com o disco de raio 49.
  *
- * O caule é traço, não preenchimento: a ponta de baixo é arredondada e a de
- * cima precisa sumir por baixo da folha da direita. Por isso ele é desenhado
- * ANTES das folhas — trocar a ordem deixa o topo do traço à mostra.
+ * ## Por que tudo aqui é traço, e não forma preenchida
  *
- * A ponta da folha da esquerda passa um pouco ALÉM do caule (64.6, não 63):
- * encostando exatamente nele sobrava um ponto de fundo preso entre as três
- * formas, que a 30px lê como sujeira.
+ * O símbolo anterior era sólido: duas folhas cheias e um caule. Este é
+ * monolinear — três laços vazados e um caule, todos com a **mesma espessura**.
+ * É essa espessura constante que dá a ele o jeito de símbolo desenhado de uma
+ * tacada só, e é ela que precisa ser preservada em qualquer ajuste: mudar a
+ * grossura de um dos laços quebra o conjunto mais do que mudar o tamanho dele.
+ *
+ * ## As medidas
+ *
+ * O laço de cima é círculo; os dois de baixo são elipses giradas. Elipse, e não
+ * curva desenhada à mão, porque o desenho é simétrico e uma elipse girada
+ * acerta a silhueta com dois números em vez de oito pontos de controle — e dois
+ * números são o que dá para ajustar depois sem redesenhar nada.
+ *
+ * O caule começa **dentro** do vazio do laço de cima (o topo em 32 cai abaixo
+ * da borda interna, em 40,4) e desce até 93. Como tudo é da mesma cor, a ordem
+ * de desenho não muda o resultado: onde dois traços se cruzam, o creme cobre o
+ * creme.
  */
-const LEAF = 'M 13.7 26.4 C 36.7 26.6 49.1 38.8 49.6 64.6 C 30.7 63.8 13.1 45.8 13.7 26.4 Z';
-const STEM = 'M 47.9 88.5 C 47.9 79 48.2 69.5 49.3 63 C 50.2 57.5 52.1 54.4 54.6 52.6';
-const STEM_WIDTH = 2.2;
+const TRACO = 8.8;
 
-/**
- * A folha da direita é a mesma da esquerda, espelhada e com a ponta levantada
- * 7°. Sem esse giro as duas ficam simétricas demais e o desenho perde o jeito
- * de planta — no original a da direita nasce um pouco mais acima.
- */
-const RIGHT_LEAF_TRANSFORM = 'translate(100 0) scale(-1 1) rotate(-7 13.7 26.4)';
+/** O laço de cima. */
+const ANEL = { cx: 50, cy: 28.3, r: 16.5 };
+
+/** Os dois de baixo: a mesma elipse, espelhada. */
+const FOLHA = { cx: 30.5, cy: 63.5, rx: 18, ry: 10.8, giro: -38 };
+
+/** O caule, de dentro do anel até a ponta de baixo. */
+const CAULE = 'M 50 32 L 50 93';
+const CAULE_TRACO = 5.1;
 
 export function BrotinhoMark({ size = 32 }: { size?: number }) {
+  const folha = (lado: 1 | -1) => (
+    <Ellipse
+      cx={lado === 1 ? FOLHA.cx : 100 - FOLHA.cx}
+      cy={FOLHA.cy}
+      rx={FOLHA.rx}
+      ry={FOLHA.ry}
+      transform={`rotate(${FOLHA.giro * lado} ${lado === 1 ? FOLHA.cx : 100 - FOLHA.cx} ${FOLHA.cy})`}
+      fill="none"
+      stroke={MARK_TRACO}
+      strokeWidth={TRACO}
+    />
+  );
+
   return (
     <Svg viewBox="0 0 100 100" width={size} height={size}>
-      <Circle cx={50} cy={50} r={49} fill={MARK_PEACH} />
-      <Path
-        d={STEM}
+      <Circle cx={50} cy={50} r={49} fill={MARK_DISCO} />
+      {folha(1)}
+      {folha(-1)}
+      <Circle
+        cx={ANEL.cx}
+        cy={ANEL.cy}
+        r={ANEL.r}
         fill="none"
-        stroke={MARK_GREEN}
-        strokeWidth={STEM_WIDTH}
+        stroke={MARK_TRACO}
+        strokeWidth={TRACO}
+      />
+      <Path
+        d={CAULE}
+        fill="none"
+        stroke={MARK_TRACO}
+        strokeWidth={CAULE_TRACO}
         strokeLinecap="round"
       />
-      <G fill={MARK_GREEN}>
-        <Path d={LEAF} />
-        <Path d={LEAF} transform={RIGHT_LEAF_TRANSFORM} />
-      </G>
     </Svg>
   );
 }

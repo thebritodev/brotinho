@@ -9,7 +9,7 @@ export { Switch } from './core/Switch';
 
 export { AnimatedSprout } from './brand/AnimatedSprout';
 export { AskingSprout } from './brand/AskingSprout';
-export { BrotinhoMark, MARK_GREEN, MARK_PEACH } from './brand/BrotinhoMark';
+export { BrotinhoMark, MARK_DISCO, MARK_TRACO } from './brand/BrotinhoMark';
 export { GrowingSprout } from './brand/GrowingSprout';
 export { GrowthNotice } from './brand/GrowthNotice';
 export { HarvestNotice } from './brand/HarvestNotice';
