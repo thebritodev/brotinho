@@ -22,12 +22,16 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { GraoDePapel } from './src/components';
 import { ErrorBoundary } from './src/components/ErrorBoundary';
 import { RootNavigator } from './src/navigation/RootNavigator';
+import { relatar } from './src/services/diagnostico';
 import { AppLockGate } from './src/screens/AppLockGate';
 import { AppStateProvider } from './src/state/AppStateProvider';
 import { SubscriptionProvider } from './src/state/SubscriptionProvider';
 import { useTema } from './src/theme';
 
 void SplashScreen.preventAutoHideAsync();
+
+// TEMPORARIO: marcos ate a splash sair — ver `services/diagnostico.ts`.
+relatar('1-modulo-carregado');
 
 function AppInterno() {
   const [fontsLoaded, fontError] = useFonts({
@@ -43,7 +47,11 @@ function AppInterno() {
   });
 
   useEffect(() => {
-    if (fontsLoaded || fontError) void SplashScreen.hideAsync();
+    relatar('2-fontes', `carregadas=${fontsLoaded} erro=${!!fontError}`);
+    if (fontsLoaded || fontError) {
+      void SplashScreen.hideAsync();
+      relatar('3-splash-escondida');
+    }
   }, [fontsLoaded, fontError]);
 
   // Sem as fontes o layout "salta" ao carregá-las; a splash cobre esse intervalo.

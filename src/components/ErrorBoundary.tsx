@@ -1,6 +1,8 @@
+import * as SplashScreen from 'expo-splash-screen';
 import React from 'react';
 import { Pressable, ScrollView, Text, View } from 'react-native';
 
+import { relatar } from '../services/diagnostico';
 import { colors, palette, radius } from '../theme';
 
 /**
@@ -34,6 +36,21 @@ export class ErrorBoundary extends React.Component<Props, State> {
   }
 
   componentDidCatch(erro: Error, info: React.ErrorInfo) {
+    /*
+      **Esconder a splash é a primeira coisa a fazer aqui**, e faltava.
+
+      `hideAsync` só era chamado no efeito do `AppInterno`. Um erro de
+      renderização acontece **antes** desse efeito rodar, então a splash ficava
+      no ar para sempre e esta tela — que existe justamente para dizer o que
+      aconteceu — desenhava atrás dela, invisível.
+
+      O sintoma no aparelho era "só fica carregando e o app não abre": nenhuma
+      pista, nenhum caminho, e nem o erro que o app já tinha capturado.
+    */
+    void SplashScreen.hideAsync().catch(() => {});
+
+    relatar('erro-render', String(erro?.message ?? erro).slice(0, 120));
+
     // Em produção não há para onde mandar isto sem um servidor — e mandar
     // exigiria enviar dados da pessoa, que é justamente o que o app promete
     // não fazer. Fica no console, onde aparece ao depurar com o cabo ligado.
