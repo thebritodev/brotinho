@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { Platform, View } from 'react-native';
+import type Svg from 'react-native-svg';
 
 import {
   compartilharFrase,
@@ -62,10 +63,7 @@ function avisoDe(r: ResultadoDoCompartilhar): string | null {
   if (r.tipo === 'ok') return null;
   if (r.tipo === 'sem-compartilhamento') return 'Este aparelho não tem para onde compartilhar.';
 
-  const frase =
-    r.tipo === 'sem-modulo'
-      ? 'Compartilhar chegou numa versão mais nova. Atualize o app para usar.'
-      : 'Não consegui preparar a imagem. Tente de novo.';
+  const frase = 'Não consegui preparar a imagem. Tente de novo.';
 
   return __DEV__ ? `${frase}
 
@@ -73,7 +71,7 @@ function avisoDe(r: ResultadoDoCompartilhar): string | null {
 }
 
 export function useCompartilharFrase() {
-  const alvo = useRef<View>(null);
+  const alvo = useRef<Svg>(null);
   /** A frase que está sendo virada em imagem agora; `null` quando não há. */
   const [pedido, setPedido] = useState<string | null>(null);
   const [aviso, setAviso] = useState<string | null>(null);

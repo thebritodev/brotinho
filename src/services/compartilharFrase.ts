@@ -1,8 +1,8 @@
-import { Platform, TurboModuleRegistry } from 'react-native';
-import type { View } from 'react-native';
+import { Platform } from 'react-native';
 
 import { File, Paths } from 'expo-file-system';
 import * as Sharing from 'expo-sharing';
+import type Svg from 'react-native-svg';
 
 import { janelaDoSistema } from './janelaDoSistema';
 import { limparExportacoes } from './limparExportacoes';
@@ -17,44 +17,27 @@ import { limparExportacoes } from './limparExportacoes';
  * este arquivo não recebe `AppData` justamente para que isso continue verdade
  * mesmo se alguém mexer aqui distraído: o que não chega não pode vazar.
  *
- * ## Por que o `view-shot` só é pedido depois de perguntar se ele existe
+ * ## Por que a imagem sai do próprio SVG, e não de uma foto da tela
  *
- * O spec dele termina em `TurboModuleRegistry.getEnforcing("RNViewShot")`, e
- * `getEnforcing` **lança** quando o módulo nativo não está no binário — no
- * instante em que o arquivo é lido. Importado no topo, ele era lido na abertura
- * do app, e o app inteiro não subia: não era o botão de compartilhar que
- * quebrava, era a Home.
+ * A primeira versão fotografava componentes de verdade com o
+ * `react-native-view-shot`. Ganhava a quebra de linha automática e perdia no
+ * que acabou decidindo: **dependia de um módulo nativo novo**, e módulo nativo
+ * novo só chega no aparelho por build nova. Duas builds depois o módulo estava
+ * dentro do APK — conferido no `.dex` —, autolinkado, com `packageInstance`
+ * correto na configuração do autolinking, e ainda assim o
+ * `TurboModuleRegistry` não o encontrava em execução.
  *
- * E "o binário não tem o módulo" não é hipótese remota, é o caso normal: todo
- * aparelho com um development build anterior a esta biblioteca cai nele, e todo
- * aparelho que ficar sem atualizar continua caindo. O app precisa **abrir** para
- * essa gente; o que ela perde é um botão, não o diário.
+ * O `react-native-svg` já está em todos os binários do app desde o começo e
+ * exporta PNG sozinho. Trocar para ele tirou o compartilhar da fila de "só
+ * funciona depois de instalar alguma coisa" — que é o único jeito de um recurso
+ * novo funcionar no aparelho que a pessoa já tem na mão.
  *
- * Adiar para um `require` dentro da função salvou a abertura, mas não bastou —
- * e a razão é que **`try/catch` em volta de um `require` do Metro não pega
- * nada**. O `guardedLoadModule` faz assim:
+ * ## Por que o arquivo se chama `brotinho-frase.png`
  *
- * ```js
- * try   { returnValue = loadModuleImplementation(...); }
- * catch (e) { global.ErrorUtils.reportFatalError(e); }
- * return returnValue;   // undefined; o erro não é relançado
- * ```
- *
- * Ou seja: ele relata como **fatal** (a tela vermelha) e engole. Nada chega ao
- * chamador, o `catch` daqui nunca dispara, e a tela vermelha aparece de todo
- * jeito. Foi exatamente o que apareceu no aparelho.
- *
- * A saída é não deixar o `require` acontecer: `TurboModuleRegistry.get`
- * pergunta a mesma coisa que o `getEnforcing`, só que devolve `null` em vez de
- * lançar. Sem o módulo, a biblioteca nunca é carregada e não há o que explodir.
- *
- * ## Por que a imagem passa a se chamar `brotinho-frase.png`
- *
- * O `captureRef` grava com um nome aleatório no cache. O `limparExportacoes`
- * varre o cache na abertura seguinte do app, mas **só apaga o que tem o
- * prefixo do Brotinho** — de propósito, para não varrer o que é de outras
- * bibliotecas. Sem a renomeação, cada compartilhamento deixaria um PNG
- * esquecido no disco para sempre.
+ * O `limparExportacoes` varre o cache na abertura seguinte do app, mas **só
+ * apaga o que tem o prefixo do Brotinho** — de propósito, para não varrer o que
+ * é de outras bibliotecas. Com outro nome, cada compartilhamento deixaria um
+ * PNG esquecido no disco para sempre.
  *
  * ## Por que `janelaDoSistema`
  *
@@ -65,26 +48,16 @@ import { limparExportacoes } from './limparExportacoes';
  * quebrou a Composta uma vez; ver `janelaDoSistema.ts`.
  */
 
-/**
- * O que aconteceu, e **por quê** quando deu errado.
- *
- * O `motivo` existe porque a primeira versão disto devolvia só `'falhou'`, e
- * "não consegui preparar a imagem" é uma frase que não permite consertar nada:
- * some a diferença entre módulo ausente, view não encontrada, disco cheio e
- * permissão negada. Quem está com o aparelho na mão vira o único instrumento de
- * medida que existe, e ele estava vendado.
- *
- * O texto só aparece na tela em build de desenvolvimento — ver `AVISOS` no
- * `useCompartilharFrase`. Em produção o recado continua sendo em português de
- * gente.
- */
 export type ResultadoDoCompartilhar =
   | { tipo: 'ok' }
   /** O aparelho não tem para onde compartilhar. */
   | { tipo: 'sem-compartilhamento' }
-  /** O binário instalado é anterior à biblioteca de captura. */
-  | { tipo: 'sem-modulo'; motivo: string }
   | { tipo: 'falhou'; motivo: string };
+
+const NOME = 'brotinho-frase.png';
+
+/** Quanto tempo esperar o SVG virar PNG antes de desistir. */
+const PRAZO_MS = 15000;
 
 /** A mensagem de um erro, seja ele `Error` ou qualquer coisa que alguém jogou. */
 function motivoDe(e: unknown): string {
@@ -97,78 +70,53 @@ function motivoDe(e: unknown): string {
   }
 }
 
-const NOME = 'brotinho-frase.png';
-
-type Captura = (
-  alvo: unknown,
-  opcoes: { format: 'png'; quality: number; result: 'tmpfile' },
-) => Promise<string>;
-
-/** A função de captura, ou o motivo de ela não estar disponível. */
-function carregarCaptura(): { captura: Captura } | { erro: string } {
-  /*
-    A pergunta que precede tudo, e que precisa vir **antes** do `require`.
-
-    `get` faz a mesma consulta que o `getEnforcing` lá dentro da biblioteca, com
-    uma diferença que é o ponto inteiro: devolve `null` em vez de lançar. Com o
-    módulo ausente a gente sai daqui sem nunca tocar no pacote — e sem o
-    `require`, não há erro de inicialização para o Metro relatar como fatal.
-  */
-  if (TurboModuleRegistry.get('RNViewShot') == null) {
-    return { erro: 'o módulo nativo RNViewShot não está neste binário' };
-  }
-
-  try {
-    // eslint-disable-next-line @typescript-eslint/no-require-imports
-    const mod = require('react-native-view-shot') as { captureRef?: Captura } | undefined;
-    // `undefined` aqui quer dizer que o Metro engoliu um erro de inicialização
-    // — ver o cabeçalho. Não dá para saber qual; dá para não quebrar.
-    if (!mod) return { erro: 'a biblioteca de captura não pôde ser carregada' };
-    if (!mod.captureRef) return { erro: 'o módulo carregou sem captureRef' };
-    return { captura: mod.captureRef };
-  } catch (e) {
-    return { erro: motivoDe(e) };
-  }
+/**
+ * O `toDataURL` do `react-native-svg` responde por callback e **não avisa
+ * quando falha**: se o desenho não estiver pronto, ele simplesmente nunca chama
+ * de volta. Sem o prazo, o botão ficaria em "Preparando…" para sempre, que é
+ * exatamente o tipo de espera silenciosa que já custou caro neste recurso.
+ */
+function paraBase64(svg: Svg): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const relogio = setTimeout(
+      () => reject(new Error(`o desenho não respondeu em ${PRAZO_MS / 1000}s`)),
+      PRAZO_MS,
+    );
+    try {
+      svg.toDataURL((base64: string) => {
+        clearTimeout(relogio);
+        if (base64) resolve(base64);
+        else reject(new Error('o desenho voltou vazio'));
+      });
+    } catch (e) {
+      clearTimeout(relogio);
+      reject(e instanceof Error ? e : new Error(motivoDe(e)));
+    }
+  });
 }
 
 export async function compartilharFrase(
-  alvo: React.RefObject<View | null>,
+  alvo: React.RefObject<Svg | null>,
 ): Promise<ResultadoDoCompartilhar> {
-  // A web não tem nem captura nativa nem cache de arquivos. O botão nem aparece
-  // ali, mas a checagem fica: a tela não deve depender de quem a chama.
+  // A web não tem cache de arquivos nem folha de compartilhar do sistema.
   if (Platform.OS === 'web') return { tipo: 'sem-compartilhamento' };
   if (!alvo.current) return { tipo: 'falhou', motivo: 'o card não estava montado' };
-
-  const modulo = carregarCaptura();
-  if ('erro' in modulo) return { tipo: 'sem-modulo', motivo: modulo.erro };
-
   if (!(await Sharing.isAvailableAsync())) return { tipo: 'sem-compartilhamento' };
 
   try {
     // Varre o que sobrou da vez anterior antes de criar mais um arquivo.
     limparExportacoes();
 
-    const bruto = await modulo.captura(alvo, { format: 'png', quality: 1, result: 'tmpfile' });
+    const base64 = await paraBase64(alvo.current);
 
-    /*
-      A renomeação é a única parte que pode falhar sem que o compartilhamento
-      precise falhar junto: se der errado, entrega o arquivo com o nome que o
-      `captureRef` deu. A pessoa não perde nada; o cache é que fica com um PNG
-      a mais até a próxima limpeza geral do sistema.
-    */
-    let uri = bruto;
-    try {
-      const destino = new File(Paths.cache, NOME);
-      if (destino.exists) destino.delete();
-      const origem = new File(bruto);
-      origem.move(destino);
-      uri = destino.uri;
-    } catch {
-      // Fica com `bruto` mesmo.
-    }
+    const arquivo = new File(Paths.cache, NOME);
+    // Compartilhar de novo cai no mesmo nome, e `create` reclama de arquivo
+    // existente — sobrescrever é o comportamento certo aqui.
+    arquivo.create({ overwrite: true });
+    arquivo.write(base64, { encoding: 'base64' });
 
     await janelaDoSistema(() =>
-      Sharing.shareAsync(uri, {
+      Sharing.shareAsync(arquivo.uri, {
         mimeType: 'image/png',
         dialogTitle: 'Compartilhar esta frase',
         UTI: 'public.png',
