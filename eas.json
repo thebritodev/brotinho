@@ -8,7 +8,10 @@
     "development": {
       "environment": "development",
       "developmentClient": true,
-      "distribution": "internal"
+      "distribution": "internal",
+      "env": {
+        "BROTINHO_ARQUITETURAS": "arm64-v8a"
+      }
     },
     "preview": {
       "environment": "preview",
