@@ -63,8 +63,9 @@ O QUE TEM AQUI DENTRO
 
 • Diário — escreva ou fale. A transcrição acontece no próprio aparelho.
 • Composta — repita em voz alta o pensamento que te persegue.
-• Práticas guiadas — 31 exercícios para ansiedade, tristeza, insônia, raiva,
-  solidão, procrastinação, estresse, autoestima, foco e gratidão.
+• Práticas guiadas — 41 exercícios para ansiedade, tristeza, luto, insônia,
+  estresse, solidão, raiva, procrastinação, autoestima, culpa e vergonha,
+  comparação, foco e gratidão.
 • Resumo para a terapia — suas semanas em PDF, para levar à sessão sem depender
   da memória.
 
@@ -92,22 +93,36 @@ cvv.org.br.
 
 ## 2. Capturas de tela
 
-**Isso você precisa tirar do celular — eu não consigo gerar.**
+**São geradas por script, e não tiradas do celular.**
 
-A Apple exige pelo menos um conjunto, para o maior iPhone. Os tamanhos exatos
-aparecem na própria tela de upload do App Store Connect, e mudam a cada geração
-de iPhone — confirme lá em vez de confiar nesta lista.
+```
+node scripts/capturas.js         (com o Metro rodando)
+node scripts/captura-paywall.js
+```
 
-Sugestão de quais telas mostrar, nesta ordem:
+Saem em `capturas/`, seis arquivos de 1242 × 2688 — o tamanho que a Apple pede
+para o iPhone de 6,5 polegadas. O caminho é o app web, que é o mesmo código
+React Native, numa janela de 414 × 896 com densidade 3: dá o tamanho exato, sem
+cursor e sem barra de rolagem. Não existe iPhone nesta casa, e o aparelho de
+teste é Android.
 
-1. Home com o broto grande e as carinhas de humor
-2. A Composta em andamento, com as palavras se desfazendo
-3. O diário, com a folha pautada
-4. A lista de práticas
-5. O resumo para a terapia
+A ordem, que é a ordem dos arquivos:
 
-> Não use capturas com dados falsos que pareçam depoimentos reais. Escreva
-> textos plausíveis e neutros nos registros que aparecerem na imagem.
+1. `1-home` — o broto grande e as carinhas de humor
+2. `2-composta` — a tela que explica a prática
+3. `3-diario` — a folha pautada
+4. `4-praticas` — a lista de temas
+5. `5-terapia` — o resumo para levar à sessão
+6. `paywall` — a tela de planos, que a Apple exige para revisar assinaturas
+
+Os tamanhos exatos aparecem na tela de upload do App Store Connect e mudam a
+cada geração de iPhone — confirme lá em vez de confiar nesta lista.
+
+> O estado semeado é neutro de propósito: frases plausíveis de diário, nunca
+> algo que possa ser lido como depoimento real de uma pessoa.
+
+**Refaça as capturas sempre que a interface mudar.** As que estavam aqui eram de
+agosto, de antes do redesenho, e descreviam outro app.
 
 ---
 
