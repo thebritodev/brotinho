@@ -156,18 +156,15 @@ export function HomeScreen({
   const story = useCompartilharFrase();
 
   /**
-   * Devolve a tela à altura em que ela estava, uma vez só.
+   * A altura em que esta tela abre — congelada no instante da montagem.
    *
-   * A restauração acontece no `onContentSizeChange`, e não num efeito de
-   * montagem, porque no instante em que a tela monta o conteúdo ainda não foi
-   * medido: rolar para 400 numa lista que ainda mede 200 não vai a lugar
-   * nenhum, e o pedido se perde em silêncio. Esse evento avisa exatamente
-   * quando a altura passa a existir.
-   *
-   * A `ref` de controle existe porque o evento dispara várias vezes — o broto
-   * cresce, o cartão do dia troca de estado, uma imagem chega. Sem ela, cada
-   * mudança de altura jogaria a pessoa de volta ao ponto antigo enquanto ela lê.
+   * `rolagemInicial` chega de uma `ref` lá do `MainTabs` e muda conforme a
+   * pessoa rola. Lida a cada render, ela viraria um `contentOffset` novo a cada
+   * vez, e o Android reagiria a isso rolando: a tela puxaria o tapete de quem
+   * está lendo. Congelada, ela é o que sempre foi para o React — a posição
+   * *inicial*, e nada mais.
    */
+  const alturaInicial = useRef(rolagemInicial).current;
   const rolagem = useRef<ScrollView>(null);
   const jaRestaurou = useRef(false);
 
@@ -240,15 +237,36 @@ export function HomeScreen({
     <View style={{ flex: 1 }}>
     <ScrollView
       ref={rolagem}
+      /*
+        A tela **monta** já na altura certa, em vez de montar no zero e corrigir
+        depois.
+
+        Corrigir depois é o que ela fazia, e aparecia: um quadro inteiro do topo
+        piscava antes do salto. Não era lentidão — era a ordem dos fatos, porque
+        qualquer correção em JavaScript só pode acontecer depois de o primeiro
+        quadro já ter sido desenhado.
+
+        `contentOffset` não é uma correção, é uma condição inicial. O
+        `ReactScrollView` do Android guarda o valor como pendente e o aplica
+        dentro do próprio `onLayout`, antes de desenhar — a tela nunca chega a
+        existir no zero. No iOS vale o mesmo.
+      */
+      contentOffset={{ x: 0, y: alturaInicial }}
       // Só o suficiente para acompanhar a rolagem sem inundar a ponte.
       scrollEventThrottle={64}
       onScroll={(e) => aoRolar?.(e.nativeEvent.contentOffset.y)}
+      /*
+        Rede para quem ignorar o `contentOffset` — o `react-native-web`, que é o
+        que gera as capturas da loja, é um deles. Mira no mesmo ponto, então nas
+        plataformas que já honraram o `contentOffset` isto é um pedido para o
+        lugar onde a tela já está: sem salto, sem briga.
+      */
       onContentSizeChange={(_, altura) => {
-        if (jaRestaurou.current) return;
+        if (jaRestaurou.current || alturaInicial <= 0) return;
         // Espera o conteúdo ficar alto o bastante para aquele ponto existir.
-        if (rolagemInicial > 0 && altura <= rolagemInicial) return;
+        if (altura <= alturaInicial) return;
         jaRestaurou.current = true;
-        if (rolagemInicial > 0) rolagem.current?.scrollTo({ y: rolagemInicial, animated: false });
+        rolagem.current?.scrollTo({ y: alturaInicial, animated: false });
       }}
       contentContainerStyle={{
         paddingTop: insets.top + 20,
