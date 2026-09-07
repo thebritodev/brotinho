@@ -82,15 +82,30 @@ function estadoDeExemplo() {
 }
 
 /** Toca no primeiro elemento cujo rótulo de acessibilidade ou texto casar. */
-async function tocar(page, alvo) {
-  const achou = await page.evaluate((t) => {
+/**
+ * Toca no primeiro botão cujo rótulo case com **algum** dos alvos.
+ *
+ * Aceitar uma lista não é conveniência: metade dos rótulos deste app muda com
+ * o estado de quem está usando. O resumo, por exemplo, se chama "Para minha
+ * terapia" para quem marcou que faz terapia e "Um resumo do que você
+ * registrou" para quem não marcou — e o estado semeado aqui é de alguém que
+ * não marcou. O script pedia o primeiro rótulo, não achava, e a captura da
+ * quinta tela parou de ser gerada sem ninguém reparar: os arquivos de agosto
+ * seguiram no lugar, com cara de atuais.
+ */
+async function tocar(page, alvos) {
+  const lista = Array.isArray(alvos) ? alvos : [alvos];
+  const achou = await page.evaluate((ts) => {
     const bs = [...document.querySelectorAll('[role="button"], [role="tab"]')];
-    const b = bs.find((x) => (x.getAttribute('aria-label') || x.innerText || '').includes(t));
+    const b = bs.find((x) => {
+      const texto = x.getAttribute('aria-label') || x.innerText || '';
+      return ts.some((t) => texto.includes(t));
+    });
     if (!b) return false;
     b.click();
     return true;
-  }, alvo);
-  if (!achou) throw new Error(`não encontrei "${alvo}" na tela`);
+  }, lista);
+  if (!achou) throw new Error(`não encontrei nenhum de ${JSON.stringify(lista)} na tela`);
   await page.waitForTimeout(900);
 }
 
@@ -141,7 +156,7 @@ async function capturar(page, nome) {
 
   // 5. Resumo para a terapia
   await tocar(page, 'Perfil');
-  await tocar(page, 'Para minha terapia');
+  await tocar(page, ['Para minha terapia', 'Um resumo do que você registrou']);
   await capturar(page, '5-terapia');
 
   await browser.close();
