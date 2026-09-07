@@ -12,7 +12,6 @@ import Svg, {
 
 import { entreAspas } from '../../data/conselhos';
 import { fonts } from '../../theme';
-import { MarcaEmSvg } from './MarcaEmSvg';
 import { corpoDaFrase, linhasDaFrase } from './quebraDeLinha';
 import { graosDoCard, MANCHAS } from './texturaDoCard';
 
@@ -47,8 +46,9 @@ import { graosDoCard, MANCHAS } from './texturaDoCard';
  * sai um buraco no lugar. Foi exatamente o que aconteceu com o logo enquanto
  * ele era um `<Image>`: sumia do card e ninguém sabia por quê.
  *
- * Por isso a marca é vetor (`MarcaEmSvg`) e a textura é calculada
- * (`texturaDoCard`). Tudo é desenhado no mesmo quadro, sempre.
+ * Por isso a textura é calculada (`texturaDoCard`) em vez de vir de um
+ * arquivo, e por isso o rodapé é texto e não uma imagem do logo. Tudo é
+ * desenhado no mesmo quadro, sempre.
  *
  * ## O que há no fundo, e por que
  *
@@ -71,10 +71,9 @@ import { graosDoCard, MANCHAS } from './texturaDoCard';
  * escuro dá 9:1. O terracota entra do mesmo jeito, no ícone lá embaixo, onde é
  * um detalhe e não o fundo do texto.
  *
- * Story não tem link clicável. Quem gostou da frase precisa saber **o que
- * procurar** — e "Brotinho" sozinho pode ser qualquer coisa. Um quadrado
- * arredondado com um broto dentro diz "isto é um aplicativo" sem gastar uma
- * palavra, e o nome ao lado diz qual.
+ * Story não tem link clicável: o nome escrito embaixo é a única pista de onde
+ * a frase veio. Por isso ele fica na zona segura, em corpo grande o bastante
+ * para ser lido na miniatura de um feed.
  */
 
 export const STORY = { largura: 1080, altura: 1920 };
@@ -127,10 +126,6 @@ export const CardDoStory = React.forwardRef<Svg, { texto: string }>(function Car
   const primeiraLinhaY = meioSeguro - alturaDoTexto / 2 + corpo * 0.74;
 
   const marcaY = STORY.altura - SEGURO.base;
-  const iconeLado = 104;
-  const nome = 'Brotinho';
-  const larguraDaMarca = iconeLado + 26 + 50 * 0.58 * nome.length;
-  const marcaX = (STORY.largura - larguraDaMarca) / 2;
 
   return (
     <Svg
@@ -242,15 +237,25 @@ export const CardDoStory = React.forwardRef<Svg, { texto: string }>(function Car
         </SvgText>
       ))}
 
-      <MarcaEmSvg x={marcaX} y={marcaY - iconeLado / 2} lado={iconeLado} />
+      {/*
+        Só o nome, centrado.
+
+        O ícone saiu a pedido. Vale registrar o que ele fazia, para quem
+        reabrir isto saber que não foi esquecimento: story não tem link
+        clicável, e um quadrado arredondado com um broto dentro dizia "isto é
+        um aplicativo" sem gastar palavra. Sem ele, o nome sozinho é a única
+        pista — o que pede que ele seja grande e legível em miniatura, e é por
+        isso que o corpo subiu de 50 para 58.
+      */}
       <SvgText
-        x={marcaX + iconeLado + 26}
-        y={marcaY + 18}
+        x={STORY.largura / 2}
+        y={marcaY}
         fill={TINTA}
-        fontSize={50}
+        fontSize={58}
         fontFamily={fonts.display.bold}
+        textAnchor="middle"
       >
-        {nome}
+        Brotinho
       </SvgText>
     </Svg>
   );
