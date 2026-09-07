@@ -1,5 +1,5 @@
 import React from 'react';
-import Svg, { Circle, Ellipse, Path } from 'react-native-svg';
+import Svg, { Circle, Ellipse, G, Path } from 'react-native-svg';
 
 /**
  * BrotinhoMark — o símbolo do app: um trevo de três laços sobre um disco.
@@ -50,6 +50,36 @@ const FOLHA = { cx: 30.5, cy: 63.5, rx: 18, ry: 10.8, giro: -38 };
 const CAULE = 'M 50 32 L 50 93';
 const CAULE_TRACO = 5.1;
 
+/**
+ * O quanto o símbolo encolhe dentro do disco.
+ *
+ * Desenhado em tamanho cheio, o símbolo mede 79 por 88 numa caixa de 100:
+ * as pontas das folhas passam a dez pontos da borda e o caule termina a
+ * quatro. Num disco de 64 pontos isso é quase encostar, e um símbolo que
+ * encosta na borda do próprio botão fica apertado em vez de assentado.
+ *
+ * A 0,76 ele fica 60 por 67, com dezesseis pontos de folga em cima e embaixo
+ * e vinte dos lados. A folga lateral é maior de propósito: o disco é redondo,
+ * e nos lados a borda passa mais perto do que nas pontas de cima e de baixo,
+ * que é onde o símbolo é mais estreito.
+ *
+ * A escala vale para o traço junto — é um `scale` de grupo, não um redesenho.
+ * O símbolo inteiro encolhe mantendo a proporção entre a grossura da linha e o
+ * tamanho dos laços, que é o que segura o jeito monolinear.
+ */
+const ESCALA = 0.76;
+
+/**
+ * O meio do símbolo não é o meio da caixa.
+ *
+ * A caixa dele vai de 7,4 a 95,5 em y, então o centro está em 51,5 — um ponto e
+ * meio abaixo do centro do disco. Encolher em torno de (50, 50) deixaria a
+ * folga de baixo menor que a de cima. Encolher em torno de (50, 51,5) e pousar
+ * esse ponto no meio do disco reparte a folga igual.
+ */
+const CENTRO_DO_SIMBOLO = 52.4;
+const ENCOLHER = `translate(50 50) scale(${ESCALA}) translate(-50 -${CENTRO_DO_SIMBOLO})`;
+
 export function BrotinhoMark({ size = 32 }: { size?: number }) {
   const folha = (lado: 1 | -1) => (
     <Ellipse
@@ -67,23 +97,25 @@ export function BrotinhoMark({ size = 32 }: { size?: number }) {
   return (
     <Svg viewBox="0 0 100 100" width={size} height={size}>
       <Circle cx={50} cy={50} r={49} fill={MARK_DISCO} />
-      {folha(1)}
-      {folha(-1)}
-      <Circle
-        cx={ANEL.cx}
-        cy={ANEL.cy}
-        r={ANEL.r}
-        fill="none"
-        stroke={MARK_TRACO}
-        strokeWidth={TRACO}
-      />
-      <Path
-        d={CAULE}
-        fill="none"
-        stroke={MARK_TRACO}
-        strokeWidth={CAULE_TRACO}
-        strokeLinecap="round"
-      />
+      <G transform={ENCOLHER}>
+        {folha(1)}
+        {folha(-1)}
+        <Circle
+          cx={ANEL.cx}
+          cy={ANEL.cy}
+          r={ANEL.r}
+          fill="none"
+          stroke={MARK_TRACO}
+          strokeWidth={TRACO}
+        />
+        <Path
+          d={CAULE}
+          fill="none"
+          stroke={MARK_TRACO}
+          strokeWidth={CAULE_TRACO}
+          strokeLinecap="round"
+        />
+      </G>
     </Svg>
   );
 }
