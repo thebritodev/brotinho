@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Modal, Pressable, ScrollView, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -53,6 +53,10 @@ type Props = {
   onOpenValues: () => void;
   /** Abre a lista das frases que a pessoa guardou. */
   onOpenConselhosGuardados: () => void;
+  /** Altura em que esta tela estava da última vez. Ver `MainTabs`. */
+  rolagemInicial?: number;
+  /** Avisa a cada rolagem, para a altura sobreviver à desmontagem. */
+  aoRolar?: (y: number) => void;
   onOpenReminders: () => void;
   onOpenGarden: () => void;
 };
@@ -64,6 +68,8 @@ export function HomeScreen({
   onOpenPractices,
   onOpenValues,
   onOpenConselhosGuardados,
+  rolagemInicial = 0,
+  aoRolar,
   onOpenReminders,
   onOpenGarden,
 }: Props) {
@@ -149,6 +155,22 @@ export function HomeScreen({
   const conselhoAberto = data.conselhos.some((c) => c.date === today);
   const story = useCompartilharFrase();
 
+  /**
+   * Devolve a tela à altura em que ela estava, uma vez só.
+   *
+   * A restauração acontece no `onContentSizeChange`, e não num efeito de
+   * montagem, porque no instante em que a tela monta o conteúdo ainda não foi
+   * medido: rolar para 400 numa lista que ainda mede 200 não vai a lugar
+   * nenhum, e o pedido se perde em silêncio. Esse evento avisa exatamente
+   * quando a altura passa a existir.
+   *
+   * A `ref` de controle existe porque o evento dispara várias vezes — o broto
+   * cresce, o cartão do dia troca de estado, uma imagem chega. Sem ela, cada
+   * mudança de altura jogaria a pessoa de volta ao ponto antigo enquanto ela lê.
+   */
+  const rolagem = useRef<ScrollView>(null);
+  const jaRestaurou = useRef(false);
+
 
   const memoria = useMemo(() => lembranca(data), [data]);
   const passou = useMemo(() => atravessou(data), [data]);
@@ -217,6 +239,17 @@ export function HomeScreen({
   return (
     <View style={{ flex: 1 }}>
     <ScrollView
+      ref={rolagem}
+      // Só o suficiente para acompanhar a rolagem sem inundar a ponte.
+      scrollEventThrottle={64}
+      onScroll={(e) => aoRolar?.(e.nativeEvent.contentOffset.y)}
+      onContentSizeChange={(_, altura) => {
+        if (jaRestaurou.current) return;
+        // Espera o conteúdo ficar alto o bastante para aquele ponto existir.
+        if (rolagemInicial > 0 && altura <= rolagemInicial) return;
+        jaRestaurou.current = true;
+        if (rolagemInicial > 0) rolagem.current?.scrollTo({ y: rolagemInicial, animated: false });
+      }}
       contentContainerStyle={{
         paddingTop: insets.top + 20,
         paddingHorizontal: 20,

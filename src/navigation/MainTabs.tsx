@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { View } from 'react-native';
 
 import { BottomNav, ScreenTransition, type TabKey } from '../components';
@@ -38,6 +38,20 @@ export function MainTabs() {
   const [praticaAlvo, setPraticaAlvo] = useState<{ topico: string; pratica: string } | null>(null);
 
   const name = data.profile.name.trim() || 'você';
+  /**
+   * A altura em que a Home estava, guardada **fora** dela.
+   *
+   * Abrir uma subtela desmonta a Home — `renderSub()` e `renderTab()` ocupam a
+   * mesma posição na árvore e são componentes diferentes. Voltar monta uma Home
+   * nova, com uma `ScrollView` nova, que nasce no zero: a pessoa tocava num
+   * cartão no meio da tela e voltava para o começo dela, perdendo o lugar.
+   *
+   * Uma `ref`, e não `useState`, porque isto muda a cada quadro de rolagem e
+   * não deve provocar renderização nenhuma. E aqui em cima, e não na Home,
+   * porque é justamente a Home que deixa de existir no meio do caminho.
+   */
+  const rolagemDaHome = useRef(0);
+
   const closeSub = () => setSub(null);
 
   const abrirPratica = (alvo: { topico: string; pratica: string }) => {
@@ -151,6 +165,10 @@ export function MainTabs() {
             }}
             onOpenValues={() => setSub('valores')}
             onOpenConselhosGuardados={() => setSub('conselhos')}
+            rolagemInicial={rolagemDaHome.current}
+            aoRolar={(y) => {
+              rolagemDaHome.current = y;
+            }}
             onOpenReminders={() => setSub('lembretes')}
             onOpenGarden={() => setSub('jardim')}
           />
