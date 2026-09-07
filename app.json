@@ -52,7 +52,7 @@
       "userInterfaceStyle": "automatic",
       "package": "com.brotinho.app",
       "adaptiveIcon": {
-        "backgroundColor": "#C08363",
+        "backgroundColor": "#EFB183",
         "foregroundImage": "./assets/android-icon-foreground.png",
         "backgroundImage": "./assets/android-icon-background.png",
         "monochromeImage": "./assets/android-icon-monochrome.png"
