@@ -45,6 +45,22 @@ import { NativeModules } from 'react-native';
  * o TurboModule certo nas duas arquiteturas.
  */
 function servidor(): string | null {
+  /*
+    O `hostUri` vem antes do `getDevServer`, e a ordem importa.
+
+    `getDevServer` devolve o endereco de onde **este bundle** foi baixado, e o
+    Metro monta esse endereco a partir do Host de quem pediu. Um pedido feito da
+    propria maquina (um `curl` de diagnostico, por exemplo) faz o bundle sair
+    carimbado com `127.0.0.1` -- e ai o aparelho tenta falar consigo mesmo, o
+    `fetch` morre calado, e o canal fica mudo sem nada indicar isso.
+
+    `Constants.expoConfig.hostUri` e o endereco do servidor de desenvolvimento
+    como o **manifesto** o declara: num tunel, o `exp.direct`. E o que o
+    aparelho consegue alcancar.
+  */
+  const host = Constants.expoConfig?.hostUri;
+  if (host) return host.startsWith('http') ? host : `http://${host}`;
+
   try {
     const { url, bundleLoadedFromServer } = (
       require('react-native/Libraries/Core/Devtools/getDevServer') as {
@@ -56,9 +72,6 @@ function servidor(): string | null {
     // Caminho interno do React Native: se um dia mudar, as outras tentativas
     // continuam valendo.
   }
-
-  const host = Constants.expoConfig?.hostUri;
-  if (host) return host.startsWith('http') ? host : `http://${host}`;
 
   const url = (NativeModules as { SourceCode?: { scriptURL?: string } }).SourceCode?.scriptURL;
   if (!url) return null;

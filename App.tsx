@@ -30,6 +30,28 @@ import { useTema } from './src/theme';
 
 void SplashScreen.preventAutoHideAsync();
 
+/**
+ * A splash sai sozinha depois disto, aconteça o que acontecer.
+ *
+ * `preventAutoHideAsync` entrega ao app a responsabilidade de esconder a
+ * splash, e o app só a escondia num lugar: o efeito que espera as fontes. Tudo
+ * o que falhe antes desse efeito — um erro na avaliação de um módulo, uma
+ * exceção na montagem da árvore — deixa a splash no ar **para sempre**.
+ *
+ * E splash no ar para sempre é a pior forma de falhar que este app tem, porque
+ * ela esconde justamente o que diria o que aconteceu: a tela do
+ * `ErrorBoundary`, ou a tela vermelha do desenvolvimento. Foi o que aconteceu:
+ * "só fica carregando e o app não abre", sem nenhuma pista, com o erro
+ * desenhado atrás da imagem.
+ *
+ * Quatro segundos é mais do que a abertura precisa e menos do que a paciência
+ * de quem está esperando. Se a abertura correu bem, a splash já saiu antes e
+ * isto não faz nada.
+ */
+setTimeout(() => {
+  void SplashScreen.hideAsync().catch(() => {});
+}, 4000);
+
 // TEMPORARIO: marcos ate a splash sair — ver `services/diagnostico.ts`.
 relatar('1-modulo-carregado');
 
