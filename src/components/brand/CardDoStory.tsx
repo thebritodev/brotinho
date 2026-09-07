@@ -1,11 +1,8 @@
 import React, { useId } from 'react';
 import Svg, {
   Circle,
-  ClipPath,
   Defs,
   G,
-  Image as SvgImage,
-  LinearGradient,
   Path,
   RadialGradient,
   Rect,
@@ -15,8 +12,9 @@ import Svg, {
 
 import { entreAspas } from '../../data/conselhos';
 import { fonts } from '../../theme';
-import { ABERTO, EIXO, MIOLO, PETALA } from './geometriaDaFlor';
+import { MarcaEmSvg } from './MarcaEmSvg';
 import { corpoDaFrase, linhasDaFrase } from './quebraDeLinha';
+import { graosDoCard, MANCHAS } from './texturaDoCard';
 
 /**
  * A frase virada em imagem, para o story.
@@ -36,19 +34,34 @@ import { corpoDaFrase, linhasDaFrase } from './quebraDeLinha';
  * ## Por que é um SVG, e não componentes fotografados
  *
  * A primeira versão montava o card com `View` e `Text` de verdade e tirava uma
- * foto com o `react-native-view-shot`. Era melhor num ponto — quebra de linha
- * automática — e pior num que acabou decidindo: **dependia de um módulo nativo
- * novo**. Duas builds depois, o módulo estava dentro do APK, autolinkado, com
- * `packageInstance` correto na configuração, e mesmo assim não era encontrado
- * em execução.
+ * foto com o `react-native-view-shot`. Ganhava a quebra de linha automática e
+ * perdia no que decidiu: **dependia de um módulo nativo novo** que, mesmo
+ * presente no APK e autolinkado, não era encontrado em execução. O
+ * `react-native-svg` já está em todos os binários do app desde o começo e
+ * exporta PNG sozinho. Ver `services/compartilharFrase.ts`.
  *
- * O `react-native-svg` já está em todos os binários do app desde o começo, e
- * sabe exportar PNG sozinho (`toDataURL`). Trocar para ele tirou o compartilhar
- * da fila de "só funciona depois de instalar alguma coisa".
+ * ## A regra que manda neste arquivo: nada assíncrono
  *
- * O preço é a quebra de linha, que passou a ser nossa — `<Text>` de SVG não
- * quebra sozinho. Ver `quebraDeLinha.ts` e `scripts/confere-story.js`, que mede
- * as vinte frases com a fonte de verdade e quebra se alguma vazar.
+ * A foto sai **um quadro depois** da montagem. Qualquer coisa que precise
+ * carregar — um PNG, uma fonte remota, uma imagem de textura — chega tarde e
+ * sai um buraco no lugar. Foi exatamente o que aconteceu com o logo enquanto
+ * ele era um `<Image>`: sumia do card e ninguém sabia por quê.
+ *
+ * Por isso a marca é vetor (`MarcaEmSvg`) e a textura é calculada
+ * (`texturaDoCard`). Tudo é desenhado no mesmo quadro, sempre.
+ *
+ * ## O que há no fundo, e por que
+ *
+ * Um retângulo de cor chapada denuncia que a imagem foi gerada — é o que
+ * qualquer app cospe. O que faz alguém querer postar é a imagem parecer
+ * **impressa em alguma coisa**. Daí as quatro camadas antes do texto:
+ *
+ * 1. **Manchas** largas e quase invisíveis: papel não tem a mesma cor na folha
+ *    inteira, e é a luz variando que separa fundo de retângulo pintado.
+ * 2. **Grão**: cento e oitenta pontos que somem um a um e aparecem juntos.
+ * 3. **Vinheta**: as bordas fecham de leve, e o olho cai no meio sozinho.
+ * 4. **Fio interno**: uma linha fina recuada, que faz o conjunto ler como
+ *    cartaz composto e não como captura de tela.
  *
  * ## O tamanho e as cores
  *
@@ -60,7 +73,7 @@ import { corpoDaFrase, linhasDaFrase } from './quebraDeLinha';
  *
  * Story não tem link clicável. Quem gostou da frase precisa saber **o que
  * procurar** — e "Brotinho" sozinho pode ser qualquer coisa. Um quadrado
- * arredondado com um ícone dentro diz "isto é um aplicativo" sem gastar uma
+ * arredondado com um broto dentro diz "isto é um aplicativo" sem gastar uma
  * palavra, e o nome ao lado diz qual.
  */
 
@@ -71,45 +84,20 @@ export const STORY = { largura: 1080, altura: 1920 };
    frase postada de dia. */
 const FUNDO = '#2E4A3B';
 const TINTA = '#FBF6EC';
-const PETALA_FILL = '#A9C0B0';
-const BRILHO = '#FCEFC7';
-const ARO = '#E8B65A';
 
 const ENTRELINHA = 1.42;
-const FLOR = 330;
-/** Espaço entre a flor e a primeira linha. */
-const RESPIRO = 92;
 
-/** A flor aberta, com halo — o mesmo desenho que abre na tela. */
-function Flor({ x, y, tamanho, id }: { x: number; y: number; tamanho: number; id: string }) {
-  const escala = tamanho / 120;
-  return (
-    <G transform={`translate(${x - tamanho / 2} ${y - tamanho / 2}) scale(${escala})`}>
-      <Circle cx={MIOLO.cx} cy={MIOLO.cy} r={58} fill={`url(#halo-${id})`} />
-      {ABERTO.map((a) => (
-        <G key={a} transform={`rotate(${a} ${EIXO.x} ${EIXO.y})`}>
-          <Path
-            d={PETALA}
-            fill={`url(#petala-${id})`}
-            stroke={TINTA}
-            strokeWidth={3.4}
-            strokeLinejoin="round"
-          />
-          <Path
-            d="M59 64 C 52 56, 51 45, 58 33"
-            stroke={TINTA}
-            strokeWidth={2.4}
-            strokeLinecap="round"
-            fill="none"
-            opacity={0.5}
-          />
-        </G>
-      ))}
-      <Circle cx={MIOLO.cx} cy={MIOLO.cy} r={13} fill={BRILHO} stroke={ARO} strokeWidth={2.4} />
-      <Circle cx={MIOLO.cx} cy={MIOLO.cy - 1.2} r={7.5} fill={TINTA} />
-    </G>
-  );
-}
+/**
+ * A zona segura do story.
+ *
+ * O Instagram desenha a própria interface por cima: a barra do perfil come uns
+ * 250px em cima e a de responder outro tanto embaixo. Nada que precise ser lido
+ * mora fora disto.
+ */
+const SEGURO = { topo: 260, base: 270 };
+
+/** A folha da marca, emprestada como silhueta gigante do fundo. */
+const FOLHA = 'M0 0 C -6 -14 -18 -26 -32 -24 C -42 -22 -44 -6 -34 4 C -22 16 -8 12 0 0 Z';
 
 export const CardDoStory = React.forwardRef<Svg, { texto: string }>(function CardDoStory(
   { texto },
@@ -122,27 +110,23 @@ export const CardDoStory = React.forwardRef<Svg, { texto: string }>(function Car
   const corpo = corpoDaFrase(texto);
   const linhas = linhasDaFrase(frase, corpo);
   const alturaDaLinha = corpo * ENTRELINHA;
+  const graos = graosDoCard(texto, STORY.largura, STORY.altura);
 
   /*
-    A flor e a frase são um bloco só, centrado na altura; a marca fica fixa
-    embaixo. Com os três espalhados, sobrava um vão morto entre a flor e o
-    texto, e a flor parecia de outro cartaz.
+    A frase fica centrada na zona segura, e não na altura total. Centrada no
+    cartaz inteiro ela parece baixa quando o Instagram põe a própria barra em
+    cima — o olho compara com o espaço que sobra, não com o arquivo.
   */
-  const alturaDoBloco = FLOR + RESPIRO + linhas.length * alturaDaLinha;
-  const topoDoBloco = (STORY.altura - alturaDoBloco) / 2;
+  const alturaDoTexto = linhas.length * alturaDaLinha;
+  const meioSeguro = SEGURO.topo + (STORY.altura - SEGURO.topo - SEGURO.base) / 2;
   /*
     `alignmentBaseline` não se comporta igual entre Android, iOS e web, então a
-    posição da linha é calculada a partir do topo: 0,74 do corpo é onde a linha
-    de base da Baloo 2 cai.
+    linha é posicionada a partir do topo: 0,74 do corpo é onde a base da Baloo 2
+    cai.
   */
-  const primeiraLinhaY = topoDoBloco + FLOR + RESPIRO + corpo * 0.74;
+  const primeiraLinhaY = meioSeguro - alturaDoTexto / 2 + corpo * 0.74;
 
-  /*
-    A marca a 270 do fundo, não no rodapé: o Instagram desenha a barra de
-    responder por cima dos ~250px de baixo, e a única parte do card que diz de
-    onde a frase veio era justamente a que ficaria escondida.
-  */
-  const marcaY = STORY.altura - 270;
+  const marcaY = STORY.altura - SEGURO.base;
   const iconeLado = 104;
   const nome = 'Brotinho';
   const larguraDaMarca = iconeLado + 26 + 50 * 0.58 * nome.length;
@@ -156,29 +140,93 @@ export const CardDoStory = React.forwardRef<Svg, { texto: string }>(function Car
       viewBox={`0 0 ${STORY.largura} ${STORY.altura}`}
     >
       <Defs>
-        <LinearGradient id={`petala-${id}`} x1="0" y1="0" x2="0" y2="1">
-          <Stop offset="0" stopColor="#C6D8CB" />
-          <Stop offset="1" stopColor={PETALA_FILL} />
-        </LinearGradient>
-        <RadialGradient id={`halo-${id}`} cx="50%" cy="50%" r="50%">
-          <Stop offset="0" stopColor={BRILHO} stopOpacity={0.5} />
-          <Stop offset="0.5" stopColor={BRILHO} stopOpacity={0.14} />
-          <Stop offset="1" stopColor={BRILHO} stopOpacity={0} />
+        <RadialGradient id={`mancha-${id}`} cx="50%" cy="50%" r="50%">
+          <Stop offset="0" stopColor={TINTA} stopOpacity={1} />
+          <Stop offset="1" stopColor={TINTA} stopOpacity={0} />
         </RadialGradient>
-        <ClipPath id={`icone-${id}`}>
-          <Rect
-            x={marcaX}
-            y={marcaY - iconeLado / 2}
-            width={iconeLado}
-            height={iconeLado}
-            rx={24}
-          />
-        </ClipPath>
+        {/* A vinheta é o inverso: transparente no meio, fechando nas bordas. */}
+        <RadialGradient id={`vinheta-${id}`} cx="50%" cy="50%" r="72%">
+          <Stop offset="0.45" stopColor="#000000" stopOpacity={0} />
+          <Stop offset="1" stopColor="#000000" stopOpacity={0.34} />
+        </RadialGradient>
       </Defs>
 
       <Rect x={0} y={0} width={STORY.largura} height={STORY.altura} fill={FUNDO} />
 
-      <Flor x={STORY.largura / 2} y={topoDoBloco + FLOR / 2} tamanho={FLOR} id={id} />
+      {/* 1. Manchas: a luz variando pela folha. */}
+      {MANCHAS.map((m, i) => (
+        <Circle
+          key={`mancha-${i}`}
+          cx={m.cx * STORY.largura}
+          cy={m.cy * STORY.altura}
+          r={m.r * STORY.largura}
+          fill={`url(#mancha-${id})`}
+          opacity={m.o}
+        />
+      ))}
+
+      {/*
+        Duas folhas enormes sangrando pelos cantos, quase invisíveis.
+
+        São a mesma folha da marca, e é isso que importa: o fundo passa a ser
+        deste app, e não uma textura genérica que serviria a qualquer um.
+      */}
+      <G opacity={0.05}>
+        <Path d={FOLHA} fill={TINTA} transform="translate(-40 380) rotate(-24) scale(13)" />
+        <Path
+          d={FOLHA}
+          fill={TINTA}
+          transform="translate(1180 1560) scale(-1,1) rotate(-16) scale(11)"
+        />
+      </G>
+
+      {/* 2. Grão. */}
+      <G fill={TINTA}>
+        {graos.map((g, i) => (
+          <Circle key={`grao-${i}`} cx={g.x} cy={g.y} r={g.r} opacity={g.o} />
+        ))}
+      </G>
+
+      {/* 3. Vinheta. */}
+      <Rect
+        x={0}
+        y={0}
+        width={STORY.largura}
+        height={STORY.altura}
+        fill={`url(#vinheta-${id})`}
+      />
+
+      {/* 4. O fio interno. */}
+      <Rect
+        x={54}
+        y={54}
+        width={STORY.largura - 108}
+        height={STORY.altura - 108}
+        rx={28}
+        fill="none"
+        stroke={TINTA}
+        strokeWidth={2}
+        opacity={0.14}
+      />
+
+      {/*
+        A aspa de abertura, grande, atrás da primeira linha.
+
+        É a mesma que aparece na tela das frases guardadas — o card e o app
+        passam a falar a mesma língua. Fica em 10% porque quem lê tem de ler a
+        frase, não a aspa.
+      */}
+      <SvgText
+        x={STORY.largura / 2}
+        y={primeiraLinhaY - corpo * 0.42}
+        fill={TINTA}
+        fontSize={340}
+        fontFamily={fonts.display.bold}
+        textAnchor="middle"
+        opacity={0.1}
+      >
+        {'“'}
+      </SvgText>
 
       {linhas.map((linha, i) => (
         <SvgText
@@ -194,15 +242,7 @@ export const CardDoStory = React.forwardRef<Svg, { texto: string }>(function Car
         </SvgText>
       ))}
 
-      <SvgImage
-        x={marcaX}
-        y={marcaY - iconeLado / 2}
-        width={iconeLado}
-        height={iconeLado}
-        href={require('../../../assets/icon.png')}
-        clipPath={`url(#icone-${id})`}
-        preserveAspectRatio="xMidYMid slice"
-      />
+      <MarcaEmSvg x={marcaX} y={marcaY - iconeLado / 2} lado={iconeLado} />
       <SvgText
         x={marcaX + iconeLado + 26}
         y={marcaY + 18}
