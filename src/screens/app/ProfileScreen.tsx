@@ -24,7 +24,7 @@ export function ProfileScreen({ name, onNavigate }: Props) {
   const since = caringSince(data);
 
   const row = (
-    icon: 'settings' | 'lock',
+    icon: 'settings' | 'lock' | 'heart',
     label: string,
     screen: SubScreen,
   ) => (
@@ -110,6 +110,10 @@ export function ProfileScreen({ name, onNavigate }: Props) {
                 onChange={(reminders) => updateSettings({ reminders })}
               />
             </View>
+            {/* A segunda porta das frases guardadas. A primeira é o coração no
+                cabeçalho de "Sem rodeios", na Home; esta é para quem procura
+                as próprias coisas no Perfil, que é onde mora todo o resto. */}
+            {row('heart', 'Frases guardadas', 'conselhos')}
             {row('settings', 'Configurações', 'config')}
             {row('lock', 'Privacidade', 'privacidade')}
           </View>

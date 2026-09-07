@@ -1,3 +1,4 @@
+import type { ConselhoVisto } from '../data/conselhos';
 import type { PlanKey } from '../data/onboarding';
 import type { Mood, PreferenciaDeTema } from '../theme/tokens';
 
@@ -138,6 +139,30 @@ export type AppData = {
    * Some junto com "apagar meus dados", como todo o resto.
    */
   diasCuidadosMax: number;
+  /**
+   * Os dias em que a pessoa desenterrou uma frase, do mais recente ao mais
+   * antigo — ver `data/conselhos.ts`.
+   *
+   * Guardar isto é o que permite percorrer o repertório inteiro antes de
+   * repetir qualquer frase. Um sorteio puro pelo dia não precisaria de estado
+   * nenhum, mas repetiria na terça o que saiu na segunda enquanto metade das
+   * frases nunca sai.
+   *
+   * Guarda só o `id`, nunca o texto: o texto vem do repertório na hora de
+   * mostrar, então melhorar a redação de uma frase melhora também o que a
+   * pessoa vê ao reler o dia de ontem.
+   */
+  conselhos: ConselhoVisto[];
+  /**
+   * Os `id` das frases que a pessoa guardou para reler, da mais recente para a
+   * mais antiga.
+   *
+   * **Lista separada, e não um campo em `conselhos`.** O histórico tem teto e
+   * vai perdendo os dias antigos; o que a pessoa guardou não pode sumir porque
+   * o dia em que ela guardou caiu do fim da fila. São duas coisas com tempos de
+   * vida diferentes.
+   */
+  conselhosGuardados: string[];
 };
 
 export const INITIAL_PROFILE: Profile = {
@@ -177,4 +202,6 @@ export const INITIAL_APP_DATA: AppData = {
   garden: [],
   practicesDone: [],
   stageSeen: null,
+  conselhos: [],
+  conselhosGuardados: [],
 };

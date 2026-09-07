@@ -7,4 +7,5 @@ export type SubScreen =
   | 'praticas'
   | 'valores'
   | 'lembretes'
-  | 'jardim';
+  | 'jardim'
+  | 'conselhos';

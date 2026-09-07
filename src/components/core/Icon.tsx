@@ -87,6 +87,20 @@ const PATHS = {
   alvo: 'M12 21a9 9 0 110-18 9 9 0 010 18zM12 16.5a4.5 4.5 0 110-9 4.5 4.5 0 010 9zM12 12l0 0',
   sparkle: 'M12 2l1.6 5.4L19 9l-5.4 1.6L12 16l-1.6-5.4L5 9l5.4-1.6L12 2z',
   /*
+    Compartilhar: três nós ligados por dois fios.
+
+    Era `sparkle` — uma estrelinha, que neste app já quer dizer "algo especial
+    acontecendo" e não diz nada sobre mandar coisa para fora. Este é o símbolo
+    que todo mundo já aprendeu em qualquer aplicativo, e por isso não precisa de
+    rótulo para ser entendido.
+
+    Os círculos são arcos de path, e não `<Circle>`, para o ícone inteiro
+    continuar sendo um `stroke` só: assim ele acompanha `strokeWidth` e `color`
+    como todos os outros aqui.
+  */
+  compartilhar:
+    'M6 12m-2.6 0a2.6 2.6 0 105.2 0a2.6 2.6 0 10-5.2 0M18 6m-2.6 0a2.6 2.6 0 105.2 0a2.6 2.6 0 10-5.2 0M18 18m-2.6 0a2.6 2.6 0 105.2 0a2.6 2.6 0 10-5.2 0M8.7 10.8l6.6-3.4M8.7 13.2l6.6 3.4',
+  /*
     Flor: cinco pétalas redondas em volta de um miolo.
 
     A anterior era um miolo com sete blocos ao redor, e aos 22 pontos não se

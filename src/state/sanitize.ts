@@ -1,3 +1,4 @@
+import { LIMITE_DO_HISTORICO, type ConselhoVisto } from '../data/conselhos';
 import { palavraValida } from '../data/humores';
 import { renomear } from '../data/onboarding';
 import type { AppData, Compost, JournalEntry, MoodLog, PracticeDone, Plant, Profile, Settings } from './types';
@@ -181,6 +182,47 @@ function praticasLimpas(v: unknown): PracticeDone[] {
   });
 }
 
+/**
+ * O histórico de frases desenterradas.
+ *
+ * Um registro por dia: se o arquivo trouxer dois com a mesma data — backup
+ * mesclado, gravação pela metade —, o primeiro vence e o resto some. Sem isso,
+ * `conselhoDoDia` continuaria devolvendo a frase certa (ela procura o primeiro
+ * do dia), mas o histórico ficaria inflando para sempre com dias repetidos.
+ */
+function conselhosLimpos(v: unknown): ConselhoVisto[] {
+  if (!ehLista(v)) return [];
+  const dias = new Set<string>();
+  const limpos: ConselhoVisto[] = [];
+  for (const item of v) {
+    const c = (item ?? {}) as Record<string, unknown>;
+    if (typeof c.date !== 'string' || !DIA.test(c.date)) continue;
+    if (typeof c.id !== 'string' || c.id === '') continue;
+    if (dias.has(c.date)) continue;
+    dias.add(c.date);
+    limpos.push({ date: c.date, id: c.id });
+    if (limpos.length >= LIMITE_DO_HISTORICO) break;
+  }
+  return limpos;
+}
+
+/**
+ * As frases guardadas.
+ *
+ * Só ids de texto, sem repetir. Não confere se o id ainda existe no repertório
+ * de propósito: uma frase pode sair numa atualização e voltar na seguinte, e
+ * jogar fora o que a pessoa guardou por causa disso seria irreversível. Quem
+ * filtra o que não existe mais é a tela, na hora de mostrar.
+ */
+function guardadosLimpos(v: unknown): string[] {
+  if (!ehLista(v)) return [];
+  const vistos = new Set<string>();
+  for (const item of v) {
+    if (typeof item === 'string' && item !== '') vistos.add(item);
+  }
+  return [...vistos];
+}
+
 export function sanitizarDados(guardado: unknown, hoje: string): AppData {
   const g = (guardado ?? {}) as Record<string, unknown>;
   const stageSeen =
@@ -196,6 +238,8 @@ export function sanitizarDados(guardado: unknown, hoje: string): AppData {
     startedAt: typeof g.startedAt === 'string' && DIA.test(g.startedAt) ? g.startedAt : hoje,
     garden: jardimLimpo(g.garden),
     practicesDone: praticasLimpas(g.practicesDone),
+    conselhos: conselhosLimpos(g.conselhos),
+    conselhosGuardados: guardadosLimpos(g.conselhosGuardados),
     stageSeen,
     // Um piso corrompido não pode inflar o jardim de ninguém: só vale número
     // finito e não negativo.

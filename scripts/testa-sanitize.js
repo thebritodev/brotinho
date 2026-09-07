@@ -34,6 +34,14 @@ const CASOS = [
   ['objeto vazio', {}],
   ['JSON truncado (perfil pela metade)', { profile: { name: 'Ana' } }],
 
+  ['conselhos virou texto', { conselhos: 'ontem' }],
+  ['conselhos com lixo dentro', { conselhos: [{ date: 'ontem', id: 'x' }, null, 7, { id: 'sem-data' }] }],
+  ['conselhos com dois registros no mesmo dia', {
+    conselhos: [{ date: '2026-03-14', id: 'a' }, { date: '2026-03-14', id: 'b' }],
+  }],
+  ['guardadas viraram objeto', { conselhosGuardados: { um: 'tudo-urgente' } }],
+  ['guardadas com repetidas e lixo', { conselhosGuardados: ['tudo-urgente', 'tudo-urgente', 3, null, ''] }],
+
   ['tentou virou texto', { profile: { tentou: 'terapia' } }],
   ['tentou virou número', { profile: { tentou: 99 } }],
   ['valores com lixo dentro', { profile: { valores: ['conexao', 5, null, 'saude'] } }],
@@ -104,10 +112,25 @@ const CASOS = [
       else {
         if (typeof r.profile !== 'object' || r.profile == null) problemas.push('profile inutilizável');
         else if (!Array.isArray(r.profile.tentou)) problemas.push('profile.tentou não é lista');
-        for (const campo of ['moodHistory', 'journal', 'composts', 'garden', 'practicesDone']) {
+        for (const campo of ['moodHistory', 'journal', 'composts', 'garden', 'practicesDone', 'conselhos', 'conselhosGuardados']) {
           if (!Array.isArray(r[campo])) problemas.push(`${campo} não é lista`);
         }
         if (typeof r.settings !== 'object' || r.settings == null) problemas.push('settings inutilizável');
+        if (Array.isArray(r.conselhos)) {
+          const dias = r.conselhos.map((c) => c && c.date);
+          if (new Set(dias).size !== dias.length) problemas.push('conselhos com dia repetido');
+          if (r.conselhos.some((c) => !c || typeof c.date !== 'string' || typeof c.id !== 'string')) {
+            problemas.push('conselhos com registro malformado');
+          }
+        }
+        if (Array.isArray(r.conselhosGuardados)) {
+          if (r.conselhosGuardados.some((g) => typeof g !== 'string' || g === '')) {
+            problemas.push('guardadas com id inválido');
+          }
+          if (new Set(r.conselhosGuardados).size !== r.conselhosGuardados.length) {
+            problemas.push('guardadas repetidas');
+          }
+        }
       }
 
       veredito = problemas.length ? 'RUIM  ' + problemas.join('; ') : 'ok';

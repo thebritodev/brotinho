@@ -17,11 +17,14 @@ import {
   MemoryCard,
   MoodSelector,
   PalavraDoHumor,
+  CartaoDoConselho,
+  useCompartilharFrase,
   CrossedCard,
   VoltaCard,
   type IconName,
 } from '../../components';
 import { toqueLeve } from '../../services/toque';
+import { conselhoDoDia } from '../../data/conselhos';
 import { saudacaoDoDia } from '../../data/saudacao';
 import { proximoPasso } from '../../data/primeiraSemana';
 import { sugestaoParaOHumor } from '../../data/sugestao';
@@ -48,6 +51,8 @@ type Props = {
   /** Sem alvo abre a lista; com alvo, vai direto na prática oferecida. */
   onOpenPractices: (alvo?: { topico: string; pratica: string }) => void;
   onOpenValues: () => void;
+  /** Abre a lista das frases que a pessoa guardou. */
+  onOpenConselhosGuardados: () => void;
   onOpenReminders: () => void;
   onOpenGarden: () => void;
 };
@@ -58,13 +63,15 @@ export function HomeScreen({
   onOpenSettings,
   onOpenPractices,
   onOpenValues,
+  onOpenConselhosGuardados,
   onOpenReminders,
   onOpenGarden,
 }: Props) {
   const { colors, palette, shadows } = useTema();
   const insets = useSafeAreaInsets();
   const { width, height } = useWindowDimensions();
-  const { data, setTodayMood, setTodayPalavra, markStageSeen, colherPlanta } = useAppState();
+  const { data, setTodayMood, setTodayPalavra, markStageSeen, colherPlanta, desenterrarConselho, guardarConselho } =
+    useAppState();
 
   /**
    * O broto domina a tela, mas divide a primeira dobra com a pergunta.
@@ -127,6 +134,22 @@ export function HomeScreen({
    * observação sobre a própria pessoa vale mais que uma apresentação do app.
    */
   const passo = useMemo(() => (padrao ? null : proximoPasso(data)), [padrao, data]);
+  /*
+    A frase de hoje, e se ela já foi desenterrada.
+
+    `conselhoDoDia` é pura e escolhe a que faz mais tempo que não aparece; o que
+    fixa a escolha do dia é o histórico, gravado no toque. Enquanto ninguém
+    tocar, esta chamada devolve a mesma candidata a cada render — o que importa,
+    porque é ela que vai para dentro do modal.
+  */
+  const conselho = useMemo(
+    () => conselhoDoDia({ vistos: data.conselhos, hoje: today }),
+    [data.conselhos, today],
+  );
+  const conselhoAberto = data.conselhos.some((c) => c.date === today);
+  const story = useCompartilharFrase();
+
+
   const memoria = useMemo(() => lembranca(data), [data]);
   const passou = useMemo(() => atravessou(data), [data]);
   const [lendoMemoria, setLendoMemoria] = useState(false);
@@ -444,6 +467,38 @@ export function HomeScreen({
       </Card>
 
       {/*
+        Fica logo depois da Composta, e antes dos atalhos.
+
+        Os quatro blocos daqui são de duas naturezas: Composta e Sem rodeios são
+        **momentos** — coisas que se fazem, uma vez, hoje. Práticas e Meus
+        valores são **portas** — lugares para onde se vai. Estavam embaralhados,
+        e o custo era todo deste cartão: espremido embaixo de dois cartões
+        iguais entre si, ele lia como o terceiro item de uma lista de atalhos.
+
+        Não sobe mais que isto. O trabalho da primeira dobra é a pergunta "como
+        você está", escrita duas vezes lá em cima; uma frase que fala duro antes
+        dela responderia antes de perguntar, que é o contrário do que o app faz.
+      */}
+      <CartaoDoConselho
+        texto={conselho.texto}
+        aberto={conselhoAberto}
+        guardada={data.conselhosGuardados.includes(conselho.id)}
+        onDesenterrar={() => {
+          toqueLeve(data.settings.vibracao);
+          desenterrarConselho(conselho.id);
+        }}
+        onGuardar={() => {
+          toqueLeve(data.settings.vibracao);
+          guardarConselho(conselho.id);
+        }}
+        onVerGuardadas={onOpenConselhosGuardados}
+        totalGuardadas={data.conselhosGuardados.length}
+        onCompartilhar={() => story.compartilhar(conselho.texto)}
+        compartilhando={story.compartilhando}
+        aviso={story.aviso}
+      />
+
+      {/*
         Um reencontro por vez, e nunca os dois juntos.
 
         Os dois cartões olham para trás, e empilhados viram uma seção de
@@ -606,6 +661,9 @@ export function HomeScreen({
           )
         )}
       </Modal>
+
+      {/* O card do story, montado fora da tela só enquanto está sendo fotografado. */}
+      {story.palco}
     </View>
   );
 }

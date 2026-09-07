@@ -11,6 +11,7 @@ import { RemindersScreen } from '../screens/app/RemindersScreen';
 import { ProfileScreen } from '../screens/app/ProfileScreen';
 import { SettingsScreen } from '../screens/app/SettingsScreen';
 import { TherapySummaryScreen } from '../screens/app/TherapySummaryScreen';
+import { ConselhosGuardadosScreen } from '../screens/app/ConselhosGuardadosScreen';
 import type { SubScreen } from '../screens/app/types';
 import { CompostaScreen } from '../screens/composta/CompostaScreen';
 import { ValuesScreen } from '../screens/app/ValuesScreen';
@@ -118,6 +119,8 @@ export function MainTabs() {
         return <RemindersScreen onBack={closeSub} />;
       case 'jardim':
         return <GardenScreen onBack={closeSub} />;
+      case 'conselhos':
+        return <ConselhosGuardadosScreen onBack={closeSub} />;
       default:
         return null;
     }
@@ -147,6 +150,7 @@ export function MainTabs() {
               setSub('praticas');
             }}
             onOpenValues={() => setSub('valores')}
+            onOpenConselhosGuardados={() => setSub('conselhos')}
             onOpenReminders={() => setSub('lembretes')}
             onOpenGarden={() => setSub('jardim')}
           />

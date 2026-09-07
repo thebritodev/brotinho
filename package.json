@@ -32,6 +32,7 @@
     "react-native-purchases": "^10.7.1",
     "react-native-safe-area-context": "~5.6.0",
     "react-native-svg": "15.12.1",
+    "react-native-view-shot": "4.0.3",
     "react-native-web": "^0.21.2"
   },
   "devDependencies": {
@@ -46,7 +47,7 @@
     "ios": "expo start --ios",
     "web": "expo start --web",
     "tipos": "tsc --noEmit",
-    "testa": "node scripts/testa-casa-frase.js && node scripts/testa-sanitize.js && node scripts/confere-praticas.js && node scripts/testa-janela-do-sistema.js && node scripts/testa-lembretes.js && node scripts/testa-atravessou.js && node scripts/testa-rascunho.js && node scripts/testa-colheita.js && node scripts/testa-importacao.js && node scripts/testa-sugestao.js && node scripts/testa-primeira-semana.js && node scripts/testa-resposta.js && node scripts/confere-humores.js && node scripts/confere-broto.js && node scripts/confere-contraste.js && node scripts/confere-cor-do-texto.js",
+    "testa": "node scripts/testa-casa-frase.js && node scripts/testa-sanitize.js && node scripts/confere-praticas.js && node scripts/testa-janela-do-sistema.js && node scripts/testa-lembretes.js && node scripts/testa-conselhos.js && node scripts/testa-atravessou.js && node scripts/testa-rascunho.js && node scripts/testa-colheita.js && node scripts/testa-importacao.js && node scripts/testa-sugestao.js && node scripts/testa-primeira-semana.js && node scripts/testa-resposta.js && node scripts/confere-humores.js && node scripts/confere-broto.js && node scripts/confere-contraste.js && node scripts/confere-cor-do-texto.js",
     "confere-cobranca": "node scripts/confere-cobranca.js"
   },
   "private": true

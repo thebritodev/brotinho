@@ -16,6 +16,7 @@ import {
   scheduleDailyReminder,
   scheduleWeeklySummary,
 } from '../services/notifications';
+import { LIMITE_DO_HISTORICO } from '../data/conselhos';
 import { palavraValida } from '../data/humores';
 import { limparExportacoes } from '../services/limparExportacoes';
 import { clearAppData, loadAppData, saveAppData } from '../storage/appStorage';
@@ -49,6 +50,10 @@ type AppStateValue = {
   addCompost: (entry: Omit<Compost, 'id' | 'createdAt'>) => void;
   /** Registra que a pessoa já viu a comemoração deste estágio. */
   markStageSeen: (stage: number) => void;
+  /** Anota a frase desenterrada hoje. Ignora se hoje já tem uma. */
+  desenterrarConselho: (id: string) => void;
+  /** Guarda a frase para reler, ou a tira se já estava guardada. */
+  guardarConselho: (id: string) => void;
   /** Guarda a planta madura no jardim e começa um broto novo. */
   colherPlanta: (planta: Plant) => void;
   /** Anota uma prática concluída. */
@@ -176,6 +181,21 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
     setData((prev) => ({ ...prev, settings: { ...prev.settings, ...patch } }));
   }, []);
 
+  /**
+   * Guarda ou desguarda uma frase. O mesmo toque faz as duas coisas.
+   *
+   * A mais recente fica na frente: quem guarda relê o que guardou por último,
+   * não o que guardou em março.
+   */
+  const guardarConselho = useCallback((id: string) => {
+    setData((prev) => ({
+      ...prev,
+      conselhosGuardados: prev.conselhosGuardados.includes(id)
+        ? prev.conselhosGuardados.filter((g) => g !== id)
+        : [id, ...prev.conselhosGuardados],
+    }));
+  }, []);
+
   const colherPlanta = useCallback((planta: Plant) => {
     setData((prev) =>
       // Colher zera o ciclo, então o estágio visto volta ao começo junto.
@@ -194,6 +214,27 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
 
   const markStageSeen = useCallback((stage: number) => {
     setData((prev) => (prev.stageSeen === stage ? prev : { ...prev, stageSeen: stage }));
+  }, []);
+
+  /**
+   * Anota a frase de hoje, uma vez só.
+   *
+   * A anotação acontece **no toque**, não ao abrir a Home. Registrar na abertura
+   * queimaria uma frase por dia de quem nunca toca no cartão, e em duas semanas
+   * o repertório estaria "gasto" para alguém que jamais leu nenhuma.
+   *
+   * Devolver `prev` quando o dia já está anotado não é só economia de gravação:
+   * é o que garante que reabrir o cartão mostre a mesma frase.
+   */
+  const desenterrarConselho = useCallback((id: string) => {
+    const hoje = dayKey();
+    setData((prev) => {
+      if (prev.conselhos.some((c) => c.date === hoje)) return prev;
+      return {
+        ...prev,
+        conselhos: [{ date: hoje, id }, ...prev.conselhos].slice(0, LIMITE_DO_HISTORICO),
+      };
+    });
   }, []);
 
   /**
@@ -297,6 +338,8 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
       removeJournalEntry,
       addCompost,
       markStageSeen,
+      desenterrarConselho,
+      guardarConselho,
       colherPlanta,
       registrarPratica,
       trazerDeVolta,
@@ -313,6 +356,8 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
       removeJournalEntry,
       addCompost,
       markStageSeen,
+      desenterrarConselho,
+      guardarConselho,
       colherPlanta,
       registrarPratica,
       trazerDeVolta,
