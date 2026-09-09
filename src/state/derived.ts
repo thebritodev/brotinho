@@ -423,15 +423,79 @@ export function nomeDoBroto(data: AppData): string {
   return data.profile.nomeDoBroto.trim();
 }
 
-/** Humor dos últimos 7 dias, do mais antigo ao mais recente. */
-export function moodWeek(data: AppData): { day: string; mood: Mood | null }[] {
-  const LETRAS = ['D', 'S', 'T', 'Q', 'Q', 'S', 'S'];
-  const porDia = new Map(data.moodHistory.map((m) => [m.date, m.mood]));
+/** As iniciais dos dias, de domingo a sábado. */
+const LETRAS_DA_SEMANA = ['D', 'S', 'T', 'Q', 'Q', 'S', 'S'];
 
-  return Array.from({ length: 7 }).map((_, i) => {
-    const d = new Date();
-    d.setDate(d.getDate() - (6 - i));
-    return { day: LETRAS[d.getDay()], mood: porDia.get(dayKey(d)) ?? null };
+export type DiaDaSemana = {
+  /** A inicial: D, S, T, Q, Q, S, S. */
+  day: string;
+  /**
+   * O dia que esta posição representa, em YYYY-MM-DD.
+   *
+   * Sai daqui para que dê para conferir que a letra corresponde ao dia de
+   * verdade. Sem a data, um teste da ordem das letras não prova nada: elas vêm
+   * da posição no array e ficariam certas mesmo se a conta das datas estivesse
+   * errada — foi o que aconteceu na primeira versão do teste.
+   */
+  date: string;
+  mood: Mood | null;
+  /** true para os dias desta semana que ainda não chegaram. */
+  futuro: boolean;
+};
+
+/**
+ * O humor da **semana do calendário**, de domingo a sábado.
+ *
+ * ## Por que não são os últimos sete dias
+ *
+ * Eram. E os últimos sete dias terminando hoje fazem os rótulos girarem: numa
+ * quarta-feira a fita saía Q S S D S T Q, numa sexta saía S S D S T Q Q. Cada
+ * dia da semana, uma ordem diferente.
+ *
+ * Ninguém lê calendário assim. A ordem D S T Q Q S S é a que está na cabeça de
+ * quem olha, e uma fita que muda de ordem obriga a **ler os rótulos** em vez de
+ * reconhecer a posição — que é justamente o que um gráfico de sete colunas
+ * deveria poupar.
+ *
+ * ## O preço, e por que ele vale
+ *
+ * Numa segunda-feira sobram seis dias que ainda não aconteceram, e a fita fica
+ * quase vazia. Os últimos sete dias nunca tinham esse problema: mostravam
+ * sempre uma semana cheia.
+ *
+ * Vale mesmo assim porque a comparação que interessa é **esta semana contra a
+ * semana passada**, e não "hoje contra seis dias atrás". E porque a fita vazia
+ * de segunda também informa: ela mostra a semana começando.
+ *
+ * ## `futuro` não é o mesmo que "sem registro"
+ *
+ * Dia que ainda não chegou e dia em que a pessoa não registrou nada se parecem
+ * — os dois estão vazios — e são coisas diferentes. Um é o tempo, o outro é
+ * uma ausência dela. Marcar como falta o que ainda nem pôde acontecer seria
+ * cobrar de alguém uma coisa impossível; num app de saúde mental isso não é
+ * detalhe.
+ *
+ * `agora` é parâmetro pelo mesmo motivo que em `sugestaoParaOHumor`: sem ele o
+ * teste dependeria de que dia da semana alguém resolveu rodá-lo.
+ */
+export function moodWeek(data: AppData, agora: Date = new Date()): DiaDaSemana[] {
+  const porDia = new Map(data.moodHistory.map((m) => [m.date, m.mood]));
+  const hoje = agora;
+  /* O domingo desta semana: hoje menos o número do dia da semana. */
+  const domingo = new Date(hoje);
+  domingo.setDate(hoje.getDate() - hoje.getDay());
+  const chaveDeHoje = dayKey(hoje);
+
+  return LETRAS_DA_SEMANA.map((letra, i) => {
+    const d = new Date(domingo);
+    d.setDate(domingo.getDate() + i);
+    const chave = dayKey(d);
+    return {
+      day: letra,
+      date: chave,
+      mood: porDia.get(chave) ?? null,
+      futuro: chave > chaveDeHoje,
+    };
   });
 }
 

@@ -44,11 +44,17 @@ function buildHtml(data: AppData): string {
 
   const semanaHtml = semana
     .map(
+      /*
+        Dia que ainda não chegou sai mais apagado que dia sem registro. Neste
+        documento a diferença pesa: quem lê é um terapeuta, e uma lacuna pode
+        virar assunto de sessão. Ele precisa poder distinguir "ela não
+        registrou" de "essa quinta-feira ainda não aconteceu".
+      */
       (d) => `
       <td style="text-align:center;padding:0 3px">
         <div style="height:44px;border-radius:6px;background:${
           d.mood ? moodColors[d.mood] : '#EFEFEF'
-        }"></div>
+        };opacity:${d.futuro ? '0.35' : '1'}"></div>
         <div style="font-size:11px;color:${palette.brown400};margin-top:5px">${d.day}</div>
       </td>`,
     )
@@ -145,7 +151,7 @@ function buildHtml(data: AppData): string {
   <h1>Resumo para terapia</h1>
   <p class="meta">${escape(nome)} · gerado em ${hoje}</p>
 
-  ${secao('Humor na semana', `<table><tr>${semanaHtml}</tr></table>${humores}`)}
+  ${secao('Humor nesta semana', `<table><tr>${semanaHtml}</tr></table>${humores}`)}
   ${secao('Padrões identificados', padroesHtml)}
   ${secao('Valores mais presentes', valoresHtml)}
   ${secao('Temas dos registros', temasHtml)}

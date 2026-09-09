@@ -21,6 +21,10 @@ import { MoodFace } from './MoodFace';
  * gamificação, que é o que o Finch tem de sobra. Este gráfico é a metade que
  * faltava aparecer.
  *
+ * A fita de 7 dias é a **semana do calendário**, de domingo a sábado — não os
+ * últimos sete dias. Ver `moodWeek` para o porquê; em resumo, os últimos sete
+ * dias faziam os rótulos girarem a cada dia, e ninguém lê calendário assim.
+ *
  * Duas regras de leitura, herdadas de onde ele nasceu:
  *
  * - **Dia sem registro fica vazado, não colorido.** Preencher buraco com cor
@@ -82,7 +86,22 @@ export function HumorNoTempo() {
   const [periodo, setPeriodo] = useState<7 | 30 | 90>(7);
   const semana = useMemo(() => moodWeek(data), [data]);
   const longo = useMemo(() => moodRange(data, periodo), [data, periodo]);
-  const diasComRegistro = longo.filter((d) => d.mood).length;
+  /**
+   * A conta embaixo do gráfico, e por que ela tem duas formas.
+   *
+   * Em 30 e 90 dias é o período inteiro: todos aqueles dias já aconteceram.
+   *
+   * Em 7 dias não dá para usar a mesma conta. A fita virou a semana do
+   * calendário, e numa quarta-feira três dos sete ainda não chegaram — dizer
+   * "4 de 7" contaria como falta o que ainda nem pôde acontecer, e a legenda
+   * passaria a discordar do que está desenhado logo acima dela. O denominador
+   * é quantos dias da semana já vieram.
+   */
+  const diasQueVieram = semana.filter((d) => !d.futuro);
+  const registrados =
+    periodo === 7
+      ? { feitos: diasQueVieram.filter((d) => d.mood).length, de: diasQueVieram.length }
+      : { feitos: longo.filter((d) => d.mood).length, de: periodo };
 
   /**
    * O período em colunas de semana, uma linha por dia da semana.
@@ -176,7 +195,11 @@ export function HumorNoTempo() {
               <View
                 accessible
                 accessibilityLabel={
-                  d.mood ? `${d.day}: ${ROTULO_DO_HUMOR[d.mood]}` : `${d.day}: sem registro`
+                  d.futuro
+                    ? `${d.day}: ainda não chegou`
+                    : d.mood
+                      ? `${d.day}: ${ROTULO_DO_HUMOR[d.mood]}`
+                      : `${d.day}: sem registro`
                 }
                 style={{
                   width: '100%',
@@ -188,6 +211,13 @@ export function HumorNoTempo() {
                   backgroundColor: d.mood ? moodColors[d.mood] : 'transparent',
                   borderWidth: d.mood ? 0 : 1,
                   borderColor: palette.brown100,
+                  /*
+                    O dia que ainda não chegou aparece mais apagado que o dia
+                    sem registro. Os dois estão vazios e não são a mesma coisa:
+                    um é o tempo, o outro é uma ausência dela. Marcar como falta
+                    o que ainda nem pôde acontecer seria cobrar o impossível.
+                  */
+                  opacity: d.futuro ? 0.35 : 1,
                 }}
               >
                 {/* A carinha é o segundo canal: expressão em vez de matiz. */}
@@ -307,7 +337,8 @@ export function HumorNoTempo() {
           marginTop: 10,
         }}
       >
-        {diasComRegistro} de {periodo} dias registrados
+        {registrados.feitos} de {registrados.de}{' '}
+        {periodo === 7 ? 'dias desta semana' : 'dias registrados'}
       </Text>
     </Card>
   );
