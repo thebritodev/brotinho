@@ -325,7 +325,24 @@ export function MyDataScreen({ onBack }: { onBack: () => void }) {
                       });
                       return;
                     }
-                    updateProfile({ [campo]: opcao });
+                    /*
+                      Tocar na opção que já está marcada tira a resposta.
+
+                      Até a 1.0.1 a saída era a opção "Prefiro não responder",
+                      que saiu das listas. Sem este gesto, idade ou gênero
+                      respondidos uma vez ficariam gravados para sempre — e a
+                      única forma de tirar seria "apagar meus dados", que leva o
+                      diário junto. É o mesmo gesto da palavra do humor, na
+                      Home, então não é coisa nova para aprender.
+
+                      Vale só para `idade` e `genero`, que são dados sobre quem
+                      a pessoa é. `checkin` e `canal` ficam de fora: nunca
+                      tiveram opção de recusa, e nenhum dos dois diz nada sobre
+                      ela que ela possa querer retirar.
+                    */
+                    const desmarcavel = campo === 'idade' || campo === 'genero';
+                    const jaMarcada = p[campo] === opcao;
+                    updateProfile({ [campo]: desmarcavel && jaMarcada ? null : opcao });
                     setCampo(null);
                   }}
                 />

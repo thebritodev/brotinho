@@ -35,9 +35,9 @@ export const TENTOU = [
   'Nunca tentei nada específico',
 ];
 
-export const IDADE = ['Menos de 18', '18–24', '25–34', '35 ou mais', 'Prefiro não responder'];
+export const IDADE = ['Menos de 18', '18–24', '25–34', '35 ou mais'];
 
-export const GENERO = ['Feminino', 'Masculino', 'Não-binário', 'Prefiro não responder'];
+export const GENERO = ['Feminino', 'Masculino', 'Não-binário'];
 
 export const CANAL = [
   'Instagram',

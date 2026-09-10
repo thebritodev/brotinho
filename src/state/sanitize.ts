@@ -52,6 +52,9 @@ const hora = (v: unknown, padrao: string) => {
 
 const DIA = /^\d{4}-\d{2}-\d{2}$/;
 
+/** A opção de recusa virou ausência de resposta. */
+const semRecusa = (v: string | null) => (v === 'Prefiro não responder' ? null : v);
+
 const MOODS = ['feliz', 'leve', 'ansioso', 'triste', 'cansado', 'neutro'] as const;
 const ehMood = (v: unknown): v is MoodLog['mood'] =>
   typeof v === 'string' && (MOODS as readonly string[]).includes(v);
@@ -70,8 +73,14 @@ function perfilLimpo(v: unknown): Profile {
     valores: listaDeTextos(p.valores),
     sleepTime: hora(p.sleepTime, INITIAL_PROFILE.sleepTime),
     reminder: hora(p.reminder, INITIAL_PROFILE.reminder),
-    idade: textoOuNulo(p.idade),
-    genero: textoOuNulo(p.genero),
+    /*
+      "Prefiro não responder" saiu das listas de idade e gênero. Quem tinha
+      escolhido essa opção volta a "sem resposta" — que é exatamente o que ela
+      significava. Mantê-la gravada deixaria em Meus dados um valor que não
+      existe mais na lista, marcado em lugar nenhum.
+    */
+    idade: semRecusa(textoOuNulo(p.idade)),
+    genero: semRecusa(textoOuNulo(p.genero)),
     canal: textoOuNulo(p.canal),
     /*
       Quem escolheu semanal ou vitalício no onboarding, antes de esses planos
