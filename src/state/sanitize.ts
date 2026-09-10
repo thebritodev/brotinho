@@ -73,7 +73,13 @@ function perfilLimpo(v: unknown): Profile {
     idade: textoOuNulo(p.idade),
     genero: textoOuNulo(p.genero),
     canal: textoOuNulo(p.canal),
-    plan: (['semanal', 'mensal', 'anual', 'vitalicio'] as const).includes(p.plan as never)
+    /*
+      Quem escolheu semanal ou vitalício no onboarding, antes de esses planos
+      saírem da venda, cai no anual — que é o padrão. Isto é só a escolha
+      guardada da tela de planos; o acesso de quem de fato assinou vem da loja,
+      pelo RevenueCat, e não daqui.
+    */
+    plan: (['mensal', 'anual'] as const).includes(p.plan as never)
       ? (p.plan as Profile['plan'])
       : INITIAL_PROFILE.plan,
     subscribed: booleano(p.subscribed, INITIAL_PROFILE.subscribed),

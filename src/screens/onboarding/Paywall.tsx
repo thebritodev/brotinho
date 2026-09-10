@@ -103,7 +103,13 @@ export function Paywall({ plan, onSelectPlan }: Props) {
           style={{
             fontFamily: fonts.display.extraBold,
             fontSize: 52,
-            lineHeight: 52 * 1.02,
+            /*
+              1,18 e não 1,02. A Baloo 2 é alta — ascendentes e descendentes
+              passam bastante do corpo —, e com a entrelinha colada no tamanho
+              da letra o Android recorta o que sobra: o topo do "E" e o pé do
+              "z" saíam cortados. Essa folga é o mínimo que a fonte pede.
+            */
+            lineHeight: 52 * 1.18,
             color: palette.green700,
             letterSpacing: -1,
             textAlign: 'center',
@@ -213,42 +219,12 @@ export function Paywall({ plan, onSelectPlan }: Props) {
         </Pressable>
       </View>
 
-      <View style={{ gap: 10 }}>
-        <Text
-          style={{
-            fontFamily: fonts.body.extraBold,
-            fontSize: 13,
-            color: palette.brown400,
-            letterSpacing: 0.4,
-          }}
-        >
-          OUTRAS OPÇÕES
-        </Text>
-        <View style={{ gap: 8 }}>
-          {(['semanal', 'vitalicio'] as PlanKey[]).map((key) => (
-            <Pressable accessibilityRole="button" key={key} onPress={() => onSelectPlan(key)} style={planRowStyle(vidros, palette, plan === key)}>
-              <View style={{ gap: 2 }}>
-                <Text
-                  style={{ fontFamily: fonts.display.bold, fontSize: 15, color: palette.brown900 }}
-                >
-                  {PLANS[key].name}
-                </Text>
-                <Text
-                  style={{ fontFamily: fonts.body.regular, fontSize: 13, color: palette.brown400 }}
-                >
-                  {PLANS[key].note}
-                </Text>
-              </View>
-              <Text
-                style={{ fontFamily: fonts.display.extraBold, fontSize: 17, color: palette.brown900 }}
-              >
-                {preco(key)}
-              </Text>
-            </Pressable>
-          ))}
-        </View>
-      </View>
-
+      {/*
+        Semanal e vitalício saíram daqui. Eram uma fileira "Outras opções"
+        embaixo dos dois cartões, e com quatro preços na mesma tela a
+        comparação que importa — mensal contra anual, que é onde está o
+        "economize 50%" — ficava diluída entre opções que quase ninguém escolhe.
+      */}
       {/*
         As duas garantias, na ordem em que pesam.
 

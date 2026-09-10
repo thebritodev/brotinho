@@ -138,26 +138,40 @@ async function capturar(page, nome) {
   // 1. Home
   await capturar(page, '1-home');
 
-  // 2. Composta, já em andamento não dá (precisa de microfone); a tela de
+  /*
+    2. A Frase do dia, aberta.
+
+    É a única captura tirada de um estado que exige interação: o cartão fechado
+    não mostra a frase, de propósito, e um cartão fechado numa loja não vende
+    nada. Aqui a flor já desabrochou — o tempo de espera é a animação inteira
+    mais folga, senão a foto pega a cápsula no meio do caminho.
+  */
+  await tocar(page, 'Desenterrar a frase de hoje');
+  await page.waitForTimeout(3400);
+  await capturar(page, '2-frase-do-dia');
+  await tocar(page, 'Fechar');
+  await page.waitForTimeout(700);
+
+  // 3. Composta, já em andamento não dá (precisa de microfone); a tela de
   //    entrada é a que explica a ideia, e é ela que vende o app.
   await tocar(page, 'Composta');
-  await capturar(page, '2-composta');
+  await capturar(page, '3-composta');
   await tocar(page, 'Voltar');
 
-  // 3. Diário
+  // 4. Diário
   await tocar(page, 'Diário');
-  await capturar(page, '3-diario');
+  await capturar(page, '4-diario');
 
-  // 4. Práticas
+  // 5. Práticas
   await tocar(page, 'Início');
   await tocar(page, 'Práticas');
-  await capturar(page, '4-praticas');
+  await capturar(page, '5-praticas');
   await tocar(page, 'Voltar');
 
-  // 5. Resumo para a terapia
+  // 6. Resumo para a terapia
   await tocar(page, 'Perfil');
   await tocar(page, ['Para minha terapia', 'Um resumo do que você registrou']);
-  await capturar(page, '5-terapia');
+  await capturar(page, '6-terapia');
 
   await browser.close();
   console.log(`\npronto — arquivos em ${SAIDA}`);

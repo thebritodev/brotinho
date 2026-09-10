@@ -33,6 +33,8 @@ import {
   PLANS,
   PRODUTO_DO_PLANO,
   STEPS,
+  passoRestaurado,
+  VERSAO_DOS_PASSOS,
   TENTOU,
   TOTAL,
   VALORES,
@@ -75,18 +77,19 @@ type Draft = {
 const PASSO = {
   INTRO: 0,
   NOME: 1,
-  CHECKIN: 2,
-  ESPELHO_MOMENTO: 3,
-  TENTOU: 4,
-  ESPELHO_TENTATIVA: 5,
-  EXPERIMENTO: 6,
-  METODO: 7,
-  VALORES: 8,
-  SONO: 9,
-  LEMBRETE: 10,
-  AREAS: 11,
-  PLANO: 12,
-  PAYWALL: 13,
+  NOME_DO_BROTO: 2,
+  CHECKIN: 3,
+  ESPELHO_MOMENTO: 4,
+  TENTOU: 5,
+  ESPELHO_TENTATIVA: 6,
+  EXPERIMENTO: 7,
+  METODO: 8,
+  VALORES: 9,
+  SONO: 10,
+  LEMBRETE: 11,
+  AREAS: 12,
+  PLANO: 13,
+  PAYWALL: 14,
 } as const;
 
 export function OnboardingScreen() {
@@ -141,6 +144,8 @@ export function OnboardingScreen() {
     let vivo = true;
     void loadRascunho<{
       step: number;
+      /** Ausente em rascunho gravado antes de a numeração ter versão. */
+      versaoDosPassos?: number;
       draft: Draft;
       pensamento: string;
       repeticoes: number;
@@ -149,7 +154,7 @@ export function OnboardingScreen() {
         if (!vivo) return;
         if (r?.draft) {
           setDraft((prev) => ({ ...prev, ...r.draft }));
-          setStep(Math.max(0, Math.min(TOTAL - 1, r.step ?? 0)));
+          setStep(passoRestaurado(r.step ?? 0, r.versaoDosPassos));
           setPensamento(typeof r.pensamento === 'string' ? r.pensamento : '');
           setRepeticoes(Number.isFinite(r.repeticoes) ? r.repeticoes : 0);
         }
@@ -167,7 +172,13 @@ export function OnboardingScreen() {
    */
   useEffect(() => {
     if (!restaurado) return;
-    void saveRascunho('onboarding', { step, draft, pensamento, repeticoes });
+    void saveRascunho('onboarding', {
+      step,
+      versaoDosPassos: VERSAO_DOS_PASSOS,
+      draft,
+      pensamento,
+      repeticoes,
+    });
   }, [restaurado, step, draft, pensamento, repeticoes]);
 
   const set = (patch: Partial<Draft>) => setDraft((prev) => ({ ...prev, ...patch }));
@@ -254,6 +265,15 @@ export function OnboardingScreen() {
   const ctaLabel =
     step === PASSO.INTRO
       ? 'Começar'
+      : step === PASSO.NOME_DO_BROTO
+        ? /*
+            `trim`, e não o texto cru: dois espaços digitados sem querer não são
+            um nome. Sem isso o botão diria "Continuar" e o broto seguiria sem
+            nome nenhum, que é o contrário do que o botão prometeu.
+          */
+          draft.nomeDoBroto.trim()
+          ? 'Continuar'
+          : 'Manter Brotinho'
       : isPaywall
         ? plan.cta
         : step === PASSO.PLANO
@@ -266,7 +286,7 @@ export function OnboardingScreen() {
 
   const showFootNote = isPaywall || step === PASSO.PLANO;
   // O app não tem versão gratuita: do paywall só se sai assinando.
-  const showSecondary = isReminder || step === PASSO.NOME || step === PASSO.EXPERIMENTO;
+  const showSecondary = isReminder || step === PASSO.EXPERIMENTO;
 
 
   /** Sai do onboarding e entra no app. */
@@ -274,7 +294,15 @@ export function OnboardingScreen() {
     // O rascunho existe para atravessar uma interrupção, não para virar uma
     // segunda cópia do que a pessoa escreveu. Terminou, some.
     void descartarRascunho('onboarding');
-    updateProfile({ ...draft, subscribed: assinou, onboarded: true });
+    updateProfile({
+      ...draft,
+      // Aparados na saída: espaço solto no começo ou no fim não é parte do nome,
+      // e o do broto vai para o título da notificação.
+      name: draft.name.trim(),
+      nomeDoBroto: draft.nomeDoBroto.trim(),
+      subscribed: assinou,
+      onboarded: true,
+    });
   };
 
   /**
@@ -351,16 +379,13 @@ export function OnboardingScreen() {
     ),
 
     /*
-      Os dois nomes na mesma tela, de propósito.
+      O nome dela, sozinho numa tela — e sem "Prefiro não dizer".
 
-      Batizar o broto é o vínculo mais citado nas avaliações do Finch, e ele se
-      forma no começo ou não se forma. Mas o onboarding já tem catorze passos —
-      acrescentar um décimo quinto para isso seria trocar um problema por outro.
-      Aqui o broto acabou de perguntar o nome dela; perguntar o dele em seguida
-      é a conversa continuando, não uma tela nova.
-
-      Fica opcional e sem estrela de obrigatório: quem não quiser batizar segue
-      com "Brotinho", e nada no app depende disso.
+      Nas versões até a 1.0.1 os dois nomes dividiam uma tela, e este passo
+      tinha um botão de pular. A decisão mudou nas duas pontas: o nome passou a
+      ser pedido de verdade, porque é com ele que o app fala com a pessoa em
+      todo lugar ("Oi, Ana", "Como você tem estado, Ana?"); e o nome do broto
+      ganhou tela própria, logo em seguida.
     */
     [PASSO.NOME]: (
       <View style={{ gap: 20 }}>
@@ -369,26 +394,35 @@ export function OnboardingScreen() {
           sub="Só para eu não falar com você como se fosse um formulário."
         />
         <Input placeholder="Seu nome" value={draft.name} onChangeText={(name) => set({ name })} />
+      </View>
+    ),
 
-        <View style={{ gap: 6 }}>
-          <Input
-            label="E eu, como você quer me chamar?"
-            placeholder="Brotinho"
-            value={draft.nomeDoBroto}
-            onChangeText={(nomeDoBroto) => set({ nomeDoBroto })}
-            maxLength={24}
-          />
-          <Text
-            style={{
-              fontFamily: fonts.body.regular,
-              fontSize: 12,
-              lineHeight: 12 * 1.45,
-              color: palette.brown400,
-            }}
-          >
-            Pode deixar em branco. Dá para escolher depois, em Meus dados.
-          </Text>
-        </View>
+    /*
+      O nome do broto, na tela seguinte à dela.
+
+      Separado porque, na mesma tela, o segundo campo lia como formulário — dois
+      campos empilhados, um deles opcional com uma nota embaixo. Sozinho, é o
+      broto respondendo ao nome que ela acabou de dar: a conversa continua.
+      Batizar é o vínculo mais citado nas avaliações do Finch, e ele se forma
+      no começo ou não se forma.
+
+      Continua opcional, e é o botão que diz isso — ver `ctaLabel`. Com a caixa
+      vazia ele diz "Manter Brotinho", que é exatamente o que acontece; ela
+      digitou, ele vira "Continuar". O botão nunca promete uma coisa e entrega
+      outra.
+    */
+    [PASSO.NOME_DO_BROTO]: (
+      <View style={{ gap: 20 }}>
+        <AskingSprout
+          title={`Prazer${draft.name.trim() ? `, ${draft.name.trim()}` : ''}. E eu, como você quer me chamar?`}
+          sub="Pode me dar outro nome ou me deixar como Brotinho. Dá para trocar depois, em Meus dados."
+        />
+        <Input
+          placeholder="Brotinho"
+          value={draft.nomeDoBroto}
+          onChangeText={(nomeDoBroto) => set({ nomeDoBroto })}
+          maxLength={24}
+        />
       </View>
     ),
 
@@ -837,11 +871,7 @@ export function OnboardingScreen() {
             <Text
               style={{ fontFamily: fonts.body.bold, fontSize: 15, color: colors.textSecondary }}
             >
-              {isReminder
-                ? 'Agora não'
-                : step === PASSO.EXPERIMENTO
-                  ? 'Agora não é hora'
-                  : 'Prefiro não dizer'}
+              {isReminder ? 'Agora não' : 'Agora não é hora'}
             </Text>
           </Pressable>
         )}

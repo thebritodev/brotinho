@@ -61,12 +61,40 @@ export const MIN_STEP = 5;
  * O que entrou no lugar não é pergunta: é entrega. Experimentar a Composta,
  * entender a técnica, ver o que tem dentro e ler o próprio plano.
  */
-export const TOTAL = 14;
+export const TOTAL = 15;
+
+/**
+ * A numeração dos passos, e por que ela tem versão.
+ *
+ * O rascunho do onboarding guarda o **número** do passo em que a pessoa parou.
+ * Na versão 2 o nome dela e o nome do broto viraram duas telas — um passo novo
+ * entrou na posição 2, e todos os seguintes andaram uma casa. Um rascunho
+ * gravado antes disso, restaurado sem conversão, abriria uma tela antes da
+ * certa: quem parou em "E o que você tem feito com isso?" voltaria para o
+ * espelho da pergunta anterior.
+ *
+ * Rascunho sem versão é da numeração antiga e passa por `passoRestaurado`.
+ */
+export const VERSAO_DOS_PASSOS = 2;
+
+/** Converte o passo de um rascunho para a numeração atual. */
+export function passoRestaurado(passo: number, versao: number | undefined): number {
+  if (!Number.isFinite(passo)) return 0;
+  // Da numeração 1 para a 2: do passo 2 em diante, uma casa para a frente.
+  const convertido = (versao ?? 1) < 2 && passo >= 2 ? passo + 1 : passo;
+  return Math.max(0, Math.min(TOTAL - 1, convertido));
+}
 export const STEPS = TOTAL - 1;
 
 export const MAX_VALUES = 3;
 
-export type PlanKey = 'semanal' | 'mensal' | 'anual' | 'vitalicio';
+/**
+ * Só mensal e anual.
+ *
+ * Semanal e vitalício existiram e saíram da venda. Os produtos continuam
+ * cadastrados nas lojas — tirar da tela é reversível, apagar o produto não é.
+ */
+export type PlanKey = 'mensal' | 'anual';
 
 /**
  * Identificador de cada plano nas lojas. Precisa bater exatamente com o que
@@ -76,10 +104,8 @@ export type PlanKey = 'semanal' | 'mensal' | 'anual' | 'vitalicio';
  * apagado, então mudar qualquer um destes exige criar um produto novo.
  */
 export const PRODUTO_DO_PLANO: Record<PlanKey, string> = {
-  semanal: 'brotinho_semanal',
   mensal: 'brotinho_mensal',
   anual: 'brotinho_anual',
-  vitalicio: 'brotinho_vitalicio',
 };
 
 export const PLANS: Record<
@@ -97,13 +123,6 @@ export const PLANS: Record<
     fine: string;
   }
 > = {
-  semanal: {
-    name: 'Semanal',
-    price: 'R$ 9,90',
-    note: 'por semana',
-    cta: 'Assinar por R$ 9,90/semana',
-    fine: 'Cobrança semanal de R$ 9,90. Cancele quando quiser.',
-  },
   mensal: {
     name: 'Mensal',
     price: 'R$ 29,90',
@@ -118,13 +137,6 @@ export const PLANS: Record<
     note: 'R$ 14,99 por mês · economize 50%',
     cta: 'Assinar por R$ 179,90/ano',
     fine: 'Cobrança única de R$ 179,90 por 12 meses. Cancele quando quiser.',
-  },
-  vitalicio: {
-    name: 'Vitalício',
-    price: 'R$ 399,90',
-    note: 'pagamento único, para sempre',
-    cta: 'Pagar R$ 399,90 uma vez',
-    fine: 'Pagamento único de R$ 399,90. Acesso permanente.',
   },
 };
 

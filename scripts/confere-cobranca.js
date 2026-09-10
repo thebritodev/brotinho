@@ -33,7 +33,8 @@ const CHAVES = [
   { nome: 'EXPO_PUBLIC_REVENUECAT_IOS', trava: true, loja: 'App Store' },
   { nome: 'EXPO_PUBLIC_REVENUECAT_ANDROID', trava: false, loja: 'Google Play' },
 ];
-const PRODUTOS = ['brotinho_semanal', 'brotinho_mensal', 'brotinho_anual', 'brotinho_vitalicio'];
+/* Semanal e vitalicio sairam da venda; os produtos seguem nas lojas, mas o app nao os oferece. */
+const PRODUTOS = ['brotinho_mensal', 'brotinho_anual'];
 
 const problemas = [];
 const ok = (t) => console.log(`  ok    ${t}`);

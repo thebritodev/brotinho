@@ -382,3 +382,16 @@ export function useAppState(): AppStateValue {
   if (!ctx) throw new Error('useAppState precisa estar dentro de <AppStateProvider>');
   return ctx;
 }
+
+/**
+ * Se a vibração está ligada — e, ao contrário de `useAppState`, sem lançar.
+ *
+ * Existe para o `Button`. Ele é o componente mais usado do app, e um
+ * `useAppState` dentro dele transformaria qualquer botão desenhado fora do
+ * provider — uma tela de erro, uma prévia isolada, um teste — numa exceção que
+ * derruba a tela inteira. Vibrar é enfeite; enfeite não pode ser motivo de
+ * travar. Fora do provider a resposta é "ligada", que é o padrão do ajuste.
+ */
+export function useVibracaoLigada(): boolean {
+  return useContext(AppStateContext)?.data.settings.vibracao ?? true;
+}
