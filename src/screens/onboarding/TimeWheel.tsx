@@ -39,6 +39,26 @@ const VISIBLE_SIDES = 1;
 
 const REEL_HEIGHT = ITEM_HEIGHT * (VISIBLE_SIDES * 2 + 1);
 
+/**
+ * Altura natural da linha na Baloo 2, em frações do corpo: 1078 acima da base
+ * e 524 abaixo, num quadrado de 1000.
+ *
+ * O número do centro tem 40 de corpo e morava numa caixa de linha de 44 — um
+ * terço menor que a da própria fonte. Cada plataforma espreme essa diferença
+ * de um jeito (o Android tira metade de cima e metade de baixo; o iOS tem regra
+ * própria), e a sobra que protege o alto dos algarismos fica dependendo disso.
+ * Nenhuma caixa aqui é menor que a da fonte, e o problema deixa de existir.
+ *
+ * A posição do número não muda: com a entrelinha dividida ao meio, o centro da
+ * tinta fica no mesmo lugar em relação ao centro da caixa, qualquer que seja a
+ * altura dela. A caixa só passa a sobrar para fora da fileira, o que é
+ * inofensivo — o que corta é o carretel, e o número do centro está no meio.
+ */
+const LINHA_NATURAL = 1.602;
+
+/** Caixa de linha para um corpo: nunca menor que a da fonte, nem que a fileira. */
+const caixaDaLinha = (corpo: number) => Math.max(ALTURA_EM_SP, Math.ceil(corpo * LINHA_NATURAL));
+
 type Props = {
   /** Horário no formato "HH:MM". */
   value: string;
@@ -128,16 +148,45 @@ export function TimeWheel({ value, onChange, icon = 'moon' }: Props) {
         <Animated.View style={{ transform: [{ translateY: Animated.multiply(resto, -1) }] }}>
           {numeros.map(({ distancia, texto }) => {
             const centro = distancia === 0;
+            const corpo = centro ? 40 : 19;
+            /*
+              O vizinho some ao chegar na borda, em vez de ser fatiado por ela.
+
+              Durante o arrasto o carretel desliza até meia fileira, e o número
+              da ponta ficava pela metade, cortado a seco pela borda. Aqui ele
+              está inteiro em repouso (a uma fileira do centro) e já invisível
+              quando chega a fileira e meia — o ponto em que a borda o partiria.
+
+              Em unidades de `resto`: o número fica a `distancia × fileira −
+              resto` do centro.
+            */
+            const opacidade = centro
+              ? 1
+              : resto.interpolate({
+                  inputRange: [
+                    (distancia - 1.5) * ITEM_HEIGHT,
+                    (distancia - 1) * ITEM_HEIGHT,
+                    (distancia + 1) * ITEM_HEIGHT,
+                    (distancia + 1.5) * ITEM_HEIGHT,
+                  ],
+                  outputRange: [0, 1, 1, 0],
+                  extrapolate: 'clamp',
+                });
             return (
-              <View
+              <Animated.View
                 key={distancia}
-                style={{ height: ITEM_HEIGHT, alignItems: 'center', justifyContent: 'center' }}
+                style={{
+                  height: ITEM_HEIGHT,
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  opacity: opacidade,
+                }}
               >
                 <Text
                   maxFontSizeMultiplier={1.6}
                   style={{
                     fontFamily: fonts.display.bold,
-                    fontSize: centro ? 40 : 19,
+                    fontSize: corpo,
                     /*
                       O número não estava no meio da faixa verde, e a culpa era
                       da caixa de linha, não da faixa.
@@ -150,15 +199,18 @@ export function TimeWheel({ value, onChange, icon = 'moon' }: Props) {
                       mais que o texto e a folga sobra toda embaixo, que é
                       quando o desencontro fica visível.
 
-                      Amarrando a caixa de linha à altura da fileira, as duas
-                      passam a ser a mesma coisa. Em sp, não em pixels: o valor
-                      em pixels já foi multiplicado pela escala uma vez.
+                      Dando a caixa de linha explicitamente, e com a entrelinha
+                      dividida ao meio, os algarismos ficam centrados nela — e
+                      ela, na fileira. Em sp, não em pixels: o valor em pixels
+                      já foi multiplicado pela escala uma vez. A altura vem de
+                      `caixaDaLinha`, que explica por que nunca é menor que a
+                      da fonte.
 
                       `includeFontPadding` tira a folga extra que o Android
                       acrescenta por fora da caixa, e que reintroduziria o
                       mesmo deslocamento por outro caminho.
                     */
-                    lineHeight: ALTURA_EM_SP,
+                    lineHeight: caixaDaLinha(corpo),
                     includeFontPadding: false,
                     textAlignVertical: 'center',
                     color: centro ? colors.textPrimary : palette.brown200,
@@ -166,7 +218,7 @@ export function TimeWheel({ value, onChange, icon = 'moon' }: Props) {
                 >
                   {texto}
                 </Text>
-              </View>
+              </Animated.View>
             );
           })}
         </Animated.View>
@@ -221,7 +273,7 @@ export function TimeWheel({ value, onChange, icon = 'moon' }: Props) {
           style={{
             fontFamily: fonts.display.bold,
             fontSize: 34,
-            lineHeight: ALTURA_EM_SP,
+            lineHeight: caixaDaLinha(34),
             includeFontPadding: false,
             textAlignVertical: 'center',
             color: palette.brown200,
