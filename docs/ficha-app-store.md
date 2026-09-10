@@ -7,26 +7,50 @@ questionários. Revise antes de enviar: são suas palavras publicadas no seu nom
 
 ## 1. Textos da ficha
 
+### Os três campos de busca são um só
+
+A Apple indexa **nome + subtítulo + palavras-chave** como um saco único de
+termos, e o **nome pesa mais** que os outros dois. Três consequências:
+
+1. Palavra repetida entre os campos é espaço jogado fora.
+2. O que estiver no nome trabalha mais do que se estivesse nas palavras-chave.
+3. Conectivo não é buscado por ninguém. "Um lugar só seu para desabafar"
+   ocupava os 30 caracteres do subtítulo e só uma palavra ali era procurada.
+
+Até 09/09/2026 o nome era só `Brotinho`: **8 de 30 caracteres**, e nenhum deles
+uma palavra que alguém digita na busca. Vinte e dois em branco, no campo de
+maior peso da ficha.
+
 ### Nome do app (máx. 30 caracteres)
 
 ```
-Brotinho
+Brotinho: Diário e Bem-estar
 ```
+*28 de 30. "Diário" é a palavra que define a categoria; é ela que faz o app
+aparecer para quem procura o que ele é.*
 
 ### Subtítulo (máx. 30 caracteres)
 
 ```
-Um lugar só seu para desabafar
+Desabafe e cuide da ansiedade
 ```
-*30 de 30.*
+*29 de 30. Continua sendo uma frase de gente, e não uma lista de palavras — a
+Apple pode recusar subtítulo que seja só empilhamento de termos. E ainda assim
+carrega "desabafe" e "ansiedade".*
 
 ### Palavras-chave (máx. 100 caracteres, separadas por vírgula)
 
 ```
-ansiedade,diário,saúde mental,autocuidado,meditação,calma,insônia,autoestima,terapia,humor,bem-estar
+saúde mental,autocuidado,meditação,calma,insônia,autoestima,terapia,humor,sono,estresse,luto,raiva
 ```
-*100 de 100. Não repita aqui palavras que já estão no nome ou no subtítulo — a
-Apple indexa os três campos juntos, e repetir desperdiça espaço.*
+*98 de 100. Saíram `ansiedade`, `diário` e `bem-estar`, que passaram a viver no
+nome e no subtítulo — mantê-las aqui seria pagar duas vezes pela mesma palavra.
+Entraram `sono`, `estresse`, `luto` e `raiva`.*
+
+*Todas as quatro novas são **temas de prática que o app realmente tem**. Chegou
+a entrar `pânico` numa versão desta lista e saiu: o app trata ansiedade, mas não
+tem nada específico para pânico, e palavra-chave que promete o que o app não faz
+traz instalação errada, avaliação ruim e risco de recusa.*
 
 ### Texto promocional (máx. 170 caracteres)
 
