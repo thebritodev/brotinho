@@ -251,13 +251,33 @@ export async function scheduleWeeklySummary(): Promise<boolean> {
  * Cobre os dois casos: o app já estava aberto (o ouvinte dispara) e o app
  * estava fechado e foi aberto pelo toque (a última resposta fica guardada, e
  * sem ler ela o toque que abre o app do zero não levaria a lugar nenhum).
+ *
+ * ## A resposta é apagada depois de usada
+ *
+ * A "última resposta" não é o toque de agora: é o último toque que houve, e o
+ * sistema a guarda enquanto o processo do app viver. Quem chama isto é a
+ * `MainTabs`, a cada vez que ela monta — e ela monta de novo mais vezes do que
+ * parece: ao terminar o onboarding, ao voltar do "apagar meus dados", a cada
+ * recarga durante o desenvolvimento.
+ *
+ * Sem apagar, um lembrete tocado horas antes levava ao Diário de novo a cada
+ * uma dessas vezes. Foi assim que a primeira abertura depois do onboarding
+ * caiu no Diário em vez da Home — e a Home é onde moram as boas-vindas, que
+ * por isso nem apareceram. Usado uma vez, o toque é esquecido.
  */
 export function onNotificationTap(ir: (destino: DestinoDeNotificacao) => void): () => void {
   if (Platform.OS === 'web') return () => {};
 
   const extrair = (resposta: Notifications.NotificationResponse | null) => {
     const destino = resposta?.notification.request.content.data?.[DESTINO_KEY];
-    if (destino === 'diario' || destino === 'resumo') ir(destino);
+    if (destino !== 'diario' && destino !== 'resumo') return;
+    try {
+      Notifications.clearLastNotificationResponse();
+    } catch {
+      // Sem apagar, o pior que acontece é o comportamento antigo — não vale
+      // deixar isso impedir a navegação que a pessoa pediu agora.
+    }
+    ir(destino);
   };
 
   void Notifications.getLastNotificationResponseAsync().then(extrair);

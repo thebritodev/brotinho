@@ -164,7 +164,8 @@ export type AppData = {
    */
   conselhosGuardados: string[];
   /**
-   * A pessoa já viu as boas-vindas que abrem a Home depois da assinatura.
+   * A pessoa já viu as boas-vindas que abrem a primeira Home depois do
+   * onboarding — que na loja só termina com a assinatura.
    *
    * Uma vez só na vida do aparelho — ou até "apagar meus dados", que devolve o
    * app ao começo e com ele a chegada. Quem já usava o app quando isto surgiu

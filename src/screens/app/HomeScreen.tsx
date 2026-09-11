@@ -744,9 +744,16 @@ export function HomeScreen({
         )}
       </Modal>
 
-      {/* A chegada, uma vez só: a primeira Home depois da assinatura. */}
+      {/*
+        A chegada, uma vez só: a primeira Home depois do onboarding.
+
+        Não depende de `subscribed`. Na loja, do paywall só se sai assinando,
+        então passar do onboarding já é ter assinado — e exigir a assinatura
+        aqui não acrescentava nada, só fazia as boas-vindas nunca aparecerem
+        onde não há loja para cobrar, que é justamente onde o app é testado.
+      */}
       <BoasVindas
-        visivel={data.profile.subscribed && !data.boasVindasVistas}
+        visivel={!data.boasVindasVistas}
         nome={name}
         aoFechar={() => marcarVisto('boasVindas')}
       />
