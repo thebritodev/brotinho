@@ -59,6 +59,32 @@ const LINHA_NATURAL = 1.602;
 /** Caixa de linha para um corpo: nunca menor que a da fonte, nem que a fileira. */
 const caixaDaLinha = (corpo: number) => Math.max(ALTURA_EM_SP, Math.ceil(corpo * LINHA_NATURAL));
 
+/**
+ * Onde o texto de uma fileira começa, e com que altura — em pixels.
+ *
+ * ## Por que a posição é calculada, e não deixada ao `justifyContent`
+ *
+ * A caixa do número do centro (65) é mais alta que a fileira (44). No
+ * navegador isso não importa: a fileira centra o filho, sobrando para fora
+ * igual em cima e embaixo. No Android, não. Lá o texto é medido **no máximo
+ * da altura do pai**: a caixa é espremida para 44, o conteúdo de 65 continua
+ * desenhado a partir do topo dela, e a sobra inteira cai para baixo. O número
+ * do meio aparecia uns dez pontos abaixo da faixa verde — enquanto os
+ * dois-pontos, cuja caixa cabe no espaço onde estão, ficavam no lugar.
+ *
+ * Com posição absoluta e altura dada, não há medida para espremer: a caixa
+ * tem a altura dela, e o topo fica exatamente meia sobra acima da fileira.
+ *
+ * A altura sai em pixels multiplicando pela mesma escala que o React Native
+ * aplica ao `lineHeight` em sp — com o mesmo teto de 1,6 do
+ * `maxFontSizeMultiplier` —, que é o que faz a caixa pedida e a caixa
+ * desenhada serem a mesma.
+ */
+const posicaoNaFileira = (corpo: number) => {
+  const altura = caixaDaLinha(corpo) * ESCALA_DA_FONTE;
+  return { top: (ITEM_HEIGHT - altura) / 2, height: altura };
+};
+
 type Props = {
   /** Horário no formato "HH:MM". */
   value: string;
@@ -175,16 +201,17 @@ export function TimeWheel({ value, onChange, icon = 'moon' }: Props) {
             return (
               <Animated.View
                 key={distancia}
-                style={{
-                  height: ITEM_HEIGHT,
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  opacity: opacidade,
-                }}
+                style={{ height: ITEM_HEIGHT, opacity: opacidade }}
               >
                 <Text
                   maxFontSizeMultiplier={1.6}
                   style={{
+                    // Posicionado à mão — ver `posicaoNaFileira`.
+                    position: 'absolute',
+                    left: 0,
+                    right: 0,
+                    ...posicaoNaFileira(corpo),
+                    textAlign: 'center',
                     fontFamily: fonts.display.bold,
                     fontSize: corpo,
                     /*
