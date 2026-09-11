@@ -163,6 +163,23 @@ export type AppData = {
    * vida diferentes.
    */
   conselhosGuardados: string[];
+  /**
+   * A pessoa já viu as boas-vindas que abrem a Home depois da assinatura.
+   *
+   * Uma vez só na vida do aparelho — ou até "apagar meus dados", que devolve o
+   * app ao começo e com ele a chegada. Quem já usava o app quando isto surgiu
+   * entra como quem já viu: ler "boas-vindas" no décimo mês de uso seria
+   * o app esquecendo quem ela é. Ver `sanitizarDados`.
+   */
+  boasVindasVistas: boolean;
+  /**
+   * A pessoa já abriu o jardim ao menos uma vez.
+   *
+   * Enquanto não abriu, a Home diz embaixo do broto que tocar nele leva ao
+   * jardim. Nada no desenho do broto diz que ele é um botão, e a porta para o
+   * histórico inteiro dela não pode depender de ela tocar por acaso.
+   */
+  jardimAberto: boolean;
 };
 
 export const INITIAL_PROFILE: Profile = {
@@ -204,4 +221,6 @@ export const INITIAL_APP_DATA: AppData = {
   stageSeen: null,
   conselhos: [],
   conselhosGuardados: [],
+  boasVindasVistas: false,
+  jardimAberto: false,
 };

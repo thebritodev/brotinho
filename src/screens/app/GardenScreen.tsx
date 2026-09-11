@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { ScrollView, Text, useWindowDimensions, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -38,7 +38,11 @@ export function GardenScreen({ onBack }: { onBack: () => void }) {
   const { colors, moodColorsFundo, palette, shadows, vidros } = useTema();
   const insets = useSafeAreaInsets();
   const { width } = useWindowDimensions();
-  const { data } = useAppState();
+  const { data, marcarVisto } = useAppState();
+
+  // Aberto uma vez, a dica embaixo do broto da Home cumpriu o papel e some.
+  // Aqui, e não no toque do broto: o jardim também se abre por outros caminhos.
+  useEffect(() => marcarVisto('jardim'), [marcarVisto]);
 
   const hoje = dayKey();
   const humorDeHoje = data.moodHistory.find((m) => m.date === hoje)?.mood ?? 'neutro';

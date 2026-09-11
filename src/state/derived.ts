@@ -439,6 +439,8 @@ export type DiaDaSemana = {
    */
   date: string;
   mood: Mood | null;
+  /** A palavra mais exata daquele dia, quando a pessoa escolheu uma. */
+  palavra?: string;
   /** true para os dias desta semana que ainda não chegaram. */
   futuro: boolean;
 };
@@ -479,7 +481,7 @@ export type DiaDaSemana = {
  * teste dependeria de que dia da semana alguém resolveu rodá-lo.
  */
 export function moodWeek(data: AppData, agora: Date = new Date()): DiaDaSemana[] {
-  const porDia = new Map(data.moodHistory.map((m) => [m.date, m.mood]));
+  const porDia = new Map(data.moodHistory.map((m) => [m.date, m]));
   const hoje = agora;
   /* O domingo desta semana: hoje menos o número do dia da semana. */
   const domingo = new Date(hoje);
@@ -490,10 +492,12 @@ export function moodWeek(data: AppData, agora: Date = new Date()): DiaDaSemana[]
     const d = new Date(domingo);
     d.setDate(domingo.getDate() + i);
     const chave = dayKey(d);
+    const registro = porDia.get(chave);
     return {
       day: letra,
       date: chave,
-      mood: porDia.get(chave) ?? null,
+      mood: registro?.mood ?? null,
+      ...(registro?.palavra ? { palavra: registro.palavra } : null),
       futuro: chave > chaveDeHoje,
     };
   });

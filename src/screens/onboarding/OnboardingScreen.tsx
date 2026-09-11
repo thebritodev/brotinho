@@ -285,8 +285,15 @@ export function OnboardingScreen() {
               : 'Continuar';
 
   const showFootNote = isPaywall || step === PASSO.PLANO;
-  // O app não tem versão gratuita: do paywall só se sai assinando.
-  const showSecondary = isReminder || step === PASSO.EXPERIMENTO;
+  /*
+    O app não tem versão gratuita: do paywall só se sai assinando.
+
+    No experimento, "Agora não é hora" só vale enquanto ele não foi feito. É a
+    saída de quem não quer ler a frase em voz alta — depois das seis leituras
+    ela já leu, e o botão passava a oferecer pular uma coisa que acabou de
+    acontecer, ao lado do "Por que isso funciona" que é o caminho natural.
+  */
+  const showSecondary = isReminder || experimentoIncompleto;
 
 
   /** Sai do onboarding e entra no app. */
@@ -521,11 +528,26 @@ export function OnboardingScreen() {
             nada — eu não cobro e não conto os dias que você faltou.
           </Text>
         </View>
-        <TimeField
-          label="Lembrete diário"
-          value={draft.reminder}
-          onChange={(reminder) => set({ reminder })}
-        />
+        <View style={{ gap: 6 }}>
+          <TimeField
+            label="Lembrete diário"
+            value={draft.reminder}
+            onChange={(reminder) => set({ reminder })}
+          />
+          {/* O cartão parece um rótulo com um número, não um botão; sem esta
+              linha ninguém descobre que o horário se muda tocando nele. */}
+          <Text
+            style={{
+              fontFamily: fonts.body.regular,
+              fontSize: 12,
+              lineHeight: 12 * 1.45,
+              color: colors.textSecondary,
+              textAlign: 'center',
+            }}
+          >
+            Toque no horário para mudar a hora do lembrete
+          </Text>
+        </View>
 
         {/*
           O app acabou de perguntar a que horas ela dorme, dois passos atrás, e

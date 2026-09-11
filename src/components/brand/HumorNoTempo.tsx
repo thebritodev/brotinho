@@ -6,6 +6,7 @@ import { moodRange, moodWeek } from '../../state/derived';
 import { useAppState } from '../../state/AppStateProvider';
 import { fonts, type Mood, radius, useTema } from '../../theme';
 import { Card } from '../core/Card';
+import { HumorComPalavra } from './HumorComPalavra';
 import { MoodFace } from './MoodFace';
 
 /**
@@ -79,12 +80,33 @@ const GRADE_VAO = 3;
  */
 const INICIAIS = ['D', 'S', 'T', 'Q', 'Q', 'S', 'S'];
 
+const DIAS_DA_SEMANA = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
+const MESES = ['jan', 'fev', 'mar', 'abr', 'mai', 'jun', 'jul', 'ago', 'set', 'out', 'nov', 'dez'];
+
+/** "Qua, 9 set" — curto, porque divide a linha com o humor e a palavra. */
+function nomeDoDia(chave: string): string {
+  const d = new Date(`${chave}T12:00:00`);
+  if (Number.isNaN(d.getTime())) return '';
+  return `${DIAS_DA_SEMANA[d.getDay()]}, ${d.getDate()} ${MESES[d.getMonth()]}`;
+}
+
 export function HumorNoTempo() {
   const { colors, moodColors, palette } = useTema();
   const { data } = useAppState();
 
   const [periodo, setPeriodo] = useState<7 | 30 | 90>(7);
   const semana = useMemo(() => moodWeek(data), [data]);
+
+  /**
+   * O dia da fita cujo humor e palavra aparecem embaixo dela.
+   *
+   * Sem toque nenhum, é o último dia registrado da semana — normalmente hoje.
+   * Começar vazio, esperando um toque, deixaria a palavra escondida atrás de um
+   * gesto que ninguém sabe que existe, que é o defeito que isto veio corrigir.
+   */
+  const [diaTocado, setDiaTocado] = useState<string | null>(null);
+  const ultimoRegistrado = [...semana].reverse().find((d) => d.mood && !d.futuro)?.date ?? null;
+  const escolhido = semana.find((d) => d.date === (diaTocado ?? ultimoRegistrado));
   const longo = useMemo(() => moodRange(data, periodo), [data, periodo]);
   /**
    * A conta embaixo do gráfico, e por que ela tem duas formas.
@@ -185,20 +207,28 @@ export function HumorNoTempo() {
 
       {periodo === 7 ? (
         <View style={{ flexDirection: 'row', gap: 6 }}>
-          {semana.map((d, i) => (
+          {semana.map((d, i) => {
+            const tocado = escolhido?.date === d.date;
+            return (
             <View key={i} style={{ flex: 1, alignItems: 'center' }}>
               {/*
                 A barra inteira é um alvo de leitor de tela, e não sete formas
                 mudas: antes disto o gráfico simplesmente não existia para
-                quem navega por voz.
+                quem navega por voz. Tocar nela mostra, embaixo da fita, o
+                humor e a palavra daquele dia.
+
+                Dia que ainda não chegou não se toca: não há o que mostrar.
               */}
-              <View
-                accessible
+              <Pressable
+                accessibilityRole="button"
+                accessibilityState={{ selected: tocado, disabled: d.futuro }}
+                disabled={d.futuro}
+                onPress={() => setDiaTocado(d.date)}
                 accessibilityLabel={
                   d.futuro
                     ? `${d.day}: ainda não chegou`
                     : d.mood
-                      ? `${d.day}: ${ROTULO_DO_HUMOR[d.mood]}`
+                      ? `${d.day}: ${ROTULO_DO_HUMOR[d.mood]}${d.palavra ? `, ${d.palavra}` : ''}`
                       : `${d.day}: sem registro`
                 }
                 style={{
@@ -209,8 +239,9 @@ export function HumorNoTempo() {
                   justifyContent: 'center',
                   // Dia sem registro fica vazado, não colorido de mentira.
                   backgroundColor: d.mood ? moodColors[d.mood] : 'transparent',
-                  borderWidth: d.mood ? 0 : 1,
-                  borderColor: palette.brown100,
+                  // O dia tocado ganha um aro: é dele o que está escrito embaixo.
+                  borderWidth: tocado ? 2 : d.mood ? 0 : 1,
+                  borderColor: tocado ? colors.primaryStrong : palette.brown100,
                   /*
                     O dia que ainda não chegou aparece mais apagado que o dia
                     sem registro. Os dois estão vazios e não são a mesma coisa:
@@ -222,19 +253,20 @@ export function HumorNoTempo() {
               >
                 {/* A carinha é o segundo canal: expressão em vez de matiz. */}
                 {!!d.mood && <MoodFace mood={d.mood} size={26} />}
-              </View>
+              </Pressable>
               <Text
                 style={{
-                  fontFamily: fonts.body.bold,
+                  fontFamily: tocado ? fonts.body.extraBold : fonts.body.bold,
                   fontSize: 11,
-                  color: palette.brown400,
+                  color: tocado ? colors.primaryStrong : palette.brown400,
                   marginTop: 5,
                 }}
               >
                 {d.day}
               </Text>
             </View>
-          ))}
+            );
+          })}
         </View>
       ) : (
         /* Com 30 ou 90 dias não cabe rótulo por dia: viram uma grade de
@@ -326,6 +358,33 @@ export function HumorNoTempo() {
               </Text>
             </View>
           ))}
+        </View>
+      )}
+
+      {/* O dia tocado da semana, com a palavra que ela escolheu para ele. */}
+      {periodo === 7 && !!escolhido && (
+        <View
+          style={{
+            flexDirection: 'row',
+            alignItems: 'center',
+            gap: 8,
+            marginTop: 12,
+            paddingVertical: 8,
+            paddingHorizontal: 12,
+            borderRadius: radius.md,
+            backgroundColor: colors.primarySoft,
+          }}
+        >
+          <Text style={{ fontFamily: fonts.body.extraBold, fontSize: 13, color: colors.primaryStrong }}>
+            {nomeDoDia(escolhido.date)}
+          </Text>
+          {escolhido.mood ? (
+            <HumorComPalavra mood={escolhido.mood} palavra={escolhido.palavra} tamanho="pequeno" />
+          ) : (
+            <Text style={{ fontFamily: fonts.body.regular, fontSize: 12, color: colors.textSecondary }}>
+              sem registro
+            </Text>
+          )}
         </View>
       )}
 

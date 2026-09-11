@@ -2,8 +2,8 @@ import React, { useEffect, useRef, useState } from 'react';
 import { Animated, Modal, Pressable, Text, View } from 'react-native';
 import { Swipeable } from 'react-native-gesture-handler';
 
-import { Card, Icon } from '../../components';
-import { fonts, radius, useTema } from '../../theme';
+import { Card, HumorComPalavra, Icon } from '../../components';
+import { fonts, type Mood, radius, useTema } from '../../theme';
 
 /**
  * Registro do diario que revela acoes ao ser arrastado para a esquerda.
@@ -23,6 +23,9 @@ type Props = {
   id: string;
   date: string;
   text: string;
+  /** O humor do dia em que foi escrito, e a palavra dele, se houver. */
+  mood?: Mood | null;
+  palavra?: string;
   onEdit: () => void;
   /** Toque na linha: abre o registro inteiro para leitura. */
   onRead: () => void;
@@ -32,7 +35,18 @@ type Props = {
   onOpen: (id: string | null) => void;
 };
 
-export function SwipeableEntry({ id, date, text, onEdit, onRead, onDelete, openId, onOpen }: Props) {
+export function SwipeableEntry({
+  id,
+  date,
+  text,
+  mood,
+  palavra,
+  onEdit,
+  onRead,
+  onDelete,
+  openId,
+  onOpen,
+}: Props) {
   const { colors, palette, shadows } = useTema();
   /**
    * As mesmas duas ações, alcançáveis sem gesto nenhum.
@@ -140,17 +154,19 @@ export function SwipeableEntry({ id, date, text, onEdit, onRead, onDelete, openI
             sugeria que você ia alterar alguma coisa. */}
         <Card onPress={onRead}>
           <View style={{ flexDirection: 'row', alignItems: 'flex-start' }}>
-            <Text
-              style={{
-                flex: 1,
-                fontFamily: fonts.body.extraBold,
-                fontSize: 13,
-                color: colors.primaryStrong,
-                marginBottom: 6,
-              }}
-            >
-              {date}
-            </Text>
+            <View style={{ flex: 1, gap: 4, marginBottom: 6 }}>
+              <Text
+                style={{
+                  fontFamily: fonts.body.extraBold,
+                  fontSize: 13,
+                  color: colors.primaryStrong,
+                }}
+              >
+                {date}
+              </Text>
+              {/* Como ela estava naquele dia — e a palavra que escolheu para isso. */}
+              {!!mood && <HumorComPalavra mood={mood} palavra={palavra} tamanho="pequeno" />}
+            </View>
             <Pressable
               accessibilityRole="button"
               accessibilityLabel={`Opções do registro de ${date}`}

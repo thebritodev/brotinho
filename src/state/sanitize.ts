@@ -242,10 +242,22 @@ export function sanitizarDados(guardado: unknown, hoje: string): AppData {
   const g = (guardado ?? {}) as Record<string, unknown>;
   const stageSeen =
     typeof g.stageSeen === 'number' && [1, 2, 3].includes(g.stageSeen) ? g.stageSeen : null;
+  const profile = perfilLimpo(g.profile);
 
   return {
     ...INITIAL_APP_DATA,
-    profile: perfilLimpo(g.profile),
+    profile,
+    /*
+      Ausente é diferente de falso. Ausente quer dizer "gravado por uma versão
+      que ainda não tinha boas-vindas": se ela já tinha passado do onboarding,
+      já chegou faz tempo, e recebê-la agora seria estranho. Quem ainda estava
+      no meio do onboarding na atualização recebe, como qualquer pessoa nova.
+    */
+    boasVindasVistas:
+      typeof g.boasVindasVistas === 'boolean' ? g.boasVindasVistas : profile.onboarded,
+    // Aqui ausente é falso mesmo, para todo mundo: quem usa o app há meses e
+    // nunca achou o jardim é exatamente quem a dica existe para alcançar.
+    jardimAberto: g.jardimAberto === true,
     settings: ajustesLimpos(g.settings),
     journal: diarioLimpo(g.journal),
     composts: compostasLimpas(g.composts),

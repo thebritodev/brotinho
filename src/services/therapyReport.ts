@@ -55,7 +55,25 @@ function buildHtml(data: AppData): string {
         <div style="height:44px;border-radius:6px;background:${
           d.mood ? moodColors[d.mood] : '#EFEFEF'
         };opacity:${d.futuro ? '0.35' : '1'}"></div>
-        <div style="font-size:11px;color:${palette.brown400};margin-top:5px">${d.day}</div>
+        <div style="font-size:11px;color:${palette.brown400};margin-top:5px">${d.day}</div>${
+          /*
+            O humor por escrito e a palavra mais exata, embaixo da barra.
+
+            A barra sozinha só diz o humor pela cor, e quem lê não tem a legenda
+            das seis cores do app. A palavra é a informação mais fina que a
+            pessoa deu — "cansado" é uma coisa, "cansado · esgotamento" é outra
+            conversa — e é justamente a que um terapeuta aproveitaria.
+          */
+          d.mood
+            ? `
+        <div style="font-size:10px;color:${palette.brown700};margin-top:2px">${MOOD_LABEL[d.mood] ?? d.mood}</div>${
+          d.palavra
+            ? `
+        <div style="font-size:10px;font-weight:700;color:${palette.brown900}">${escape(d.palavra)}</div>`
+            : ''
+        }`
+            : ''
+        }
       </td>`,
     )
     .join('');
@@ -131,7 +149,7 @@ function buildHtml(data: AppData): string {
   const humores = data.moodHistory.length
     ? `<p>${data.moodHistory.length} registro${data.moodHistory.length === 1 ? '' : 's'} de humor. Mais recente: ${
         MOOD_LABEL[data.moodHistory[0].mood] ?? data.moodHistory[0].mood
-      }.</p>`
+      }${data.moodHistory[0].palavra ? ` (${escape(data.moodHistory[0].palavra)})` : ''}.</p>`
     : '';
 
   return `<!DOCTYPE html>

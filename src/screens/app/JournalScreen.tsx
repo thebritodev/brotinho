@@ -20,7 +20,17 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { AjudaAgora, Button, Icon, InsightCard, MoodFace, MOODS, Sprout, TopBar } from '../../components';
+import {
+  AjudaAgora,
+  Button,
+  HumorComPalavra,
+  Icon,
+  InsightCard,
+  MoodFace,
+  MOODS,
+  Sprout,
+  TopBar,
+} from '../../components';
 import { toqueDeConclusao } from '../../services/toque';
 import { useAppState } from '../../state/AppStateProvider';
 import { descartarRascunho, loadRascunho, saveRascunho } from '../../storage/appStorage';
@@ -278,7 +288,13 @@ export function JournalScreen({
     { id: string; text: string; original: string } | null
   >(null);
   const edicaoMexida = !!editando && editando.text !== editando.original;
-  const [lendo, setLendo] = useState<{ id: string; date: string; text: string } | null>(null);
+  const [lendo, setLendo] = useState<{
+    id: string;
+    date: string;
+    text: string;
+    mood: Mood | null;
+    palavra?: string;
+  } | null>(null);
   const [excluindo, setExcluindo] = useState<{ id: string; date: string } | null>(null);
 
   const appendTranscription = useCallback((transcribed: string) => {
@@ -325,18 +341,22 @@ export function JournalScreen({
    * registro: ele é um por dia, então vem do histórico pela data.
    */
   const humorPorDia = useMemo(
-    () => new Map(data.moodHistory.map((m) => [m.date, m.mood])),
+    () => new Map(data.moodHistory.map((m) => [m.date, m])),
     [data.moodHistory],
   );
 
   const entries = useMemo(
     () =>
-      data.journal.map((e) => ({
-        id: e.id,
-        date: formatDate(e.createdAt),
-        text: e.text,
-        mood: humorPorDia.get(dayKey(e.createdAt)) ?? null,
-      })),
+      data.journal.map((e) => {
+        const doDia = humorPorDia.get(dayKey(e.createdAt));
+        return {
+          id: e.id,
+          date: formatDate(e.createdAt),
+          text: e.text,
+          mood: doDia?.mood ?? null,
+          palavra: doDia?.palavra,
+        };
+      }),
     [data.journal, humorPorDia],
   );
 
@@ -857,9 +877,11 @@ export function JournalScreen({
                 id={e.id}
                 date={e.date}
                 text={e.text}
+                mood={e.mood}
+                palavra={e.palavra}
                 openId={linhaAberta}
                 onOpen={setLinhaAberta}
-                onRead={() => setLendo({ id: e.id, date: e.date, text: e.text })}
+                onRead={() => setLendo(e)}
                 onEdit={() => setEditando({ id: e.id, text: e.text, original: e.text })}
                 onDelete={() => setExcluindo({ id: e.id, date: e.date })}
               />
@@ -901,6 +923,12 @@ export function JournalScreen({
             >
               {lendo?.date}
             </Text>
+            {/* Como ela estava no dia em que escreveu isto. */}
+            {!!lendo?.mood && (
+              <View style={{ marginTop: -6 }}>
+                <HumorComPalavra mood={lendo.mood} palavra={lendo.palavra} />
+              </View>
+            )}
 
             {/* Rola por dentro: um desabafo longo não pode empurrar os botões
                 para fora da tela. */}

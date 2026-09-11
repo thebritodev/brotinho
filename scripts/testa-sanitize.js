@@ -116,6 +116,9 @@ const CASOS = [
           if (!Array.isArray(r[campo])) problemas.push(`${campo} não é lista`);
         }
         if (typeof r.settings !== 'object' || r.settings == null) problemas.push('settings inutilizável');
+        for (const campo of ['boasVindasVistas', 'jardimAberto']) {
+          if (typeof r[campo] !== 'boolean') problemas.push(`${campo} não é booleano`);
+        }
         if (Array.isArray(r.conselhos)) {
           const dias = r.conselhos.map((c) => c && c.date);
           if (new Set(dias).size !== dias.length) problemas.push('conselhos com dia repetido');
@@ -142,7 +145,33 @@ const CASOS = [
     console.log(`  ${veredito.startsWith('ok') ? 'ok   ' : 'FALHA'} ${nome.padEnd(38)} ${veredito}`);
   }
 
-  console.log(`\n${CASOS.length} casos · ${falhas} falha(s)`);
+  /*
+    As duas marcas de "já viu", e o que o disco antigo significa para cada uma.
+
+    Não bastava conferir o tipo. O dado gravado antes delas existirem não tem o
+    campo, e as duas leem essa ausência de jeitos opostos de propósito: quem já
+    tinha passado do onboarding já chegou, e não recebe boas-vindas no décimo
+    mês; mas quem nunca abriu o jardim é exatamente quem a dica procura.
+  */
+  const ESPERADOS = [
+    ['usava o app antes das boas-vindas existirem', { profile: { onboarded: true } }, 'boasVindasVistas', true],
+    ['estava no meio do onboarding na atualização', { profile: { onboarded: false } }, 'boasVindasVistas', false],
+    ['instalação nova', {}, 'boasVindasVistas', false],
+    ['gravado como não vista, mesmo já dentro', { profile: { onboarded: true }, boasVindasVistas: false }, 'boasVindasVistas', false],
+    ['boas-vindas com lixo vale como ausente', { profile: { onboarded: true }, boasVindasVistas: 'sim' }, 'boasVindasVistas', true],
+    ['usava o app antes da dica do jardim', { profile: { onboarded: true } }, 'jardimAberto', false],
+    ['jardim já aberto', { jardimAberto: true }, 'jardimAberto', true],
+    ['jardim com lixo não conta como aberto', { jardimAberto: 'true' }, 'jardimAberto', false],
+  ];
+  console.log('\nmarcas de "já viu":');
+  for (const [nome, entrada, campo, esperado] of ESPERADOS) {
+    const obtido = sanitizarDados(entrada, HOJE)[campo];
+    const ok = obtido === esperado;
+    if (!ok) falhas += 1;
+    console.log(`  ${ok ? 'ok   ' : 'FALHA'} ${nome.padEnd(46)} ${ok ? 'ok' : `veio ${obtido}, esperava ${esperado}`}`);
+  }
+
+  console.log(`\n${CASOS.length + ESPERADOS.length} casos · ${falhas} falha(s)`);
   process.exit(falhas === 0 ? 0 : 1);
 })().catch((e) => {
   console.error('falhou:', e.message);

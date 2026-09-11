@@ -157,6 +157,24 @@ const dia = (n) => `2026-09-${String(n).padStart(2, '0')}`;
       : `humor apareceu nas posicoes ${JSON.stringify(marcados)}`;
   });
 
+  /*
+    A palavra mais exata tem de chegar à fita: é por ela que o Perfil e o PDF
+    da terapia a mostram. Antes ela ficava gravada e nenhuma tela a lia.
+  */
+  checa('a palavra do dia chega na fita, no dia certo', () => {
+    const so = { moodHistory: [{ date: dia(DOMINGO + 2), mood: 'ansioso', palavra: 'preocupação' }] };
+    const fita = moodWeek(so, new Date(2026, 8, DOMINGO + 6, 12, 0, 0));
+    const comPalavra = fita.map((d, i) => (d.palavra ? `${i}:${d.palavra}` : null)).filter(Boolean);
+    return JSON.stringify(comPalavra) === JSON.stringify(['2:preocupação'])
+      ? 'ok'
+      : `palavras na fita: ${JSON.stringify(comPalavra)}`;
+  });
+
+  checa('dia sem palavra nao ganha palavra', () => {
+    const fita = moodWeek(dados, new Date(2026, 8, DOMINGO + 6, 12, 0, 0));
+    return fita.some((d) => 'palavra' in d) ? 'apareceu palavra sem ninguem ter escolhido' : 'ok';
+  });
+
   checa('a semana passada nao vaza para esta', () => {
     // Sabado anterior ao domingo desta semana.
     const so = { moodHistory: [{ date: dia(DOMINGO - 1), mood: 'triste' }] };

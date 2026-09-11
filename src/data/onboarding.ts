@@ -306,6 +306,11 @@ export const AREAS = [
     text: 'Quinze exercícios para ansiedade, insônia, autoestima e mais.',
   },
   {
+    icon: 'sparkle' as const,
+    title: 'Frase do dia',
+    text: 'Uma por dia, desenterrada do canteiro. Guarde as que tocarem você.',
+  },
+  {
     icon: 'star' as const,
     title: 'Resumo para a terapia',
     text: 'Suas semanas em PDF, para levar à sessão sem depender da memória.',

@@ -54,6 +54,8 @@ type AppStateValue = {
   desenterrarConselho: (id: string) => void;
   /** Guarda a frase para reler, ou a tira se já estava guardada. */
   guardarConselho: (id: string) => void;
+  /** Anota que as boas-vindas já foram vistas, ou que o jardim já foi aberto. */
+  marcarVisto: (oQue: 'boasVindas' | 'jardim') => void;
   /** Guarda a planta madura no jardim e começa um broto novo. */
   colherPlanta: (planta: Plant) => void;
   /** Anota uma prática concluída. */
@@ -216,6 +218,13 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
     setData((prev) => (prev.stageSeen === stage ? prev : { ...prev, stageSeen: stage }));
   }, []);
 
+  // Devolve `prev` quando já estava marcado: abrir o jardim pela décima vez
+  // não precisa gravar o disco de novo.
+  const marcarVisto = useCallback((oQue: 'boasVindas' | 'jardim') => {
+    const campo = oQue === 'boasVindas' ? 'boasVindasVistas' : 'jardimAberto';
+    setData((prev) => (prev[campo] ? prev : { ...prev, [campo]: true }));
+  }, []);
+
   /**
    * Anota a frase de hoje, uma vez só.
    *
@@ -338,6 +347,7 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
       removeJournalEntry,
       addCompost,
       markStageSeen,
+      marcarVisto,
       desenterrarConselho,
       guardarConselho,
       colherPlanta,
@@ -351,11 +361,13 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
       updateProfile,
       updateSettings,
       setTodayMood,
+      setTodayPalavra,
       addJournalEntry,
       updateJournalEntry,
       removeJournalEntry,
       addCompost,
       markStageSeen,
+      marcarVisto,
       desenterrarConselho,
       guardarConselho,
       colherPlanta,

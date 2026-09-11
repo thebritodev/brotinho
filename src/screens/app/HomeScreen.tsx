@@ -5,6 +5,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import {
   AnimatedSprout,
   BalaoDoBroto,
+  BoasVindas,
   LuzDeEstufa,
   alturaDoMascote,
   Button,
@@ -76,8 +77,16 @@ export function HomeScreen({
   const { colors, palette, shadows } = useTema();
   const insets = useSafeAreaInsets();
   const { width, height } = useWindowDimensions();
-  const { data, setTodayMood, setTodayPalavra, markStageSeen, colherPlanta, desenterrarConselho, guardarConselho } =
-    useAppState();
+  const {
+    data,
+    setTodayMood,
+    setTodayPalavra,
+    markStageSeen,
+    marcarVisto,
+    colherPlanta,
+    desenterrarConselho,
+    guardarConselho,
+  } = useAppState();
 
   /**
    * O broto domina a tela, mas divide a primeira dobra com a pergunta.
@@ -390,6 +399,28 @@ export function HomeScreen({
             <AnimatedSprout mood={mood} stage={stage} size={sproutSize} bamboleia />
           </LuzDeEstufa>
         </Pressable>
+
+        {/*
+          Nada no desenho diz que o broto é um botão, e é por ele que se chega
+          ao jardim — o histórico inteiro dela. A dica fica até a primeira
+          visita e depois some: quem já sabe não precisa ler isto todo dia.
+          Ela mesma também abre o jardim, porque é o que alguém tenta tocar
+          logo depois de ler.
+        */}
+        {!data.jardimAberto && (
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel="Ver meu jardim"
+            onPress={onOpenGarden}
+            hitSlop={8}
+            style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: -4 }}
+          >
+            <Icon name="leaf" size={14} color={colors.primaryStrong} />
+            <Text style={{ fontFamily: fonts.body.bold, fontSize: 13, color: palette.brown400 }}>
+              Toque em mim para ver seu jardim
+            </Text>
+          </Pressable>
+        )}
         <Text style={{ color: colors.textPrimary, fontFamily: fonts.body.bold, fontSize: 16 }}>
           Como você está se sentindo hoje?
         </Text>
@@ -712,6 +743,13 @@ export function HomeScreen({
           )
         )}
       </Modal>
+
+      {/* A chegada, uma vez só: a primeira Home depois da assinatura. */}
+      <BoasVindas
+        visivel={data.profile.subscribed && !data.boasVindasVistas}
+        nome={name}
+        aoFechar={() => marcarVisto('boasVindas')}
+      />
 
       {/* O card do story, montado fora da tela só enquanto está sendo fotografado. */}
       {story.palco}
