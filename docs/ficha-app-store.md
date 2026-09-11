@@ -52,6 +52,40 @@ a entrar `pânico` numa versão desta lista e saiu: o app trata ansiedade, mas n
 tem nada específico para pânico, e palavra-chave que promete o que o app não faz
 traz instalação errada, avaliação ruim e risco de recusa.*
 
+### A segunda ficha: Inglês (Reino Unido), com palavras em português
+
+Na loja do Brasil a Apple indexa **duas** fichas: Português (Brasil) e Inglês
+(Reino Unido) — é a tabela oficial de localizações por país da Apple. Criar a
+ficha inglesa com termos em português dá mais 160 caracteres de busca no
+Brasil, sem tirar nada da ficha principal.
+
+Criada em 10/09/2026, na versão 1.0.2:
+
+```
+Nome:           Brotinho: Humor e Respiração
+Subtítulo:      Tristeza, foco e gratidão
+Palavras-chave: solidão,procrastinação,culpa,vergonha,comparação,emoções,mindfulness,desabafo,respirar,journaling
+```
+
+Nenhuma palavra repete as da ficha principal (repetir é espaço jogado fora), e
+todas são temas ou recursos que o app tem. Descrição, novidades, texto
+promocional e URLs são cópia da ficha em português; as capturas também — a
+ficha inglesa usa as da portuguesa.
+
+**Quem vê essa ficha** é quem usa o iPhone em inglês britânico. Como o app é
+em português, ver o texto em português ali é honesto sobre o que vai
+encontrar. **O risco** é a revisão pedir o texto em inglês; se pedir, apagar a
+ficha inglesa resolve e não mexe em mais nada.
+
+A política de privacidade também precisa do link na ficha inglesa (Privacidade
+do app → idioma → Editar), e já está preenchida.
+
+### Categorias
+
+Principal **Saúde e fitness**; secundária **Estilo de vida** desde a 1.0.2 —
+onde ficam os apps de diário e autocuidado. *Medicina* foi descartada: passa a
+ideia de tratamento clínico, o que o app diz com todas as letras que não é.
+
 ### Texto promocional (máx. 170 caracteres)
 
 Este é o único campo que dá para mudar **sem passar por revisão de novo**. Use
@@ -90,6 +124,7 @@ O QUE TEM AQUI DENTRO
 • Práticas guiadas — 41 exercícios para ansiedade, tristeza, luto, insônia,
   estresse, solidão, raiva, procrastinação, autoestima, culpa e vergonha,
   comparação, foco e gratidão.
+• Frase do dia — uma por dia, desenterrada do canteiro, para guardar e compartilhar.
 • Resumo para a terapia — suas semanas em PDF, para levar à sessão sem depender
   da memória.
 
@@ -124,20 +159,34 @@ node scripts/capturas.js         (com o Metro rodando)
 node scripts/captura-paywall.js
 ```
 
-Saem em `capturas/`, seis arquivos de 1242 × 2688 — o tamanho que a Apple pede
+Saem em `capturas/`, sete arquivos de 1242 × 2688 — o tamanho que a Apple pede
 para o iPhone de 6,5 polegadas. O caminho é o app web, que é o mesmo código
 React Native, numa janela de 414 × 896 com densidade 3: dá o tamanho exato, sem
 cursor e sem barra de rolagem. Não existe iPhone nesta casa, e o aparelho de
 teste é Android.
 
-A ordem, que é a ordem dos arquivos:
+A ordem, que é a ordem dos arquivos (a da 1.0.2, enviada em 10/09/2026):
 
 1. `1-home` — o broto grande e as carinhas de humor
-2. `2-composta` — a tela que explica a prática
-3. `3-diario` — a folha pautada
-4. `4-praticas` — a lista de temas
-5. `5-terapia` — o resumo para levar à sessão
-6. `paywall` — a tela de planos, que a Apple exige para revisar assinaturas
+2. `2-frase-do-dia` — a frase desenterrada, aberta
+3. `3-composta` — a tela que explica a prática
+4. `4-diario` — a folha pautada
+5. `5-praticas` — a lista de temas
+6. `6-terapia` — o resumo para levar à sessão
+7. `paywall` — a tela de planos, que a Apple exige para revisar assinaturas
+
+**Só as três primeiras aparecem no resultado de busca.** Por isso a Frase do
+dia vem em segundo: é a novidade da 1.0.2 e a tela que mais diz, sem legenda,
+o que o app faz por alguém num dia difícil.
+
+### O que há de novo — 1.0.2
+
+```
+• Frase do dia: uma frase por dia, desenterrada do canteiro. Guarde as que tocarem você e compartilhe nos stories.
+• A palavra exata do seu humor agora aparece no Perfil, no Diário e no resumo para a terapia.
+• Boas-vindas novas e um onboarding mais leve.
+• Vibração nos botões e vários ajustes de acabamento.
+```
 
 Os tamanhos exatos aparecem na tela de upload do App Store Connect e mudam a
 cada geração de iPhone — confirme lá em vez de confiar nesta lista.

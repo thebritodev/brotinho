@@ -78,6 +78,13 @@ function estadoDeExemplo() {
       { topic: 'tristeza', practice: 'um-passo-pequeno', at: dia(15).getTime() },
     ],
     stageSeen: 3,
+    /*
+      Alguém de três semanas já viu as boas-vindas e já abriu o jardim. Sem os
+      dois, a Home da loja sairia com a dica "Toque em mim para ver seu
+      jardim" — que é para quem acabou de chegar, não para a vitrine.
+    */
+    boasVindasVistas: true,
+    jardimAberto: true,
   };
 }
 

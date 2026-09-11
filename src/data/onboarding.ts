@@ -303,7 +303,9 @@ export const AREAS = [
   {
     icon: 'droplet' as const,
     title: 'Práticas guiadas',
-    text: 'Quinze exercícios para ansiedade, insônia, autoestima e mais.',
+    // O número acompanha `confere-praticas` (13 temas, 41 práticas). Dizia
+    // "quinze", de quando havia quinze — e a ficha da loja já dizia 41.
+    text: '41 exercícios para ansiedade, insônia, autoestima e mais.',
   },
   {
     icon: 'sparkle' as const,
