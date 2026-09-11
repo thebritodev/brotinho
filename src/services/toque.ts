@@ -25,6 +25,20 @@ import { Platform, Vibration } from 'react-native';
  * Taptic Engine é preciso, e `Vibration` seria uma pancada grosseira no lugar
  * de um toque.
  *
+ * **O toque leve voltou para o sistema no Android, e desta vez de propósito.**
+ * No aparelho de teste nada vibrava — nem o vibrador direto. O motivo estava
+ * no celular: a vibração de "interações de toque" desligada, que num Samsung
+ * cala também o vibrador pedido pelos apps, e a economia de energia, que cala
+ * tudo que não é chamada, alarme ou notificação. Ligado o ajuste, todos os
+ * caminhos vibraram, e o escolhido para o toque leve foi o do próprio sistema
+ * (`performAndroidHapticsAsync`): é o mesmo toque dos botões do Android, e
+ * segue exatamente o ajuste de quem usa. Quem desligou a vibração ao toque
+ * pediu isso ao celular inteiro, e o app não tem por que insistir.
+ *
+ * O médio e o de conclusão continuam no vibrador direto: marcam fases da
+ * respiração de olhos fechados e o fim de uma prática, e precisam de corpo
+ * que um toque de botão não tem.
+ *
  * Nada aqui lança erro para cima: um aparelho sem motor de vibração, ou a web,
  * simplesmente não sentem nada. Falhar em vibrar não pode derrubar uma tela.
  */
@@ -38,10 +52,20 @@ const MEDIO = 35;
 /** Espera, vibra, espera, vibra — dois toques leem como "concluído". */
 const CONCLUSAO = [0, 25, 70, 45];
 
-/** Confirmação leve: um humor escolhido, uma repetição contada. */
+/** Confirmação leve: um botão principal, um humor escolhido, uma repetição contada. */
 export function toqueLeve(ligado: boolean) {
   if (!ligado) return;
-  if (android) return void Vibration.vibrate(LEVE);
+  if (android) {
+    /*
+      O "confirmar" do sistema só existe do Android 11 em diante; antes disso a
+      chamada é recusada, e cai no toque de tecla, que existe em qualquer
+      versão. Se nem ele houver, o vibrador direto.
+    */
+    void Haptics.performAndroidHapticsAsync(Haptics.AndroidHaptics.Confirm)
+      .catch(() => Haptics.performAndroidHapticsAsync(Haptics.AndroidHaptics.Virtual_Key))
+      .catch(() => Vibration.vibrate(LEVE));
+    return;
+  }
   if (iOS) void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
 }
 

@@ -10,7 +10,6 @@ import { MyDataScreen } from './MyDataScreen';
 import { MyValuesScreen } from './MyValuesScreen';
 import { PrivacyPolicyScreen } from './PrivacyPolicyScreen';
 import { RemindersScreen } from './RemindersScreen';
-import { TesteDeVibracao } from './TesteDeVibracao';
 import { enviarFeedback } from '../../services/feedback';
 import { useBotaoVoltar } from '../../navigation/useBotaoVoltar';
 
@@ -238,7 +237,6 @@ export function SettingsScreen({ onBack }: { onBack: () => void }) {
               onChange={(somDaRespiracao) => updateSettings({ somDaRespiracao })}
             />
           </Row>
-          <TesteDeVibracao />
         </Section>
 
         <Section title="Conta">
