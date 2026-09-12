@@ -3,6 +3,7 @@ import { Pressable, StyleProp, Text, View, ViewStyle } from 'react-native';
 
 import { fonts, radius, useTema } from '../../theme';
 import { Icon, type IconName } from '../core/Icon';
+import { DesenhoDoTema, ehTemaDesenhado } from './desenhosDosTemas';
 
 type Props = {
   title: string;
@@ -16,6 +17,8 @@ type Props = {
    */
   subtitle?: string;
   icon: IconName;
+  /** A chave do tema, que escolhe a cena desenhada — ver `desenhosDosTemas`. */
+  chave?: string;
   tint: string;
   onPress?: () => void;
   style?: StyleProp<ViewStyle>;
@@ -37,6 +40,7 @@ export function PracticeTopicCard({
   title,
   subtitle,
   icon,
+  chave,
   tint,
   onPress,
   style,
@@ -72,7 +76,17 @@ export function PracticeTopicCard({
           justifyContent: 'center',
         }}
       >
-        <Icon name={icon} size={grade ? 30 : 26} color={palette.brown900} />
+        {/*
+          A cena do tema, com o ícone de traço como recuo.
+
+          O desenho é o que se lê primeiro, e ele existe para os treze temas —
+          ver `desenhosDosTemas`. O `Icon` fica para um tema novo que ainda não
+          tenha cena: melhor um ícone genérico do que um quadrado vazio.
+        */}
+        <DesenhoDoTema tema={chave ?? ''} size={grade ? 46 : 40} />
+        {!ehTemaDesenhado(chave ?? '') && (
+          <Icon name={icon} size={grade ? 30 : 26} color={palette.brown900} />
+        )}
       </View>
       <View style={{ flex: 1, gap: 3 }}>
         <Text style={{ fontFamily: fonts.body.extraBold, fontSize: 16, color: palette.brown900 }}>

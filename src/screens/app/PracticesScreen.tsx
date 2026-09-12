@@ -314,6 +314,7 @@ export function PracticesScreen({
             title={t.title}
             subtitle={resumoDoTema(t.intro)}
             icon={t.icon}
+            chave={t.key}
             /*
               A chave vira cor **aqui**, com o tema que está no ar.
 

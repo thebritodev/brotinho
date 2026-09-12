@@ -440,6 +440,7 @@ export function HomeScreen({
                 grade
                 title={t.title}
                 icon={t.icon}
+                chave={t.key}
                 /* A chave vira cor aqui, com o tema que está no ar — `practices`
                    é dado, e guardaria a cor do tema claro para sempre. */
                 tint={tintsDosTemas[t.key]}
