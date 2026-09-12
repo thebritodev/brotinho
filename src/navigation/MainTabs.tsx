@@ -176,7 +176,6 @@ export function MainTabs() {
             name={name}
             onOpenComposta={() => setSub('composta')}
             onOpenDiario={() => setSub('diario')}
-            onOpenBroto={() => setTab('broto')}
             onOpenSettings={() => setSub('config')}
             onOpenPractices={(alvo) => {
               setPraticaAlvo(alvo ?? null);

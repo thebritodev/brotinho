@@ -13,7 +13,6 @@ import {
   IconButton,
   DesenhoDaComposta,
   DesenhoDoDiario,
-  MoodSelector,
   PracticeTopicCard,
   VoltaCard,
   useCompartilharFrase,
@@ -48,18 +47,25 @@ import { fonts, radius, useTema } from '../../theme';
  * tamanho de um chip.
  *
  * Agora o personagem tem aba própria (ver `BrotinhoScreen`) e esta tela tem um
- * trabalho só: registrar o humor em um toque, escolher uma ferramenta, ou
- * entrar numa prática.
+ * trabalho só: escolher uma ferramenta ou entrar numa prática.
  *
  * ## A ordem daqui
  *
- * 1. **O humor**, compacto. É o que o app pede todos os dias, e continua sendo
- *    a primeira coisa: a versão inteira, com a palavra e o arco do mês, está na
- *    aba do broto, mas registrar não pode depender de trocar de aba.
- * 2. **O carrossel** com as três coisas que se faz agora: Diário, Composta e a
+ * 1. **O carrossel** com as três coisas que se faz agora: Diário, Composta e a
  *    Frase do dia.
- * 3. **As práticas**, a lista inteira dos treze temas — com uma sugestão em
- *    cima quando o humor de hoje pede alguma.
+ * 2. **As práticas**, os treze temas em grade — com uma sugestão em cima
+ *    quando o humor de hoje pede alguma.
+ *
+ * ## O humor não mora mais aqui
+ *
+ * Ele esteve nas duas telas por um tempo: uma linha compacta aqui, a versão
+ * inteira na aba do broto. Duas perguntas iguais em dois lugares acabam
+ * fazendo a pessoa responder na que estiver na frente e estranhar a outra —
+ * e o humor é uma conversa com o broto, não uma tarefa da tela de
+ * ferramentas. Agora ele existe num lugar só.
+ *
+ * O que sobrou dele aqui é indireto: a sugestão de prática ainda olha o humor
+ * de hoje, quando houver. Sem humor marcado, ela simplesmente não aparece.
  *
  * As comemorações (crescer, colher) e as boas-vindas ficam aqui, e não na aba
  * do broto, porque esta é a tela que abre. Uma planta que amadureceu e espera
@@ -73,8 +79,6 @@ type Props = {
   onOpenSettings: () => void;
   onOpenPractices: (alvo?: { topico: string; pratica: string }) => void;
   onOpenConselhosGuardados: () => void;
-  /** Leva à aba do broto, onde mora a palavra exata do humor. */
-  onOpenBroto: () => void;
   /** Altura em que a tela abre, guardada fora dela — ver `MainTabs`. */
   rolagemInicial?: number;
   aoRolar?: (y: number) => void;
@@ -89,7 +93,6 @@ export function HomeScreen({
   onOpenSettings,
   onOpenPractices,
   onOpenConselhosGuardados,
-  onOpenBroto,
   rolagemInicial = 0,
   aoRolar,
   onOpenReminders,
@@ -102,17 +105,12 @@ export function HomeScreen({
   const largura = Math.max(320, width);
   const {
     data,
-    setTodayMood,
     markStageSeen,
     marcarVisto,
     colherPlanta,
     desenterrarConselho,
     guardarConselho,
   } = useAppState();
-
-  // `useWindowDimensions` devolve 0 no primeiro quadro, e aí a conta daria
-  // tamanho negativo — que no SVG é inválido, não apenas feio.
-  const faceSize = Math.max(34, Math.min(50, (width - 40) / 6.6));
 
   /**
    * Quem sumiu por dias vê o reencontro antes de qualquer outra coisa. Some
@@ -297,51 +295,6 @@ export function HomeScreen({
         </Text>
 
         {voltando && <VoltaCard dias={ausente} />}
-
-        {/*
-          O humor, em uma linha.
-
-          É o único pedido diário do app, e por isso continua sendo a primeira
-          coisa depois do nome. A palavra mais exata não vem junto: ela pede
-          leitura, e leitura pede a aba do broto. O convite para ela aparece só
-          depois do toque, e só enquanto não houver palavra — quem já escolheu
-          não precisa ser chamado de novo.
-        */}
-        {/*
-          Sem cartão em volta.
-
-          As carinhas já são cinco objetos desenhados numa fileira, cada um num
-          disco da cor do humor; um retângulo branco atrás delas viraria caixa
-          dentro de caixa. E o que vem logo abaixo — o carrossel e os temas —
-          é tudo cartão: a pergunta se distingue justamente por não ser um.
-        */}
-        <View style={{ gap: 12, alignItems: 'center' }}>
-          <Text style={{ color: colors.textPrimary, fontFamily: fonts.body.bold, fontSize: 16 }}>
-            Como você está se sentindo hoje?
-          </Text>
-          <MoodSelector
-            value={mood}
-            onChange={(m) => {
-              toqueLeve(data.settings.vibracao);
-              setTodayMood(m);
-            }}
-            faceSize={faceSize}
-          />
-          {!!humorMarcado && !registroDeHoje?.palavra && (
-            <Pressable
-              accessibilityRole="button"
-              accessibilityLabel="Dar um nome mais exato ao que você sente"
-              onPress={onOpenBroto}
-              hitSlop={8}
-            >
-              <Text
-                style={{ fontFamily: fonts.body.bold, fontSize: 13, color: colors.primaryStrong }}
-              >
-                Dar um nome mais exato a isso
-              </Text>
-            </Pressable>
-          )}
-        </View>
 
         {/*
           As três coisas que se faz agora. As que olham para trás — jardim,
