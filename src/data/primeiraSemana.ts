@@ -59,18 +59,21 @@ export function proximoPasso(data: AppData): Passo | null {
   if (!data.journal.length) {
     return {
       /*
-        O caminho é dito como ele é hoje, e por isso ele mudou.
+        A frase parou de dizer onde o diário fica.
 
-        A frase dizia "na primeira aba, à esquerda", que era verdade enquanto o
-        diário era aba. Com a reestruturação, à esquerda ficou o broto — e uma
-        instrução errada num app é pior que instrução nenhuma: quem segue vai
-        parar no lugar errado e conclui que não entendeu.
+        Ela dizia "na primeira aba, à esquerda" — verdade enquanto o diário era
+        aba. Virou "o primeiro cartão da tela inicial", verdade hoje. Duas
+        correções na mesma frase em duas semanas mostram o problema real: o
+        broto estava dando coordenadas de tela, e coordenada de tela vence o
+        prazo toda vez que alguém mexe no desenho. Uma instrução vencida é pior
+        que instrução nenhuma, porque quem segue vai parar no lugar errado e
+        conclui que não entendeu o app.
 
-        Agora ela também leva: o toque abre o diário, e aí nem depende de a
-        pessoa achar o cartão.
+        Agora ele diz o que a coisa **é**, e o toque leva até lá. Isso não
+        vence: o diário pode mudar de lugar quantas vezes for preciso.
       */
       frase:
-        'O diário é o primeiro cartão da tela inicial. O que você escrever ali não sai deste aparelho — nem eu consigo ler.',
+        'Aqui tem um diário, para escrever ou falar o que passou. O que você deixar nele não sai deste aparelho — nem eu consigo ler.',
       destino: 'diario',
     };
   }

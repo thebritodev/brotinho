@@ -21,9 +21,11 @@ import { BRASA, TERRA, TERRA_CLARA, TERRA_FUNDA, TERRA_SOMBRA } from './terraDoC
  *
  * ## O que cada um conta
  *
- * - **Diário** — uma folha pautada, com o canto virado e uma folhinha verde de
- *   marcador. É papel, não tela: a promessa do diário é que aquilo não sai do
- *   aparelho, e caderno é o objeto que diz isso sem escrever.
+ * - **Diário** — uma folha pautada, com o canto virado. É papel, não tela: a
+ *   promessa do diário é que aquilo não sai do aparelho, e caderno é o objeto
+ *   que diz isso sem escrever. Teve uma folhinha verde de marcador espiando
+ *   por trás, e ela saiu: verde num desenho de papel puxava o olho para o
+ *   canto de cima, longe de onde está o assunto.
  * - **Composta** — a terra de novo, com um balão de fala caindo nela e um
  *   broto saindo do outro lado. É literalmente o que a Composta faz: a frase
  *   dita em voz alta vira adubo, e do adubo sai crescimento.
@@ -110,14 +112,6 @@ export function DesenhoDoDiario() {
         ))}
       </G>
 
-      {/* O marcador: uma folhinha saindo por cima, do desenho do broto. */}
-      <Path
-        d="M0 0 C -6 -14 -18 -26 -32 -24 C -42 -22 -44 -6 -34 4 C -22 16 -8 12 0 0 Z"
-        fill={tracos.folha}
-        stroke={tracos.contornoFolha}
-        strokeWidth={2}
-        transform="translate(47 12) rotate(150) scale(0.42)"
-      />
     </Svg>
   );
 }

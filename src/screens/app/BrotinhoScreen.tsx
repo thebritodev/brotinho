@@ -11,6 +11,7 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import {
+  alturaDoMascote,
   AnimatedSprout,
   BalaoDoBroto,
   Button,
@@ -94,6 +95,25 @@ export function BrotinhoScreen({
   /* O broto cabe maior aqui do que cabia na tela inicial: esta tela não
      precisa entregar mais nada na primeira dobra. */
   const sproutSize = Math.min(width, height * 0.4);
+
+  /**
+   * A luz tem o tamanho do desenho, e não o da tela.
+   *
+   * Na tela inicial ela era uma fração da largura, e ali funcionava porque
+   * abaixo dela vinha logo a pergunta do humor. Aqui, acima dela, vem o balão
+   * de fala — e um halo de 380 em volta de um broto de 174 deixava o bico do
+   * balão apontando para quase cem pontos de vazio. O balão parecia flutuar
+   * longe de quem está falando.
+   *
+   * `alturaDoMascote` é a mesma tabela que desenha o broto, então isto
+   * acompanha o estágio: no primeiro, onde o desenho é pequeno, a luz encolhe
+   * junto. A folga de 20% é o que faz a luz sobrar em volta em vez de virar
+   * recorte, e o teto continua sendo a largura da tela.
+   */
+  const diametroDaLuz = Math.min(
+    Math.round(width * 0.9),
+    Math.round(alturaDoMascote(stage, sproutSize) * 1.2),
+  );
   const faceSize = Math.max(36, Math.min(54, (width - 40) / 6.2));
 
   const diasCuidados = daysCaredFor(data);
@@ -160,7 +180,7 @@ export function BrotinhoScreen({
             onPress={onOpenGarden}
             style={{ marginHorizontal: -20 }}
           >
-            <LuzDeEstufa diametro={Math.round(width * 0.9)}>
+            <LuzDeEstufa diametro={diametroDaLuz}>
               <AnimatedSprout mood={mood} stage={stage} size={sproutSize} bamboleia />
             </LuzDeEstufa>
           </Pressable>
