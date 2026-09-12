@@ -8,6 +8,7 @@ import { Button } from '../core/Button';
 import { Card } from '../core/Card';
 import { Icon } from '../core/Icon';
 import { Desenterrar } from './Desenterrar';
+import { BRASA, TERRA, TERRA_CLARA, TERRA_FUNDA, TERRA_SOMBRA } from './terraDoCanteiro';
 
 /**
  * O cartão de "Frase do dia" na Home, e o momento que ele abre.
@@ -61,12 +62,6 @@ const GRAOS = [
   { x: 22, y: 45, r: 1 },
   { x: 38, y: 46, r: 1.4 },
 ];
-const TERRA = '#8A7A63';
-const TERRA_FUNDA = '#5F5443';
-const TERRA_CLARA = '#A3927A';
-const TERRA_SOMBRA = '#4B4237';
-/** O calor que escapa de baixo da terra: a dica de que tem algo ali. */
-const BRASA = '#E8B65A';
 
 export type CartaoDoConselhoProps = {
   /** A frase de hoje. */

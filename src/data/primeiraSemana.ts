@@ -39,8 +39,8 @@ const DIAS_PARA_FALAR_DO_JARDIM = 3;
 
 export type Passo = {
   frase: string;
-  /** Para onde o toque leva, quando a tela inicial tem como abrir. */
-  destino: 'praticas' | 'jardim' | null;
+  /** Para onde o toque leva, quando a tela tem como abrir. */
+  destino: 'praticas' | 'jardim' | 'diario' | null;
 };
 
 export function proximoPasso(data: AppData): Passo | null {
@@ -58,9 +58,20 @@ export function proximoPasso(data: AppData): Passo | null {
 
   if (!data.journal.length) {
     return {
+      /*
+        O caminho é dito como ele é hoje, e por isso ele mudou.
+
+        A frase dizia "na primeira aba, à esquerda", que era verdade enquanto o
+        diário era aba. Com a reestruturação, à esquerda ficou o broto — e uma
+        instrução errada num app é pior que instrução nenhuma: quem segue vai
+        parar no lugar errado e conclui que não entendeu.
+
+        Agora ela também leva: o toque abre o diário, e aí nem depende de a
+        pessoa achar o cartão.
+      */
       frase:
-        'O diário fica na primeira aba, à esquerda. O que você escrever ali não sai deste aparelho — nem eu consigo ler.',
-      destino: null,
+        'O diário é o primeiro cartão da tela inicial. O que você escrever ali não sai deste aparelho — nem eu consigo ler.',
+      destino: 'diario',
     };
   }
 

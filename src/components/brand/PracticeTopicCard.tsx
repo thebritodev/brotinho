@@ -19,10 +19,29 @@ type Props = {
   tint: string;
   onPress?: () => void;
   style?: StyleProp<ViewStyle>;
+  /**
+   * Duas colunas, em vez de uma linha larga.
+   *
+   * É o formato da tela inicial, onde os treze temas aparecem juntos: em
+   * fileira única eles empurrariam tudo o mais para longe, e a variedade —
+   * que é o argumento das práticas — só apareceria para quem rolasse muito.
+   * Na grade, o ícone cresce e vira o que se lê primeiro, e a frase de cada
+   * tema sai: ela não cabe em meia largura sem virar três linhas de sete
+   * palavras. Ela continua inteira dentro do tema.
+   */
+  grade?: boolean;
 };
 
-/** PracticeTopicCard — linha larga que leva a um tema de prática (ansiedade, sono...). */
-export function PracticeTopicCard({ title, subtitle, icon, tint, onPress, style }: Props) {
+/** PracticeTopicCard — leva a um tema de prática (ansiedade, sono...). */
+export function PracticeTopicCard({
+  title,
+  subtitle,
+  icon,
+  tint,
+  onPress,
+  style,
+  grade = false,
+}: Props) {
   const { colors, palette, shadows } = useTema();
   return (
     <Pressable
@@ -30,10 +49,10 @@ export function PracticeTopicCard({ title, subtitle, icon, tint, onPress, style 
       onPress={onPress}
       style={({ pressed }) => [
         {
-          flexDirection: 'row',
-          alignItems: 'center',
-          gap: 16,
-          width: '100%',
+          flexDirection: grade ? 'column' : 'row',
+          alignItems: grade ? 'flex-start' : 'center',
+          gap: grade ? 10 : 16,
+          width: grade ? undefined : '100%',
           backgroundColor: colors.surface,
           borderRadius: radius.lg,
           padding: 14,
@@ -45,15 +64,15 @@ export function PracticeTopicCard({ title, subtitle, icon, tint, onPress, style 
     >
       <View
         style={{
-          width: 52,
-          height: 52,
+          width: grade ? 58 : 52,
+          height: grade ? 58 : 52,
           borderRadius: radius.md,
           backgroundColor: tint,
           alignItems: 'center',
           justifyContent: 'center',
         }}
       >
-        <Icon name={icon} size={26} color={palette.brown900} />
+        <Icon name={icon} size={grade ? 30 : 26} color={palette.brown900} />
       </View>
       <View style={{ flex: 1, gap: 3 }}>
         <Text style={{ fontFamily: fonts.body.extraBold, fontSize: 16, color: palette.brown900 }}>
@@ -76,10 +95,16 @@ export function PracticeTopicCard({ title, subtitle, icon, tint, onPress, style 
 
       {/* A seta diz que o cartão leva a algum lugar. Sem ela, treze retângulos
           iguais não se anunciam como caminho. Escondida do leitor de tela: o
-          `Pressable` já se apresenta como botão, e a seta repetiria isso. */}
-      <View accessibilityElementsHidden importantForAccessibility="no-hide-descendants">
-        <Icon name="chevronRight" size={20} color={palette.brown400} />
-      </View>
+          `Pressable` já se apresenta como botão, e a seta repetiria isso.
+
+          Na grade ela sai. Ali o cartão é uma coluna, e a seta cairia numa
+          linha própria embaixo do título, apontando para o nada — quem diz que
+          aquilo leva a algum lugar passa a ser o ícone grande. */}
+      {!grade && (
+        <View accessibilityElementsHidden importantForAccessibility="no-hide-descendants">
+          <Icon name="chevronRight" size={20} color={palette.brown400} />
+        </View>
+      )}
     </Pressable>
   );
 }

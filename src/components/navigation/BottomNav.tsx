@@ -50,10 +50,10 @@ type SideTab = { key: Exclude<TabKey, 'home'>; label: string; icon: IconName };
  * juntas agora. O broto, sim, é um lugar: é onde ela está, com o humor, o
  * jardim e o que o app percebeu.
  *
- * A folha em vez da marca: a marca já é o botão do meio, e duas marcas na
- * mesma barra não dizem qual é qual.
+ * O broto em vez da marca: a marca já é o botão do meio, e duas marcas na
+ * mesma barra não dizem qual é qual. Ver o desenho em `Icon`.
  */
-const LEFT: SideTab = { key: 'broto', label: 'Brotinho', icon: 'leaf' };
+const LEFT: SideTab = { key: 'broto', label: 'Brotinho', icon: 'broto' };
 const RIGHT: SideTab = { key: 'perfil', label: 'Perfil', icon: 'user' };
 
 type Props = {

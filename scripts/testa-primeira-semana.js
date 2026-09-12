@@ -171,10 +171,20 @@ function main() {
     cobram.join(' · ') || `${todas.length} frases conferidas`,
   );
 
-  // --- o destino é sempre uma tela que a Home consegue abrir --------------
-  const DESTINOS = ['praticas', 'jardim', null];
+  /*
+    O destino é sempre uma tela que quem mostra a dica consegue abrir.
+
+    Quem mostra passou a ser a aba do broto, e não mais a tela inicial — a
+    dica vive ao lado do personagem que fala. Ela abre as três: práticas,
+    jardim e, desde a reestruturação, o diário, que virou tela empilhada.
+
+    Este caso existe porque a lista de destinos e o `switch` que os abre moram
+    em arquivos diferentes: inventar um destino aqui e esquecer de ensiná-lo ao
+    outro lado dá uma dica que não leva a lugar nenhum, sem erro nenhum.
+  */
+  const DESTINOS = ['praticas', 'jardim', 'diario', null];
   confere(
-    'todo destino é abrível pela tela inicial',
+    'todo destino é abrível por quem mostra a dica',
     [p1, p2, p3, p4, p6].filter(Boolean).every((p) => DESTINOS.includes(p.destino)),
   );
 }

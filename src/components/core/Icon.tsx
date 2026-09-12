@@ -121,6 +121,15 @@ const PATHS = {
   home: 'M4 11l8-7 8 7v9a1 1 0 01-1 1h-4v-6H9v6H5a1 1 0 01-1-1z',
   book: 'M4 5a2 2 0 012-2h5v18H6a2 2 0 01-2-2zM20 5a2 2 0 00-2-2h-5v18h5a2 2 0 002-2z',
   leaf: 'M20 4S8 3 5 12c-2 6 2 9 6 8 8-2 9-16 9-16z',
+  /*
+    O broto da barra de baixo: caule com duas folhas, de frente.
+
+    A folha sozinha (`leaf`) servia enquanto a aba era "um lugar verde". Agora
+    ela é o personagem, e personagem se reconhece pela silhueta: duas folhas
+    saindo de um caule é o que o desenho do mascote tem, reduzido a traço.
+    Fica diferente da marca do botão do meio, que é anel e folhas em disco.
+  */
+  broto: 'M12 21v-8M12 13C12 9 9 6.5 5 6.5c0 4 3 6.5 7 6.5zM12 13c0-4 3-6.5 7-6.5 0 4-3 6.5-7 6.5z',
   user: 'M12 12a4.5 4.5 0 100-9 4.5 4.5 0 000 9zM4 21c1.5-5 5-7 8-7s6.5 2 8 7',
   lock: 'M6 11V8a6 6 0 1112 0v3M5 11h14v9a1 1 0 01-1 1H6a1 1 0 01-1-1z',
   chevronRight: 'M9 6l6 6-6 6',

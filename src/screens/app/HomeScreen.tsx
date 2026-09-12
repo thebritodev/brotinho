@@ -11,6 +11,8 @@ import {
   HarvestNotice,
   Icon,
   IconButton,
+  DesenhoDaComposta,
+  DesenhoDoDiario,
   MoodSelector,
   PracticeTopicCard,
   VoltaCard,
@@ -18,7 +20,7 @@ import {
 } from '../../components';
 import { toqueLeve } from '../../services/toque';
 import { conselhoDoDia } from '../../data/conselhos';
-import { PRACTICE_TOPICS, resumoDoTema } from '../../data/practices';
+import { PRACTICE_TOPICS } from '../../data/practices';
 import { sugestaoParaOHumor } from '../../data/sugestao';
 import { useAppState } from '../../state/AppStateProvider';
 import type { Plant } from '../../state/types';
@@ -96,6 +98,8 @@ export function HomeScreen({
   const { colors, palette, tintsDosTemas } = useTema();
   const insets = useSafeAreaInsets();
   const { width } = useWindowDimensions();
+  /** A largura da tela, com piso: no primeiro quadro ela vem zerada. */
+  const largura = Math.max(320, width);
   const {
     data,
     setTodayMood,
@@ -121,6 +125,12 @@ export function HomeScreen({
   const registroDeHoje = data.moodHistory.find((m) => m.date === today);
   const humorMarcado = registroDeHoje?.mood ?? null;
   const mood = humorMarcado ?? 'neutro';
+
+  /** Quantos exercícios existem ao todo — contados, nunca escritos à mão. */
+  const quantasPraticas = useMemo(
+    () => PRACTICE_TOPICS.reduce((total, t) => total + t.practices.length, 0),
+    [],
+  );
 
   const sugestao = useMemo(
     () => sugestaoParaOHumor({ humor: humorMarcado, agora: new Date() }),
@@ -297,16 +307,15 @@ export function HomeScreen({
           depois do toque, e só enquanto não houver palavra — quem já escolheu
           não precisa ser chamado de novo.
         */}
-        <View
-          style={{
-            backgroundColor: colors.surface,
-            borderRadius: radius.lg,
-            paddingVertical: 16,
-            paddingHorizontal: 14,
-            gap: 12,
-            alignItems: 'center',
-          }}
-        >
+        {/*
+          Sem cartão em volta.
+
+          As carinhas já são cinco objetos desenhados numa fileira, cada um num
+          disco da cor do humor; um retângulo branco atrás delas viraria caixa
+          dentro de caixa. E o que vem logo abaixo — o carrossel e os temas —
+          é tudo cartão: a pergunta se distingue justamente por não ser um.
+        */}
+        <View style={{ gap: 12, alignItems: 'center' }}>
           <Text style={{ color: colors.textPrimary, fontFamily: fonts.body.bold, fontSize: 16 }}>
             Como você está se sentindo hoje?
           </Text>
@@ -340,9 +349,7 @@ export function HomeScreen({
         */}
         <Carrossel rotulos={['Diário', 'Composta', 'Frase do dia']}>
           <CartaoDeFerramenta
-            icone="book"
-            corDoDisco={palette.blue100}
-            corDoIcone={palette.brown700}
+            desenho={<DesenhoDoDiario />}
             titulo="Diário"
             texto="Escreva ou fale o que passou hoje. Não sai do seu aparelho."
             etiquetas={['escrever', 'ou falar']}
@@ -351,9 +358,7 @@ export function HomeScreen({
           />
 
           <CartaoDeFerramenta
-            icone="mic"
-            corDoDisco={colors.surface}
-            corDoIcone={colors.primaryStrong}
+            desenho={<DesenhoDaComposta />}
             titulo="Composta"
             texto="Repita em voz alta o pensamento que te incomoda. O broto transforma ele em adubo."
             etiquetas={['30 a 40 segundos', 'em voz alta']}
@@ -394,15 +399,34 @@ export function HomeScreen({
           guiados" genérico.
         */}
         <View style={{ gap: 12 }}>
-          <Text
-            style={{
-              color: colors.textPrimary,
-              fontFamily: fonts.display.semiBold,
-              fontSize: 19,
-            }}
-          >
-            Práticas
-          </Text>
+          <View style={{ gap: 3 }}>
+            <Text
+              style={{
+                color: colors.textPrimary,
+                fontFamily: fonts.display.bold,
+                fontSize: 23,
+              }}
+            >
+              Práticas guiadas
+            </Text>
+            {/*
+              O número está aqui porque ele é o argumento.
+
+              "Exercícios guiados" não diz tamanho nenhum, e tamanho é o que
+              esta parte do app tem. Sai de `PRACTICE_TOPICS` e não de um
+              número escrito à mão — uma prática nova entra na conta sozinha,
+              e ninguém precisa lembrar de corrigir a frase.
+            */}
+            <Text
+              style={{
+                fontFamily: fonts.body.regular,
+                fontSize: 14,
+                color: colors.textSecondary,
+              }}
+            >
+              {quantasPraticas} exercícios em {PRACTICE_TOPICS.length} temas, de ansiedade a luto
+            </Text>
+          </View>
 
           {/*
             A sugestão do dia, quando o humor pede uma.
@@ -451,18 +475,26 @@ export function HomeScreen({
             </Pressable>
           )}
 
-          {PRACTICE_TOPICS.map((t) => (
-            <PracticeTopicCard
-              key={t.key}
-              title={t.title}
-              subtitle={resumoDoTema(t.intro)}
-              icon={t.icon}
-              /* A chave vira cor aqui, com o tema que está no ar — `practices`
-                 é dado, e guardaria a cor do tema claro para sempre. */
-              tint={tintsDosTemas[t.key]}
-              onPress={() => onOpenPractices({ topico: t.key, pratica: '' })}
-            />
-          ))}
+          {/*
+            Treze em duas colunas. O último fica sozinho na fileira e continua
+            com meia largura — esticá-lo faria o tema de baixo parecer outra
+            categoria, mais importante que os doze de cima.
+          */}
+          <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 12 }}>
+            {PRACTICE_TOPICS.map((t) => (
+              <PracticeTopicCard
+                key={t.key}
+                grade
+                title={t.title}
+                icon={t.icon}
+                /* A chave vira cor aqui, com o tema que está no ar — `practices`
+                   é dado, e guardaria a cor do tema claro para sempre. */
+                tint={tintsDosTemas[t.key]}
+                style={{ width: (largura - 40 - 12) / 2 }}
+                onPress={() => onOpenPractices({ topico: t.key, pratica: '' })}
+              />
+            ))}
+          </View>
         </View>
       </ScrollView>
 

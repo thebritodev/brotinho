@@ -3,7 +3,7 @@ import { Text, View } from 'react-native';
 
 import { fonts, radius, useTema } from '../../theme';
 import { Card } from '../core/Card';
-import { Icon, type IconName } from '../core/Icon';
+import { Icon } from '../core/Icon';
 
 /**
  * Um cartão do carrossel da tela inicial: disco com ícone, nome da ferramenta,
@@ -20,9 +20,7 @@ import { Icon, type IconName } from '../core/Icon';
  * embaixo dele.
  */
 export function CartaoDeFerramenta({
-  icone,
-  corDoDisco,
-  corDoIcone,
+  desenho,
   titulo,
   texto,
   etiquetas = [],
@@ -30,9 +28,8 @@ export function CartaoDeFerramenta({
   onPress,
   label,
 }: {
-  icone: IconName;
-  corDoDisco: string;
-  corDoIcone: string;
+  /** A cena do cartão — ver `desenhosDoCarrossel`. */
+  desenho: React.ReactNode;
   titulo: string;
   texto: string;
   /** Até duas, curtas. Elas dizem o custo da coisa: tempo, jeito. */
@@ -41,24 +38,12 @@ export function CartaoDeFerramenta({
   onPress: () => void;
   label: string;
 }) {
-  const { colors, palette, shadows } = useTema();
+  const { colors, palette } = useTema();
 
   return (
     <Card onPress={onPress} label={label} padding={18} tom={tom} style={{ flex: 1, gap: 12 }}>
       <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
-        <View
-          style={{
-            width: 46,
-            height: 46,
-            borderRadius: 23,
-            backgroundColor: corDoDisco,
-            alignItems: 'center',
-            justifyContent: 'center',
-            ...shadows.sm,
-          }}
-        >
-          <Icon name={icone} size={24} color={corDoIcone} />
-        </View>
+        {desenho}
 
         <View style={{ flex: 1 }}>
           <Text

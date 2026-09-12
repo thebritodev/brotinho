@@ -66,6 +66,8 @@ import { fonts, useTema } from '../../theme';
 
 type Props = {
   onOpenGarden: () => void;
+  /** O diário virou tela empilhada; a dica da primeira semana leva até ele. */
+  onOpenDiario: () => void;
   onOpenConselhosGuardados: () => void;
   onOpenValues: () => void;
   onOpenPractices: (alvo?: { topico: string; pratica: string }) => void;
@@ -73,6 +75,7 @@ type Props = {
 
 export function BrotinhoScreen({
   onOpenGarden,
+  onOpenDiario,
   onOpenConselhosGuardados,
   onOpenValues,
   onOpenPractices,
@@ -245,7 +248,11 @@ export function BrotinhoScreen({
               <Pressable
                 accessibilityRole="button"
                 accessibilityLabel={passo.frase}
-                onPress={() => (passo.destino === 'praticas' ? onOpenPractices() : onOpenGarden())}
+                onPress={() => {
+                  if (passo.destino === 'praticas') return onOpenPractices();
+                  if (passo.destino === 'diario') return onOpenDiario();
+                  return onOpenGarden();
+                }}
               >
                 <InsightCard text={passo.frase} />
               </Pressable>
