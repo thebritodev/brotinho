@@ -1,0 +1,122 @@
+import React, { useRef, useState } from 'react';
+import { ScrollView, useWindowDimensions, View } from 'react-native';
+
+import { useTema } from '../../theme';
+
+/**
+ * Carrossel — um cartão por vez, arrastando, com uma fatia do próximo à vista.
+ *
+ * ## A espia não é enfeite
+ *
+ * Um cartão que ocupa a largura inteira não diz que tem outro atrás. A fatia do
+ * vizinho aparecendo na borda é o que ensina o gesto, e ela é a razão de o
+ * cartão medir menos que a tela. Os pontinhos embaixo dizem quantos são e onde
+ * se está — sozinhos eles contam, mas não convidam.
+ *
+ * ## Não passa sozinho
+ *
+ * Movimento que começa sem ninguém pedir é o contrário do tom deste app, e em
+ * carrossel automático quem lê devagar perde o cartão no meio da frase. Aqui a
+ * troca é sempre gesto.
+ *
+ * ## Todos os cartões têm a mesma altura
+ *
+ * O conteúdo deles é diferente — a Frase do dia tem um canteiro desenhado, o
+ * Diário tem duas linhas de texto. Sem `alignItems: 'stretch'`, cada cartão
+ * ficaria com a sua altura e os pontinhos dançariam ao trocar. Esticados, a
+ * fileira inteira tem a altura do mais alto e nada se mexe.
+ *
+ * ## Sangra até a borda
+ *
+ * A tela tem 20 de margem; o carrossel precisa que o cartão de fora atravesse
+ * essa margem para ser cortado pela tela, e não pelo conteúdo. Daí a margem
+ * negativa e o mesmo valor devolvido como recuo interno.
+ */
+
+/** Quanto do próximo cartão fica à mostra. */
+const ESPIA = 26;
+const VAO = 12;
+const MARGEM_DA_TELA = 20;
+
+type Props = {
+  /** Um filho por cartão. */
+  children: React.ReactNode;
+  /** Rótulo de cada cartão, para o leitor de tela anunciar a posição. */
+  rotulos: string[];
+};
+
+export function Carrossel({ children, rotulos }: Props) {
+  const { colors, palette } = useTema();
+  const { width } = useWindowDimensions();
+  const cartoes = React.Children.toArray(children);
+
+  /* No primeiro quadro a largura vem zerada; o piso evita cartão negativo. */
+  const largura = Math.max(220, width - MARGEM_DA_TELA * 2 - ESPIA);
+  const passo = largura + VAO;
+
+  const [atual, setAtual] = useState(0);
+  const ultimo = useRef(0);
+
+  return (
+    <View style={{ gap: 12 }}>
+      <ScrollView
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        decelerationRate="fast"
+        snapToInterval={passo}
+        snapToAlignment="start"
+        disableIntervalMomentum
+        scrollEventThrottle={32}
+        onScroll={(e) => {
+          const i = Math.round(e.nativeEvent.contentOffset.x / passo);
+          // Só avisa quando o cartão realmente muda: um `setState` por quadro
+          // de rolagem redesenharia os três cartões o tempo todo.
+          if (i !== ultimo.current) {
+            ultimo.current = i;
+            setAtual(i);
+          }
+        }}
+        style={{ marginHorizontal: -MARGEM_DA_TELA }}
+        contentContainerStyle={{
+          paddingHorizontal: MARGEM_DA_TELA,
+          gap: VAO,
+          alignItems: 'stretch',
+        }}
+      >
+        {cartoes.map((cartao, i) => (
+          <View
+            key={i}
+            accessibilityLabel={
+              rotulos[i] ? `${rotulos[i]}. ${i + 1} de ${cartoes.length}` : undefined
+            }
+            style={{ width: largura }}
+          >
+            {cartao}
+          </View>
+        ))}
+      </ScrollView>
+
+      {/*
+        Os pontinhos são desenho, não comando: quem navega por voz já ouviu
+        "1 de 3" no próprio cartão, e três botões mudos aqui só atrasariam.
+      */}
+      <View
+        accessibilityElementsHidden
+        importantForAccessibility="no-hide-descendants"
+        style={{ flexDirection: 'row', justifyContent: 'center', gap: 6 }}
+      >
+        {cartoes.map((_, i) => (
+          <View
+            key={i}
+            style={{
+              width: i === atual ? 18 : 6,
+              height: 6,
+              borderRadius: 3,
+              backgroundColor: i === atual ? colors.primaryStrong : palette.brown200,
+            }}
+          />
+        ))}
+      </View>
+    </View>
+  );
+}

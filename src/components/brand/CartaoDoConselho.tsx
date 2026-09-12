@@ -43,6 +43,11 @@ import { Desenterrar } from './Desenterrar';
  * Aberto o dia, o cartão passa a mostrar a frase direto, sem animação e sem
  * precisar tocar. A encenação é para a primeira vez do dia; repetir a cada
  * relance transformaria um momento em pedágio.
+ *
+ * **No modo compacto isso muda**, e por um motivo de layout, não de produto:
+ * dentro do carrossel da tela inicial o cartão precisa ter altura fixa, então
+ * ali ele continua sendo o canteiro o dia inteiro e a frase abre por cima. Ver
+ * `compacto`.
  */
 
 /* O canteiro do cartão fechado, num quadrado de 60. */
@@ -82,6 +87,19 @@ export type CartaoDoConselhoProps = {
   compartilhando?: boolean;
   /** Recado de quando não deu para compartilhar. `null` quando deu. */
   aviso?: string | null;
+  /**
+   * Altura fixa, para o cartão viver dentro do carrossel da tela inicial.
+   *
+   * Fora do carrossel, a frase já desenterrada aparece **dentro** do cartão, e
+   * ele cresce para caber nela. Ali isso não serve: os três cartões do
+   * carrossel dividem a mesma fileira, e um que muda de altura no meio do dia
+   * empurraria os vizinhos e faria os pontinhos dançarem.
+   *
+   * No modo compacto o cartão continua sendo o canteiro em qualquer hora do
+   * dia; o que muda é o convite, de "desenterrar" para "ler de novo". A frase
+   * abre por cima, na mesma folha de sempre.
+   */
+  compacto?: boolean;
 };
 
 export function CartaoDoConselho({
@@ -93,6 +111,7 @@ export function CartaoDoConselho({
   onVerGuardadas,
   totalGuardadas,
   onCompartilhar,
+  compacto = false,
   compartilhando = false,
   aviso = null,
 }: CartaoDoConselhoProps) {
@@ -118,7 +137,16 @@ export function CartaoDoConselho({
   };
 
   return (
-    <View>
+    <View style={compacto ? { flex: 1 } : undefined}>
+      {/*
+        O título e o coração ficam de fora no modo compacto.
+
+        No carrossel os três cartões são irmãos: os outros dois dizem o próprio
+        nome dentro deles, e um título solto por cima só deste desalinharia a
+        fileira. O nome continua sendo dito — o leitor de tela anuncia "Frase do
+        dia, 3 de 3" —, e as frases guardadas têm porta própria na aba do broto.
+      */}
+      {!compacto && (
       <View
         style={{
           flexDirection: 'row',
@@ -166,8 +194,9 @@ export function CartaoDoConselho({
           )}
         </Pressable>
       </View>
+      )}
 
-      {aberto ? (
+      {aberto && !compacto ? (
         <Card padding={18} style={[pele, { gap: 14 }]}>
           <Text
             style={{
@@ -190,14 +219,18 @@ export function CartaoDoConselho({
       ) : (
         <Card
           padding={18}
-          label="Desenterrar a frase de hoje"
+          label={aberto ? 'Ler a frase de hoje de novo' : 'Desenterrar a frase de hoje'}
           onPress={() => {
             // A anotação vem antes da animação: se a pessoa fechar no meio, o
             // dia já está marcado e ela reabre na mesma frase, e não em outra.
             onDesenterrar();
             setAbrindo(true);
           }}
-          style={[pele, { flexDirection: 'row', alignItems: 'center', gap: 16 }]}
+          style={[
+            pele,
+            { flexDirection: 'row', alignItems: 'center', gap: 16 },
+            compacto && { flex: 1 },
+          ]}
         >
           <Svg viewBox="0 0 60 60" width={60} height={60}>
             <Defs>
@@ -262,12 +295,12 @@ export function CartaoDoConselho({
                 color: palette.brown900,
               }}
             >
-              Tem uma frase enterrada aqui
+              {aberto ? 'Sua frase de hoje' : 'Tem uma frase enterrada aqui'}
             </Text>
             <Text
               style={{ fontFamily: fonts.body.regular, fontSize: 13.5, color: palette.brown700 }}
             >
-              Uma por dia. Toque para desenterrar.
+              {aberto ? 'Toque para ler de novo.' : 'Uma por dia. Toque para desenterrar.'}
             </Text>
           </View>
           <Icon name="chevronRight" color={palette.brown700} />

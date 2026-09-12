@@ -165,20 +165,33 @@ async function capturar(page, nome) {
   await capturar(page, '3-composta');
   await tocar(page, 'Voltar');
 
-  // 4. Diário
+  // 4. Diário — agora tela empilhada, aberta pelo carrossel.
   await tocar(page, 'Diário');
   await capturar(page, '4-diario');
-
-  // 5. Práticas
-  await tocar(page, 'Início');
-  await tocar(page, 'Práticas');
-  await capturar(page, '5-praticas');
   await tocar(page, 'Voltar');
 
-  // 6. Resumo para a terapia
+  /*
+    5. As práticas, que agora são a metade de baixo da tela inicial.
+
+    Antes isto era a tela de Práticas, alcançada por um atalho. Com a lista dos
+    treze temas na própria Home, a captura que mostra o tamanho do acervo é a
+    Home rolada até ela — e de quebra mostra onde ela mora.
+  */
+  await page.evaluate(() => {
+    const alvo = [...document.querySelectorAll('div')].find((d) => d.innerText?.trim() === 'Práticas');
+    alvo?.scrollIntoView({ block: 'start' });
+  });
+  await page.waitForTimeout(900);
+  await capturar(page, '5-praticas');
+
+  // 6. A aba do broto: o personagem, o humor e a palavra mais exata.
+  await tocar(page, 'Brotinho');
+  await capturar(page, '6-brotinho');
+
+  // 7. Resumo para a terapia
   await tocar(page, 'Perfil');
   await tocar(page, ['Para minha terapia', 'Um resumo do que você registrou']);
-  await capturar(page, '6-terapia');
+  await capturar(page, '7-terapia');
 
   await browser.close();
   console.log(`\npronto — arquivos em ${SAIDA}`);

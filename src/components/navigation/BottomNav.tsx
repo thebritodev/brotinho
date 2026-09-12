@@ -6,7 +6,7 @@ import { fonts, useTema } from '../../theme';
 import { BrotinhoMark, MARK_DISCO } from '../brand/BrotinhoMark';
 import { Icon, type IconName } from '../core/Icon';
 
-export type TabKey = 'home' | 'diario' | 'perfil';
+export type TabKey = 'home' | 'broto' | 'perfil';
 
 /** Quanto o botão do meio sobe acima da faixa. */
 const RAISE = 22;
@@ -41,7 +41,19 @@ const CENTER_SIZE = 64;
 
 type SideTab = { key: Exclude<TabKey, 'home'>; label: string; icon: IconName };
 
-const LEFT: SideTab = { key: 'diario', label: 'Diário', icon: 'book' };
+/**
+ * A aba da esquerda era o Diário e passou a ser o broto.
+ *
+ * O Diário não perdeu nada: ele é o primeiro cartão do carrossel da tela
+ * inicial, que abre no lugar onde a barra abria. O que ele não era é uma
+ * *seção* — entrar no diário é fazer uma coisa, e coisas de fazer agora moram
+ * juntas agora. O broto, sim, é um lugar: é onde ela está, com o humor, o
+ * jardim e o que o app percebeu.
+ *
+ * A folha em vez da marca: a marca já é o botão do meio, e duas marcas na
+ * mesma barra não dizem qual é qual.
+ */
+const LEFT: SideTab = { key: 'broto', label: 'Brotinho', icon: 'leaf' };
 const RIGHT: SideTab = { key: 'perfil', label: 'Perfil', icon: 'user' };
 
 type Props = {

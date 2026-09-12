@@ -1,33 +1,24 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { Modal, Pressable, ScrollView, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
+import { Modal, Pressable, ScrollView, Text, useWindowDimensions, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import {
-  AnimatedSprout,
-  BalaoDoBroto,
   BoasVindas,
-  LuzDeEstufa,
-  alturaDoMascote,
-  Button,
-  Card,
+  Carrossel,
+  CartaoDeFerramenta,
+  CartaoDoConselho,
   GrowthNotice,
   HarvestNotice,
   Icon,
   IconButton,
-  InsightCard,
-  MemoryCard,
   MoodSelector,
-  PalavraDoHumor,
-  CartaoDoConselho,
-  useCompartilharFrase,
-  CrossedCard,
+  PracticeTopicCard,
   VoltaCard,
-  type IconName,
+  useCompartilharFrase,
 } from '../../components';
 import { toqueLeve } from '../../services/toque';
 import { conselhoDoDia } from '../../data/conselhos';
-import { saudacaoDoDia } from '../../data/saudacao';
-import { proximoPasso } from '../../data/primeiraSemana';
+import { PRACTICE_TOPICS, resumoDoTema } from '../../data/practices';
 import { sugestaoParaOHumor } from '../../data/sugestao';
 import { useAppState } from '../../state/AppStateProvider';
 import type { Plant } from '../../state/types';
@@ -37,26 +28,53 @@ import {
   dayKey,
   daysCaredFor,
   diasSemAparecer,
-  atravessou,
-  lembranca,
-  padraoDoDia,
   prontoParaColher,
   sproutStage,
 } from '../../state/derived';
 import { fonts, radius, useTema } from '../../theme';
 
+/**
+ * A tela inicial: o lugar de **fazer**.
+ *
+ * ## O que mudou, e por quê
+ *
+ * Ela era duas telas empilhadas. Em cima, o personagem grande, a saudação, o
+ * humor e a palavra — uma conversa, para ler devagar. Embaixo, os cartões de
+ * ferramenta e os atalhos — uma escolha, para resolver e sair. As duas metades
+ * disputavam a primeira dobra, e quem perdia era sempre a de baixo: as
+ * práticas, que são 41 exercícios, viviam atrás de um atalho de dois toques do
+ * tamanho de um chip.
+ *
+ * Agora o personagem tem aba própria (ver `BrotinhoScreen`) e esta tela tem um
+ * trabalho só: registrar o humor em um toque, escolher uma ferramenta, ou
+ * entrar numa prática.
+ *
+ * ## A ordem daqui
+ *
+ * 1. **O humor**, compacto. É o que o app pede todos os dias, e continua sendo
+ *    a primeira coisa: a versão inteira, com a palavra e o arco do mês, está na
+ *    aba do broto, mas registrar não pode depender de trocar de aba.
+ * 2. **O carrossel** com as três coisas que se faz agora: Diário, Composta e a
+ *    Frase do dia.
+ * 3. **As práticas**, a lista inteira dos treze temas — com uma sugestão em
+ *    cima quando o humor de hoje pede alguma.
+ *
+ * As comemorações (crescer, colher) e as boas-vindas ficam aqui, e não na aba
+ * do broto, porque esta é a tela que abre. Uma planta que amadureceu e espera
+ * a pessoa trocar de aba para ser colhida não seria colhida.
+ */
+
 type Props = {
   name: string;
   onOpenComposta: () => void;
+  onOpenDiario: () => void;
   onOpenSettings: () => void;
-  /** Sem alvo abre a lista; com alvo, vai direto na prática oferecida. */
   onOpenPractices: (alvo?: { topico: string; pratica: string }) => void;
-  onOpenValues: () => void;
-  /** Abre a lista das frases que a pessoa guardou. */
   onOpenConselhosGuardados: () => void;
-  /** Altura em que esta tela estava da última vez. Ver `MainTabs`. */
+  /** Leva à aba do broto, onde mora a palavra exata do humor. */
+  onOpenBroto: () => void;
+  /** Altura em que a tela abre, guardada fora dela — ver `MainTabs`. */
   rolagemInicial?: number;
-  /** Avisa a cada rolagem, para a altura sobreviver à desmontagem. */
   aoRolar?: (y: number) => void;
   onOpenReminders: () => void;
   onOpenGarden: () => void;
@@ -65,22 +83,22 @@ type Props = {
 export function HomeScreen({
   name,
   onOpenComposta,
+  onOpenDiario,
   onOpenSettings,
   onOpenPractices,
-  onOpenValues,
   onOpenConselhosGuardados,
+  onOpenBroto,
   rolagemInicial = 0,
   aoRolar,
   onOpenReminders,
   onOpenGarden,
 }: Props) {
-  const { colors, palette, shadows } = useTema();
+  const { colors, palette, tintsDosTemas } = useTema();
   const insets = useSafeAreaInsets();
-  const { width, height } = useWindowDimensions();
+  const { width } = useWindowDimensions();
   const {
     data,
     setTodayMood,
-    setTodayPalavra,
     markStageSeen,
     marcarVisto,
     colherPlanta,
@@ -88,22 +106,9 @@ export function HomeScreen({
     guardarConselho,
   } = useAppState();
 
-  /**
-   * O broto domina a tela, mas divide a primeira dobra com a pergunta.
-   *
-   * Era 0,46 da altura. Com ele nesse tamanho, quem abria o app precisava
-   * rolar para responder "como você está hoje?" — que é a única coisa que a
-   * tela pede todos os dias. Em 0,38 a saudação, o broto, as carinhas e as
-   * palavras cabem juntos, e quem abre para responder e fechar nunca rola.
-   *
-   * Continua sangrando até as bordas: o desenho não ficou pequeno, ficou do
-   * tamanho do trabalho dele.
-   */
-  const sproutSize = Math.min(width, height * 0.38);
   // `useWindowDimensions` devolve 0 no primeiro quadro, e aí a conta daria
-  // tamanho negativo — que no SVG é inválido, não apenas feio. O piso segura
-  // esse quadro; do segundo em diante a largura real assume.
-  const faceSize = Math.max(36, Math.min(54, (width - 40) / 6.2));
+  // tamanho negativo — que no SVG é inválido, não apenas feio.
+  const faceSize = Math.max(34, Math.min(50, (width - 40) / 6.6));
 
   /**
    * Quem sumiu por dias vê o reencontro antes de qualquer outra coisa. Some
@@ -113,11 +118,6 @@ export function HomeScreen({
   const voltando = ausente !== null && ausente >= AUSENCIA_LONGA;
 
   const today = dayKey();
-  /**
-   * `mood` cai em 'neutro' para o broto ter uma cara antes de ela dizer
-   * qualquer coisa. A oferta precisa distinguir "disse neutro" de "não disse
-   * nada" — só a primeira é uma resposta.
-   */
   const registroDeHoje = data.moodHistory.find((m) => m.date === today);
   const humorMarcado = registroDeHoje?.mood ?? null;
   const mood = humorMarcado ?? 'neutro';
@@ -127,35 +127,10 @@ export function HomeScreen({
     [humorMarcado],
   );
 
-  /**
-   * A frase da saudação, escolhida pelo dia — ver `data/saudacao.ts`.
-   *
-   * O tom muda para quem já tem estrada, daí os dias cuidados. Vinha de
-   * `stats()`, pelo primeiro dos três números; com os números fora desta tela,
-   * ela pergunta direto a quem sabe. Não depende do relógio a cada render: a
-   * escolha é estável dentro do mesmo dia.
-   */
-  const diasCuidados = daysCaredFor(data);
-  const saudacao = useMemo(
-    () => saudacaoDoDia({ agora: new Date(), diasCuidados }),
-    [diasCuidados],
-  );
-  const padrao = useMemo(() => padraoDoDia(data), [data]);
-  /**
-   * O que mostrar enquanto ainda não há padrão nenhum — ver
-   * `data/primeiraSemana.ts`.
-   *
-   * Divide o mesmo cartão com os padrões, e sempre perde para eles: uma
-   * observação sobre a própria pessoa vale mais que uma apresentação do app.
-   */
-  const passo = useMemo(() => (padrao ? null : proximoPasso(data)), [padrao, data]);
   /*
-    A frase de hoje, e se ela já foi desenterrada.
-
-    `conselhoDoDia` é pura e escolhe a que faz mais tempo que não aparece; o que
-    fixa a escolha do dia é o histórico, gravado no toque. Enquanto ninguém
-    tocar, esta chamada devolve a mesma candidata a cada render — o que importa,
-    porque é ela que vai para dentro do modal.
+    A frase de hoje, e se ela já foi desenterrada. `conselhoDoDia` é pura e
+    escolhe a que faz mais tempo que não aparece; o que fixa a escolha do dia é
+    o histórico, gravado no toque.
   */
   const conselho = useMemo(
     () => conselhoDoDia({ vistos: data.conselhos, hoje: today }),
@@ -177,17 +152,10 @@ export function HomeScreen({
   const rolagem = useRef<ScrollView>(null);
   const jaRestaurou = useRef(false);
 
-
-  const memoria = useMemo(() => lembranca(data), [data]);
-  const passou = useMemo(() => atravessou(data), [data]);
-  const [lendoMemoria, setLendoMemoria] = useState(false);
-
   const stage = sproutStage(data);
   const [celebrando, setCelebrando] = useState(false);
 
-  /**
-   * Humores em que uma comemoração cai mal. Ver o efeito abaixo.
-   */
+  /** Humores em que uma comemoração cai mal. Ver o efeito abaixo. */
   const DIA_PESADO: readonly (typeof mood)[] = ['ansioso', 'triste', 'cansado'];
 
   useEffect(() => {
@@ -204,14 +172,12 @@ export function HomeScreen({
       A comemoração espera o dia melhorar.
 
       O crescimento do broto depende só de dias de presença, e não olhava o
-      humor: quem marcasse "Triste" no décimo dia levava uma festa na cara. A
-      literatura de design para pessoas em sofrimento chama isso pelo nome —
-      tela de comemoração logo depois de registrar um momento difícil é
+      humor: quem marcasse "Triste" no décimo dia levava uma festa na cara.
+      Tela de comemoração logo depois de registrar um momento difícil é
       descompasso emocional, e é dos que mais afastam.
 
       Nada se perde: `stageSeen` não avança, então a comemoração aparece
       inteira no primeiro dia em que ela não estiver marcando um humor pesado.
-      Só muda a hora.
     */
     if (humorMarcado && DIA_PESADO.includes(humorMarcado)) return;
 
@@ -222,8 +188,7 @@ export function HomeScreen({
    * Planta madura: mostra o momento ANTES de guardar.
    *
    * Colher em silêncio fazia o broto de três semanas virar uma mudinha sem
-   * explicação — lê como perda de dado, não como conquista. A planta só vai
-   * para o jardim quando a pessoa fecha o aviso, então ela vê acontecer.
+   * explicação — lê como perda de dado, não como conquista.
    */
   const [colhendo, setColhendo] = useState<Plant | null>(null);
 
@@ -244,489 +209,267 @@ export function HomeScreen({
 
   return (
     <View style={{ flex: 1 }}>
-    <ScrollView
-      ref={rolagem}
-      /*
-        A tela **monta** já na altura certa, em vez de montar no zero e corrigir
-        depois.
-
-        Corrigir depois é o que ela fazia, e aparecia: um quadro inteiro do topo
-        piscava antes do salto. Não era lentidão — era a ordem dos fatos, porque
-        qualquer correção em JavaScript só pode acontecer depois de o primeiro
-        quadro já ter sido desenhado.
-
-        `contentOffset` não é uma correção, é uma condição inicial. O
-        `ReactScrollView` do Android guarda o valor como pendente e o aplica
-        dentro do próprio `onLayout`, antes de desenhar — a tela nunca chega a
-        existir no zero. No iOS vale o mesmo.
-      */
-      contentOffset={{ x: 0, y: alturaInicial }}
-      // Só o suficiente para acompanhar a rolagem sem inundar a ponte.
-      scrollEventThrottle={64}
-      onScroll={(e) => aoRolar?.(e.nativeEvent.contentOffset.y)}
-      /*
-        Rede para quem ignorar o `contentOffset` — o `react-native-web`, que é o
-        que gera as capturas da loja, é um deles. Mira no mesmo ponto, então nas
-        plataformas que já honraram o `contentOffset` isto é um pedido para o
-        lugar onde a tela já está: sem salto, sem briga.
-      */
-      onContentSizeChange={(_, altura) => {
-        if (jaRestaurou.current || alturaInicial <= 0) return;
-        // Espera o conteúdo ficar alto o bastante para aquele ponto existir.
-        if (altura <= alturaInicial) return;
-        jaRestaurou.current = true;
-        rolagem.current?.scrollTo({ y: alturaInicial, animated: false });
-      }}
-      contentContainerStyle={{
-        paddingTop: insets.top + 20,
-        paddingHorizontal: 20,
-        paddingBottom: 32,
-        gap: 22,
-      }}
-      showsVerticalScrollIndicator={false}
-    >
-      <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-        <View style={{ flex: 1 }}>
-          <Text style={{ color: colors.textPrimary, fontFamily: fonts.display.bold, fontSize: 25 }}>Oi, {name}</Text>
-        </View>
-        <View style={{ flexDirection: 'row', gap: 6 }}>
-          <IconButton
-            accessibilityLabel="Lembretes"
-            icon={<Icon name="bell" />}
-            onPress={onOpenReminders}
-            forma="vidro"
-          />
-          <IconButton
-            accessibilityLabel="Configurações"
-            icon={<Icon name="settings" />}
-            onPress={onOpenSettings}
-            forma="vidro"
-          />
-        </View>
-      </View>
-
-      {/*
-        A pergunta do dia, em versalete.
-
-        Ela não é conteúdo: é o que emoldura a saudação, do mesmo jeito que uma
-        linha de olho emoldura um título. Em caixa alta espaçada e no cinza de
-        apoio ela lê como rótulo — a pessoa passa por ela sem parar, que é o
-        certo, porque quem tem algo a dizer aqui é o broto logo abaixo.
-
-        Ficou colada no "Oi, Ana" (o `gap` do container é comido por uma margem
-        negativa) porque as duas são uma unidade só: nome e pergunta.
-      */}
-      <Text
-        style={{
-          marginTop: -14,
-          fontFamily: fonts.body.bold,
-          fontSize: 13,
-          letterSpacing: 1.3,
-          textTransform: 'uppercase',
-          color: colors.textSecondary,
+      <ScrollView
+        ref={rolagem}
+        /*
+          A tela **monta** já na altura certa, em vez de montar no zero e
+          corrigir depois — corrigir depois pisca um quadro do topo. O
+          `ReactScrollView` do Android guarda o `contentOffset` como pendente e
+          o aplica dentro do próprio `onLayout`, antes de desenhar.
+        */
+        contentOffset={{ x: 0, y: alturaInicial }}
+        scrollEventThrottle={64}
+        onScroll={(e) => aoRolar?.(e.nativeEvent.contentOffset.y)}
+        /*
+          Rede para quem ignorar o `contentOffset` — o `react-native-web`, que é
+          o que gera as capturas da loja, é um deles.
+        */
+        onContentSizeChange={(_, altura) => {
+          if (jaRestaurou.current || alturaInicial <= 0) return;
+          if (altura <= alturaInicial) return;
+          jaRestaurou.current = true;
+          rolagem.current?.scrollTo({ y: alturaInicial, animated: false });
         }}
+        contentContainerStyle={{
+          paddingTop: insets.top + 20,
+          paddingHorizontal: 20,
+          paddingBottom: 32,
+          gap: 22,
+        }}
+        showsVerticalScrollIndicator={false}
       >
-        Vamos cuidar de você hoje?
-      </Text>
-
-      {voltando && <VoltaCard dias={ausente} />}
-
-      {/*
-        A frase do dia virou fala do broto.
-
-        Ela era um parágrafo cinza logo abaixo do "Oi, Pedro" — indistinguível
-        de qualquer outro texto de sistema, embora seja a única frase da tela
-        que ele diz. No balão, com o bico apontando para o desenho logo abaixo,
-        quem fala fica claro sem precisar escrever "o broto diz".
-
-        Ela desceu para depois do `VoltaCard`: com um cartão no meio, o bico
-        apontaria para o cartão em vez de para o broto.
-
-        A margem negativa come parte do `gap: 22` do container. Encostado
-        demais, o bico vira um V grudado na cabeça dele; longe demais, deixa de
-        apontar para alguma coisa.
-      */}
-      {/*
-        O balão fica **acima** do bloco do broto.
-
-        O bico avança 14 pontos para dentro dele — é o que faz o balão apontar
-        para o desenho. Enquanto a luz atrás do broto era translúcida isso não
-        importava; agora ela é opaca (termina na cor do fundo, para não depender
-        de alfa em gradiente — ver `LuzDeEstufa`), e sem o `zIndex` ela pinta
-        por cima da ponta do bico.
-      */}
-      <BalaoDoBroto style={{ marginBottom: -14, zIndex: 1 }}>
-        <Text
-          style={{
-            fontFamily: fonts.body.regular,
-            fontSize: 15,
-            lineHeight: 15 * 1.5,
-            color: palette.brown700,
-            textAlign: 'center',
-          }}
-        >
-          {saudacao}
-        </Text>
-      </BalaoDoBroto>
-
-      <View style={{ alignItems: 'center', gap: 12 }}>
-        {/* Margem negativa: o desenho encosta nas bordas da tela. */}
-        {/* O broto é a porta do próprio histórico: tocar nele abre o jardim. */}
-        <Pressable
-          accessibilityRole="button"
-          accessibilityLabel="Ver meu jardim"
-          onPress={onOpenGarden}
-          style={{ marginHorizontal: -20 }}
-        >
-          {/*
-            A luz vai até onde o quadro dela ainda cabe na tela.
-
-            O documento faz o halo do tamanho da altura do desenho — 300 e 300,
-            porque lá o broto ocupa a tela toda em altura. O nosso é mais baixo
-            (270 numa tela de 412), e essa regra deixava a luz pequena demais
-            para o gosto de quem olha.
-
-            O teto não é estético, é geométrico: o quadro da luz precisa ser
-            1,112 vez ela (a queda do gradiente precisa de margem — ver
-            `LuzDeEstufa`), então a maior luz que cabe numa tela de 412 é 370.
-            Passar disso faz o quadro ficar mais largo que a tela, e aí a
-            queda é cortada nos lados: volta a borda dura.
-
-            Em 0,9 da largura a luz fica 37% maior que a do documento e o
-            quadro fecha exatamente na tela.
-          */}
-          <LuzDeEstufa diametro={Math.round(width * 0.9)}>
-            <AnimatedSprout mood={mood} stage={stage} size={sproutSize} bamboleia />
-          </LuzDeEstufa>
-        </Pressable>
-
-        {/*
-          Nada no desenho diz que o broto é um botão, e é por ele que se chega
-          ao jardim — o histórico inteiro dela. A dica fica até a primeira
-          visita e depois some: quem já sabe não precisa ler isto todo dia.
-          Ela mesma também abre o jardim, porque é o que alguém tenta tocar
-          logo depois de ler.
-        */}
-        {!data.jardimAberto && (
-          <Pressable
-            accessibilityRole="button"
-            accessibilityLabel="Ver meu jardim"
-            onPress={onOpenGarden}
-            hitSlop={8}
-            style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: -4 }}
-          >
-            <Icon name="leaf" size={14} color={colors.primaryStrong} />
-            <Text style={{ fontFamily: fonts.body.bold, fontSize: 13, color: palette.brown400 }}>
-              Toque em mim para ver seu jardim
-            </Text>
-          </Pressable>
-        )}
-        <Text style={{ color: colors.textPrimary, fontFamily: fonts.body.bold, fontSize: 16 }}>
-          Como você está se sentindo hoje?
-        </Text>
-        <MoodSelector
-          value={mood}
-          onChange={(m) => {
-            toqueLeve(data.settings.vibracao);
-            setTodayMood(m);
-          }}
-          faceSize={faceSize}
-        />
-
-        {/*
-          A palavra vem antes da sugestão, e as duas nunca competem.
-
-          A palavra pertence ao toque que a pessoa acabou de dar — é a mesma
-          pergunta, mais fina. A sugestão é outro assunto: sair daqui e fazer
-          um exercício. Invertida, a ordem convidaria a sair da tela antes de
-          terminar de responder nela.
-        */}
-        {!!humorMarcado && (
-          <PalavraDoHumor
-            mood={humorMarcado}
-            value={registroDeHoje?.palavra}
-            onChange={(p) => {
-              toqueLeve(data.settings.vibracao);
-              setTodayPalavra(p);
-            }}
-          />
-        )}
-
-        {/* Discreto de propósito: um convite, não um cartão. Some sozinho
-            quando o humor não pede nada — ver `data/sugestao.ts`. */}
-        {!!sugestao && (
-          <Pressable
-            accessibilityRole="button"
-            accessibilityLabel={`${sugestao.convite} ${sugestao.titulo}`}
-            onPress={() => onOpenPractices({ topico: sugestao.topico, pratica: sugestao.pratica })}
-            hitSlop={8}
-            style={{ alignItems: 'center', gap: 2, paddingTop: 4 }}
-          >
-            <Text style={{ fontFamily: fonts.body.regular, fontSize: 13, color: palette.brown400 }}>
-              {sugestao.convite}
-            </Text>
-            <Text style={{ fontFamily: fonts.body.bold, fontSize: 15, color: colors.primaryStrong }}>
-              {sugestao.titulo}
-            </Text>
-          </Pressable>
-        )}
-      </View>
-
-      {/*
-        O único cartão de destaque da tela.
-
-        O verde era pintado aqui, por cima do branco do `Card`. Virou o tom
-        `destaque`, que é o mesmo verde em vidro — e assim ele acompanha o tema
-        em vez de precisar de uma cor escrita à mão. Ver `vidros` em `tokens`.
-      */}
-      <Card
-        onPress={onOpenComposta}
-        label="Composta: repita em voz alta um pensamento que incomoda"
-        padding={18}
-        tom="destaque"
-        style={{ gap: 12 }}
-      >
-        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
-          {/* O disco do microfone: 46 e levantado, como no documento. */}
-          <View
-            style={{
-              width: 46,
-              height: 46,
-              borderRadius: 23,
-              backgroundColor: colors.surface,
-              alignItems: 'center',
-              justifyContent: 'center',
-              ...shadows.sm,
-            }}
-          >
-            <Icon name="mic" size={24} color={colors.primaryStrong} />
-          </View>
-
+        <View style={{ flexDirection: 'row', alignItems: 'center' }}>
           <View style={{ flex: 1 }}>
             <Text
-              style={{
-                fontFamily: fonts.display.extraBold,
-                fontSize: 19,
-                color: colors.primaryStrong,
-              }}
+              style={{ color: colors.textPrimary, fontFamily: fonts.display.bold, fontSize: 25 }}
             >
-              Composta
-            </Text>
-            <Text
-              style={{
-                fontFamily: fonts.body.regular,
-                fontSize: 14,
-                lineHeight: 14 * 1.45,
-                color: palette.brown700,
-              }}
-            >
-              Repita em voz alta o pensamento que te incomoda. O broto transforma ele em adubo.
+              Oi, {name}
             </Text>
           </View>
-
-          <Icon name="chevronRight" color={colors.primaryStrong} />
+          <View style={{ flexDirection: 'row', gap: 6 }}>
+            <IconButton
+              accessibilityLabel="Lembretes"
+              icon={<Icon name="bell" />}
+              onPress={onOpenReminders}
+              forma="vidro"
+            />
+            <IconButton
+              accessibilityLabel="Configurações"
+              icon={<Icon name="settings" />}
+              onPress={onOpenSettings}
+              forma="vidro"
+            />
+          </View>
         </View>
 
-        <View style={{ flexDirection: 'row', gap: 8 }}>
-          {['30 a 40 segundos', 'em voz alta'].map((tag) => (
-            <View
-              key={tag}
-              style={{
-                backgroundColor: colors.surface,
-                paddingVertical: 6,
-                paddingHorizontal: 10,
-                borderRadius: radius.pill,
-              }}
-            >
-              <Text
-                style={{ fontFamily: fonts.body.bold, fontSize: 12, color: palette.brown700 }}
-              >
-                {tag}
-              </Text>
-            </View>
-          ))}
-        </View>
-      </Card>
+        {/*
+          A pergunta do dia, em versalete.
 
-      {/*
-        Fica logo depois da Composta, e antes dos atalhos.
+          Ela não é conteúdo: emoldura o nome, como uma linha de olho emoldura
+          um título, e em caixa alta espaçada lê como rótulo.
 
-        Os quatro blocos daqui são de duas naturezas: Composta e Sem rodeios são
-        **momentos** — coisas que se fazem, uma vez, hoje. Práticas e Meus
-        valores são **portas** — lugares para onde se vai. Estavam embaralhados,
-        e o custo era todo deste cartão: espremido embaixo de dois cartões
-        iguais entre si, ele lia como o terceiro item de uma lista de atalhos.
+          A saudação do broto, que morava aqui, foi junto com ele: fala dele
+          pede o balão, e o balão pede o desenho para apontar. Ela aparece
+          inteira na aba do broto, e repeti-la aqui como texto solto seria a
+          mesma frase duas vezes, em dois lugares, sem ninguém dizendo.
+        */}
+        <Text
+          style={{
+            marginTop: -14,
+            fontFamily: fonts.body.bold,
+            fontSize: 13,
+            letterSpacing: 1.3,
+            textTransform: 'uppercase',
+            color: colors.textSecondary,
+          }}
+        >
+          Vamos cuidar de você hoje?
+        </Text>
 
-        Não sobe mais que isto. O trabalho da primeira dobra é a pergunta "como
-        você está", escrita duas vezes lá em cima; uma frase que fala duro antes
-        dela responderia antes de perguntar, que é o contrário do que o app faz.
-      */}
-      <CartaoDoConselho
-        texto={conselho.texto}
-        aberto={conselhoAberto}
-        guardada={data.conselhosGuardados.includes(conselho.id)}
-        onDesenterrar={() => {
-          toqueLeve(data.settings.vibracao);
-          desenterrarConselho(conselho.id);
-        }}
-        onGuardar={() => {
-          toqueLeve(data.settings.vibracao);
-          guardarConselho(conselho.id);
-        }}
-        onVerGuardadas={onOpenConselhosGuardados}
-        totalGuardadas={data.conselhosGuardados.length}
-        onCompartilhar={() => story.compartilhar(conselho.texto)}
-        compartilhando={story.compartilhando}
-        aviso={story.aviso}
-      />
+        {voltando && <VoltaCard dias={ausente} />}
 
-      {/*
-        Um reencontro por vez, e nunca os dois juntos.
+        {/*
+          O humor, em uma linha.
 
-        Os dois cartões olham para trás, e empilhados viram uma seção de
-        nostalgia que rouba a tela de hoje. O pensamento atravessado tem
-        precedência porque é o mais raro: ele só existe quando a Composta
-        cumpriu o que promete, e é a única coisa aqui que prova isso.
-
-        Os dois só aparecem quando há registro antigo o bastante — sem isso a
-        Home ficaria com um espaço vazio nos primeiros meses.
-      */}
-      {passou ? (
-        <CrossedCard atravessado={passou} />
-      ) : (
-        !!memoria && <MemoryCard lembranca={memoria} onPress={() => setLendoMemoria(true)} />
-      )}
-
-      {/* Práticas e Valores saíram da barra de baixo e viram atalhos daqui. */}
-      <View style={{ flexDirection: 'row', gap: 12 }}>
-        <Shortcut
-          icon="droplet"
-          tint={palette.blue100}
-          iconColor={palette.brown700}
-          title="Práticas"
-          subtitle="Exercícios guiados"
-          onPress={onOpenPractices}
-        />
-        <Shortcut
-          icon="leaf"
-          tint={colors.primarySoft}
-          iconColor={colors.primaryStrong}
-          title="Meus valores"
-          subtitle="O que você vive"
-          onPress={onOpenValues}
-        />
-      </View>
-
-      {/*
-        "Seu crescimento" saiu daqui, e mora no Perfil.
-
-        Os três números são memória, e memória se consulta — não se responde. A
-        tela inicial tem um trabalho por dia, que é perguntar como a pessoa
-        está, e cada bloco a mais empurra essa pergunta para baixo da dobra.
-
-        Nada se perdeu: o Perfil já mostrava os mesmos três, com o mesmo
-        `StatRow`. E o texto de boas-vindas que aparecia aqui enquanto tudo era
-        zero também não faz falta — quem chega agora vê a apresentação da
-        primeira semana, que diz a mesma coisa e diz melhor. Ver
-        `data/primeiraSemana.ts`.
-      */}
-
-      {/*
-        Um cartão, dois conteúdos, e a ordem importa.
-
-        "Seu broto percebeu" só aparece com registros suficientes — inventar um
-        padrão para quem acabou de instalar seria falso. Só que `patterns` pede
-        cinco registros, então esse espaço ficava vazio exatamente na primeira
-        semana, que é quando as pessoas somem. Enquanto não há padrão, o mesmo
-        cartão mostra uma parte do app que ainda não foi descoberta; assim que
-        houver, os padrões tomam o lugar e não voltam a sair.
-      */}
-      {!!padrao && (
-        <View>
-          <Text style={{ color: colors.textPrimary, fontFamily: fonts.display.semiBold, fontSize: 19, marginBottom: 12 }}>
-            Seu broto percebeu
+          É o único pedido diário do app, e por isso continua sendo a primeira
+          coisa depois do nome. A palavra mais exata não vem junto: ela pede
+          leitura, e leitura pede a aba do broto. O convite para ela aparece só
+          depois do toque, e só enquanto não houver palavra — quem já escolheu
+          não precisa ser chamado de novo.
+        */}
+        <View
+          style={{
+            backgroundColor: colors.surface,
+            borderRadius: radius.lg,
+            paddingVertical: 16,
+            paddingHorizontal: 14,
+            gap: 12,
+            alignItems: 'center',
+          }}
+        >
+          <Text style={{ color: colors.textPrimary, fontFamily: fonts.body.bold, fontSize: 16 }}>
+            Como você está se sentindo hoje?
           </Text>
-          <InsightCard text={padrao} />
-        </View>
-      )}
-
-      {!!passo && (
-        <View>
-          <Text style={{ color: colors.textPrimary, fontFamily: fonts.display.semiBold, fontSize: 19, marginBottom: 12 }}>
-            Tem isto aqui também
-          </Text>
-          {passo.destino ? (
+          <MoodSelector
+            value={mood}
+            onChange={(m) => {
+              toqueLeve(data.settings.vibracao);
+              setTodayMood(m);
+            }}
+            faceSize={faceSize}
+          />
+          {!!humorMarcado && !registroDeHoje?.palavra && (
             <Pressable
               accessibilityRole="button"
-              accessibilityLabel={passo.frase}
-              onPress={() => (passo.destino === 'praticas' ? onOpenPractices() : onOpenGarden())}
+              accessibilityLabel="Dar um nome mais exato ao que você sente"
+              onPress={onOpenBroto}
+              hitSlop={8}
             >
-              <InsightCard text={passo.frase} />
+              <Text
+                style={{ fontFamily: fonts.body.bold, fontSize: 13, color: colors.primaryStrong }}
+              >
+                Dar um nome mais exato a isso
+              </Text>
             </Pressable>
-          ) : (
-            <InsightCard text={passo.frase} />
           )}
         </View>
-      )}
-    </ScrollView>
 
-      <Modal
-        visible={lendoMemoria}
-        transparent
-        animationType="fade"
-        onRequestClose={() => setLendoMemoria(false)}
-      >
-        <View style={{ flex: 1, justifyContent: 'center', padding: 22 }}>
-          <Pressable
-            accessibilityRole="button"
-            accessibilityLabel="Fechar"
-            onPress={() => setLendoMemoria(false)}
-            style={[StyleSheet.absoluteFill, { backgroundColor: 'rgba(58,54,48,0.45)' }]}
+        {/*
+          As três coisas que se faz agora. As que olham para trás — jardim,
+          valores, frases guardadas — moram na aba do broto.
+        */}
+        <Carrossel rotulos={['Diário', 'Composta', 'Frase do dia']}>
+          <CartaoDeFerramenta
+            icone="book"
+            corDoDisco={palette.blue100}
+            corDoIcone={palette.brown700}
+            titulo="Diário"
+            texto="Escreva ou fale o que passou hoje. Não sai do seu aparelho."
+            etiquetas={['escrever', 'ou falar']}
+            onPress={onOpenDiario}
+            label="Diário: escrever ou falar o que passou hoje"
           />
-          <View
+
+          <CartaoDeFerramenta
+            icone="mic"
+            corDoDisco={colors.surface}
+            corDoIcone={colors.primaryStrong}
+            titulo="Composta"
+            texto="Repita em voz alta o pensamento que te incomoda. O broto transforma ele em adubo."
+            etiquetas={['30 a 40 segundos', 'em voz alta']}
+            tom="destaque"
+            onPress={onOpenComposta}
+            label="Composta: repita em voz alta um pensamento que incomoda"
+          />
+
+          <CartaoDoConselho
+            compacto
+            texto={conselho.texto}
+            aberto={conselhoAberto}
+            guardada={data.conselhosGuardados.includes(conselho.id)}
+            onDesenterrar={() => {
+              toqueLeve(data.settings.vibracao);
+              desenterrarConselho(conselho.id);
+            }}
+            onGuardar={() => {
+              toqueLeve(data.settings.vibracao);
+              guardarConselho(conselho.id);
+            }}
+            onVerGuardadas={onOpenConselhosGuardados}
+            totalGuardadas={data.conselhosGuardados.length}
+            onCompartilhar={() => story.compartilhar(conselho.texto)}
+            compartilhando={story.compartilhando}
+            aviso={story.aviso}
+          />
+        </Carrossel>
+
+        {/*
+          As práticas deixam de ser um atalho e passam a ser a metade de baixo
+          da tela inicial.
+
+          São 41 exercícios em treze temas — a parte do app com mais trabalho
+          feito dentro, e a que menos aparecia. A lista inteira fica à vista
+          porque é ela o argumento: quem rola até aqui vê que tem coisa para
+          ansiedade, para luto, para procrastinação, e não um "exercícios
+          guiados" genérico.
+        */}
+        <View style={{ gap: 12 }}>
+          <Text
             style={{
-              backgroundColor: colors.bg,
-              borderRadius: radius.lg,
-              padding: 20,
-              gap: 14,
-              maxHeight: '80%',
+              color: colors.textPrimary,
+              fontFamily: fonts.display.semiBold,
+              fontSize: 19,
             }}
           >
-            <Text
-              style={{ fontFamily: fonts.display.semiBold, fontSize: 18, color: colors.primaryStrong }}
+            Práticas
+          </Text>
+
+          {/*
+            A sugestão do dia, quando o humor pede uma.
+
+            Ela vem antes da lista porque quem está mal não deveria ter de
+            escolher entre treze portas — escolher é justamente o que custa
+            nessa hora. Some sozinha quando o humor não pede nada; ver
+            `data/sugestao.ts`.
+          */}
+          {!!sugestao && (
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel={`${sugestao.convite} ${sugestao.titulo}`}
+              onPress={() =>
+                onOpenPractices({ topico: sugestao.topico, pratica: sugestao.pratica })
+              }
+              style={({ pressed }) => ({
+                backgroundColor: colors.primarySoft,
+                borderRadius: radius.lg,
+                paddingVertical: 14,
+                paddingHorizontal: 16,
+                flexDirection: 'row',
+                alignItems: 'center',
+                gap: 12,
+                opacity: pressed ? 0.85 : 1,
+              })}
             >
-              {memoria?.quando}, você escreveu
-            </Text>
-            <ScrollView style={{ flexShrink: 1 }} showsVerticalScrollIndicator={false}>
-              <Text
-                style={{
-                  fontFamily: fonts.body.regular,
-                  fontSize: 16,
-                  lineHeight: 16 * 1.6,
-                  color: palette.brown900,
-                }}
-              >
-                {memoria?.texto}
-              </Text>
-            </ScrollView>
-            <Button variant="ghost" style={{ width: '100%' }} onPress={() => setLendoMemoria(false)}>
-              Fechar
-            </Button>
-          </View>
+              <Icon name="droplet" size={20} color={colors.primaryStrong} />
+              <View style={{ flex: 1, gap: 2 }}>
+                <Text
+                  style={{ fontFamily: fonts.body.regular, fontSize: 13, color: palette.brown700 }}
+                >
+                  {sugestao.convite}
+                </Text>
+                <Text
+                  style={{
+                    fontFamily: fonts.body.extraBold,
+                    fontSize: 15,
+                    color: colors.primaryStrong,
+                  }}
+                >
+                  {sugestao.titulo}
+                </Text>
+              </View>
+              <Icon name="chevronRight" color={colors.primaryStrong} />
+            </Pressable>
+          )}
+
+          {PRACTICE_TOPICS.map((t) => (
+            <PracticeTopicCard
+              key={t.key}
+              title={t.title}
+              subtitle={resumoDoTema(t.intro)}
+              icon={t.icon}
+              /* A chave vira cor aqui, com o tema que está no ar — `practices`
+                 é dado, e guardaria a cor do tema claro para sempre. */
+              tint={tintsDosTemas[t.key]}
+              onPress={() => onOpenPractices({ topico: t.key, pratica: '' })}
+            />
+          ))}
         </View>
-      </Modal>
+      </ScrollView>
 
       {/*
-        A colheita tem precedência: é o momento maior, e mostrar os dois avisos
-        empilhados atropelaria os dois.
-
-        Os dois vão dentro de um `Modal` porque não estavam cobrindo a tela
-        inteira. O escurecido deles é `position: absolute` com as quatro bordas
-        em zero, e isso preenche o pai — que aqui é a Home, e a Home termina
-        onde a barra de baixo começa. A barra ficava acesa embaixo de um aviso
-        escuro, e continuava respondendo ao toque: dava para trocar de aba no
-        meio da colheita. O `Modal` também devolve o botão de voltar do
-        Android, que antes não fechava nada.
+        Um `Modal`, e não uma camada dentro da tela: o escurecido de uma View
+        absoluta preenche só a Home, e a barra de baixo continuava acesa e
+        tocável embaixo do aviso.
       */}
       <Modal
         visible={!!colhendo || (celebrando && stage !== 1)}
@@ -744,14 +487,7 @@ export function HomeScreen({
         )}
       </Modal>
 
-      {/*
-        A chegada, uma vez só: a primeira Home depois do onboarding.
-
-        Não depende de `subscribed`. Na loja, do paywall só se sai assinando,
-        então passar do onboarding já é ter assinado — e exigir a assinatura
-        aqui não acrescentava nada, só fazia as boas-vindas nunca aparecerem
-        onde não há loja para cobrar, que é justamente onde o app é testado.
-      */}
+      {/* A chegada, uma vez só: a primeira Home depois do onboarding. */}
       <BoasVindas
         visivel={!data.boasVindasVistas}
         nome={name}
@@ -761,48 +497,5 @@ export function HomeScreen({
       {/* O card do story, montado fora da tela só enquanto está sendo fotografado. */}
       {story.palco}
     </View>
-  );
-}
-
-/** Atalho compacto da Home: metade da largura, ícone, título e uma linha. */
-function Shortcut({
-  icon,
-  tint,
-  iconColor,
-  title,
-  subtitle,
-  onPress,
-}: {
-  icon: IconName;
-  tint: string;
-  iconColor: string;
-  title: string;
-  subtitle: string;
-  onPress: () => void;
-}) {
-  const { colors } = useTema();
-  return (
-    <Card onPress={onPress} padding={16} style={{ flex: 1, gap: 10 }}>
-      <View
-        style={{
-          width: 38,
-          height: 38,
-          borderRadius: 19,
-          backgroundColor: tint,
-          alignItems: 'center',
-          justifyContent: 'center',
-        }}
-      >
-        <Icon name={icon} size={20} color={iconColor} />
-      </View>
-      <View style={{ gap: 2 }}>
-        <Text style={{ color: colors.textPrimary, fontFamily: fonts.body.extraBold, fontSize: 15 }}>{title}</Text>
-        <Text
-          style={{ fontFamily: fonts.body.regular, fontSize: 12, color: colors.textSecondary }}
-        >
-          {subtitle}
-        </Text>
-      </View>
-    </Card>
   );
 }

@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { View } from 'react-native';
 
 import { BottomNav, ScreenTransition, type TabKey } from '../components';
+import { BrotinhoScreen } from '../screens/app/BrotinhoScreen';
 import { HomeScreen } from '../screens/app/HomeScreen';
 import { GardenScreen } from '../screens/app/GardenScreen';
 import { JournalScreen } from '../screens/app/JournalScreen';
@@ -95,8 +96,11 @@ export function MainTabs() {
     () =>
       onNotificationTap((destino) => {
         if (destino === 'diario') {
-          setSub(null);
-          setTab('diario');
+          // O Diário virou tela empilhada: a aba de baixo é a Início, e ele
+          // abre por cima dela. Voltar do diário devolve a Início, como em
+          // qualquer outra tela de dentro.
+          setTab('home');
+          setSub('diario');
           return;
         }
         setTab('perfil');
@@ -122,8 +126,7 @@ export function MainTabs() {
             onBack={closeSub}
             onEscreverNoDiario={(comeco) => {
               setComecoDaPratica(comeco);
-              setSub(null);
-              setTab('diario');
+              setSub('diario');
             }}
           />
         );
@@ -135,6 +138,15 @@ export function MainTabs() {
         return <GardenScreen onBack={closeSub} />;
       case 'conselhos':
         return <ConselhosGuardadosScreen onBack={closeSub} />;
+      case 'diario':
+        return (
+          <JournalScreen
+            onBack={closeSub}
+            comecoDaPratica={comecoDaPratica}
+            aoFazerExercicio={ancorarAgora}
+            aoAbrirPratica={abrirPratica}
+          />
+        );
       default:
         return null;
     }
@@ -142,12 +154,16 @@ export function MainTabs() {
 
   const renderTab = () => {
     switch (tab) {
-      case 'diario':
+      case 'broto':
         return (
-          <JournalScreen
-            comecoDaPratica={comecoDaPratica}
-            aoFazerExercicio={ancorarAgora}
-            aoAbrirPratica={abrirPratica}
+          <BrotinhoScreen
+            onOpenGarden={() => setSub('jardim')}
+            onOpenConselhosGuardados={() => setSub('conselhos')}
+            onOpenValues={() => setSub('valores')}
+            onOpenPractices={(alvo) => {
+              setPraticaAlvo(alvo ?? null);
+              setSub('praticas');
+            }}
           />
         );
       case 'perfil':
@@ -158,12 +174,13 @@ export function MainTabs() {
           <HomeScreen
             name={name}
             onOpenComposta={() => setSub('composta')}
+            onOpenDiario={() => setSub('diario')}
+            onOpenBroto={() => setTab('broto')}
             onOpenSettings={() => setSub('config')}
             onOpenPractices={(alvo) => {
               setPraticaAlvo(alvo ?? null);
               setSub('praticas');
             }}
-            onOpenValues={() => setSub('valores')}
             onOpenConselhosGuardados={() => setSub('conselhos')}
             rolagemInicial={rolagemDaHome.current}
             aoRolar={(y) => {

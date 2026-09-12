@@ -2,7 +2,7 @@ import React, { useMemo } from 'react';
 import { Pressable, ScrollView, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { Card, HumorNoTempo, Icon, Sprout, StatRow, Switch, TopBar } from '../../components';
+import { Card, Icon, Sprout, StatRow, Switch, TopBar } from '../../components';
 import { useAppState } from '../../state/AppStateProvider';
 import { caringSince, fazTerapia, sproutStage, stats } from '../../state/derived';
 import { fonts, useTema } from '../../theme';
@@ -24,7 +24,7 @@ export function ProfileScreen({ name, onNavigate }: Props) {
   const since = caringSince(data);
 
   const row = (
-    icon: 'settings' | 'lock' | 'heart',
+    icon: 'settings' | 'lock',
     label: string,
     screen: SubScreen,
   ) => (
@@ -62,10 +62,6 @@ export function ProfileScreen({ name, onNavigate }: Props) {
         </View>
 
         <StatRow stats={growth} />
-
-        {/* O arco do humor saiu de dentro de "Para minha terapia", onde só quem
-            faz terapia via. Ver `components/brand/HumorNoTempo.tsx`. */}
-        <HumorNoTempo />
 
         <Card
           onPress={() => onNavigate('terapia')}
@@ -110,10 +106,6 @@ export function ProfileScreen({ name, onNavigate }: Props) {
                 onChange={(reminders) => updateSettings({ reminders })}
               />
             </View>
-            {/* A segunda porta das frases guardadas. A primeira é o coração no
-                cabeçalho de "Sem rodeios", na Home; esta é para quem procura
-                as próprias coisas no Perfil, que é onde mora todo o resto. */}
-            {row('heart', 'Frases guardadas', 'conselhos')}
             {row('settings', 'Configurações', 'config')}
             {row('lock', 'Privacidade', 'privacidade')}
           </View>

@@ -145,10 +145,13 @@ const formatDate = (timestamp: number) =>
 const juntar = (escrito: string, novo: string) => (escrito ? `${escrito} ` : '') + novo;
 
 export function JournalScreen({
+  onBack,
   comecoDaPratica,
   aoFazerExercicio,
   aoAbrirPratica,
 }: {
+  /** Volta para a tela inicial: o Diário virou tela empilhada. */
+  onBack?: () => void;
   comecoDaPratica?: string | null;
   /** Repassado ao CVV: a saída de quem não quer falar com ninguém agora. */
   aoFazerExercicio?: () => void;
@@ -502,7 +505,7 @@ export function JournalScreen({
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       style={{ flex: 1, paddingTop: insets.top }}
     >
-      <TopBar title="Diário" />
+      <TopBar title="Diário" onBack={onBack} />
 
       <ScrollView
         contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 32, gap: 16 }}
