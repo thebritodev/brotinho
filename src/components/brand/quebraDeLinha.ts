@@ -41,7 +41,7 @@ const LARGURAS: Record<string, number> = {
 const PADRAO = 0.53;
 
 /** Largura do texto em pixels, para um dado corpo de letra. */
-export function larguraDoTexto(texto: string, corpo: number): number {
+function larguraDoTexto(texto: string, corpo: number): number {
   let ems = 0;
   for (const c of texto) ems += LARGURAS[c] ?? PADRAO;
   return ems * corpo;
@@ -55,7 +55,7 @@ export function larguraDoTexto(texto: string, corpo: number): number {
  * palavra é "responsabilidade" —, e partir palavra em cartaz é pior do que uma
  * linha um pouco larga.
  */
-export function quebrarEmLinhas(texto: string, larguraMax: number, corpo: number): string[] {
+function quebrarEmLinhas(texto: string, larguraMax: number, corpo: number): string[] {
   const linhas: string[] = [];
   let atual = '';
 
@@ -84,7 +84,7 @@ export function quebrarEmLinhas(texto: string, larguraMax: number, corpo: number
  * o estrago só apareceria na imagem que alguém já postou.
  */
 export const LARGURA_DA_CAIXA = 820;
-export const FOLGA = 40;
+const FOLGA = 40;
 
 /**
  * O corpo da frase encolhe quando ela é longa.

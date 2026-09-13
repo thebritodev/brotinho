@@ -38,7 +38,7 @@ import type { AppData } from '../state/types';
  */
 
 /** A versão de envelope que este app sabe ler. Ver `json()` em `exportarDados`. */
-export const FORMATO_QUE_EU_LEIO = 1;
+const FORMATO_QUE_EU_LEIO = 1;
 
 export type MotivoDaRecusa =
   | 'cancelado'

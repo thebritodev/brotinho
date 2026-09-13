@@ -15,7 +15,7 @@ import { MOCK_TRANSCRIPTION } from '../data/content';
  *
  * Só vale em desenvolvimento — ver `isTranscriptionConfigured` logo abaixo.
  */
-export const TRANSCRIPTION_ENDPOINT = process.env.EXPO_PUBLIC_TRANSCRIPTION_URL ?? '';
+const TRANSCRIPTION_ENDPOINT = process.env.EXPO_PUBLIC_TRANSCRIPTION_URL ?? '';
 
 /**
  * O envio para servidor vale **apenas em desenvolvimento**.
@@ -30,7 +30,7 @@ export const TRANSCRIPTION_ENDPOINT = process.env.EXPO_PUBLIC_TRANSCRIPTION_URL 
  * numa build de produção o áudio não tem para onde sair, mesmo que a variável
  * esteja lá.
  */
-export const isTranscriptionConfigured = () => __DEV__ && TRANSCRIPTION_ENDPOINT.length > 0;
+const isTranscriptionConfigured = () => __DEV__ && TRANSCRIPTION_ENDPOINT.length > 0;
 
 /**
  * Dois relógios, porque são duas esperas diferentes.

@@ -27,7 +27,7 @@ import { fonts, tracos, useTema } from '../../theme';
  * sorteio do dia — o que pode levar vinte dias.
  */
 export function ConselhosGuardadosScreen({ onBack }: { onBack: () => void }) {
-  const { colors, palette, shadows } = useTema();
+  const { colors, shadows } = useTema();
   const insets = useSafeAreaInsets();
   const { data, guardarConselho } = useAppState();
   const story = useCompartilharFrase();

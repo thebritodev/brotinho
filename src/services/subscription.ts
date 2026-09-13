@@ -113,7 +113,7 @@ export function cobrancaDisponivel(): boolean {
 let configurado = false;
 
 /** Liga o SDK. Chamar mais de uma vez não faz mal. */
-export function iniciarAssinatura(): boolean {
+function iniciarAssinatura(): boolean {
   if (configurado) return true;
 
   const sdk = obterSdk();

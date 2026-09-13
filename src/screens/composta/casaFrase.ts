@@ -117,7 +117,7 @@ export function palavrasDoAlvo(alvo: string): string[] {
 }
 
 /** Iguais, do mesmo gênero, ou longas o bastante para casarem pelo começo. */
-export function mesmaPalavra(a: string, b: string): boolean {
+function mesmaPalavra(a: string, b: string): boolean {
   if (a === b) return true;
   if (mesmoRadicalComGeneroTrocado(a, b)) return true;
   if (a.length < TAMANHO_PARA_PREFIXO || b.length < TAMANHO_PARA_PREFIXO) return false;
@@ -125,7 +125,7 @@ export function mesmaPalavra(a: string, b: string): boolean {
 }
 
 /** A que carrega o sentido: a mais longa, e na dúvida a última. */
-export function palavraChave(alvoPalavras: string[]): string {
+function palavraChave(alvoPalavras: string[]): string {
   return alvoPalavras.reduce((maior, p) => (p.length >= maior.length ? p : maior), '');
 }
 

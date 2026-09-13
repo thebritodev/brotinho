@@ -104,7 +104,7 @@ export const AUSENCIA_LONGA = 3;
  * cuidou de uma terça. Crescer por volume premiaria quem despeja tudo de uma
  * vez, que é o contrário do hábito que o app quer.
  */
-export const STAGE_AT: Record<SproutStage, number> = { 1: 0, 2: 3, 3: 10 };
+const STAGE_AT: Record<SproutStage, number> = { 1: 0, 2: 3, 3: 10 };
 
 /**
  * Dias de cuidado até uma planta amadurecer e ir para o jardim.

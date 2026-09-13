@@ -1,4 +1,4 @@
-import React, { useEffect, useId, useRef } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { Animated, Easing, View, type StyleProp, type ViewStyle } from 'react-native';
 import Svg, { Circle } from 'react-native-svg';
 
@@ -297,7 +297,6 @@ export function LuzDeEstufa({
   style?: StyleProp<ViewStyle>;
 }) {
   const { tema, colors } = useTema();
-  const id = useId().replace(/[^a-zA-Z0-9]/g, '');
   const cores = LUZ[tema][tom].map(([cor, alfa]) =>
     empurrar(cor, alfa, colors.bg, FORCA[tema]),
   );

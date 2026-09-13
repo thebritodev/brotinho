@@ -2,7 +2,7 @@ import React from 'react';
 import { Pressable, Text, View } from 'react-native';
 
 import { Icon } from '../../components';
-import { fonts, radius, useTema, type Cores, type Palette, type Sombra, type Vidro } from '../../theme';
+import { fonts, radius, useTema, type Palette, type Sombra, type Vidro } from '../../theme';
 import { PLANS, PRODUTO_DO_PLANO, type PlanKey } from '../../data/onboarding';
 import { useAssinatura } from '../../state/SubscriptionProvider';
 
@@ -34,19 +34,6 @@ const planCardStyle = (
   borderWidth: selected ? 2 : 1.5,
   borderColor: selected ? palette.green500 : 'transparent',
   ...(selected ? sombra : null),
-});
-
-const planRowStyle = (vidros: Vidros, palette: Palette, selected: boolean) => ({
-  flexDirection: 'row' as const,
-  alignItems: 'center' as const,
-  justifyContent: 'space-between' as const,
-  gap: 12,
-  paddingVertical: 14,
-  paddingHorizontal: 16,
-  borderRadius: radius.md,
-  ...vidros.cartao,
-  borderWidth: selected ? 2 : 1.5,
-  borderColor: selected ? palette.green500 : 'transparent',
 });
 
 type Props = {

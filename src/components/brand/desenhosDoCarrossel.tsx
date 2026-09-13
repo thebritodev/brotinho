@@ -37,7 +37,7 @@ import { BRASA, TERRA, TERRA_CLARA, TERRA_FUNDA, TERRA_SOMBRA } from './terraDoC
  */
 
 /** O lado do quadrado dos dois desenhos. */
-export const LADO_DO_DESENHO = 60;
+const LADO_DO_DESENHO = 60;
 
 /** A sombra de chão, igual à do canteiro: sem ela o objeto flutua. */
 function Chao({ id, cy = 50, rx = 26 }: { id: string; cy?: number; rx?: number }) {

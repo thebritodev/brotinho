@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Modal, Pressable, Text, View, StyleSheet } from 'react-native';
 
 import { Button, Chip } from '../../components';
-import { radius, fonts, useTema, type Cores, type Sombras, type Vidro } from '../../theme';
+import { radius, fonts, useTema, type Sombras, type Vidro } from '../../theme';
 import { TimeWheel } from './TimeWheel';
 
 /**
@@ -11,7 +11,7 @@ import { TimeWheel } from './TimeWheel';
  * Virou função porque o objeto no topo do arquivo era montado uma vez, na
  * carga do módulo, e ficaria com a cor do tema de abertura para sempre.
  */
-export const cardStyle = (vidros: { cartao: Vidro }, shadows: Sombras) =>
+const cardStyle = (vidros: { cartao: Vidro }, shadows: Sombras) =>
   ({
     ...vidros.cartao,
     borderRadius: radius.lg,

@@ -62,7 +62,24 @@ export function MainTabs() {
    */
   const rolagemDaHome = useRef(0);
 
-  const closeSub = () => setSub(null);
+  /**
+   * Fecha a tela empilhada — e joga fora a pergunta que trouxe alguém até aqui.
+   *
+   * A pergunta e a origem valem para **uma** ida ao diário. Sem esta limpeza
+   * elas sobreviviam ao fechamento: quem compostava um pensamento, tocava em
+   * "Escrever sobre isso", lia a pergunta e voltava, encontrava a mesma
+   * pergunta esperando ao abrir o diário pelo carrossel meia hora depois — e o
+   * registro novo saía etiquetado "depois de compostar um pensamento", o que
+   * simplesmente não era verdade.
+   *
+   * O `JournalScreen` lê o começo uma vez só, ao montar, então quem apaga tem
+   * de ser quem guarda.
+   */
+  const closeSub = () => {
+    setSub(null);
+    setComecoDaPratica(null);
+    setOrigemDoRegistro(null);
+  };
 
   const abrirPratica = (alvo: { topico: string; pratica: string }) => {
     setPraticaAlvo(alvo);

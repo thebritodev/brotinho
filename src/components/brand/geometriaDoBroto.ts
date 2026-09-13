@@ -287,11 +287,6 @@ export function comoViewBox(c: Caixa): string {
   return `${n(c.x)} ${n(c.y)} ${n(c.largura)} ${n(c.altura)}`;
 }
 
-/** A caixa da planta sozinha, já no formato da `viewBox`. */
-export function viewBoxDaPlanta(stage: SproutStage, temEnfeite = false): string {
-  return comoViewBox(caixaDaPlanta(stage, temEnfeite));
-}
-
 /**
  * A largura que define a escala do mascote na tela.
  *

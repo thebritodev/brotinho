@@ -117,7 +117,7 @@ const ESTRELAS: { cx: number; cy: number; r: number }[] = [
   { cx: 116, cy: 118, r: 1.3 },
 ];
 
-export function faixaDaHora(agora: Date): Faixa {
+function faixaDaHora(agora: Date): Faixa {
   const h = agora.getHours();
   if (h >= 5 && h < 18) return 'dia';
   if (h < 21) return 'entardecer';

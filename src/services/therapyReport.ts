@@ -190,7 +190,7 @@ function buildHtml(data: AppData): string {
 }
 
 /** Gera o PDF e devolve o caminho do arquivo. */
-export async function generateTherapyPdf(data: AppData): Promise<string> {
+async function generateTherapyPdf(data: AppData): Promise<string> {
   const { uri } = await Print.printToFileAsync({ html: buildHtml(data) });
   // O PDF fica no cache até a próxima abertura do app — ver limparExportacoes.
   return comNomeDoBrotinho(uri, `resumo-${new Date().toISOString().slice(0, 10)}.pdf`);

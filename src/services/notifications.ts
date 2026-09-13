@@ -41,7 +41,7 @@ const QUANTOS_RESUMOS = 12;
  * gaveta do sistema.
  */
 export type DestinoDeNotificacao = 'diario' | 'resumo';
-export const DESTINO_KEY = 'destino';
+const DESTINO_KEY = 'destino';
 
 /**
  * Domingo de manhã — **0 = domingo**, que é a contagem do `getDay()` do
@@ -74,7 +74,7 @@ async function ensureAndroidChannel() {
   });
 }
 
-export async function requestNotificationPermission(): Promise<boolean> {
+async function requestNotificationPermission(): Promise<boolean> {
   const current = await Notifications.getPermissionsAsync();
   if (current.granted) return true;
   if (!current.canAskAgain) return false;

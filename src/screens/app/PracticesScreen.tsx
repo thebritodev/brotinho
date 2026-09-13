@@ -36,9 +36,21 @@ export function PracticesScreen({
   const retomar = ultima ? findPractice(ultima.topic, ultima.practice) : undefined;
   const temaDaUltima = ultima ? findTopic(ultima.topic) : undefined;
 
-  const repetidas = praticasMaisFeitas(data)
-    .map((r) => ({ ...r, pratica: findPractice(r.topic, r.practice), tema: findTopic(r.topic) }))
-    .filter((r) => r.pratica && r.tema);
+  /*
+    Descarta o que saiu do repertório, e descarta de um jeito que o tipo
+    acompanhe.
+
+    Uma prática pode sumir numa atualização e o histórico continuar citando
+    ela. Antes isso era um `map` seguido de `filter`, e o `filter` não estreita
+    tipo nenhum: a lista continuava podendo ter `undefined` dentro, e a tela
+    jurava que não com dois `!`. O `flatMap` só monta o item quando as duas
+    buscas acharam alguma coisa — some o `undefined`, somem os `!`.
+  */
+  const repetidas = praticasMaisFeitas(data).flatMap((r) => {
+    const pratica = findPractice(r.topic, r.practice);
+    const tema = findTopic(r.topic);
+    return pratica && tema ? [{ ...r, pratica, tema }] : [];
+  });
   const insets = useSafeAreaInsets();
   // A oferta da Home chega como estado inicial: esta tela é montada de novo a
   // cada abertura, então não há caso em que o alvo mude com ela na frente.
@@ -280,7 +292,7 @@ export function PracticesScreen({
                 <Pressable
                   key={`${r.topic}/${r.practice}`}
                   accessibilityRole="button"
-                  accessibilityLabel={`${r.pratica!.title}, feita ${r.vezes} vezes`}
+                  accessibilityLabel={`${r.pratica.title}, feita ${r.vezes} vezes`}
                   onPress={() => {
                     setTopicKey(r.topic);
                     setPracticeKey(r.practice);
@@ -297,7 +309,7 @@ export function PracticesScreen({
                   }}
                 >
                   <Text style={{ color: colors.textPrimary, fontFamily: fonts.body.bold, fontSize: 13 }}>
-                    {r.pratica!.title}
+                    {r.pratica.title}
                   </Text>
                   <Text
                     style={{ fontFamily: fonts.body.extraBold, fontSize: 12, color: palette.brown400 }}

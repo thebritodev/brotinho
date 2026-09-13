@@ -210,7 +210,7 @@ export const ESPELHO_CHECKIN: Record<string, Espelho> = {
  * A pessoa pode marcar várias. Esta ordem decide qual resposta o espelho
  * comenta — da que mais pede uma palavra para a que menos pede.
  */
-export const PRIORIDADE_TENTOU = [
+const PRIORIDADE_TENTOU = [
   'Guardo pra mim mesmo',
   'Nunca tentei nada específico',
   'Já tentei meditação ou outros apps',
@@ -218,7 +218,7 @@ export const PRIORIDADE_TENTOU = [
   'Faço terapia',
 ];
 
-export const ESPELHO_TENTOU: Record<string, Espelho> = {
+const ESPELHO_TENTOU: Record<string, Espelho> = {
   'Guardo pra mim mesmo': {
     kicker: 'Você disse que guarda pra si',
     title: 'Guardar tudo dá um alívio curto e uma conta longa.',

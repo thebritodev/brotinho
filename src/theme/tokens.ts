@@ -120,19 +120,6 @@ export const moodColors: Record<Mood, string> = {
   neutro: palette.cream200,
 };
 
-export const spacing = {
-  1: 4,
-  2: 8,
-  3: 12,
-  4: 16,
-  5: 20,
-  6: 24,
-  8: 32,
-  10: 40,
-  12: 48,
-  16: 64,
-} as const;
-
 /**
  * Os raios do redesenho.
  *
@@ -305,7 +292,7 @@ export type Sombras = { [K in keyof typeof shadows]: Sombra };
  *   sobre creme; no escuro precisam do contrário. Ver `confere-contraste.js`,
  *   que mede isso em vez de confiar no olho.
  */
-export const paletteEscura: Palette = {
+const paletteEscura: Palette = {
   // O verde escuro do traço vira o verde claro do traço: no escuro é ele que
   // desenha o contorno do broto contra o fundo.
   green900: '#B7D6C3',
@@ -351,7 +338,7 @@ export const paletteEscura: Palette = {
   slate100: '#4A525C',
 };
 
-export const coresEscuras: Cores = {
+const coresEscuras: Cores = {
   bg: '#211E1A',
   surface: '#2C2823',
   surfaceSunken: '#1A1714',
@@ -456,7 +443,7 @@ export const moodColorsFundo: Record<Mood, string> = moodColors;
  * sobre marrom escuro. Por isso a distância aqui é menor que a do tema claro,
  * e não igual.
  */
-export const moodColorsFundoEscuros: Record<Mood, string> = {
+const moodColorsFundoEscuros: Record<Mood, string> = {
   feliz: '#383124',
   leve: '#27342C',
   ansioso: '#253039',
@@ -582,7 +569,7 @@ export const vidros = {
  * A sombra em si escurece e se alonga, porque o fundo tambem escureceu: sombra
  * de marrom sobre `#211E1A` nao aparece, e a saida e preto puro com mais raio.
  */
-export const sombrasEscuras: Sombras = {
+const sombrasEscuras: Sombras = {
   sm: sombra(
     [ANEL_ESCURO, { offsetX: 0, offsetY: 18, blurRadius: 36, spreadDistance: -22, color: '#000000' }],
     { shadowColor: '#000000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.3, shadowRadius: 8, elevation: 2 },
@@ -670,7 +657,7 @@ export const tintsDosTemas = {
 
 export type TintDoTema = keyof typeof tintsDosTemas;
 
-export const tintsDosTemasEscuros: Record<TintDoTema, string> = {
+const tintsDosTemasEscuros: Record<TintDoTema, string> = {
   raiva: '#633F3A',
   procrastinacao: '#544732',
   autoestima: '#494A2C',

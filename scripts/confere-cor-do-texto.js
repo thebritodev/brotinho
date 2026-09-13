@@ -56,38 +56,70 @@ function semComentarios(texto) {
     .replace(/^[ \t]*\/\/.*$/gm, vazio);
 }
 
+/**
+ * Onde termina a tag de abertura que começa em `inicio`.
+ *
+ * Não dá para procurar o primeiro `>`: estilo é objeto, e `{{ fontSize: 14 }}`
+ * tem `>` nenhum mas tem chaves, enquanto uma seta (`onPress={() => ...}`) tem
+ * um `>` que não fecha tag nenhuma. Conta chaves e só aceita o `>` que estiver
+ * fora delas.
+ */
+function fimDaTag(texto, inicio) {
+  let chaves = 0;
+  for (let i = inicio; i < texto.length; i++) {
+    const ch = texto[i];
+    if (ch === '{') chaves += 1;
+    else if (ch === '}') chaves -= 1;
+    else if (ch === '>' && chaves <= 0) return i;
+  }
+  return -1;
+}
+
 const achados = [];
 
 for (const f of arquivos) {
   if (PERDOADOS.has(path.basename(f))) continue;
   const texto = semComentarios(fs.readFileSync(f, 'utf8'));
-  const linhas = texto.split(/\r?\n/);
 
-  for (let i = 0; i < linhas.length; i++) {
-    // `<Text` sozinho no fim da linha conta: a tag continua abaixo. A primeira
-    // versão exigia um caractere depois e deixou passar exatamente esses —
-    // achados medindo a cor na tela, não lendo o código.
-    if (!/<Text(\s|>|$)/.test(linhas[i])) continue;
+  /*
+    A profundidade, e por que ela muda o veredito.
 
-    // Junta a tag de abertura inteira, que pode ocupar várias linhas.
-    let tag = '';
-    let profundidade = 0;
-    let j = i;
-    for (; j < linhas.length && j < i + 40; j++) {
-      tag += linhas[j];
-      for (const ch of linhas[j]) {
-        if (ch === '{') profundidade += 1;
-        if (ch === '}') profundidade -= 1;
+    Um `<Text>` dentro de outro `<Text>` **herda a cor do de fora** — é assim
+    que se escreve meia frase em negrito no React Native, e é o único lugar em
+    que herança de cor existe. Cobrar cor do de dentro seria cobrar que se
+    repita o que já foi decidido uma linha acima, e a versão anterior deste
+    script cobrava: acusava `HumorComPalavra`, onde a palavra em negrito é
+    filha do texto que já tem cor.
+
+    Quem está na raiz continua sendo cobrado igual. Só o filho é perdoado, e só
+    porque o pai já respondeu por ele.
+  */
+  let profundidade = 0;
+  const passos = [...texto.matchAll(/<\/?Text(?=[\s/>]|$)/g)];
+
+  for (const passo of passos) {
+    const i = passo.index;
+    if (passo[0][1] === '/') {
+      profundidade = Math.max(0, profundidade - 1);
+      continue;
+    }
+
+    const fim = fimDaTag(texto, i);
+    const tag = fim === -1 ? texto.slice(i) : texto.slice(i, fim + 1);
+    const soZinho = /\/>\s*$/.test(tag);
+
+    if (profundidade === 0) {
+      // `color:` no estilo, ou um estilo vindo de fora por variável — nos dois
+      // casos alguém já decidiu a cor.
+      const temCor = /\bcolor\s*:/.test(tag) || /style=\{(\[|[a-zA-Z_$])/.test(tag);
+      if (!temCor) {
+        const linha = texto.slice(0, i).split(/\r?\n/).length;
+        const trecho = texto.slice(i).split(/\r?\n/)[0].trim().slice(0, 60);
+        achados.push(`${f.replace(RAIZ, 'src')}:${linha}  ${trecho}`);
       }
-      if (profundidade <= 0 && /(^|[^=])>\s*$/.test(linhas[j])) break;
     }
 
-    // `color:` no estilo, ou um estilo vindo de fora por variável — nos dois
-    // casos alguém já decidiu a cor.
-    const temCor = /\bcolor\s*:/.test(tag) || /style=\{(\[|[a-zA-Z_$])/.test(tag);
-    if (!temCor) {
-      achados.push(`${f.replace(RAIZ, 'src')}:${i + 1}  ${linhas[i].trim().slice(0, 60)}`);
-    }
+    if (!soZinho) profundidade += 1;
   }
 }
 

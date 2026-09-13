@@ -7,7 +7,6 @@ import {
   Pressable,
   Text,
   useWindowDimensions,
-  View,
 } from 'react-native';
 
 import { fonts, useTema } from '../../theme';
