@@ -179,14 +179,22 @@ A ordem, que é a ordem dos arquivos (a da 1.0.2, enviada em 10/09/2026):
 dia vem em segundo: é a novidade da 1.0.2 e a tela que mais diz, sem legenda,
 o que o app faz por alguém num dia difícil.
 
-### O que há de novo — 1.0.2
+### O que há de novo — 1.1.0
 
 ```
-• Frase do dia: uma frase por dia, desenterrada do canteiro. Guarde as que tocarem você e compartilhe nos stories.
-• A palavra exata do seu humor agora aparece no Perfil, no Diário e no resumo para a terapia.
-• Boas-vindas novas e um onboarding mais leve.
-• Vibração nos botões e vários ajustes de acabamento.
+• Tela inicial nova: cada ferramenta ganhou um cartão grande, com ilustração e um botão que diz o que acontece ao tocar.
+• Uma prática escolhida para o seu dia, logo na abertura — e a fileira de práticas recentes, para voltar de onde você parou num toque.
+• O diário mudou para a aba do Brotinho, logo depois de você dizer como está.
+• As 41 práticas agora aparecem inteiras na tela inicial, com uma ilustração para cada tema.
+• Tema claro/escuro direto no seu perfil.
 ```
+
+> Cinco linhas, e não sete: a tela do "O que há de novo" mostra três antes do
+> "mais", e quem toca em "mais" é minoria. As duas primeiras são as que a pessoa
+> vai ler.
+
+**A versão anterior desta ficha era a 1.0.2, que nunca virou build.** O último
+binário publicado é a 1.0.1, então o texto acima é o que mudou desde ela.
 
 Os tamanhos exatos aparecem na tela de upload do App Store Connect e mudam a
 cada geração de iPhone — confirme lá em vez de confiar nesta lista.
