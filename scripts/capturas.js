@@ -165,13 +165,8 @@ async function capturar(page, nome) {
   await capturar(page, '3-composta');
   await tocar(page, 'Voltar');
 
-  // 4. Diário — agora tela empilhada, aberta pelo carrossel.
-  await tocar(page, 'Diário');
-  await capturar(page, '4-diario');
-  await tocar(page, 'Voltar');
-
   /*
-    5. As práticas, que agora são a metade de baixo da tela inicial.
+    4. As práticas, que agora são a metade de baixo da tela inicial.
 
     Antes isto era a tela de Práticas, alcançada por um atalho. Com a lista dos
     treze temas na própria Home, a captura que mostra o tamanho do acervo é a
@@ -184,9 +179,20 @@ async function capturar(page, nome) {
   await page.waitForTimeout(900);
   await capturar(page, '5-praticas');
 
-  // 6. A aba do broto: o personagem, o humor e a palavra mais exata.
+  // 5. A aba do broto: o personagem, o humor e a palavra mais exata.
   await tocar(page, 'Brotinho');
   await capturar(page, '6-brotinho');
+
+  /*
+    6. O Diário, que mudou de lugar.
+
+    Ele era o primeiro cartão do carrossel da tela inicial e virou o cartão de
+    logo depois do humor, na aba do broto — por isso esta captura vem agora, e
+    não lá em cima: o caminho até ele passa por esta aba.
+  */
+  await tocar(page, 'Diário');
+  await capturar(page, '4-diario');
+  await tocar(page, 'Voltar');
 
   // 7. Resumo para a terapia
   await tocar(page, 'Perfil');

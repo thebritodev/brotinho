@@ -20,7 +20,12 @@ export { Carrossel } from './brand/Carrossel';
 export { CartaoHeroi } from './brand/CartaoHeroi';
 export { SeletorDeTema } from './brand/SeletorDeTema';
 export { FundoDaTela } from './brand/FundoDaTela';
-export { CenaDaComposta, CenaDaFrase, CenaDoDiario } from './brand/cenasDoCarrossel';
+export {
+  CenaDaComposta,
+  CenaDaFrase,
+  CenaDaPratica,
+  CenaDoDiario,
+} from './brand/cenasDoCarrossel';
 export { OndeVoceParou } from './brand/OndeVoceParou';
 export { DesenhoDaComposta, DesenhoDoDiario } from './brand/desenhosDoCarrossel';
 export { DesenhoDoTema, ehTemaDesenhado } from './brand/desenhosDosTemas';

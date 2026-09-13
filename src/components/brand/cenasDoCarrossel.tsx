@@ -12,6 +12,7 @@ import Svg, {
 } from 'react-native-svg';
 
 import { palette, tracos } from '../../theme/tokens';
+import { DesenhoDoTema } from './desenhosDosTemas';
 import { BRASA, TERRA, TERRA_CLARA, TERRA_FUNDA, TERRA_SOMBRA } from './terraDoCanteiro';
 
 /**
@@ -164,6 +165,56 @@ function Folha({
       strokeWidth={2.6}
       transform={`translate(${x} ${y}) rotate(${giro}) scale(${escala})`}
     />
+  );
+}
+
+/**
+ * Prática de hoje — a cena do tema dela, grande, com o véu por baixo.
+ *
+ * Esta não desenha nada próprio: reaproveita a cena do tema
+ * (`desenhosDosTemas`) no tamanho de cartão. É de propósito — a pessoa vê a
+ * mesma cena de "Insônia" no cartão grande, na grade de treze e na fileira de
+ * recentes, e é essa repetição que faz a lua virar o sinal de um lugar em vez
+ * de mais um desenho.
+ *
+ * Por isso ela também não usa o casco `Cena`: aquele monta um `Svg` próprio, e
+ * o desenho do tema já vem com o dele. SVG dentro de SVG não é caminho no
+ * `react-native-svg`. O que se aproveita aqui é só o véu, que é uma peça à
+ * parte justamente para poder ser usada solta assim.
+ */
+export function CenaDaPratica({
+  fundo,
+  tema,
+  altura,
+}: {
+  fundo: string;
+  tema: string;
+  /** A altura do cartão; a cena ocupa a parte de cima dela. */
+  altura: number;
+}) {
+  return (
+    <View style={{ flex: 1 }} pointerEvents="none">
+      {/*
+        A cena é maior que a janela, e a janela corta.
+
+        Desenhada inteira e centralizada, ela ficava perdida: as cenas do tema
+        põem o objeto entre 12 e 48 de uma caixa de 60, então um terço da altura
+        é folga — e, num cartão de 330, um terço de folga é o objeto flutuando
+        no meio de cem pontos de nada. Grande e cortada nas beiradas, ela ocupa
+        a faixa de cima do cartão como as outras três cenas ocupam.
+      */}
+      <View
+        style={{
+          height: altura * 0.6,
+          overflow: 'hidden',
+          alignItems: 'center',
+          justifyContent: 'center',
+        }}
+      >
+        <DesenhoDoTema tema={tema} size={altura * 0.92} />
+      </View>
+      <Veu fundo={fundo} />
+    </View>
   );
 }
 

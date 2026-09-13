@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { Modal, Pressable, ScrollView, Text, useWindowDimensions, View } from 'react-native';
+import { Modal, ScrollView, Text, useWindowDimensions, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import {
@@ -11,7 +11,7 @@ import {
   FundoDaTela,
   CartaoDoConselho,
   CenaDaComposta,
-  CenaDoDiario,
+  CenaDaPratica,
   OndeVoceParou,
   GrowthNotice,
   HarvestNotice,
@@ -25,7 +25,7 @@ import { toqueLeve } from '../../services/toque';
 import { conselhoDoDia } from '../../data/conselhos';
 import { ANCORA_RAPIDA, PRACTICE_TOPICS } from '../../data/practices';
 import { falaDaHome } from '../../data/falaDaHome';
-import { sugestaoParaOHumor } from '../../data/sugestao';
+import { praticaDeHoje } from '../../data/praticaDeHoje';
 import { useAppState } from '../../state/AppStateProvider';
 import type { Plant } from '../../state/types';
 import {
@@ -40,7 +40,7 @@ import {
   prontoParaColher,
   sproutStage,
 } from '../../state/derived';
-import { fonts, type Mood, radius, useTema } from '../../theme';
+import { fonts, type Mood, useTema } from '../../theme';
 
 /**
  * A tela inicial: o lugar de **fazer**.
@@ -59,10 +59,15 @@ import { fonts, type Mood, radius, useTema } from '../../theme';
  *
  * ## A ordem daqui
  *
- * 1. **O carrossel** com as três coisas que se faz agora: Diário, Composta e a
- *    Frase do dia.
- * 2. **As práticas**, os treze temas em grade — com uma sugestão em cima
- *    quando o humor de hoje pede alguma.
+ * 1. **O carrossel** com as três coisas que se faz agora: a prática de hoje, a
+ *    Composta e a Frase do dia.
+ * 2. **A fileira do meio**: onde a pessoa parou, ou por onde começar.
+ * 3. **As práticas**, os treze temas em grade.
+ *
+ * O Diário já foi o primeiro cartão do carrossel e mudou para a aba do broto:
+ * dizer como se está e escrever sobre isso são o mesmo gesto em dois tempos, e
+ * lá eles ficam um embaixo do outro. Ele continua alcançável daqui pela fileira
+ * do meio, que é onde ele aparece assim que for usado uma vez.
  *
  * ## O humor não mora mais aqui
  *
@@ -72,8 +77,9 @@ import { fonts, type Mood, radius, useTema } from '../../theme';
  * e o humor é uma conversa com o broto, não uma tarefa da tela de
  * ferramentas. Agora ele existe num lugar só.
  *
- * O que sobrou dele aqui é indireto: a sugestão de prática ainda olha o humor
- * de hoje, quando houver. Sem humor marcado, ela simplesmente não aparece.
+ * O que sobrou dele aqui é indireto: o cartão da prática de hoje olha o humor
+ * marcado para escolher qual oferecer, e o selo da Composta muda em dia pesado.
+ * Nenhum dos dois pergunta nada — leem o que já foi respondido na outra aba.
  *
  * As comemorações (crescer, colher) e as boas-vindas ficam aqui, e não na aba
  * do broto, porque esta é a tela que abre. Uma planta que amadureceu e espera
@@ -165,10 +171,16 @@ export function HomeScreen({
     [],
   );
 
-  const sugestao = useMemo(
-    () => sugestaoParaOHumor({ humor: humorMarcado, agora: new Date() }),
-    [humorMarcado],
-  );
+  /**
+   * A prática que o cartão do carrossel oferece hoje, e o tom do tema dela.
+   *
+   * Nunca vem vazia: sem humor marcado ela oferece retomar a última, e em quem
+   * nunca fez nenhuma, uma de estreia. Ver `praticaDeHoje` — um cartão fixo do
+   * carrossel não pode ter dia de não ter nada a dizer.
+   */
+  const oferta = useMemo(() => praticaDeHoje(data), [data]);
+  const tomDaPratica =
+    (tintsDosTemas as Record<string, string | undefined>)[oferta.topico] ?? palette.green100;
 
   /**
    * A altura dos três cartões grandes.
@@ -188,8 +200,23 @@ export function HomeScreen({
    * data mostra quanto leva. Ver `PARA_COMECAR` e `OndeVoceParou`.
    */
   const visitados = useMemo(() => ondeVoceParou(data), [data]);
-  const estreando = visitados.length === 0;
-  const fileira = estreando ? PARA_COMECAR : visitados;
+
+  /*
+    A prática do cartão grande não aparece de novo na fileira logo abaixo.
+
+    Quando a oferta vem de "continuar", ela é exatamente a última feita — ou
+    seja, o primeiro item da fileira. Sem este filtro, a mesma prática, com o
+    mesmo desenho e o mesmo nome, aparecia duas vezes em quinze centímetros de
+    tela, e a fileira passava a parecer eco do cartão em vez de outra oferta.
+  */
+  const semAOferta = (lista: Recente[]) =>
+    lista.filter(
+      (i) => !(i.tipo === 'pratica' && i.topico === oferta.topico && i.pratica === oferta.pratica),
+    );
+
+  const outrosLugares = semAOferta(visitados);
+  const estreando = outrosLugares.length === 0;
+  const fileira = estreando ? semAOferta(PARA_COMECAR) : outrosLugares;
 
   const voltarPara = (item: Recente) => {
     if (item.tipo === 'composta') return onOpenComposta();
@@ -207,9 +234,9 @@ export function HomeScreen({
    * O caminho do meio é este: o selo é fixo, mas o **texto** é o que for
    * verdade agora. Nenhum deles é um "Recomendado" que não recomenda nada:
    *
-   * - **Diário** — "fim do dia" depois das 18h de quem ainda não escreveu,
-   *   porque "o que passou hoje" só faz sentido quando o hoje já passou; "já
-   *   escrito hoje" para quem escreveu; "recomendado" no resto do tempo.
+   * - **Prática de hoje** — "para hoje" quando a escolha veio do humor de
+   *   hoje, "continuar" quando é a última que ela fez, "para começar" em quem
+   *   nunca fez nenhuma. Ver `praticaDeHoje`.
    * - **Composta** — "para agora" em dia de humor pesado, que é o dia em que
    *   ela serve; "30 segundos" no resto, que é o custo dela e é o que costuma
    *   decidir se alguém entra.
@@ -228,15 +255,8 @@ export function HomeScreen({
     [data, today],
   );
 
-  const escreveuHoje = data.journal.some((e) => dayKey(e.createdAt) === today);
   const diaPesado = !!humorMarcado && DIA_PESADO.includes(humorMarcado);
-  const fimDoDia = new Date().getHours() >= 18;
   const seloDaComposta = diaPesado ? 'para agora' : '30 segundos';
-  const seloDoDiario = escreveuHoje
-    ? 'já escrito hoje'
-    : fimDoDia
-      ? 'fim do dia'
-      : 'recomendado';
 
   /*
     A frase de hoje, e se ela já foi desenterrada. `conselhoDoDia` é pura e
@@ -409,20 +429,31 @@ export function HomeScreen({
         {voltando && <VoltaCard dias={ausente} />}
 
         {/*
-          As três coisas que se faz agora. As que olham para trás — jardim,
-          valores, frases guardadas — moram na aba do broto.
+          As três coisas que se faz agora.
+
+          O Diário saiu daqui e foi para a aba do broto: dizer como se está e
+          escrever sobre isso são o mesmo gesto em dois tempos, e lá eles ficam
+          um embaixo do outro. Ver `BrotinhoScreen`.
+
+          No lugar dele entrou a prática de hoje, que era uma pílula pequena
+          acima da grade e quase nunca aparecia. Os três cartões passam a ser a
+          mesma coisa em três formatos: uma ação de agora, escolhida para hoje.
+          As que olham para trás — jardim, valores, frases guardadas — continuam
+          na aba do broto.
         */}
-        <Carrossel rotulos={['Diário', 'Composta', 'Frase do dia']}>
+        <Carrossel rotulos={['Prática de hoje', 'Composta', 'Frase do dia']}>
           <CartaoHeroi
             altura={alturaDoHeroi}
-            fundo={palette.cream200}
-            cena={<CenaDoDiario fundo={palette.cream200} />}
-            selo={seloDoDiario}
-            titulo="Diário"
-            linha="Escreva ou fale o que passou hoje. Não sai do seu aparelho."
-            acao="Escrever agora"
-            onPress={onOpenDiario}
-            label="Diário: escrever ou falar o que passou hoje"
+            fundo={tomDaPratica}
+            cena={
+              <CenaDaPratica fundo={tomDaPratica} tema={oferta.topico} altura={alturaDoHeroi} />
+            }
+            selo={oferta.selo}
+            titulo={oferta.titulo}
+            linha={`${oferta.convite} ${oferta.duracao}, guiada pelo app.`}
+            acao="Fazer agora"
+            onPress={() => onOpenPractices({ topico: oferta.topico, pratica: oferta.pratica })}
+            label={`${oferta.titulo}: ${oferta.duracao}`}
           />
 
           <CartaoHeroi
@@ -519,53 +550,6 @@ export function HomeScreen({
               {quantasPraticas} exercícios em {PRACTICE_TOPICS.length} temas, de ansiedade a luto
             </Text>
           </View>
-
-          {/*
-            A sugestão do dia, quando o humor pede uma.
-
-            Ela vem antes da lista porque quem está mal não deveria ter de
-            escolher entre treze portas — escolher é justamente o que custa
-            nessa hora. Some sozinha quando o humor não pede nada; ver
-            `data/sugestao.ts`.
-          */}
-          {!!sugestao && (
-            <Pressable
-              accessibilityRole="button"
-              accessibilityLabel={`${sugestao.convite} ${sugestao.titulo}`}
-              onPress={() =>
-                onOpenPractices({ topico: sugestao.topico, pratica: sugestao.pratica })
-              }
-              style={({ pressed }) => ({
-                backgroundColor: colors.primarySoft,
-                borderRadius: radius.lg,
-                paddingVertical: 14,
-                paddingHorizontal: 16,
-                flexDirection: 'row',
-                alignItems: 'center',
-                gap: 12,
-                opacity: pressed ? 0.85 : 1,
-              })}
-            >
-              <Icon name="droplet" size={20} color={colors.primaryStrong} />
-              <View style={{ flex: 1, gap: 2 }}>
-                <Text
-                  style={{ fontFamily: fonts.body.regular, fontSize: 13, color: palette.brown700 }}
-                >
-                  {sugestao.convite}
-                </Text>
-                <Text
-                  style={{
-                    fontFamily: fonts.body.extraBold,
-                    fontSize: 15,
-                    color: colors.primaryStrong,
-                  }}
-                >
-                  {sugestao.titulo}
-                </Text>
-              </View>
-              <Icon name="chevronRight" color={colors.primaryStrong} />
-            </Pressable>
-          )}
 
           {/*
             Treze em duas colunas. O último fica sozinho na fileira e continua

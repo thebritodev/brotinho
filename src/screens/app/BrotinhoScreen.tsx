@@ -16,6 +16,8 @@ import {
   BalaoDoBroto,
   Button,
   Card,
+  CartaoHeroi,
+  CenaDoDiario,
   CrossedCard,
   HumorNoTempo,
   Icon,
@@ -91,6 +93,23 @@ export function BrotinhoScreen({
   const humorMarcado = registroDeHoje?.mood ?? null;
   const mood = humorMarcado ?? 'neutro';
   const stage = sproutStage(data);
+
+  /** A mesma medida dos cartões do carrossel da tela inicial. */
+  const alturaDoHeroi = Math.round(Math.min(Math.max(320, width) * 0.84, 330));
+
+  /**
+   * O selo do cartão do Diário.
+   *
+   * Mesma regra dos selos da tela inicial: fixo, com o texto sendo o que for
+   * verdade agora. "Fim do dia" depois das 18h de quem ainda não escreveu,
+   * porque "o que passou hoje" só faz sentido quando o hoje já passou.
+   */
+  const escreveuHoje = data.journal.some((e) => dayKey(e.createdAt) === today);
+  const seloDoDiario = escreveuHoje
+    ? 'já escrito hoje'
+    : new Date().getHours() >= 18
+      ? 'fim do dia'
+      : 'recomendado';
 
   /* O broto cabe maior aqui do que cabia na tela inicial: esta tela não
      precisa entregar mais nada na primeira dobra. */
@@ -227,6 +246,31 @@ export function BrotinhoScreen({
             />
           )}
         </View>
+
+        {/*
+          O Diário, logo depois de dizer como está.
+
+          Ele já foi o primeiro cartão do carrossel da tela inicial e veio para
+          cá por causa desta ordem: marcar o humor e escrever sobre ele são o
+          mesmo gesto em dois tempos — "hoje estou ansioso" e, na sequência,
+          "escrever sobre isso". Na tela inicial os dois estavam a uma aba de
+          distância um do outro.
+
+          Vem **antes** dos cartões de padrão e da fita de humor de propósito:
+          daqui para baixo a tela olha para trás, e escrever é a única coisa
+          desta aba que se faz agora.
+        */}
+        <CartaoHeroi
+          altura={alturaDoHeroi}
+          fundo={palette.cream200}
+          cena={<CenaDoDiario fundo={palette.cream200} />}
+          selo={seloDoDiario}
+          titulo="Diário"
+          linha="Escreva ou fale o que passou hoje. Não sai do seu aparelho."
+          acao="Escrever agora"
+          onPress={onOpenDiario}
+          label="Diário: escrever ou falar o que passou hoje"
+        />
 
         {/* Um reencontro por vez: empilhados, os dois viram uma seção de
             nostalgia. O pensamento atravessado ganha por ser o mais raro. */}
