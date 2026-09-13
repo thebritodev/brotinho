@@ -1,8 +1,18 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import { Pressable, ScrollView, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { Card, Icon, Sprout, StatRow, Switch, TopBar } from '../../components';
+import {
+  Card,
+  Icon,
+  type IconName,
+  SeletorDeTema,
+  Sprout,
+  StatRow,
+  Switch,
+  TopBar,
+} from '../../components';
+import { pedirAvaliacaoAPedido } from '../../services/pedirAvaliacao';
 import { useAppState } from '../../state/AppStateProvider';
 import { caringSince, fazTerapia, sproutStage, stats } from '../../state/derived';
 import { fonts, useTema } from '../../theme';
@@ -23,19 +33,51 @@ export function ProfileScreen({ name, onNavigate }: Props) {
   const emTerapia = fazTerapia(data);
   const since = caringSince(data);
 
+  /**
+   * O pedido de avaliação, que morava dentro de Configurações › Sobre.
+   *
+   * Três toques até um botão cujo trabalho é acontecer num impulso. Aqui, na
+   * aba da pessoa, fica a um — e continua sendo pedido, não emboscada: o modal
+   * da loja só abre em quem tocar. Ver `pedirAvaliacao`.
+   */
+  const [avisoAvaliacao, setAvisoAvaliacao] = useState<string | null>(null);
+  const tocarAvaliar = async () => {
+    setAvisoAvaliacao(null);
+    if (!(await pedirAvaliacaoAPedido())) {
+      setAvisoAvaliacao('Não consegui abrir a loja a partir daqui.');
+    }
+  };
+
   const row = (
-    icon: 'settings' | 'lock',
+    icon: IconName,
     label: string,
-    screen: SubScreen,
+    aoTocar: () => void,
+    hint?: string | null,
   ) => (
     <Pressable
       accessibilityRole="button"
       accessibilityLabel={label}
-      onPress={() => onNavigate(screen)}
+      onPress={aoTocar}
       style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}
     >
       <Icon name={icon} color={palette.brown700} />
-      <Text style={{ color: colors.textPrimary, flex: 1, fontFamily: fonts.body.bold, fontSize: 15 }}>{label}</Text>
+      <View style={{ flex: 1 }}>
+        <Text style={{ color: colors.textPrimary, fontFamily: fonts.body.bold, fontSize: 15 }}>
+          {label}
+        </Text>
+        {!!hint && (
+          <Text
+            style={{
+              fontFamily: fonts.body.regular,
+              fontSize: 12,
+              color: palette.brown400,
+              marginTop: 2,
+            }}
+          >
+            {hint}
+          </Text>
+        )}
+      </View>
       <Icon name="chevronRight" color={palette.brown400} />
     </Pressable>
   );
@@ -93,6 +135,19 @@ export function ProfileScreen({ name, onNavigate }: Props) {
           </View>
         </Card>
 
+        {/*
+          O tema aqui, e não em Configurações.
+
+          É a coisa que a pessoa quer trocar **agora**, quando a tela está clara
+          demais na cama, e estava a três toques: Perfil, Configurações, rolar
+          até "Aparência". Nesta aba fica a um. O seletor é um componente só —
+          ver `SeletorDeTema` — porque já morou em dois lugares e as duas cópias
+          começaram a divergir no espaçamento.
+        */}
+        <Card>
+          <SeletorDeTema />
+        </Card>
+
         <Card>
           <View style={{ gap: 16 }}>
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
@@ -106,8 +161,14 @@ export function ProfileScreen({ name, onNavigate }: Props) {
                 onChange={(reminders) => updateSettings({ reminders })}
               />
             </View>
-            {row('settings', 'Configurações', 'config')}
-            {row('lock', 'Privacidade', 'privacidade')}
+            {row(
+              'star',
+              'Avaliar o Brotinho',
+              () => void tocarAvaliar(),
+              avisoAvaliacao ?? 'Ajuda outras pessoas a acharem o app',
+            )}
+            {row('settings', 'Configurações', () => onNavigate('config'))}
+            {row('lock', 'Privacidade', () => onNavigate('privacidade'))}
           </View>
         </Card>
       </ScrollView>

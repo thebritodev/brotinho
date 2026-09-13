@@ -4,14 +4,13 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Card, Icon, ScreenTransition, Switch, TopBar, type IconName } from '../../components';
 import { useAppState } from '../../state/AppStateProvider';
-import { fonts, radius, useTema } from '../../theme';
+import { fonts, useTema } from '../../theme';
 import { AboutScreen, APP_VERSION } from './AboutScreen';
 import { MyDataScreen } from './MyDataScreen';
 import { MyValuesScreen } from './MyValuesScreen';
 import { PrivacyPolicyScreen } from './PrivacyPolicyScreen';
 import { RemindersScreen } from './RemindersScreen';
 import { enviarFeedback } from '../../services/feedback';
-import { pedirAvaliacaoAPedido } from '../../services/pedirAvaliacao';
 import { useBotaoVoltar } from '../../navigation/useBotaoVoltar';
 
 function Row({
@@ -85,7 +84,7 @@ function Section({ title, children }: { title: string; children: React.ReactNode
 type Detalhe = 'dados' | 'valores' | 'sobre' | 'politica' | 'lembretes';
 
 export function SettingsScreen({ onBack }: { onBack: () => void }) {
-  const { colors, palette } = useTema();
+  const { palette } = useTema();
   const insets = useSafeAreaInsets();
   const { data, updateSettings } = useAppState();
   const s = data.settings;
@@ -126,22 +125,6 @@ export function SettingsScreen({ onBack }: { onBack: () => void }) {
       </ScreenTransition>
     );
 
-  const [avisoAvaliacao, setAvisoAvaliacao] = useState<string | null>(null);
-
-  /**
-   * O "depois" que o onboarding promete.
-   *
-   * O passo da avaliação diz, para quem recusa, que o botão continua aqui. Sem
-   * esta linha aquilo era uma frase gentil e falsa — e a pessoa que voltasse
-   * procurando não acharia nada.
-   */
-  const tocarAvaliar = async () => {
-    setAvisoAvaliacao(null);
-    if (!(await pedirAvaliacaoAPedido())) {
-      setAvisoAvaliacao('Não consegui abrir a loja a partir daqui.');
-    }
-  };
-
   const tocarFeedback = async () => {
     const r = await enviarFeedback();
     if (r === 'sem-destinatario') {
@@ -169,66 +152,6 @@ export function SettingsScreen({ onBack }: { onBack: () => void }) {
           >
             {chevron}
           </Row>
-        </Section>
-
-        <Section title="Aparência">
-          {/*
-            Três estados, e não uma chave.
-
-            "Automático" é o padrão porque a pessoa já escolheu isso uma vez, no
-            aparelho. Os fixos existem porque aqui o caso inverso é comum:
-            telefone no claro e diário no escuro — o app é lido de madrugada
-            mais do que a maioria.
-          */}
-          <View style={{ gap: 10 }}>
-            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
-              <Icon name="moon" color={palette.brown700} />
-              <Text
-                style={{ flex: 1, color: colors.textPrimary, fontFamily: fonts.body.bold, fontSize: 15 }}
-              >
-                Tema
-              </Text>
-            </View>
-            <View style={{ flexDirection: 'row', gap: 8 }}>
-              {(
-                [
-                  ['sistema', 'Automático'],
-                  ['claro', 'Claro'],
-                  ['escuro', 'Escuro'],
-                ] as const
-              ).map(([valor, rotulo]) => {
-                const ativo = data.settings.tema === valor;
-                return (
-                  <Pressable
-                    key={valor}
-                    accessibilityRole="button"
-                    accessibilityLabel={`Tema ${rotulo}`}
-                    accessibilityState={{ selected: ativo }}
-                    onPress={() => updateSettings({ tema: valor })}
-                    style={{
-                      flex: 1,
-                      paddingVertical: 9,
-                      borderRadius: radius.pill,
-                      borderWidth: 1.5,
-                      alignItems: 'center',
-                      borderColor: ativo ? colors.primaryStrong : colors.border,
-                      backgroundColor: ativo ? colors.primarySoft : colors.surface,
-                    }}
-                  >
-                    <Text
-                      style={{
-                        fontFamily: fonts.body.bold,
-                        fontSize: 13,
-                        color: ativo ? colors.primaryStrong : palette.brown700,
-                      }}
-                    >
-                      {rotulo}
-                    </Text>
-                  </Pressable>
-                );
-              })}
-            </View>
-          </View>
         </Section>
 
         <Section title="Sinais do app">
@@ -290,14 +213,6 @@ export function SettingsScreen({ onBack }: { onBack: () => void }) {
             label="Sobre o Brotinho"
             hint={`Versão ${APP_VERSION}`}
             onPress={() => setDetalhe('sobre')}
-          >
-            {chevron}
-          </Row>
-          <Row
-            icon="star"
-            label="Avaliar o Brotinho"
-            hint={avisoAvaliacao ?? 'Ajuda outras pessoas a acharem o app'}
-            onPress={tocarAvaliar}
           >
             {chevron}
           </Row>

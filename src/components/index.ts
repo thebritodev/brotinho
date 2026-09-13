@@ -18,6 +18,7 @@ export { BalaoDoBroto } from './brand/BalaoDoBroto';
 export { BoasVindas } from './brand/BoasVindas';
 export { Carrossel } from './brand/Carrossel';
 export { CartaoHeroi } from './brand/CartaoHeroi';
+export { SeletorDeTema } from './brand/SeletorDeTema';
 export { FundoDaTela } from './brand/FundoDaTela';
 export { CenaDaComposta, CenaDaFrase, CenaDoDiario } from './brand/cenasDoCarrossel';
 export { OndeVoceParou } from './brand/OndeVoceParou';

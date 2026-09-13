@@ -50,13 +50,22 @@ type Tema =
 const CONTORNO = tracos.contorno;
 const TRACO = 1.8;
 
+/*
+  Estas cenas não têm sombra de chão, e é decisão, não esquecimento.
+
+  Cada uma teve uma elipse cinza embaixo do objeto — a sombra existia para ele
+  não flutuar dentro do quadradinho de 46 pontos em que a cena vivia. Esse
+  quadradinho acabou: hoje o desenho é grande e **atravessa a borda de baixo do
+  cartão**, e o que era apoio virou defeito. A sombra caía fora do cartão, sobre
+  o creme da página, e ficava sendo a única parte da ilustração pousada no nada
+  — treze manchas cinzas soltas entre uma fileira e outra.
+
+  Sem ela o objeto não flutua: quem o apoia agora é a borda do cartão que ele
+  cruza. Ver `SOBRA_DO_DESENHO`, em `PracticeTopicCard`.
+*/
+
 /** A folha do broto, para reaproveitar nas cenas que têm planta. */
 const FOLHA = 'M0 0 C -6 -14 -18 -26 -32 -24 C -42 -22 -44 -6 -34 4 C -22 16 -8 12 0 0 Z';
-
-/** A sombra no chão: sem ela o objeto flutua dentro do quadrado. */
-function Chao({ cy = 50, rx = 17 }: { cy?: number; rx?: number }) {
-  return <Ellipse cx={30} cy={cy} rx={rx} ry={3.6} fill={CONTORNO} opacity={0.13} />;
-}
 
 function Ansiedade() {
   return (
@@ -119,7 +128,6 @@ function Luto() {
           <Stop offset="1" stopColor={TERRA_SOMBRA} />
         </LinearGradient>
       </Defs>
-      <Chao cy={50} rx={20} />
       {/*
         Uma folha caída, grande, e o galho de onde ela veio.
 
@@ -176,7 +184,6 @@ function Insonia() {
 function Estresse() {
   return (
     <>
-      <Chao cy={49} rx={19} />
       {/*
         Uma pedra pesada, e uma folha que continua saindo debaixo dela.
 
@@ -207,7 +214,6 @@ function Estresse() {
 function Solidao() {
   return (
     <>
-      <Chao cy={50} rx={20} />
       {/* Um vaso com broto e o contorno vazio de outro: a falta, desenhada. */}
       <G>
         <Path
@@ -244,7 +250,6 @@ function Raiva() {
         </RadialGradient>
       </Defs>
       <Ellipse cx={30} cy={44} rx={16} ry={9} fill={`url(#brasa-${id})`} />
-      <Chao cy={50} rx={14} />
       {/* Chama: o corpo antes da palavra. */}
       <Path
         d="M30 10 C34 19 42 23 42 32 C42 41 36 47 30 47 C24 47 18 41 18 32 C18 27 22 23 25 18 C26 22 28 23 30 10 Z"
@@ -264,7 +269,6 @@ function Raiva() {
 function Procrastinacao() {
   return (
     <>
-      <Chao cy={51} rx={14} />
       {/* Ampulheta: o tempo que passa enquanto se adia. */}
       <Path
         d="M19 15 L41 15 L32 30 L41 45 L19 45 L28 30 Z"
@@ -286,7 +290,6 @@ function Procrastinacao() {
 function Autoestima() {
   return (
     <>
-      <Chao cy={52} rx={12} />
       {/* Espelho: olhar para si sem inventar um rosto para a pessoa. */}
       <Path d="M27 44 L33 44 L34 50 L26 50 Z" fill={palette.brown700} stroke={CONTORNO} strokeWidth={1.4} strokeLinejoin="round" />
       <Ellipse cx={30} cy={27} rx={14} ry={17} fill={palette.amber100} stroke={palette.brown700} strokeWidth={3.4} />
@@ -298,7 +301,6 @@ function Autoestima() {
 function Culpa() {
   return (
     <>
-      <Chao cy={51} rx={16} />
       {/* Uma trouxa amarrada: o peso que se carrega sem abrir. */}
       <Path
         d="M20 28 C20 23 24 21 30 21 C36 21 40 23 40 28 L44 45 C44 48 39 49.5 30 49.5 C21 49.5 16 48 16 45 Z"
@@ -322,7 +324,6 @@ function Culpa() {
 function Comparacao() {
   return (
     <>
-      <Chao cy={49} rx={20} />
       {/* Dois brotos de tamanhos diferentes, na mesma terra. */}
       <Path d="M8 46 C8 42 15 40 30 40 C45 40 52 42 52 46 Z" fill={TERRA} />
       <G>
@@ -360,7 +361,6 @@ function Foco() {
 function Gratidao() {
   return (
     <>
-      <Chao cy={51} rx={17} />
       {/* Cesta com o que foi colhido: o que já está aqui. */}
       <Path d="M18 33 C18 24 42 24 42 33" stroke={palette.brown700} strokeWidth={2.4} fill="none" strokeLinecap="round" />
       {[
