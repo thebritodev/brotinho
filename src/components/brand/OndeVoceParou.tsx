@@ -6,7 +6,7 @@ import type { Recente } from '../../state/derived';
 import { fonts, radius, useTema } from '../../theme';
 import { DesenhoDaComposta, DesenhoDoDiario } from './desenhosDoCarrossel';
 import { DesenhoDoTema, ehTemaDesenhado } from './desenhosDosTemas';
-import { SOBRA_DO_DESENHO } from './PracticeTopicCard';
+import { SOBRA_DO_DESENHO, TAMANHO_DO_DESENHO } from './PracticeTopicCard';
 
 /**
  * "Onde você parou" — a fileira de volta ao que já foi feito.
@@ -99,7 +99,7 @@ export function OndeVoceParou({ itens, margem, onAbrir }: Props) {
     if (item.tipo === 'composta') {
       return {
         titulo: 'Composta',
-        cena: <DesenhoDaComposta size={ALTURA - 8} />,
+        cena: <DesenhoDaComposta size={TAMANHO_DO_DESENHO - 8} />,
         tom: palette.brown100,
         label: item.quando ? 'Compostar um pensamento de novo' : 'Compostar um pensamento',
       };
@@ -107,7 +107,7 @@ export function OndeVoceParou({ itens, margem, onAbrir }: Props) {
     if (item.tipo === 'diario') {
       return {
         titulo: 'Diário',
-        cena: <DesenhoDoDiario size={ALTURA - 8} />,
+        cena: <DesenhoDoDiario size={TAMANHO_DO_DESENHO - 8} />,
         tom: palette.cream300,
         label: 'Escrever no diário',
       };
@@ -118,7 +118,7 @@ export function OndeVoceParou({ itens, margem, onAbrir }: Props) {
       /* Sem cena para o tema, o quadrado fica vazio — melhor a cor sozinha do
          que um ícone genérico brigando com as cenas dos vizinhos. */
       cena: ehTemaDesenhado(item.topico) ? (
-        <DesenhoDoTema tema={item.topico} size={ALTURA} />
+        <DesenhoDoTema tema={item.topico} size={TAMANHO_DO_DESENHO} />
       ) : null,
       tom: tomDoTema(item.topico),
       label: item.quando

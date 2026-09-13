@@ -80,7 +80,21 @@ const ESCALA = 0.76;
 const CENTRO_DO_SIMBOLO = 52.4;
 const ENCOLHER = `translate(50 50) scale(${ESCALA}) translate(-50 -${CENTRO_DO_SIMBOLO})`;
 
-export function BrotinhoMark({ size = 32 }: { size?: number }) {
+export function BrotinhoMark({
+  size = 32,
+  disco = MARK_DISCO,
+}: {
+  size?: number;
+  /**
+   * A cor do disco atrás do símbolo, ou `null` para não desenhar disco nenhum.
+   *
+   * `null` existe para a barra de baixo: lá o disco precisa **mudar de cor com
+   * animação** ao virar a aba aberta, e cor animada não entra num `Circle` de
+   * SVG sem transformar o desenho inteiro em componente animado. Sem o disco,
+   * quem pinta o fundo é a `View` de trás — que anima como qualquer outra.
+   */
+  disco?: string | null;
+}) {
   const folha = (lado: 1 | -1) => (
     <Ellipse
       cx={lado === 1 ? FOLHA.cx : 100 - FOLHA.cx}
@@ -96,7 +110,7 @@ export function BrotinhoMark({ size = 32 }: { size?: number }) {
 
   return (
     <Svg viewBox="0 0 100 100" width={size} height={size}>
-      <Circle cx={50} cy={50} r={49} fill={MARK_DISCO} />
+      {!!disco && <Circle cx={50} cy={50} r={49} fill={disco} />}
       <G transform={ENCOLHER}>
         {folha(1)}
         {folha(-1)}

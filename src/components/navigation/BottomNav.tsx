@@ -1,5 +1,5 @@
-import React from 'react';
-import { Pressable, Text, View } from 'react-native';
+import React, { useEffect, useRef, useState } from 'react';
+import { AccessibilityInfo, Animated, Easing, Pressable, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { fonts, useTema } from '../../theme';
@@ -62,6 +62,55 @@ type Props = {
 };
 
 /**
+ * As três animações da barra, e por que elas existem.
+ *
+ * Trocar de aba era instantâneo e mudo: o ícone mudava de cor e pronto. Num app
+ * cujo personagem é uma planta, a barra é o único lugar que se toca em toda
+ * sessão — e era o mais parado de todos.
+ *
+ * Cada uma diz uma coisa diferente sobre o destino:
+ *
+ * - **Brotinho** balança ao vento quando a aba abre. Ele é uma planta; planta
+ *   responde ao ar. O giro sai do pé do caule (`transformOrigin`), e não do
+ *   meio do ícone, senão o desenho inteiro gira como uma peça de relógio em vez
+ *   de vergar como um talo.
+ * - **Início** enche de verde. O disco fica num verde apagado enquanto a aba
+ *   está fechada e é preenchido pelo verde cheio ao abrir, crescendo do meio
+ *   para fora. É a única das três que muda o estado de repouso, e por isso a
+ *   única que não precisa que ninguém esteja olhando na hora.
+ * - **Perfil** dá um tranco curto **ao toque**, não ao abrir: não há nada de
+ *   vivo naquele ícone para justificar movimento contínuo, e o que ele confirma
+ *   é o toque.
+ *
+ * ## Movimento reduzido
+ *
+ * Nenhuma delas roda para quem pediu menos movimento no sistema. A troca de cor
+ * continua acontecendo — ela é informação, não enfeite —, só que de uma vez.
+ */
+
+/** O quanto o broto verga, em graus, no pico da balançada. */
+const VENTO = 7;
+/** O tranco do perfil é mais curto e mais rápido: é resposta a toque. */
+const TRANCO = 9;
+
+/**
+ * Um vai-e-vem que morre no zero, no ritmo de folha ao vento.
+ *
+ * O valor anda de 1 a -1 e volta; quantos graus isso vira é decisão de quem
+ * desenha, não daqui. Assim o mesmo movimento serve para o broto vergando sete
+ * graus e para o tranco de nove do perfil.
+ */
+function balancar(valor: Animated.Value, duracao: number) {
+  valor.setValue(0);
+  Animated.sequence([
+    Animated.timing(valor, { toValue: 1, duration: duracao * 0.3, easing: Easing.out(Easing.quad), useNativeDriver: true }),
+    Animated.timing(valor, { toValue: -1, duration: duracao * 0.34, easing: Easing.inOut(Easing.quad), useNativeDriver: true }),
+    Animated.timing(valor, { toValue: 0.45, duration: duracao * 0.22, easing: Easing.inOut(Easing.quad), useNativeDriver: true }),
+    Animated.timing(valor, { toValue: 0, duration: duracao * 0.14, easing: Easing.out(Easing.quad), useNativeDriver: true }),
+  ]).start();
+}
+
+/**
  * BottomNav — três destinos, só ícones.
  *
  * Sem rótulos, o único sinal de qual aba está aberta é a cor; por isso os
@@ -72,23 +121,79 @@ export function BottomNav({ active = 'home', onChange }: Props) {
   const { colors, palette, shadows } = useTema();
   const insets = useSafeAreaInsets();
 
+  const [menosMovimento, setMenosMovimento] = useState(false);
+  useEffect(() => {
+    let vivo = true;
+    void AccessibilityInfo.isReduceMotionEnabled().then((r) => vivo && setMenosMovimento(r));
+    const ouvinte = AccessibilityInfo.addEventListener('reduceMotionChanged', setMenosMovimento);
+    return () => {
+      vivo = false;
+      ouvinte.remove();
+    };
+  }, []);
+
+  /** Um valor por ícone que se mexe: -1 a 1, convertido em graus abaixo. */
+  const vento = useRef(new Animated.Value(0)).current;
+  const tranco = useRef(new Animated.Value(0)).current;
+  /** 0 disco apagado, 1 disco cheio de verde. */
+  const enchimento = useRef(new Animated.Value(active === 'home' ? 1 : 0)).current;
+
+  /*
+    O broto balança quando a aba **passa a ser** a dele, e não a cada
+    renderização: sem esta guarda, qualquer mudança de estado do app faria a
+    folha tremer sozinha no canto da tela.
+  */
+  useEffect(() => {
+    if (active !== 'broto' || menosMovimento) return;
+    balancar(vento, 900);
+  }, [active, menosMovimento, vento]);
+
+  useEffect(() => {
+    const cheio = active === 'home';
+    if (menosMovimento) return enchimento.setValue(cheio ? 1 : 0);
+    Animated.timing(enchimento, {
+      toValue: cheio ? 1 : 0,
+      duration: cheio ? 340 : 200,
+      easing: cheio ? Easing.out(Easing.back(1.4)) : Easing.out(Easing.quad),
+      useNativeDriver: true,
+    }).start();
+  }, [active, menosMovimento, enchimento]);
+
+  const giro = (valor: Animated.Value, graus: number) =>
+    valor.interpolate({ inputRange: [-1, 1], outputRange: [`-${graus}deg`, `${graus}deg`] });
+
   const lateral = (t: SideTab) => {
     const ativa = active === t.key;
+    const doBroto = t.key === 'broto';
     return (
       <Pressable
         key={t.key}
         accessibilityRole="tab"
         accessibilityLabel={t.label}
         accessibilityState={{ selected: ativa }}
-        onPress={() => onChange?.(t.key)}
+        onPress={() => {
+          /* O perfil responde ao toque, inclusive quando já está aberto: é
+             confirmação do gesto, não anúncio de destino novo. */
+          if (!doBroto && !menosMovimento) balancar(tranco, 420);
+          onChange?.(t.key);
+        }}
         style={{ flex: 1, alignItems: 'center', justifyContent: 'center', minHeight: 48, gap: 3 }}
       >
-        <Icon
-          name={t.icon}
-          size={26}
-          color={ativa ? colors.primaryStrong : colors.textSecondary}
-          strokeWidth={ativa ? 2.4 : 2}
-        />
+        <Animated.View
+          style={{
+            /* O broto verga a partir do pé do caule; o perfil gira no meio,
+               que é onde fica o pescoço do bonequinho. */
+            transformOrigin: doBroto ? 'bottom center' : 'center',
+            transform: [{ rotate: giro(doBroto ? vento : tranco, doBroto ? VENTO : TRANCO) }],
+          }}
+        >
+          <Icon
+            name={t.icon}
+            size={26}
+            color={ativa ? colors.primaryStrong : colors.textSecondary}
+            strokeWidth={ativa ? 2.4 : 2}
+          />
+        </Animated.View>
         {/*
           O rótulo é visível, e não só para o leitor de tela.
 
@@ -223,28 +328,56 @@ export function BottomNav({ active = 'home', onChange }: Props) {
             borderRadius: CENTER_SIZE / 2,
             alignItems: 'center',
             justifyContent: 'center',
-            // O disco do símbolo cobre o botão inteiro. A cor por baixo é a
-            // mesma dele: o desenho é um pouco menor que o quadrado do SVG, e
-            // sem isso sobraria um fio branco na borda.
-            backgroundColor: MARK_DISCO,
-            overflow: 'hidden',
             /*
-              O disco não recua mais quando a aba está fechada.
+              O disco em repouso é o verde **apagado**.
 
-              Ele recuava a 0,55, e o pêssego misturado com o creme do fundo
-              dava #F4D0B2 — um disco quase invisível, com o broto lavado
-              dentro. Não lia como "aba fechada", lia como botão desligado, e
-              logo no controle maior e mais alto da tela.
+              Uma versão anterior deixou o disco sempre cheio, porque o recuo
+              antigo era feito com opacidade: o pêssego lavado no creme do fundo
+              lia como botão desligado, não como aba fechada. A cor resolve o que
+              a opacidade estragava — `green300` é o mesmo verde, calmo, e
+              continua sendo a marca inteira em vez de uma marca desbotada.
 
-              Quem diz qual aba está aberta é o rótulo embaixo, que muda de
-              peso e de cor — foi para isso que os três ganharam rótulo. O
-              disco fica sendo o que ele é: a marca, sempre inteira.
+              Por cima dele o verde cheio entra crescendo do meio para fora.
             */
+            backgroundColor: palette.green300,
+            overflow: 'hidden',
             transform: [{ scale: pressed ? 0.94 : 1 }],
             ...shadows.md,
           })}
         >
-          <BrotinhoMark size={CENTER_SIZE} />
+          {/*
+            O enchimento: um disco do verde cheio que cresce do meio quando a
+            aba abre e encolhe quando ela fecha.
+
+            Ele fica atrás do símbolo, que é desenhado sem disco próprio — ver
+            `BrotinhoMark`. Cor animada exigiria transformar o SVG inteiro em
+            componente animado; escala de uma `View` roda no driver nativo e
+            não custa quadro nenhum.
+          */}
+          <Animated.View
+            pointerEvents="none"
+            style={{
+              position: 'absolute',
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              borderRadius: CENTER_SIZE / 2,
+              backgroundColor: MARK_DISCO,
+              transform: [{ scale: enchimento }],
+            }}
+          />
+          {/*
+            O `zIndex` não é precaução: sem ele o símbolo some.
+
+            Na web um elemento posicionado pinta por cima dos irmãos estáticos
+            independentemente da ordem no código — então o disco do enchimento,
+            que é `absolute`, cobria o trevo inteiro e a aba aberta virava um
+            círculo verde liso. Declarar a ordem resolve nas duas plataformas.
+          */}
+          <View style={{ zIndex: 1 }}>
+            <BrotinhoMark size={CENTER_SIZE} disco={null} />
+          </View>
         </Pressable>
       </View>
     </View>

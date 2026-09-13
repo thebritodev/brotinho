@@ -60,7 +60,19 @@ const ALTURA_NA_GRADE = 104;
  * desenhado fora de limite nenhum, e os dois lugares que usam esta regra —
  * aqui e em `OndeVoceParou` — fazem igual.
  */
-export const SOBRA_DO_DESENHO = 20;
+export const SOBRA_DO_DESENHO = 40;
+
+/**
+ * O lado do desenho nos cartões pequenos.
+ *
+ * Ele e a sobra andam juntos: a borda do cartão corta o desenho na altura
+ * `(TAMANHO - SOBRA) / TAMANHO` dele, e as cenas põem o objeto entre 14 e 48
+ * de uma caixa de 60. Com 118 e 40 a borda cai em 40 — um terço do objeto para
+ * fora, mais a sombra de chão. Com os 104 e 20 de antes ela caía em 48, que é
+ * **embaixo** do objeto: só a sombra saía do cartão, e um desenho que põe para
+ * fora apenas a própria sombra parece defeito, não composição.
+ */
+export const TAMANHO_DO_DESENHO = 118;
 
 /** PracticeTopicCard — leva a um tema de prática (ansiedade, sono...). */
 export function PracticeTopicCard({
@@ -142,7 +154,7 @@ export function PracticeTopicCard({
           style={{ position: 'absolute', right: 0, bottom: 0 }}
         >
           {ehTemaDesenhado(chave ?? '') ? (
-            <DesenhoDoTema tema={chave ?? ''} size={ALTURA_NA_GRADE} />
+            <DesenhoDoTema tema={chave ?? ''} size={TAMANHO_DO_DESENHO} />
           ) : (
             /* Tema novo, ainda sem cena: o ícone de traço segura o lugar. */
             <View style={{ padding: 26 }}>

@@ -391,7 +391,7 @@ export function HomeScreen({
           saudação do dia quando não há.
         */}
         <View style={{ marginTop: -14, flexDirection: 'row', alignItems: 'center', gap: 10 }}>
-          <AnimatedSprout mood={humorMarcado ?? 'neutro'} stage={stage} size={60} swayOnMount />
+          <AnimatedSprout mood={humorMarcado ?? 'neutro'} stage={stage} size={76} swayOnMount />
           <BalaoDoBroto lado="esquerda" tom="suave" style={{ flex: 1 }}>
             <Text
               style={{
