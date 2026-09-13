@@ -34,6 +34,41 @@ dela — essa política mudou duas vezes desde que foi criada.
 
 ---
 
+## 0.1 O tipo de conta — e por que não é óbvio
+
+Conferido na tela do cadastro e na política em 13/09/2026.
+
+A primeira pergunta do cadastro é **"Você"** ou **"Uma organização"**, e a
+resposta **não se troca depois**. A conta do Google que estiver logada também
+vira dona para sempre: hoje é `pedrohbpferreira@gmail.com`, a mesma do Apple ID.
+
+O que complica: a política do Play Console manda registrar como organização quem
+oferece
+
+> "Apps de saúde, como apps de medicina e apps de pesquisa em seres humanos."
+
+E o Brotinho **é** um app de saúde na taxonomia do Google — a categoria "saúde e
+fitness" lista, com todas as letras, *apps de controle de estresse*.
+
+**Por que ainda assim "pessoal" se sustenta:** os dois exemplos que a regra dá
+são *medicina* e *pesquisa em seres humanos*, e o Google define app de medicina
+como o feito por prestador de cuidados de saúde, para diagnóstico e tratamento.
+O Brotinho não é nenhum dos dois. Se a regra alcançasse toda a categoria saúde e
+fitness, cada app de meditação da loja seria de organização — e não são.
+
+| | Pessoal | Organização |
+|---|---|---|
+| Custo de entrada | US$ 25 | US$ 25 + CNPJ + número D-U-N-S |
+| 12 testadores por 14 dias | **sim** | não |
+| Dúvida sobre a regra de apps de saúde | fica de pé | some |
+| Trocar depois | **não dá** | **não dá** |
+
+Com CNPJ na mão, organização é o caminho mais curto *e* o mais seguro. Sem CNPJ,
+pessoal é a escolha defensável — e é decisão sua, não minha: isso é declaração
+legal no seu nome.
+
+---
+
 ## 1. Textos da ficha
 
 ### Nome do app (máx. 30 caracteres)
@@ -109,8 +144,12 @@ outro celular. Em troca, ninguém além de você lê o seu diário — nem nós.
 
 ISTO NÃO É TRATAMENTO
 
+O Brotinho não é um dispositivo médico e não faz diagnósticos, tratamentos, não
+cura e não previne nenhuma condição médica.
+
 As práticas daqui são de autocuidado, baseadas em técnicas conhecidas. Elas
-ajudam, mas não substituem acompanhamento psicológico ou médico.
+ajudam, mas não substituem acompanhamento psicológico ou médico: para
+orientação, diagnóstico ou tratamento, consulte um profissional de saúde.
 
 Se você estiver em sofrimento intenso ou pensando em se machucar, procure
 ajuda. O CVV atende de graça, 24 horas por dia, pelo telefone 188 e em
@@ -226,6 +265,38 @@ Classificação esperada: **Livre** ou **10+**, conforme o IARC pesar a menção
 - "O app é voltado para crianças?" → **Não**
 - Isso mantém o Brotinho fora das regras da Play para família, que exigiriam
   outro conjunto inteiro de declarações
+
+---
+
+## 4.1 Declaração de apps de saúde — **obrigatória**
+
+Conferido na política em 13/09/2026.
+
+O Google classifica como "saúde e fitness" os apps que cuidam do bem-estar
+físico **ou mental**, e a lista de exemplos inclui **apps de controle de
+estresse**. O Brotinho cai aí. Isso obriga a duas coisas:
+
+1. **Preencher o formulário de declaração de apps de saúde** em
+   *Monitorar e aprimorar → Política → Conteúdo do app*
+2. **Trazer na descrição** a frase que a política exige, com todas as letras:
+   o app "não é um dispositivo médico e não faz diagnósticos, tratamentos, não
+   cura e não previne nenhuma condição médica", mais o lembrete de procurar um
+   profissional de saúde
+
+A descrição da seção 1 **já traz as duas**, no bloco "ISTO NÃO É TRATAMENTO".
+Não é redundância com o texto da Apple: é exigência escrita do Google, e app de
+saúde sem ela é recusado.
+
+> A política de privacidade também é obrigatória **dentro** do app, e não só na
+> ficha — para apps de saúde ela é exigida nos dois lugares. No Brotinho está em
+> Perfil › Privacidade.
+
+### Uma que não se aplica
+
+*"As transações que envolvem serviços clínicos regulamentados não devem usar o
+sistema de faturamento do Google Play."* O Brotinho vende acesso a conteúdo de
+autocuidado, não consulta nem serviço clínico — então a assinatura passa pelo
+faturamento do Google normalmente.
 
 ---
 
