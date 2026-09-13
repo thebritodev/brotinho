@@ -2,7 +2,7 @@
  * Confere o rascunho do onboarding.
  *
  * O rascunho existe para atravessar uma interrupção — ligação, falta de
- * memória, "só vou responder essa mensagem" — nos catorze passos em que a
+ * memória, "só vou responder essa mensagem" — nos quinze passos em que a
  * pessoa escreve o pensamento que mais dói e faz o experimento da Composta.
  *
  * Duas coisas precisam ser verdade ao mesmo tempo, e só a primeira é óbvia:

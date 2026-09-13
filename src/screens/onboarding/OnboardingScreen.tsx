@@ -48,6 +48,7 @@ import { useAppState } from '../../state/AppStateProvider';
 import { descartarRascunho, loadRascunho, saveRascunho } from '../../storage/appStorage';
 import { useAssinatura } from '../../state/SubscriptionProvider';
 import { fonts, useTema } from '../../theme';
+import { pedirAvaliacaoAPedido } from '../../services/pedirAvaliacao';
 import { ExperimentoComposta, REPETICOES_DO_EXPERIMENTO } from './ExperimentoComposta';
 import { Paywall } from './Paywall';
 import { Centered, OptionList, TimeField } from './parts';
@@ -73,6 +74,13 @@ type Draft = {
  * A ordem conta uma história: a pessoa diz como está, ouve o que aquilo
  * costuma significar, diz o que já tentou, ouve de novo — e só então o app
  * pede as coisas práticas.
+ *
+ * O pedido de avaliação entra logo depois do método, e não depois do
+ * experimento: o botão do experimento promete "Por que isso funciona", e
+ * entregar um pedido de favor no lugar da explicação prometida seria quebrar a
+ * promessa justamente na tela que existe para ganhar confiança. Depois do
+ * método a pessoa já viveu a coisa **e** entendeu por que ela funciona — é o
+ * mesmo momento, só com a promessa cumprida antes.
  */
 const PASSO = {
   INTRO: 0,
@@ -84,12 +92,13 @@ const PASSO = {
   ESPELHO_TENTATIVA: 6,
   EXPERIMENTO: 7,
   METODO: 8,
-  VALORES: 9,
-  SONO: 10,
-  LEMBRETE: 11,
-  AREAS: 12,
-  PLANO: 13,
-  PAYWALL: 14,
+  AVALIACAO: 9,
+  VALORES: 10,
+  SONO: 11,
+  LEMBRETE: 12,
+  AREAS: 13,
+  PLANO: 14,
+  PAYWALL: 15,
 } as const;
 
 export function OnboardingScreen() {
@@ -132,6 +141,16 @@ export function OnboardingScreen() {
   /** O experimento vive fora do rascunho: não é resposta, é uma vivência. */
   const [pensamento, setPensamento] = useState('');
   const [repeticoes, setRepeticoes] = useState(0);
+
+  /**
+   * Se o pedido de avaliação já foi disparado nesta passagem pela tela.
+   *
+   * Fora do rascunho de propósito: é estado de uma tela, não resposta a
+   * guardar. Quem for interrompido e voltar direto neste passo vê o pedido de
+   * novo — e não custa nada, porque o sistema simplesmente não mostra o modal
+   * duas vezes.
+   */
+  const [avaliacaoPedida, setAvaliacaoPedida] = useState(false);
 
   /**
    * Lê o que ficou de uma sessão interrompida.
@@ -282,7 +301,9 @@ export function OnboardingScreen() {
             ? 'Sim, quero'
             : step === PASSO.EXPERIMENTO
               ? 'Por que isso funciona'
-              : 'Continuar';
+              : step === PASSO.AVALIACAO && !avaliacaoPedida
+                ? 'Avaliar o Brotinho'
+                : 'Continuar';
 
   const showFootNote = isPaywall || step === PASSO.PLANO;
   /*
@@ -293,7 +314,32 @@ export function OnboardingScreen() {
     ela já leu, e o botão passava a oferecer pular uma coisa que acabou de
     acontecer, ao lado do "Por que isso funciona" que é o caminho natural.
   */
-  const showSecondary = isReminder || experimentoIncompleto;
+  /*
+    O "Agora não" da avaliação some depois que ela é pedida.
+
+    Enquanto o pedido não foi feito, "Agora não" é a saída — e precisa ser
+    visível, senão o passo vira um pedágio. Depois que o modal da loja foi
+    aberto, recusar não significa mais nada: o botão principal já é "Continuar"
+    e manter uma segunda saída ao lado dele seria oferecer duas vezes o mesmo
+    caminho.
+  */
+  const podeRecusarAvaliacao = step === PASSO.AVALIACAO && !avaliacaoPedida;
+  const showSecondary = isReminder || experimentoIncompleto || podeRecusarAvaliacao;
+
+  /**
+   * O botão principal do passo da avaliação.
+   *
+   * Não avança: abre o pedido e fica. O modal da loja aparece por cima desta
+   * tela, e puxar o chão dela no mesmo instante deixaria a pessoa avaliando
+   * por cima de uma pergunta sobre valores pessoais.
+   *
+   * Quando não há como pedir — Expo Go, web, aparelho sem loja — segue em
+   * frente em silêncio, que é o contrário de agradecer por nada.
+   */
+  const tocarEmAvaliar = async () => {
+    if (await pedirAvaliacaoAPedido()) return setAvaliacaoPedida(true);
+    go(step + 1);
+  };
 
 
   /** Sai do onboarding e entra no app. */
@@ -630,6 +676,89 @@ export function OnboardingScreen() {
       </View>
     ),
 
+    /*
+      O pedido de avaliação.
+
+      ## Por que o texto não diz "se o Brotinho te ajudou"
+
+      Porque não ajudou ainda. A pessoa está no app há uns três minutos: fez um
+      exercício e leu uma explicação. Escrever "se você está gostando" seria
+      sugerir uma experiência que não aconteceu — o mesmo erro que o
+      `ExperimentoComposta` evita quando não afirma que ela falou em voz alta.
+
+      O que dá para dizer é verdade e basta: o app é novo, avaliação é o que
+      faz um app aparecer na busca da loja, e por isso quem avalia está fazendo
+      um favor a quem ainda não achou o app. É um pedido, apresentado como
+      pedido.
+
+      ## Por que a saída é do mesmo tamanho do pedido
+
+      "Agora não" fica no rodapé, legível, sem letra miúda. Um pedido de favor
+      que esconde o "não" não é pedido, é pedágio — e este é um app em que a
+      pessoa acabou de escrever o pensamento que mais a machuca. A relação vale
+      mais do que uma estrela.
+    */
+    [PASSO.AVALIACAO]: (
+      <View style={{ alignItems: 'center', gap: 18, paddingVertical: 8 }}>
+        <AnimatedSprout mood="feliz" stage={3} size={brotoMedio} swayOnMount />
+
+        {/* Cinco estrelas como desenho, não como controle: não dá para tocar
+            nelas, e nenhuma nota é escolhida aqui. Quem escolhe é o modal da
+            própria loja. */}
+        <View
+          accessibilityElementsHidden
+          importantForAccessibility="no-hide-descendants"
+          style={{ flexDirection: 'row', gap: 6 }}
+        >
+          {[0, 1, 2, 3, 4].map((i) => (
+            <Icon key={i} name="star" size={22} color={colors.primaryStrong} preenchido />
+          ))}
+        </View>
+
+        <Text
+          style={{
+            color: colors.textPrimary,
+            fontFamily: fonts.display.bold,
+            fontSize: 23,
+            lineHeight: 23 * 1.24,
+            textAlign: 'center',
+          }}
+        >
+          {avaliacaoPedida ? 'Obrigado de verdade.' : 'Posso te pedir uma coisa?'}
+        </Text>
+
+        <Text
+          style={{
+            fontFamily: fonts.body.regular,
+            fontSize: 15,
+            lineHeight: 15 * 1.5,
+            color: palette.brown700,
+            textAlign: 'center',
+          }}
+        >
+          {avaliacaoPedida
+            ? 'Isso ajuda mais do que parece. Agora vamos terminar de montar o seu plano.'
+            : 'O Brotinho é novo e quase não tem avaliação na loja. E é a avaliação que faz um app aparecer para quem procura — é assim que a próxima pessoa que precisa disto aqui vai achar ele.'}
+        </Text>
+
+        {!avaliacaoPedida && (
+          <Text
+            style={{
+              fontFamily: fonts.body.regular,
+              fontSize: 13,
+              lineHeight: 13 * 1.5,
+              color: colors.textSecondary,
+              textAlign: 'center',
+            }}
+          >
+            Você me conheceu agora há pouco, então diga não sem cerimônia. O
+            botão de avaliar continua em Configurações, para quando você tiver
+            uma opinião de verdade.
+          </Text>
+        )}
+      </View>
+    ),
+
     [PASSO.AREAS]: (
       <View style={{ gap: 14 }}>
         <Text
@@ -844,7 +973,11 @@ export function OnboardingScreen() {
             size="lg"
             disabled={ctaDisabled || !!ocupado}
             style={{ width: '100%' }}
-            onPress={() => (isPaywall ? void tocarNoPaywall() : go(step + 1))}
+            onPress={() => {
+              if (isPaywall) return void tocarNoPaywall();
+              if (podeRecusarAvaliacao) return void tocarEmAvaliar();
+              go(step + 1);
+            }}
           >
             {ocupado === 'comprando' ? 'Abrindo a loja…' : ctaLabel}
           </Button>
@@ -893,7 +1026,7 @@ export function OnboardingScreen() {
             <Text
               style={{ fontFamily: fonts.body.bold, fontSize: 15, color: colors.textSecondary }}
             >
-              {isReminder ? 'Agora não' : 'Agora não é hora'}
+              {isReminder || podeRecusarAvaliacao ? 'Agora não' : 'Agora não é hora'}
             </Text>
           </Pressable>
         )}

@@ -74,16 +74,32 @@ const RAIZ = path.join(__dirname, '..');
     console.log(`  FALHA ${nome}\n        veio ${obtido}, esperava ${esperado}`);
   };
 
-  console.log(`\nrascunho da numeracao antiga (sem versao) · TOTAL=${TOTAL}:`);
+  console.log(`\nrascunho da numeracao 1 (sem versao) · TOTAL=${TOTAL}:`);
   checa('introducao continua na introducao', passoRestaurado(0, undefined), 0);
   checa('quem parou no nome volta ao nome (so o dela, agora)', passoRestaurado(1, undefined), 1);
   checa('o check-in antigo (2) vira o novo (3)', passoRestaurado(2, undefined), 3);
   checa('"o que voce tem feito" antigo (4) vira o novo (5)', passoRestaurado(4, undefined), 5);
-  checa('o paywall antigo (13) continua sendo o paywall (14)', passoRestaurado(13, undefined), 14);
+  /*
+    Duas conversoes na mesma leitura, que e o caso que so aparece aqui.
+
+    Um rascunho da versao 1 parado no paywall (13) anda uma casa pelo nome do
+    broto (14) e outra pelo pedido de avaliacao (15). Se as conversoes fossem
+    exclusivas, ele pararia no 14 -- a tela do plano -- e a pessoa levaria um
+    pedido de plano no lugar da compra que estava fazendo.
+  */
+  checa('o paywall da versao 1 (13) anda duas casas', passoRestaurado(13, undefined), 15);
+  checa('o metodo da versao 1 (7) so anda uma', passoRestaurado(7, undefined), 8);
+
+  console.log('\nrascunho da numeracao 2:');
+  checa('passo 2 e o nome do broto, e fica', passoRestaurado(2, 2), 2);
+  checa('passo 5 fica no 5', passoRestaurado(5, 2), 5);
+  checa('o metodo (8) fica onde estava', passoRestaurado(8, 2), 8);
+  checa('os valores (9) cedem o lugar a avaliacao', passoRestaurado(9, 2), 10);
+  checa('o paywall da versao 2 (14) vira o 15', passoRestaurado(14, 2), 15);
 
   console.log('\nrascunho da numeracao atual:');
-  checa('passo 2 e o nome do broto, e fica', passoRestaurado(2, VERSAO_DOS_PASSOS), 2);
-  checa('passo 5 fica no 5', passoRestaurado(5, VERSAO_DOS_PASSOS), 5);
+  checa('a avaliacao (9) fica no 9', passoRestaurado(9, VERSAO_DOS_PASSOS), 9);
+  checa('o paywall fica no ultimo passo', passoRestaurado(TOTAL - 1, VERSAO_DOS_PASSOS), TOTAL - 1);
 
   console.log('\nlixo no disco:');
   checa('numero invalido vai para o comeco', passoRestaurado(NaN, undefined), 0);

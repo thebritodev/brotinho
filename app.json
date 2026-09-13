@@ -46,7 +46,8 @@
         ],
         "NSPrivacyTracking": false,
         "NSPrivacyCollectedDataTypes": []
-      }
+      },
+      "appStoreUrl": "https://apps.apple.com/app/id6803963494"
     },
     "android": {
       "userInterfaceStyle": "automatic",
@@ -110,7 +111,7 @@
         }
       ],
       "expo-asset",
-    "./plugins/arquiteturasDoAndroid"
+      "./plugins/arquiteturasDoAndroid"
     ],
     "extra": {
       "eas": {

@@ -160,6 +160,15 @@ type Props = {
   size?: number;
   color?: string;
   strokeWidth?: number;
+  /**
+   * Pinta o miolo com a mesma cor do traço.
+   *
+   * O conjunto é de contorno, e é assim que ele deve ficar quase sempre. A
+   * exceção é o ícone que representa uma quantidade em vez de uma coisa: cinco
+   * estrelas vazadas leem como nota zero, que é o contrário do que a tela do
+   * pedido de avaliação diz.
+   */
+  preenchido?: boolean;
 };
 
 /** Icon — conjunto de ícones em contorno, no mesmo peso de traço do mascote. */
@@ -175,7 +184,7 @@ type Props = {
   separa "parece brinquedo" de "parece objeto". Num ícone de 22 pontos, 1,8 é
   cerca de 10% menos tinta em cada traço, e o conjunto inteiro assenta.
 */
-export function Icon({ name, size = 22, color, strokeWidth = 1.8 }: Props) {
+export function Icon({ name, size = 22, color, strokeWidth = 1.8, preenchido = false }: Props) {
   // O padrão era '#3A3630' escrito à mão — o `brown900` do tema claro. Vindo do
   // tema, ele acompanha: no escuro o ícone sem cor explícita clareia junto.
   const { colors } = useTema();
@@ -186,6 +195,7 @@ export function Icon({ name, size = 22, color, strokeWidth = 1.8 }: Props) {
     <Svg width={size} height={size} viewBox={VIEW_BOX[name] ?? '0 0 24 24'} fill="none">
       <Path
         d={d}
+        fill={preenchido ? traco : 'none'}
         stroke={traco}
         strokeWidth={strokeWidth}
         strokeLinecap="round"

@@ -60,8 +60,12 @@ export const MIN_STEP = 5;
  *
  * O que entrou no lugar não é pergunta: é entrega. Experimentar a Composta,
  * entender a técnica, ver o que tem dentro e ler o próprio plano.
+ *
+ * A única tela que não dá nem pede nada é a do pedido de avaliação, e ela vem
+ * logo depois da entrega — é a ordem que importa: primeiro o app faz a parte
+ * dele, depois pede.
  */
-export const TOTAL = 15;
+export const TOTAL = 16;
 
 /**
  * A numeração dos passos, e por que ela tem versão.
@@ -73,16 +77,30 @@ export const TOTAL = 15;
  * certa: quem parou em "E o que você tem feito com isso?" voltaria para o
  * espelho da pergunta anterior.
  *
+ * Na versão 3 o pedido de avaliação entrou na posição 9, logo depois do
+ * método — mesma história, uma casa a mais para quem vem depois dele.
+ *
  * Rascunho sem versão é da numeração antiga e passa por `passoRestaurado`.
  */
-export const VERSAO_DOS_PASSOS = 2;
+export const VERSAO_DOS_PASSOS = 3;
 
-/** Converte o passo de um rascunho para a numeração atual. */
+/**
+ * Converte o passo de um rascunho para a numeração atual.
+ *
+ * As conversões são cumulativas e na ordem: um rascunho da versão 1 passa
+ * pelas duas. Por isso são dois `if` seguidos sobre a mesma variável, e não um
+ * ternário escolhendo uma delas — quem parou no paywall da versão 1 precisa
+ * andar duas casas, não uma.
+ */
 export function passoRestaurado(passo: number, versao: number | undefined): number {
   if (!Number.isFinite(passo)) return 0;
+  const de = versao ?? 1;
+  let n = passo;
   // Da numeração 1 para a 2: do passo 2 em diante, uma casa para a frente.
-  const convertido = (versao ?? 1) < 2 && passo >= 2 ? passo + 1 : passo;
-  return Math.max(0, Math.min(TOTAL - 1, convertido));
+  if (de < 2 && n >= 2) n += 1;
+  // Da 2 para a 3: do passo 9 em diante, mais uma.
+  if (de < 3 && n >= 9) n += 1;
+  return Math.max(0, Math.min(TOTAL - 1, n));
 }
 export const STEPS = TOTAL - 1;
 

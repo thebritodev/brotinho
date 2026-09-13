@@ -11,6 +11,7 @@ import { MyValuesScreen } from './MyValuesScreen';
 import { PrivacyPolicyScreen } from './PrivacyPolicyScreen';
 import { RemindersScreen } from './RemindersScreen';
 import { enviarFeedback } from '../../services/feedback';
+import { pedirAvaliacaoAPedido } from '../../services/pedirAvaliacao';
 import { useBotaoVoltar } from '../../navigation/useBotaoVoltar';
 
 function Row({
@@ -124,6 +125,22 @@ export function SettingsScreen({ onBack }: { onBack: () => void }) {
         {telas[detalhe]}
       </ScreenTransition>
     );
+
+  const [avisoAvaliacao, setAvisoAvaliacao] = useState<string | null>(null);
+
+  /**
+   * O "depois" que o onboarding promete.
+   *
+   * O passo da avaliação diz, para quem recusa, que o botão continua aqui. Sem
+   * esta linha aquilo era uma frase gentil e falsa — e a pessoa que voltasse
+   * procurando não acharia nada.
+   */
+  const tocarAvaliar = async () => {
+    setAvisoAvaliacao(null);
+    if (!(await pedirAvaliacaoAPedido())) {
+      setAvisoAvaliacao('Não consegui abrir a loja a partir daqui.');
+    }
+  };
 
   const tocarFeedback = async () => {
     const r = await enviarFeedback();
@@ -273,6 +290,14 @@ export function SettingsScreen({ onBack }: { onBack: () => void }) {
             label="Sobre o Brotinho"
             hint={`Versão ${APP_VERSION}`}
             onPress={() => setDetalhe('sobre')}
+          >
+            {chevron}
+          </Row>
+          <Row
+            icon="star"
+            label="Avaliar o Brotinho"
+            hint={avisoAvaliacao ?? 'Ajuda outras pessoas a acharem o app'}
+            onPress={tocarAvaliar}
           >
             {chevron}
           </Row>

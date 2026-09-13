@@ -2,7 +2,7 @@
  * Captura a tela de planos, que a Apple exige para revisar as assinaturas.
  *
  * O paywall é o último passo do onboarding, então o script força o fluxo a
- * abrir direto nele em vez de percorrer os catorze passos. A alteração é
+ * abrir direto nele em vez de percorrer os quinze passos. A alteração é
  * temporária e desfeita ao fim, com conferência de que o arquivo voltou byte a
  * byte ao original.
  *
