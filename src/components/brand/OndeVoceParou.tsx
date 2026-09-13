@@ -59,7 +59,13 @@ const ALTURA = 104;
  */
 const QUANTO_LEVA: Record<'composta' | 'diario', string> = {
   composta: '30 segundos',
-  diario: 'escrever ou falar',
+  /*
+    "escrever ou falar" dizia mais e não cabia: a folha de papel está ancorada
+    à direita do cartão e corria por cima da segunda metade da frase. O cartão
+    tem espaço para doze caracteres nesta linha, e "texto ou voz" diz a mesma
+    coisa — que dá para digitar ou ditar — dentro deles.
+  */
+  diario: 'texto ou voz',
 };
 
 /** "hoje", "ontem", "há 4 dias" — a data sem número quando dá. */
@@ -183,11 +189,22 @@ export function OndeVoceParou({ itens, margem, onAbrir }: Props) {
                 {titulo}
               </Text>
 
+              {/*
+                A linha de baixo também cede a direita para o desenho.
+
+                "ontem" cabia em qualquer canto e passou despercebido; "escrever
+                ou falar", que é o que o cartão do Diário diz na fileira de
+                estreia, corria por baixo da folha de papel. O desenho está
+                ancorado à direita e é o que ele vai continuar fazendo — quem
+                tem de recuar é o texto.
+              */}
               <Text
+                numberOfLines={1}
                 style={{
                   fontFamily: fonts.body.bold,
                   fontSize: 11.5,
                   color: colors.textSecondary,
+                  width: '58%',
                 }}
               >
                 {rodape}

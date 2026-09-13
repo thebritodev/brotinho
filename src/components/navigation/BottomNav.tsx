@@ -135,8 +135,15 @@ export function BottomNav({ active = 'home', onChange }: Props) {
   /** Um valor por ícone que se mexe: -1 a 1, convertido em graus abaixo. */
   const vento = useRef(new Animated.Value(0)).current;
   const tranco = useRef(new Animated.Value(0)).current;
-  /** 0 disco apagado, 1 disco cheio de verde. */
-  const enchimento = useRef(new Animated.Value(active === 'home' ? 1 : 0)).current;
+  /**
+   * O nível da água, em pontos a partir do topo do disco.
+   *
+   * `CENTER_SIZE` é o copo vazio — a água inteira abaixo da borda de baixo — e
+   * `0` é o copo cheio. Fica em pontos, e não de 0 a 1, porque quem anima é um
+   * `translateY`: o disco verde é uma peça do tamanho do botão que **sobe**, e
+   * o arredondamento do botão a recorta em círculo no caminho.
+   */
+  const nivel = useRef(new Animated.Value(active === 'home' ? 0 : CENTER_SIZE)).current;
 
   /*
     O broto balança quando a aba **passa a ser** a dele, e não a cada
@@ -148,16 +155,22 @@ export function BottomNav({ active = 'home', onChange }: Props) {
     balancar(vento, 900);
   }, [active, menosMovimento, vento]);
 
+  /*
+    A água sobe devagar e para sem repique — é líquido entrando num copo, não
+    um elemento chegando na tela. Por isso `inOut(cubic)` e 560ms: com curva de
+    mola ela sairia pela borda de cima e voltaria, que é coisa de bolha, não de
+    água. Esvaziar é mais rápido, porque ninguém fica olhando a aba que fechou.
+  */
   useEffect(() => {
     const cheio = active === 'home';
-    if (menosMovimento) return enchimento.setValue(cheio ? 1 : 0);
-    Animated.timing(enchimento, {
-      toValue: cheio ? 1 : 0,
-      duration: cheio ? 340 : 200,
-      easing: cheio ? Easing.out(Easing.back(1.4)) : Easing.out(Easing.quad),
+    if (menosMovimento) return nivel.setValue(cheio ? 0 : CENTER_SIZE);
+    Animated.timing(nivel, {
+      toValue: cheio ? 0 : CENTER_SIZE,
+      duration: cheio ? 560 : 260,
+      easing: cheio ? Easing.inOut(Easing.cubic) : Easing.in(Easing.quad),
       useNativeDriver: true,
     }).start();
-  }, [active, menosMovimento, enchimento]);
+  }, [active, menosMovimento, nivel]);
 
   const giro = (valor: Animated.Value, graus: number) =>
     valor.interpolate({ inputRange: [-1, 1], outputRange: [`-${graus}deg`, `${graus}deg`] });
@@ -329,30 +342,42 @@ export function BottomNav({ active = 'home', onChange }: Props) {
             alignItems: 'center',
             justifyContent: 'center',
             /*
-              O disco em repouso é o verde **apagado**.
+              O copo vazio: o verde mais claro que o tema tem.
 
-              Uma versão anterior deixou o disco sempre cheio, porque o recuo
-              antigo era feito com opacidade: o pêssego lavado no creme do fundo
-              lia como botão desligado, não como aba fechada. A cor resolve o que
-              a opacidade estragava — `green300` é o mesmo verde, calmo, e
-              continua sendo a marca inteira em vez de uma marca desbotada.
-
-              Por cima dele o verde cheio entra crescendo do meio para fora.
+              A primeira tentativa recuava o disco com opacidade, e o pêssego
+              lavado no creme do fundo lia como botão desligado. A segunda usou
+              `green300`, que continuava cheio demais para parecer vazio. O que
+              faz a água aparecer é o contraste entre o copo e o líquido: com o
+              tom suave do tema atrás e o verde cheio subindo por cima, o
+              movimento é a própria diferença entre os dois.
             */
-            backgroundColor: palette.green300,
+            backgroundColor: colors.primarySoft,
             overflow: 'hidden',
             transform: [{ scale: pressed ? 0.94 : 1 }],
             ...shadows.md,
           })}
         >
           {/*
-            O enchimento: um disco do verde cheio que cresce do meio quando a
-            aba abre e encolhe quando ela fecha.
+            A marca do copo vazio, no verde forte para ser legível no tom claro.
+            Ela fica embaixo; a água sobe por cima dela com a sua própria cópia.
+          */}
+          <View style={{ position: 'absolute' }}>
+            <BrotinhoMark size={CENTER_SIZE} disco={null} traco={colors.primaryStrong} />
+          </View>
 
-            Ele fica atrás do símbolo, que é desenhado sem disco próprio — ver
-            `BrotinhoMark`. Cor animada exigiria transformar o SVG inteiro em
-            componente animado; escala de uma `View` roda no driver nativo e
-            não custa quadro nenhum.
+          {/*
+            A água, e o truque que a faz parecer água.
+
+            São duas camadas. A de fora é uma peça do tamanho do botão que sobe
+            de baixo para cima — e o `overflow: 'hidden'` do botão, que é
+            redondo, recorta ela em círculo: o que aparece é uma linha de nível
+            subindo dentro de um copo, e não um retângulo entrando na tela.
+
+            A de dentro **desce na mesma medida**. Sem isso, a marca clara subiria
+            junto com a água como se estivesse boiando. Descendo o mesmo tanto,
+            ela fica parada no lugar e vai sendo *revelada* conforme o nível
+            passa por ela — que é exatamente o que acontece com um desenho no
+            fundo de um copo que se enche.
           */}
           <Animated.View
             pointerEvents="none"
@@ -360,24 +385,25 @@ export function BottomNav({ active = 'home', onChange }: Props) {
               position: 'absolute',
               top: 0,
               left: 0,
-              right: 0,
-              bottom: 0,
-              borderRadius: CENTER_SIZE / 2,
-              backgroundColor: MARK_DISCO,
-              transform: [{ scale: enchimento }],
+              width: CENTER_SIZE,
+              height: CENTER_SIZE,
+              overflow: 'hidden',
+              transform: [{ translateY: nivel }],
             }}
-          />
-          {/*
-            O `zIndex` não é precaução: sem ele o símbolo some.
-
-            Na web um elemento posicionado pinta por cima dos irmãos estáticos
-            independentemente da ordem no código — então o disco do enchimento,
-            que é `absolute`, cobria o trevo inteiro e a aba aberta virava um
-            círculo verde liso. Declarar a ordem resolve nas duas plataformas.
-          */}
-          <View style={{ zIndex: 1 }}>
-            <BrotinhoMark size={CENTER_SIZE} disco={null} />
-          </View>
+          >
+            <Animated.View
+              style={{
+                width: CENTER_SIZE,
+                height: CENTER_SIZE,
+                backgroundColor: MARK_DISCO,
+                alignItems: 'center',
+                justifyContent: 'center',
+                transform: [{ translateY: Animated.multiply(nivel, -1) }],
+              }}
+            >
+              <BrotinhoMark size={CENTER_SIZE} disco={null} />
+            </Animated.View>
+          </Animated.View>
         </Pressable>
       </View>
     </View>

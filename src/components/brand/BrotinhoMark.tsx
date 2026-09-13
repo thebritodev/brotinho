@@ -83,8 +83,17 @@ const ENCOLHER = `translate(50 50) scale(${ESCALA}) translate(-50 -${CENTRO_DO_S
 export function BrotinhoMark({
   size = 32,
   disco = MARK_DISCO,
+  traco = MARK_TRACO,
 }: {
   size?: number;
+  /**
+   * A cor do traço do símbolo.
+   *
+   * O creme só funciona sobre o verde cheio. A barra de baixo desenha a marca
+   * duas vezes — uma num verde escuro, para ser legível no disco apagado da
+   * aba fechada, e outra em creme dentro da água que sobe.
+   */
+  traco?: string;
   /**
    * A cor do disco atrás do símbolo, ou `null` para não desenhar disco nenhum.
    *
@@ -103,7 +112,7 @@ export function BrotinhoMark({
       ry={FOLHA.ry}
       transform={`rotate(${FOLHA.giro * lado} ${lado === 1 ? FOLHA.cx : 100 - FOLHA.cx} ${FOLHA.cy})`}
       fill="none"
-      stroke={MARK_TRACO}
+      stroke={traco}
       strokeWidth={TRACO}
     />
   );
@@ -119,13 +128,13 @@ export function BrotinhoMark({
           cy={ANEL.cy}
           r={ANEL.r}
           fill="none"
-          stroke={MARK_TRACO}
+          stroke={traco}
           strokeWidth={TRACO}
         />
         <Path
           d={CAULE}
           fill="none"
-          stroke={MARK_TRACO}
+          stroke={traco}
           strokeWidth={CAULE_TRACO}
           strokeLinecap="round"
         />
