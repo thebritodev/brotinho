@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useRef, useState } from 'react';
 import { Pressable, ScrollView, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -57,14 +57,50 @@ export function PracticesScreen({
   const [topicKey, setTopicKey] = useState<string | null>(alvo?.topico ?? null);
   const [practiceKey, setPracticeKey] = useState<string | null>(alvo?.pratica ?? null);
 
-  // Prática → lista do tema → lista de temas. Depois disso quem responde é o
-  // `MainTabs`, que fecha esta tela.
+  /**
+   * Em que degrau esta tela foi aberta — e é o chão dela.
+   *
+   * ## O problema
+   *
+   * Esta tela tem três degraus: a lista de temas, a lista de práticas de um
+   * tema, e a prática. Quem entra pela barra desce os três a pé, e voltar um a
+   * um é o certo.
+   *
+   * Mas os atalhos da tela inicial — "Para começar", "Onde você parou", a
+   * sugestão do dia — pulam direto para a prática. O voltar então desfazia
+   * passos que ninguém tinha dado: da prática caía na lista do tema, dali na
+   * lista de temas, e só no terceiro toque a pessoa voltava para a tela
+   * inicial. Três toques para desfazer um, passando por duas telas que ela
+   * nunca viu.
+   *
+   * ## A regra
+   *
+   * Voltar nunca vai mais raso do que o degrau de entrada. Quem entrou numa
+   * prática sai dela direto para de onde veio; quem entrou num tema sai do
+   * tema; quem entrou pela raiz percorre os três.
+   *
+   * É `useRef` porque isto é onde a pessoa **entrou**: não pode mudar quando
+   * ela navega para dentro. A tela é montada de novo a cada abertura, então o
+   * valor nasce certo todas as vezes.
+   */
+  const entrada = useRef<'raiz' | 'tema' | 'pratica'>(
+    alvo?.pratica ? 'pratica' : alvo?.topico ? 'tema' : 'raiz',
+  ).current;
+
+  /** Sair da prática: ou um degrau acima, ou fora da tela, conforme a entrada. */
+  const voltarDaPratica = () => (entrada === 'pratica' ? onBack() : setPracticeKey(null));
+  /** O mesmo para a lista de um tema. */
+  const voltarDoTema = () => (entrada === 'raiz' ? setTopicKey(null) : onBack());
+
+  // O botão do sistema segue exatamente o mesmo caminho da setinha do cabeçalho.
   useBotaoVoltar(() => {
     if (practiceKey) {
+      if (entrada === 'pratica') return false;
       setPracticeKey(null);
       return true;
     }
     if (topicKey) {
+      if (entrada !== 'raiz') return false;
       setTopicKey(null);
       return true;
     }
@@ -83,7 +119,7 @@ export function PracticesScreen({
           practice={practice}
           topicKey={topic.key}
           tint={tintsDosTemas[topic.key]}
-          onBack={() => setPracticeKey(null)}
+          onBack={voltarDaPratica}
           onEscreverNoDiario={onEscreverNoDiario}
         />
       </ScreenTransition>
@@ -96,7 +132,7 @@ export function PracticesScreen({
     return (
       <ScreenTransition transitionKey={topic.key} mode="forward">
       <View style={{ flex: 1, paddingTop: insets.top }}>
-        <TopBar title={topic.title} onBack={() => setTopicKey(null)} />
+        <TopBar title={topic.title} onBack={voltarDoTema} />
         <ScrollView
           contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 32, gap: 12 }}
           showsVerticalScrollIndicator={false}
