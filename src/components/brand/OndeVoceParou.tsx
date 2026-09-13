@@ -17,6 +17,18 @@ import { DesenhoDoTema, ehTemaDesenhado } from './desenhosDosTemas';
  * treze temas outra vez. Aqui o caminho de volta tem um toque, e o que aparece
  * é o que a pessoa de fato usou — nada de "recomendado para você" fabricado.
  *
+ * ## A mesma fileira serve para quem nunca esteve em lugar nenhum
+ *
+ * Na primeira versão ela sumia sem histórico, e some sem histórico era a maior
+ * parte das pessoas: quem instalou hoje via a Home mais curta e nunca soube que
+ * a seção existia. Agora quem manda os itens é a tela — com histórico ela manda
+ * os lugares visitados, sem histórico manda quatro boas portas de estreia — e o
+ * título muda junto, de "Onde você parou" para "Para começar".
+ *
+ * O que **não** muda é o que cada cartão diz: um item sem data nunca se
+ * apresenta como visita. No lugar da data ele mostra quanto a coisa leva, que é
+ * a pergunta de quem nunca entrou.
+ *
  * ## Por que os cartões são pequenos e a arte sangra
  *
  * Porque eles **não** podem competir com o carrossel de cima. Ali estão as três
@@ -35,6 +47,19 @@ import { DesenhoDoTema, ehTemaDesenhado } from './desenhosDosTemas';
 /** Largura e altura de cada cartãozinho da fileira. */
 const LARGURA = 166;
 const ALTURA = 104;
+
+/**
+ * O que a linha de baixo diz quando não houve visita nenhuma.
+ *
+ * O cartão precisa de alguma coisa ali: sem a linha, os cartões da fileira de
+ * estreia ficariam com meia altura vazia ao lado dos que têm data. E o que
+ * cabe no lugar da data é o custo — quanto tempo aquilo leva —, que é a
+ * pergunta de quem nunca entrou.
+ */
+const QUANTO_LEVA: Record<'composta' | 'diario', string> = {
+  composta: '30 segundos',
+  diario: 'escrever ou falar',
+};
 
 /** "hoje", "ontem", "há 4 dias" — a data sem número quando dá. */
 function quandoFoi(quando: number, agora = Date.now()): string {
@@ -75,7 +100,7 @@ export function OndeVoceParou({ itens, margem, onAbrir }: Props) {
         titulo: 'Composta',
         cena: <DesenhoDaComposta size={88} />,
         tom: palette.brown100,
-        label: 'Compostar um pensamento de novo',
+        label: item.quando ? 'Compostar um pensamento de novo' : 'Compostar um pensamento',
       };
     }
     if (item.tipo === 'diario') {
@@ -93,7 +118,10 @@ export function OndeVoceParou({ itens, margem, onAbrir }: Props) {
          que um ícone genérico brigando com as cenas dos vizinhos. */
       cena: ehTemaDesenhado(item.topico) ? <DesenhoDoTema tema={item.topico} size={92} /> : null,
       tom: tomDoTema(item.topico),
-      label: `Voltar para ${pratica?.title ?? 'a prática'}`,
+      label: item.quando
+        ? `Voltar para ${pratica?.title ?? 'a prática'}`
+        : `Começar por ${pratica?.title ?? 'uma prática'}`,
+      duracao: pratica?.duration,
     };
   };
 
@@ -105,7 +133,15 @@ export function OndeVoceParou({ itens, margem, onAbrir }: Props) {
       contentContainerStyle={{ paddingHorizontal: margem, gap: 12 }}
     >
       {itens.map((item) => {
-        const { titulo, cena, tom, label } = comoFica(item);
+        const ficha = comoFica(item);
+        const { titulo, cena, tom, label } = ficha;
+        /* Já esteve aqui? mostra quando. Nunca esteve? mostra quanto leva. */
+        const rodape =
+          item.quando !== undefined
+            ? quandoFoi(item.quando)
+            : item.tipo === 'pratica'
+              ? ('duracao' in ficha && ficha.duracao) || 'prática guiada'
+              : QUANTO_LEVA[item.tipo];
         const chave =
           item.tipo === 'pratica' ? `${item.topico}/${item.pratica}` : item.tipo;
 
@@ -113,7 +149,7 @@ export function OndeVoceParou({ itens, margem, onAbrir }: Props) {
           <Pressable
             key={chave}
             accessibilityRole="button"
-            accessibilityLabel={`${label}. ${quandoFoi(item.quando)}.`}
+            accessibilityLabel={`${label}. ${rodape}.`}
             onPress={() => onAbrir(item)}
             style={({ pressed }) => ({
               width: LARGURA,
@@ -162,7 +198,7 @@ export function OndeVoceParou({ itens, margem, onAbrir }: Props) {
                 color: colors.textSecondary,
               }}
             >
-              {quandoFoi(item.quando)}
+              {rodape}
             </Text>
           </Pressable>
         );

@@ -860,11 +860,17 @@ export function praticasMaisFeitas(data: AppData, quantas = 3) {
     });
 }
 
-/** Um lugar em que a pessoa esteve, para poder voltar num toque. */
+/**
+ * Um lugar do app alcançável num toque.
+ *
+ * `quando` é a data da última visita — e é opcional porque a mesma fileira
+ * serve para quem nunca esteve em lugar nenhum. Sem data, o cartão mostra
+ * quanto tempo a coisa leva no lugar de "ontem"; ver `OndeVoceParou`.
+ */
 export type Recente =
-  | { tipo: 'pratica'; topico: string; pratica: string; quando: number }
-  | { tipo: 'composta'; quando: number }
-  | { tipo: 'diario'; quando: number };
+  | { tipo: 'pratica'; topico: string; pratica: string; quando?: number }
+  | { tipo: 'composta'; quando?: number }
+  | { tipo: 'diario'; quando?: number };
 
 /**
  * Onde a pessoa parou — as ferramentas e práticas mais recentes, em ordem.
@@ -919,5 +925,5 @@ export function ondeVoceParou(data: AppData, quantos = 6): Recente[] {
   const diario = maisRecente(data.journal);
   if (diario !== null) itens.push({ tipo: 'diario', quando: diario });
 
-  return itens.sort((a, b) => b.quando - a.quando).slice(0, quantos);
+  return itens.sort((a, b) => (b.quando ?? 0) - (a.quando ?? 0)).slice(0, quantos);
 }

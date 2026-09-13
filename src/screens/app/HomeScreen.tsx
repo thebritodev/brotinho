@@ -6,6 +6,7 @@ import {
   BoasVindas,
   Carrossel,
   CartaoHeroi,
+  FundoDaTela,
   CartaoDoConselho,
   CenaDaComposta,
   CenaDoDiario,
@@ -20,7 +21,7 @@ import {
 } from '../../components';
 import { toqueLeve } from '../../services/toque';
 import { conselhoDoDia } from '../../data/conselhos';
-import { PRACTICE_TOPICS } from '../../data/practices';
+import { ANCORA_RAPIDA, PRACTICE_TOPICS } from '../../data/practices';
 import { sugestaoParaOHumor } from '../../data/sugestao';
 import { useAppState } from '../../state/AppStateProvider';
 import type { Plant } from '../../state/types';
@@ -81,6 +82,27 @@ import { fonts, type Mood, radius, useTema } from '../../theme';
  * "hoje está pesado?".
  */
 const DIA_PESADO: readonly Mood[] = ['ansioso', 'triste', 'cansado'];
+
+/**
+ * As quatro portas de estreia, para quem ainda não esteve em lugar nenhum.
+ *
+ * A fileira de recentes some sem histórico — e sem histórico é a maior parte
+ * das pessoas na primeira semana. Em vez de sumir, ela troca de assunto: as
+ * duas ferramentas que qualquer um consegue usar no primeiro dia, mais duas
+ * práticas curtas.
+ *
+ * As duas práticas não são as "melhores" do repertório: são as que pedem menos.
+ * O aterramento 5-4-3-2-1 é a mesma que o app oferece como saída de emergência
+ * (`ANCORA_RAPIDA`), e os "Dois minutos" da procrastinação é a única que cabe
+ * inteira no tempo de quem só abriu para dar uma olhada. Primeira prática ruim
+ * é primeira prática longa.
+ */
+const PARA_COMECAR: Recente[] = [
+  { tipo: 'pratica', topico: ANCORA_RAPIDA.topico, pratica: ANCORA_RAPIDA.pratica },
+  { tipo: 'diario' },
+  { tipo: 'composta' },
+  { tipo: 'pratica', topico: 'procrastinacao', pratica: 'dois-minutos' },
+];
 
 type Props = {
   name: string;
@@ -155,12 +177,15 @@ export function HomeScreen({
   const alturaDoHeroi = Math.round(Math.min(largura * 0.84, 330));
 
   /**
-   * Onde a pessoa parou — as ferramentas e práticas mais recentes.
+   * A fileira do meio da tela: onde a pessoa parou, ou por onde começar.
    *
-   * Some inteira em quem ainda não fez nada: numa instalação nova a lista vem
-   * vazia e a seção não é desenhada.
+   * Ela existe sempre e no mesmo lugar. O que muda é a lista e o título — e o
+   * cartão sabe a diferença sozinho: item com data mostra "ontem", item sem
+   * data mostra quanto leva. Ver `PARA_COMECAR` e `OndeVoceParou`.
    */
-  const recentes = useMemo(() => ondeVoceParou(data), [data]);
+  const visitados = useMemo(() => ondeVoceParou(data), [data]);
+  const estreando = visitados.length === 0;
+  const fileira = estreando ? PARA_COMECAR : visitados;
 
   const voltarPara = (item: Recente) => {
     if (item.tipo === 'composta') return onOpenComposta();
@@ -169,24 +194,33 @@ export function HomeScreen({
   };
 
   /**
-   * O selo do carrossel, e por que ele quase nunca aparece.
+   * Os selos do carrossel: sempre um por cartão, e nunca o mesmo o dia inteiro.
    *
-   * O cartaz que inspirou este desenho tem um "Recomendado" fixo no primeiro
-   * item — que não recomenda nada, só decora. Aqui o selo só existe quando há
-   * um motivo que dá para dizer em voz alta, e é um por vez:
+   * A primeira versão só mostrava selo quando havia um motivo forte — e o
+   * resultado foi uma Home que na maioria dos dias não tinha selo nenhum, que é
+   * o contrário do que o selo existe para fazer.
    *
-   * - **Composta**, quando o humor de hoje está pesado. É a ferramenta para o
-   *   pensamento que não sai da cabeça, e é nesse dia que ela serve.
-   * - **Diário**, no fim do dia de quem ainda não escreveu. "O que passou hoje"
-   *   só faz sentido quando o hoje já passou.
+   * O caminho do meio é este: o selo é fixo, mas o **texto** é o que for
+   * verdade agora. Nenhum deles é um "Recomendado" que não recomenda nada:
    *
-   * Sem nenhum dos dois, nenhum selo. Selo que aparece sempre vira moldura.
+   * - **Diário** — "fim do dia" depois das 18h de quem ainda não escreveu,
+   *   porque "o que passou hoje" só faz sentido quando o hoje já passou; "já
+   *   escrito hoje" para quem escreveu; "recomendado" no resto do tempo.
+   * - **Composta** — "para agora" em dia de humor pesado, que é o dia em que
+   *   ela serve; "30 segundos" no resto, que é o custo dela e é o que costuma
+   *   decidir se alguém entra.
+   * - **Frase do dia** — "uma por dia" enquanto está enterrada, "lida hoje"
+   *   depois. O cartão dela carrega o próprio selo; ver `CartaoDoConselho`.
    */
   const escreveuHoje = data.journal.some((e) => dayKey(e.createdAt) === today);
   const diaPesado = !!humorMarcado && DIA_PESADO.includes(humorMarcado);
   const fimDoDia = new Date().getHours() >= 18;
-  const seloDaComposta = diaPesado ? 'para agora' : null;
-  const seloDoDiario = !seloDaComposta && fimDoDia && !escreveuHoje ? 'fim do dia' : null;
+  const seloDaComposta = diaPesado ? 'para agora' : '30 segundos';
+  const seloDoDiario = escreveuHoje
+    ? 'já escrito hoje'
+    : fimDoDia
+      ? 'fim do dia'
+      : 'recomendado';
 
   /*
     A frase de hoje, e se ela já foi desenterrada. `conselhoDoDia` é pura e
@@ -267,6 +301,9 @@ export function HomeScreen({
 
   return (
     <View style={{ flex: 1 }}>
+      {/* A luz e a descida ficam atrás de tudo, inclusive da rolagem. */}
+      <FundoDaTela />
+
       <ScrollView
         ref={rolagem}
         /*
@@ -405,20 +442,18 @@ export function HomeScreen({
           fez nada — uma fileira vazia com um título em cima é pior que
           nenhuma. Ver `ondeVoceParou`.
         */}
-        {recentes.length > 0 && (
-          <View style={{ gap: 12, marginTop: -4 }}>
-            <Text
-              style={{
-                color: colors.textPrimary,
-                fontFamily: fonts.display.bold,
-                fontSize: 20,
-              }}
-            >
-              Onde você parou
-            </Text>
-            <OndeVoceParou itens={recentes} margem={20} onAbrir={voltarPara} />
-          </View>
-        )}
+        <View style={{ gap: 12, marginTop: -4 }}>
+          <Text
+            style={{
+              color: colors.textPrimary,
+              fontFamily: fonts.display.bold,
+              fontSize: 20,
+            }}
+          >
+            {estreando ? 'Para começar' : 'Onde você parou'}
+          </Text>
+          <OndeVoceParou itens={fileira} margem={20} onAbrir={voltarPara} />
+        </View>
 
         {/*
           As práticas deixam de ser um atalho e passam a ser a metade de baixo
