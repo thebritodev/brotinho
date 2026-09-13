@@ -5,14 +5,15 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import {
   BoasVindas,
   Carrossel,
-  CartaoDeFerramenta,
+  CartaoHeroi,
   CartaoDoConselho,
+  CenaDaComposta,
+  CenaDoDiario,
+  OndeVoceParou,
   GrowthNotice,
   HarvestNotice,
   Icon,
   IconButton,
-  DesenhoDaComposta,
-  DesenhoDoDiario,
   PracticeTopicCard,
   VoltaCard,
   useCompartilharFrase,
@@ -29,10 +30,12 @@ import {
   dayKey,
   daysCaredFor,
   diasSemAparecer,
+  ondeVoceParou,
+  type Recente,
   prontoParaColher,
   sproutStage,
 } from '../../state/derived';
-import { fonts, radius, useTema } from '../../theme';
+import { fonts, type Mood, radius, useTema } from '../../theme';
 
 /**
  * A tela inicial: o lugar de **fazer**.
@@ -71,6 +74,13 @@ import { fonts, radius, useTema } from '../../theme';
  * do broto, porque esta é a tela que abre. Uma planta que amadureceu e espera
  * a pessoa trocar de aba para ser colhida não seria colhida.
  */
+
+/**
+ * Humores em que uma comemoração cai mal — e em que a Composta é a ferramenta
+ * do dia. Os dois usos leem a mesma lista de propósito: é a mesma pergunta,
+ * "hoje está pesado?".
+ */
+const DIA_PESADO: readonly Mood[] = ['ansioso', 'triste', 'cansado'];
 
 type Props = {
   name: string;
@@ -122,7 +132,6 @@ export function HomeScreen({
   const today = dayKey();
   const registroDeHoje = data.moodHistory.find((m) => m.date === today);
   const humorMarcado = registroDeHoje?.mood ?? null;
-  const mood = humorMarcado ?? 'neutro';
 
   /** Quantos exercícios existem ao todo — contados, nunca escritos à mão. */
   const quantasPraticas = useMemo(
@@ -134,6 +143,50 @@ export function HomeScreen({
     () => sugestaoParaOHumor({ humor: humorMarcado, agora: new Date() }),
     [humorMarcado],
   );
+
+  /**
+   * A altura dos três cartões grandes.
+   *
+   * Sai da largura da tela para a cena guardar a mesma proporção em qualquer
+   * aparelho — e tem teto, porque num tablet ou numa tela muito alta um cartão
+   * de 400 pontos empurraria as práticas para fora da primeira dobra, que é
+   * exatamente o que esta tela foi reorganizada para evitar.
+   */
+  const alturaDoHeroi = Math.round(Math.min(largura * 0.84, 330));
+
+  /**
+   * Onde a pessoa parou — as ferramentas e práticas mais recentes.
+   *
+   * Some inteira em quem ainda não fez nada: numa instalação nova a lista vem
+   * vazia e a seção não é desenhada.
+   */
+  const recentes = useMemo(() => ondeVoceParou(data), [data]);
+
+  const voltarPara = (item: Recente) => {
+    if (item.tipo === 'composta') return onOpenComposta();
+    if (item.tipo === 'diario') return onOpenDiario();
+    onOpenPractices({ topico: item.topico, pratica: item.pratica });
+  };
+
+  /**
+   * O selo do carrossel, e por que ele quase nunca aparece.
+   *
+   * O cartaz que inspirou este desenho tem um "Recomendado" fixo no primeiro
+   * item — que não recomenda nada, só decora. Aqui o selo só existe quando há
+   * um motivo que dá para dizer em voz alta, e é um por vez:
+   *
+   * - **Composta**, quando o humor de hoje está pesado. É a ferramenta para o
+   *   pensamento que não sai da cabeça, e é nesse dia que ela serve.
+   * - **Diário**, no fim do dia de quem ainda não escreveu. "O que passou hoje"
+   *   só faz sentido quando o hoje já passou.
+   *
+   * Sem nenhum dos dois, nenhum selo. Selo que aparece sempre vira moldura.
+   */
+  const escreveuHoje = data.journal.some((e) => dayKey(e.createdAt) === today);
+  const diaPesado = !!humorMarcado && DIA_PESADO.includes(humorMarcado);
+  const fimDoDia = new Date().getHours() >= 18;
+  const seloDaComposta = diaPesado ? 'para agora' : null;
+  const seloDoDiario = !seloDaComposta && fimDoDia && !escreveuHoje ? 'fim do dia' : null;
 
   /*
     A frase de hoje, e se ela já foi desenterrada. `conselhoDoDia` é pura e
@@ -162,9 +215,6 @@ export function HomeScreen({
 
   const stage = sproutStage(data);
   const [celebrando, setCelebrando] = useState(false);
-
-  /** Humores em que uma comemoração cai mal. Ver o efeito abaixo. */
-  const DIA_PESADO: readonly (typeof mood)[] = ['ansioso', 'triste', 'cansado'];
 
   useEffect(() => {
     // Quem já usava o app antes disso existir adota o estágio atual calado:
@@ -301,27 +351,32 @@ export function HomeScreen({
           valores, frases guardadas — moram na aba do broto.
         */}
         <Carrossel rotulos={['Diário', 'Composta', 'Frase do dia']}>
-          <CartaoDeFerramenta
-            desenho={<DesenhoDoDiario />}
+          <CartaoHeroi
+            altura={alturaDoHeroi}
+            fundo={palette.cream200}
+            cena={<CenaDoDiario fundo={palette.cream200} />}
+            selo={seloDoDiario}
             titulo="Diário"
-            texto="Escreva ou fale o que passou hoje. Não sai do seu aparelho."
-            etiquetas={['escrever', 'ou falar']}
+            linha="Escreva ou fale o que passou hoje. Não sai do seu aparelho."
+            acao="Escrever agora"
             onPress={onOpenDiario}
             label="Diário: escrever ou falar o que passou hoje"
           />
 
-          <CartaoDeFerramenta
-            desenho={<DesenhoDaComposta />}
+          <CartaoHeroi
+            altura={alturaDoHeroi}
+            fundo={palette.green100}
+            cena={<CenaDaComposta fundo={palette.green100} />}
+            selo={seloDaComposta}
             titulo="Composta"
-            texto="Repita em voz alta o pensamento que te incomoda. O broto transforma ele em adubo."
-            etiquetas={['30 a 40 segundos', 'em voz alta']}
-            tom="destaque"
+            linha="Repita em voz alta o pensamento que te incomoda até ele virar só som."
+            acao="Compostar um pensamento"
             onPress={onOpenComposta}
             label="Composta: repita em voz alta um pensamento que incomoda"
           />
 
           <CartaoDoConselho
-            compacto
+            heroi={alturaDoHeroi}
             texto={conselho.texto}
             aberto={conselhoAberto}
             guardada={data.conselhosGuardados.includes(conselho.id)}
@@ -340,6 +395,30 @@ export function HomeScreen({
             aviso={story.aviso}
           />
         </Carrossel>
+
+        {/*
+          Onde você parou.
+
+          Vem depois do carrossel e antes das práticas de propósito: quem não
+          sabe o que fazer olha para cima, quem já sabe encontra o caminho de
+          volta aqui sem atravessar treze temas. Some inteira em quem ainda não
+          fez nada — uma fileira vazia com um título em cima é pior que
+          nenhuma. Ver `ondeVoceParou`.
+        */}
+        {recentes.length > 0 && (
+          <View style={{ gap: 12, marginTop: -4 }}>
+            <Text
+              style={{
+                color: colors.textPrimary,
+                fontFamily: fonts.display.bold,
+                fontSize: 20,
+              }}
+            >
+              Onde você parou
+            </Text>
+            <OndeVoceParou itens={recentes} margem={20} onAbrir={voltarPara} />
+          </View>
+        )}
 
         {/*
           As práticas deixam de ser um atalho e passam a ser a metade de baixo

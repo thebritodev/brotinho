@@ -7,6 +7,8 @@ import { fonts, radius, useTema } from '../../theme';
 import { Button } from '../core/Button';
 import { Card } from '../core/Card';
 import { Icon } from '../core/Icon';
+import { CartaoHeroi } from './CartaoHeroi';
+import { CenaDaFrase } from './cenasDoCarrossel';
 import { Desenterrar } from './Desenterrar';
 import { BRASA, TERRA, TERRA_CLARA, TERRA_FUNDA, TERRA_SOMBRA } from './terraDoCanteiro';
 
@@ -45,10 +47,10 @@ import { BRASA, TERRA, TERRA_CLARA, TERRA_FUNDA, TERRA_SOMBRA } from './terraDoC
  * precisar tocar. A encenação é para a primeira vez do dia; repetir a cada
  * relance transformaria um momento em pedágio.
  *
- * **No modo compacto isso muda**, e por um motivo de layout, não de produto:
- * dentro do carrossel da tela inicial o cartão precisa ter altura fixa, então
- * ali ele continua sendo o canteiro o dia inteiro e a frase abre por cima. Ver
- * `compacto`.
+ * **No cartão grande do carrossel isso muda**, e por um motivo de layout, não
+ * de produto: ali os três cartões dividem a mesma fileira e precisam ter altura
+ * fixa, então ele continua sendo o canteiro o dia inteiro e a frase abre por
+ * cima. Ver `heroi`.
  */
 
 /* O canteiro do cartão fechado, num quadrado de 60. */
@@ -83,18 +85,25 @@ export type CartaoDoConselhoProps = {
   /** Recado de quando não deu para compartilhar. `null` quando deu. */
   aviso?: string | null;
   /**
-   * Altura fixa, para o cartão viver dentro do carrossel da tela inicial.
+   * A altura do cartão grande do carrossel — e, por existir, o pedido para ser
+   * um deles.
    *
-   * Fora do carrossel, a frase já desenterrada aparece **dentro** do cartão, e
-   * ele cresce para caber nela. Ali isso não serve: os três cartões do
-   * carrossel dividem a mesma fileira, e um que muda de altura no meio do dia
-   * empurraria os vizinhos e faria os pontinhos dançarem.
+   * Ele também fixa a altura, e isso é o que separa este cartão do de fora do
+   * carrossel: lá a frase desenterrada aparece **dentro** do cartão e ele cresce
+   * para caber nela; aqui os três cartões dividem a fileira, e um que muda de
+   * altura no meio do dia empurraria os vizinhos e faria os pontinhos dançarem.
+   * Por isso, no carrossel, ele continua sendo o canteiro o dia inteiro e a
+   * frase abre por cima.
    *
-   * No modo compacto o cartão continua sendo o canteiro em qualquer hora do
-   * dia; o que muda é o convite, de "desenterrar" para "ler de novo". A frase
-   * abre por cima, na mesma folha de sempre.
+   * O cartão fechado passa a ser desenhado como os irmãos: o canteiro cobrindo
+   * o cartão inteiro, o nome grande em cima dele e um botão da largura do
+   * cartão. Só a apresentação fechada muda; a frase continua abrindo no mesmo
+   * `Modal`, com a mesma flor, o mesmo guardar e o mesmo compartilhar.
+   *
+   * Vem como número, e não como `true`, porque quem sabe a altura é o carrossel
+   * — os três cartões dividem a fileira e precisam medir igual.
    */
-  compacto?: boolean;
+  heroi?: number;
 };
 
 export function CartaoDoConselho({
@@ -106,7 +115,7 @@ export function CartaoDoConselho({
   onVerGuardadas,
   totalGuardadas,
   onCompartilhar,
-  compacto = false,
+  heroi,
   compartilhando = false,
   aviso = null,
 }: CartaoDoConselhoProps) {
@@ -132,16 +141,16 @@ export function CartaoDoConselho({
   };
 
   return (
-    <View style={compacto ? { flex: 1 } : undefined}>
+    <View>
       {/*
-        O título e o coração ficam de fora no modo compacto.
+        O título e o coração ficam de fora no cartão grande do carrossel.
 
         No carrossel os três cartões são irmãos: os outros dois dizem o próprio
         nome dentro deles, e um título solto por cima só deste desalinharia a
         fileira. O nome continua sendo dito — o leitor de tela anuncia "Frase do
         dia, 3 de 3" —, e as frases guardadas têm porta própria na aba do broto.
       */}
-      {!compacto && (
+      {!heroi && (
       <View
         style={{
           flexDirection: 'row',
@@ -191,7 +200,28 @@ export function CartaoDoConselho({
       </View>
       )}
 
-      {aberto && !compacto ? (
+      {heroi ? (
+        <CartaoHeroi
+          altura={heroi}
+          fundo={palette.brown200}
+          cena={<CenaDaFrase fundo={palette.brown200} />}
+          selo={aberto ? undefined : 'uma por dia'}
+          titulo="Frase do dia"
+          linha={
+            aberto
+              ? 'Você já desenterrou a de hoje.'
+              : 'Tem uma frase enterrada aqui. Amanhã vem outra.'
+          }
+          acao={aberto ? 'Ler de novo' : 'Desenterrar'}
+          label={aberto ? 'Ler a frase de hoje de novo' : 'Desenterrar a frase de hoje'}
+          onPress={() => {
+            // A anotação vem antes da animação: se a pessoa fechar no meio, o
+            // dia já está marcado e ela reabre na mesma frase, e não em outra.
+            onDesenterrar();
+            setAbrindo(true);
+          }}
+        />
+      ) : aberto ? (
         <Card padding={18} style={[pele, { gap: 14 }]}>
           <Text
             style={{
@@ -221,11 +251,7 @@ export function CartaoDoConselho({
             onDesenterrar();
             setAbrindo(true);
           }}
-          style={[
-            pele,
-            { flexDirection: 'row', alignItems: 'center', gap: 16 },
-            compacto && { flex: 1 },
-          ]}
+          style={[pele, { flexDirection: 'row', alignItems: 'center', gap: 16 }]}
         >
           <Svg viewBox="0 0 60 60" width={60} height={60}>
             <Defs>

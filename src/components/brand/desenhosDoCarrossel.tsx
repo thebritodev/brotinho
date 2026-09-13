@@ -44,11 +44,11 @@ function Chao({ id, cy = 50, rx = 26 }: { id: string; cy?: number; rx?: number }
   return <Ellipse cx={30} cy={cy} rx={rx} ry={5.5} fill={`url(#chao-${id})`} />;
 }
 
-export function DesenhoDoDiario() {
+export function DesenhoDoDiario({ size = LADO_DO_DESENHO }: { size?: number } = {}) {
   const id = useId().replace(/[^a-zA-Z0-9]/g, '');
 
   return (
-    <Svg viewBox="0 0 60 60" width={LADO_DO_DESENHO} height={LADO_DO_DESENHO}>
+    <Svg viewBox="0 0 60 60" width={size} height={size}>
       <Defs>
         <RadialGradient id={`chao-${id}`} cx="50%" cy="50%" r="50%">
           <Stop offset="0" stopColor={TERRA_SOMBRA} stopOpacity={0.24} />
@@ -116,11 +116,11 @@ export function DesenhoDoDiario() {
   );
 }
 
-export function DesenhoDaComposta() {
+export function DesenhoDaComposta({ size = LADO_DO_DESENHO }: { size?: number } = {}) {
   const id = useId().replace(/[^a-zA-Z0-9]/g, '');
 
   return (
-    <Svg viewBox="0 0 60 60" width={LADO_DO_DESENHO} height={LADO_DO_DESENHO}>
+    <Svg viewBox="0 0 60 60" width={size} height={size}>
       <Defs>
         <RadialGradient id={`chao-${id}`} cx="50%" cy="50%" r="50%">
           <Stop offset="0" stopColor={TERRA_SOMBRA} stopOpacity={0.26} />

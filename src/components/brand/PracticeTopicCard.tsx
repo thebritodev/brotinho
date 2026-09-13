@@ -35,6 +35,9 @@ type Props = {
   grade?: boolean;
 };
 
+/** Altura do cartão da grade: fixa, para as fileiras baterem. */
+const ALTURA_NA_GRADE = 108;
+
 /** PracticeTopicCard — leva a um tema de prática (ansiedade, sono...). */
 export function PracticeTopicCard({
   title,
@@ -47,16 +50,79 @@ export function PracticeTopicCard({
   grade = false,
 }: Props) {
   const { colors, palette, shadows } = useTema();
+
+  /*
+    Na grade, o tom do tema deixa de ser um quadradinho e vira o cartão.
+
+    Antes o cartão era creme com um selo colorido de 58 pontos no canto: metade
+    da área era vazio, e a cor do tema — que é o que faz "Insônia" e "Luto"
+    serem distinguíveis de relance — aparecia num pedaço pequeno demais para
+    isso funcionar. Agora a cor é o fundo, e a cena cresce até ser cortada pela
+    borda de baixo à direita: o desenho continua para fora do cartão em vez de
+    acabar dentro dele, que é o que o faz parecer ilustração e não ícone.
+  */
+  if (grade) {
+    return (
+      <Pressable
+        accessibilityRole="button"
+        accessibilityLabel={title}
+        onPress={onPress}
+        style={({ pressed }) => [
+          {
+            height: ALTURA_NA_GRADE,
+            backgroundColor: tint,
+            borderRadius: radius.lg,
+            overflow: 'hidden',
+            padding: 13,
+            opacity: pressed ? 0.85 : 1,
+            ...shadows.sm,
+          },
+          style,
+        ]}
+      >
+        <View
+          accessibilityElementsHidden
+          importantForAccessibility="no-hide-descendants"
+          pointerEvents="none"
+          style={{ position: 'absolute', right: -14, bottom: -16 }}
+        >
+          {ehTemaDesenhado(chave ?? '') ? (
+            <DesenhoDoTema tema={chave ?? ''} size={96} />
+          ) : (
+            /* Tema novo, ainda sem cena: o ícone de traço segura o lugar. */
+            <View style={{ padding: 20 }}>
+              <Icon name={icon} size={52} color={palette.brown900} />
+            </View>
+          )}
+        </View>
+
+        <Text
+          numberOfLines={2}
+          style={{
+            fontFamily: fonts.body.extraBold,
+            fontSize: 16,
+            lineHeight: 16 * 1.2,
+            color: palette.brown900,
+            /* Larga o canto de baixo à direita para o desenho. */
+            width: '68%',
+          }}
+        >
+          {title}
+        </Text>
+      </Pressable>
+    );
+  }
+
   return (
     <Pressable
       accessibilityRole="button"
       onPress={onPress}
       style={({ pressed }) => [
         {
-          flexDirection: grade ? 'column' : 'row',
-          alignItems: grade ? 'flex-start' : 'center',
-          gap: grade ? 10 : 16,
-          width: grade ? undefined : '100%',
+          flexDirection: 'row',
+          alignItems: 'center',
+          gap: 16,
+          width: '100%',
           backgroundColor: colors.surface,
           borderRadius: radius.lg,
           padding: 14,
@@ -68,8 +134,8 @@ export function PracticeTopicCard({
     >
       <View
         style={{
-          width: grade ? 58 : 52,
-          height: grade ? 58 : 52,
+          width: 52,
+          height: 52,
           borderRadius: radius.md,
           backgroundColor: tint,
           alignItems: 'center',
@@ -83,10 +149,8 @@ export function PracticeTopicCard({
           ver `desenhosDosTemas`. O `Icon` fica para um tema novo que ainda não
           tenha cena: melhor um ícone genérico do que um quadrado vazio.
         */}
-        <DesenhoDoTema tema={chave ?? ''} size={grade ? 46 : 40} />
-        {!ehTemaDesenhado(chave ?? '') && (
-          <Icon name={icon} size={grade ? 30 : 26} color={palette.brown900} />
-        )}
+        <DesenhoDoTema tema={chave ?? ''} size={40} />
+        {!ehTemaDesenhado(chave ?? '') && <Icon name={icon} size={26} color={palette.brown900} />}
       </View>
       <View style={{ flex: 1, gap: 3 }}>
         <Text style={{ fontFamily: fonts.body.extraBold, fontSize: 16, color: palette.brown900 }}>
@@ -111,14 +175,11 @@ export function PracticeTopicCard({
           iguais não se anunciam como caminho. Escondida do leitor de tela: o
           `Pressable` já se apresenta como botão, e a seta repetiria isso.
 
-          Na grade ela sai. Ali o cartão é uma coluna, e a seta cairia numa
-          linha própria embaixo do título, apontando para o nada — quem diz que
-          aquilo leva a algum lugar passa a ser o ícone grande. */}
-      {!grade && (
-        <View accessibilityElementsHidden importantForAccessibility="no-hide-descendants">
-          <Icon name="chevronRight" size={20} color={palette.brown400} />
-        </View>
-      )}
+          Ela não existe na grade: lá o cartão é colorido por inteiro e a cena
+          sangrando na borda já diz que tem coisa ali dentro. */}
+      <View accessibilityElementsHidden importantForAccessibility="no-hide-descendants">
+        <Icon name="chevronRight" size={20} color={palette.brown400} />
+      </View>
     </Pressable>
   );
 }
