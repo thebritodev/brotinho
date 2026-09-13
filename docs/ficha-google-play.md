@@ -1,0 +1,304 @@
+# Ficha do Google Play — Brotinho
+
+Textos prontos para colar no Play Console, mais as respostas dos questionários.
+Revise antes de enviar: são suas palavras publicadas no seu nome.
+
+A ficha da Apple está em [`ficha-app-store.md`](ficha-app-store.md). Os campos
+**não** são os mesmos, e copiar de uma para a outra estoura limite: a Apple tem
+subtítulo de 30 e palavras-chave escondidas; o Google não tem nenhum dos dois, e
+em troca indexa a **descrição completa**. É por isso que o texto longo daqui não
+é cópia do de lá.
+
+---
+
+## 0. O portão que define o calendário
+
+**Conta nova de pessoa física no Play Console precisa de um teste fechado com
+pelo menos 12 testadores por 14 dias seguidos antes de poder pedir acesso à
+produção.** Isso é regra do Google desde novembro de 2023 e vale para contas
+pessoais criadas depois dessa data; conta de organização não passa por ela.
+
+Se a conta ainda não existe, o caminho até a loja é de **três a quatro semanas**,
+e a maior parte é espera, não trabalho:
+
+| | |
+|---|---|
+| Criar conta e verificar identidade | US$ 25 · 1 a 3 dias, às vezes mais |
+| Perfil de pagamentos | junto, mas só é exigido para cobrar |
+| Subir o primeiro `.aab` na trilha de teste | mesmo dia |
+| Juntar 12 testadores e manter 14 dias | **14 dias corridos, sem atalho** |
+| Pedir acesso à produção e esperar a revisão | alguns dias |
+
+Confirme a regra na tela do próprio Play Console antes de planejar em cima
+dela — essa política mudou duas vezes desde que foi criada.
+
+---
+
+## 1. Textos da ficha
+
+### Nome do app (máx. 30 caracteres)
+
+```
+Brotinho: Diário e Bem-estar
+```
+
+*28 de 30. O mesmo da App Store, e pela mesma razão: "Diário" é a palavra que
+define a categoria e o campo de maior peso na busca das duas lojas.*
+
+### Descrição curta (máx. 80 caracteres)
+
+```
+Desabafe por texto ou voz e cuide da ansiedade. Seus registros não saem daqui.
+```
+
+*78 de 80. É o único texto que aparece antes do "Ler mais", e o Google o indexa.
+Carrega "desabafe", "voz" e "ansiedade" numa frase que ainda é de gente — e
+termina na privacidade, que é o que separa o Brotinho dos concorrentes.*
+
+### Descrição completa (máx. 4000 caracteres)
+
+```
+Cuidar da própria cabeça se parece mais com jardinagem do que com conserto. Não
+existe um botão que resolve: existe rega, luz, tempo e alguma paciência com os
+dias em que nada parece acontecer.
+
+O Brotinho é um lugar para deixar o que pesa. Você escreve ou fala, e um broto
+cresce conforme você aparece. Ele não cobra, não pontua e não fica bravo quando
+você some por uma semana.
+
+
+COMPOSTAR UM PENSAMENTO
+
+Pensamentos difíceis não somem porque alguém mandou parar de pensar neles.
+Tentar empurrá-los para longe costuma dar mais força a eles.
+
+Compostar é fazer o contrário: pegar a frase que te incomoda, repetir em voz
+alta até ela virar só som, e deixar que isso alimente o crescimento. É uma
+técnica real, chamada defusão cognitiva, usada na terapia ACT.
+
+
+O QUE TEM AQUI DENTRO
+
+• Diário — escreva ou fale. A transcrição acontece no próprio aparelho.
+• Composta — repita em voz alta o pensamento que te persegue.
+• Práticas guiadas — 41 exercícios para ansiedade, tristeza, luto, insônia,
+  estresse, solidão, raiva, procrastinação, autoestima, culpa e vergonha,
+  comparação, foco e gratidão.
+• Frase do dia — uma por dia, desenterrada do canteiro, para guardar e
+  compartilhar.
+• Resumo para a terapia — suas semanas em PDF, para levar à sessão sem depender
+  da memória.
+• Registro de humor — uma carinha por dia, e o desenho do mês inteiro depois.
+
+
+PARA QUEM NÃO SABE POR ONDE COMEÇAR
+
+A tela inicial escolhe uma prática para o seu dia — pelo humor que você marcou,
+ou pela última que você fez. São de três a dez minutos, com voz e respiração
+guiadas, e nenhuma delas precisa de preparo, lugar silencioso ou roupa própria.
+
+
+SEUS REGISTROS SÃO SEUS
+
+Não há cadastro, não há servidor, e o que você escreve não sai do seu aparelho.
+Até a análise que sugere seus valores e temas roda aqui dentro.
+
+Isso tem um custo que preferimos assumir: sem conta, não dá para acessar de
+outro celular. Em troca, ninguém além de você lê o seu diário — nem nós.
+
+
+ISTO NÃO É TRATAMENTO
+
+As práticas daqui são de autocuidado, baseadas em técnicas conhecidas. Elas
+ajudam, mas não substituem acompanhamento psicológico ou médico.
+
+Se você estiver em sofrimento intenso ou pensando em se machucar, procure
+ajuda. O CVV atende de graça, 24 horas por dia, pelo telefone 188 e em
+cvv.org.br.
+```
+
+*Duas seções a mais do que a ficha da Apple — "Registro de humor" e "Para quem
+não sabe por onde começar". Não é enfeite: o Google indexa este texto, e as duas
+trazem palavras que alguém digita ("humor", "respiração guiada", "prática de
+cinco minutos") sem transformar a descrição em lista de termos.*
+
+### Novidades desta versão (máx. 500 caracteres)
+
+```
+• Tela inicial nova: cada ferramenta ganhou um cartão grande, com ilustração e um botão que diz o que acontece ao tocar.
+• Uma prática escolhida para o seu dia, logo na abertura — e a fileira de práticas recentes, para voltar de onde você parou num toque.
+• O diário mudou para a aba do Brotinho, logo depois de você dizer como está.
+• As 41 práticas agora aparecem inteiras na tela inicial, com uma ilustração para cada tema.
+• Tema claro/escuro direto no seu perfil.
+```
+
+*468 de 500. O mesmo texto da Apple — aqui ele cabe inteiro.*
+
+> Na primeira publicação este campo não faz sentido como "novidades": se for a
+> estreia do app no Android, troque por uma frase única, do tipo
+> `Primeira versão do Brotinho no Android.`
+
+---
+
+## 2. Imagens
+
+Geradas por script, como as da Apple:
+
+```
+node scripts/graficos-da-play.js
+```
+
+Saem em `loja/google-play/`:
+
+| Arquivo | Tamanho | Onde aparece |
+|---|---|---|
+| `icone-512.png` | 512 × 512 | o ícone da ficha — é o `assets/icon.png` reduzido, o mesmo desenho que fica no aparelho |
+| `destaque-1024x500.png` | 1024 × 500 | a faixa do topo da ficha e das coleções editoriais |
+
+**O gráfico de destaque não pode ter transparência** — o Google recusa PNG com
+canal alfa nesse campo. O script já gera sem.
+
+### Capturas de tela
+
+As sete de `capturas/` servem: o Google aceita de 320 a 3840 px de lado, e
+1242 × 2688 cai dentro. São **as mesmas** da App Store, geradas por
+`node scripts/capturas.js`.
+
+O mínimo é 2 e o máximo é 8. A ordem importa menos do que na Apple, porque a
+Play mostra a faixa de destaque antes das capturas — mas as duas primeiras ainda
+são as que a maioria vê.
+
+> A `paywall.png` **não** é obrigatória aqui. A Apple exige ver a tela de planos
+> para revisar assinatura; o Google confere isso pelos produtos cadastrados.
+
+---
+
+## 3. Segurança dos dados ("Data safety")
+
+É um formulário, e é declaração legal sua. As respostas verdadeiras para o
+Brotinho como ele está hoje:
+
+| Pergunta | Resposta |
+|---|---|
+| O app coleta ou compartilha algum dos tipos de dados exigidos? | **Não** |
+| Os dados são criptografados em trânsito? | *não se aplica — não há trânsito* |
+| Você permite que o usuário peça a exclusão dos dados? | **Sim** — Perfil › Privacidade › Apagar tudo, e desinstalar leva o resto junto |
+
+**Por que "Não coleta":** não há cadastro, não há servidor e o diário não sai do
+aparelho. A transcrição de voz roda no próprio dispositivo
+(`expo-speech-recognition`), e o `EXPO_PUBLIC_TRANSCRIPTION_URL` fica vazio em
+produção — o código impede o envio de áudio quando ela não está definida.
+
+> **Se um dia isso mudar, esta resposta vira mentira.** Ligar um backend de
+> transcrição, uma conta na nuvem ou qualquer análise remota obriga a refazer
+> este formulário antes da próxima publicação.
+
+**A assinatura é a exceção que não muda a resposta:** quem assina passa pelo
+Google Play Billing, e quem coleta ali é o Google, não o app. O RevenueCat
+recebe um identificador anônimo de aparelho e o status da compra — declare como
+**compartilhado** apenas se o formulário perguntar por "IDs de dispositivo", e
+marque o uso como "gerenciamento de conta / funcionalidade do app".
+
+---
+
+## 4. Classificação de conteúdo
+
+Questionário do IARC. Para o Brotinho:
+
+| | |
+|---|---|
+| Categoria | **Referência, notícias ou educação** (não é jogo, não é rede social) |
+| Violência, sexo, linguagem imprópria, drogas, jogos de azar | **Não** para todos |
+| O app tem conteúdo gerado pelo usuário compartilhado com outros? | **Não** — o diário não sai do aparelho |
+| Menciona suicídio ou automutilação? | **Sim** |
+
+**A última merece cuidado e é a que decide a faixa etária.** O app mostra o
+telefone do CVV (188) nas telas de Composta e Diário, e explica que não
+substitui tratamento. Isso é *encaminhamento para ajuda*, que é exatamente o que
+as duas lojas pedem de um app de saúde mental — mas responder "não" a essa
+pergunta e o revisor encontrar o CVV na tela é motivo de recusa.
+
+Classificação esperada: **Livre** ou **10+**, conforme o IARC pesar a menção.
+
+### Público-alvo
+
+- Faixa etária: **13 anos ou mais** (o app não é para crianças)
+- "O app é voltado para crianças?" → **Não**
+- Isso mantém o Brotinho fora das regras da Play para família, que exigiriam
+  outro conjunto inteiro de declarações
+
+---
+
+## 5. Links obrigatórios
+
+Os mesmos da App Store, já publicados e acessíveis sem login:
+
+- **Política de privacidade** — `https://claude.ai/code/artifact/233e5a2a-0e5b-4ef9-b870-3789a54de19b`
+- **Suporte / e-mail de contato** — `brotinho.suporte@gmail.com`
+
+O Google exige a política de privacidade **na ficha e dentro do app**. No
+Brotinho ela está em Perfil → Privacidade.
+
+---
+
+## 6. Assinaturas no Android
+
+**Estado: nada existe ainda do lado do Google.** O RevenueCat tem o app iOS
+configurado e os quatro produtos; o app Android nem foi criado lá.
+
+A ordem é obrigatória e não dá para inverter — no Google, produto só fica ativo
+depois que existe uma versão enviada:
+
+1. Criar o app no Play Console
+2. Subir um `.aab` numa trilha de teste
+3. **Monetizar → Assinaturas** — criar `brotinho_mensal` e `brotinho_anual`, cada
+   uma com um plano base, com os **mesmos identificadores da Apple**
+4. **Monetizar → Produtos avulsos** — `brotinho_vitalicio`
+5. RevenueCat → criar o app Android, ligar à conta de serviço do Google
+6. Copiar a chave pública `goog_…` e guardá-la no EAS:
+
+```
+npx eas-cli env:create --environment production --name EXPO_PUBLIC_REVENUECAT_ANDROID --value goog_xxx --visibility sensitive
+```
+
+> **Sem essa chave o app se dá de graça.** `cobrancaDisponivel()` devolve `false`
+> quando a variável está vazia, e o app deixa todo mundo entrar sem cobrar — foi
+> exatamente o que aconteceu na build 3 do iOS. Não é um defeito: é a proteção
+> que impede uma tela de cobrança quebrada. Mas em produção é dinheiro na mesa.
+
+`brotinho_semanal` **não** deve ser criado: ele sai de venda na Apple assim que a
+1.1.0 estiver no ar.
+
+---
+
+## 7. O que já está pronto no repositório
+
+- `eas.json` → `submit.production.android`, apontando para
+  `./chave-google-play.json`, trilha `internal`, versão como rascunho
+- `.gitignore` → a chave da conta de serviço nunca entra no Git
+- `scripts/graficos-da-play.js` → o ícone de 512 e a faixa de destaque
+- Perfil `production` sem `buildType`, que no EAS significa **`.aab`** — que é o
+  formato que o Google exige (o `.apk` do perfil `preview` serve só para você
+  instalar à mão)
+
+### Os dois comandos, quando a conta existir
+
+```
+npx eas-cli build --profile production --platform android
+npx eas-cli submit --platform android --profile production
+```
+
+O segundo precisa do arquivo `chave-google-play.json` na raiz: ele sai do Google
+Cloud, em **IAM → Contas de serviço → Chaves → JSON**, depois de dar a essa conta
+acesso ao Play Console em **Usuários e permissões**.
+
+---
+
+## Resumo do que depende de você
+
+1. Criar a conta do Play Console (US$ 25) — eu não crio contas
+2. Verificação de identidade e perfil de pagamentos
+3. Gerar a chave JSON da conta de serviço e deixá-la na raiz do projeto
+4. Criar os produtos de assinatura depois do primeiro envio
+5. Responder os dois questionários acima — são declarações suas
+6. Juntar os 12 testadores, se a conta for de pessoa física

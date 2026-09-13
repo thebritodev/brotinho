@@ -51,3 +51,10 @@ capturas/
 # Anotado pelo scripts/ligar-expo.cmd a cada vez que o tunel sobe.
 # O subdominio do ngrok muda toda vez, entao isto e sempre local.
 endereco-expo.txt
+
+# Chave da conta de servico do Google Play (eas submit --platform android).
+# E uma credencial: vale a mesma regra do .p8 da Apple.
+chave-google-play.json
+
+# Imagens da ficha da Play (refeitas com scripts/graficos-da-play.js)
+loja/

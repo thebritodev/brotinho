@@ -37,6 +37,11 @@
         "appleId": "pedrohbpferreira@gmail.com",
         "ascAppId": "6803963494",
         "appleTeamId": "4PKPYM4M6J"
+      },
+      "android": {
+        "serviceAccountKeyPath": "./chave-google-play.json",
+        "track": "internal",
+        "releaseStatus": "draft"
       }
     }
   }
