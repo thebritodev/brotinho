@@ -653,6 +653,31 @@ function mesmaDor(alvo: Set<string>, texto: string): boolean {
   return comuns / Math.min(alvo.size, outra.size) >= 0.5;
 }
 
+/**
+ * O mesmo reconhecimento de `vezesQueVoltou`, mas **antes** de compostar: com
+ * quantas vezes já veio e quando foi a última.
+ *
+ * Serve à tela em que a pessoa escreve o pensamento. Ela não pede nada nem
+ * sugere nada — só diz que o app reconheceu, que é o que um amigo faria ao
+ * ouvir a mesma frase pela terceira vez. Devolve `null` quando não há o que
+ * reconhecer, e aí a tela fica calada.
+ */
+export function voltouAntes(
+  data: AppData,
+  texto: string,
+): { quantas: number; quando: number } | null {
+  if (!data.settings.analysis) return null;
+
+  const alvo = assinatura(texto);
+  if (alvo.size < 2) return null;
+
+  const iguais = data.composts.filter((c) => mesmaDor(alvo, c.thought));
+  if (!iguais.length) return null;
+
+  const ultima = iguais.reduce((a, b) => (a.createdAt >= b.createdAt ? a : b));
+  return { quantas: iguais.length, quando: ultima.createdAt };
+}
+
 export function vezesQueVoltou(data: AppData, texto: string): number {
   /*
     Obedece ao interruptor, como toda leitura de texto.

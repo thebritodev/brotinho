@@ -29,11 +29,28 @@ export type Profile = {
   onboarded: boolean;
 };
 
+/**
+ * De onde o registro nasceu, quando não foi a pessoa abrindo o diário.
+ *
+ * Uma prática manda escrever (`comecoNoDiario`) e a Composta convida no fim.
+ * Nos dois casos a pergunta de partida aparecia, a pessoa escrevia, e o
+ * registro ficava solto — reler três meses depois um texto que começou com
+ * "o que estava embaixo da raiva?" sem saber de onde aquilo veio tira metade
+ * do sentido.
+ *
+ * Guarda a chave, nunca o título: melhorar o nome de uma prática melhora
+ * também o que aparece nos registros antigos.
+ */
+export type OrigemDoRegistro =
+  | { tipo: 'pratica'; topico: string; pratica: string }
+  | { tipo: 'composta' };
+
 export type JournalEntry = {
   id: string;
   /** ISO timestamp de criação. */
   createdAt: number;
   text: string;
+  origem?: OrigemDoRegistro;
 };
 
 /** Uma sessão de Composta concluída. */

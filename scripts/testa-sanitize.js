@@ -171,7 +171,39 @@ const CASOS = [
     console.log(`  ${ok ? 'ok   ' : 'FALHA'} ${nome.padEnd(46)} ${ok ? 'ok' : `veio ${obtido}, esperava ${esperado}`}`);
   }
 
-  console.log(`\n${CASOS.length + ESPERADOS.length} casos · ${falhas} falha(s)`);
+  /*
+    A origem do registro — de qual prática, ou da Composta.
+
+    Ela nasceu depois dos registros, então todo diário antigo vem sem o campo,
+    e o que vier torto vem de disco corrompido ou de arquivo importado. Nos dois
+    casos a regra é a mesma e é o que estes casos travam: **o texto nunca se
+    perde por causa da etiqueta**. Sem origem, ou com origem quebrada, o
+    registro entra igual — só sem a linha "depois de…".
+  */
+  const ORIGENS = [
+    ['sem origem, como todo registro antigo', { text: 'oi', createdAt: 1 }, undefined],
+    [
+      'origem de prática atravessa o disco',
+      { text: 'oi', createdAt: 1, origem: { tipo: 'pratica', topico: 'luto', pratica: 'carta-a-quem-nao-esta' } },
+      'pratica',
+    ],
+    ['origem da composta atravessa o disco', { text: 'oi', createdAt: 1, origem: { tipo: 'composta' } }, 'composta'],
+    ['origem sem prática é descartada', { text: 'oi', createdAt: 1, origem: { tipo: 'pratica' } }, undefined],
+    ['origem inventada é descartada', { text: 'oi', createdAt: 1, origem: { tipo: 'sei la' } }, undefined],
+    ['origem que virou texto é descartada', { text: 'oi', createdAt: 1, origem: 'praticas' }, undefined],
+  ];
+  console.log('\norigem do registro:');
+  for (const [nome, entrada, esperado] of ORIGENS) {
+    const [registro] = sanitizarDados({ journal: [entrada] }, HOJE).journal;
+    const tipo = registro && registro.origem ? registro.origem.tipo : undefined;
+    const ok = !!registro && registro.text === 'oi' && tipo === esperado;
+    if (!ok) falhas += 1;
+    console.log(
+      `  ${ok ? 'ok   ' : 'FALHA'} ${nome.padEnd(46)} ${ok ? 'ok' : `veio ${JSON.stringify(registro)}`}`,
+    );
+  }
+
+  console.log(`\n${CASOS.length + ESPERADOS.length + ORIGENS.length} casos · ${falhas} falha(s)`);
   process.exit(falhas === 0 ? 0 : 1);
 })().catch((e) => {
   console.error('falhou:', e.message);

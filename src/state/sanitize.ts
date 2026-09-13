@@ -1,7 +1,17 @@
 import { LIMITE_DO_HISTORICO, type ConselhoVisto } from '../data/conselhos';
 import { palavraValida } from '../data/humores';
 import { renomear } from '../data/onboarding';
-import type { AppData, Compost, JournalEntry, MoodLog, PracticeDone, Plant, Profile, Settings } from './types';
+import type {
+  AppData,
+  Compost,
+  JournalEntry,
+  MoodLog,
+  OrigemDoRegistro,
+  PracticeDone,
+  Plant,
+  Profile,
+  Settings,
+} from './types';
 import { INITIAL_APP_DATA, INITIAL_PROFILE, INITIAL_SETTINGS } from './types';
 
 /**
@@ -118,13 +128,33 @@ function ajustesLimpos(v: unknown): Settings {
  * diário é o que a pessoa mais teme perder, então nunca se joga a lista fora
  * por causa de uma entrada ruim.
  */
+/** De onde o registro veio — ver `OrigemDoRegistro`. */
+function origemLimpa(v: unknown): OrigemDoRegistro | null {
+  if (!v || typeof v !== 'object') return null;
+  const o = v as Record<string, unknown>;
+  if (o.tipo === 'composta') return { tipo: 'composta' };
+  if (o.tipo === 'pratica' && typeof o.topico === 'string' && typeof o.pratica === 'string') {
+    return { tipo: 'pratica', topico: o.topico, pratica: o.pratica };
+  }
+  return null;
+}
+
 function diarioLimpo(v: unknown): JournalEntry[] {
   if (!ehLista(v)) return [];
   return v.flatMap((item) => {
     const e = (item ?? {}) as Record<string, unknown>;
     if (typeof e.text !== 'string') return [];
     const createdAt = typeof e.createdAt === 'number' && Number.isFinite(e.createdAt) ? e.createdAt : Date.now();
-    return [{ id: typeof e.id === 'string' ? e.id : `${createdAt}`, createdAt, text: e.text }];
+    return [
+      {
+        id: typeof e.id === 'string' ? e.id : `${createdAt}`,
+        createdAt,
+        text: e.text,
+        // Origem malformada vira registro sem origem: o texto é o que importa,
+        // e a etiqueta de onde ele veio não vale perder o registro inteiro.
+        ...(origemLimpa(e.origem) ? { origem: origemLimpa(e.origem)! } : null),
+      },
+    ];
   });
 }
 

@@ -6,6 +6,7 @@ import { Icon, PracticeTopicCard, ScreenTransition, TopBar } from '../../compone
 import { PracticeIllustration } from '../../components/brand/PracticeIllustration';
 import { PRACTICE_TOPICS, findPractice, findTopic, resumoDoTema } from '../../data/practices';
 import { useAppState } from '../../state/AppStateProvider';
+import type { OrigemDoRegistro } from '../../state/types';
 import { praticasMaisFeitas, ultimaPratica, vezesPorPratica } from '../../state/derived';
 import { fonts, radius, useTema } from '../../theme';
 import { PracticeDetailScreen } from '../practices/PracticeDetailScreen';
@@ -18,7 +19,8 @@ export function PracticesScreen({
 }: {
   onBack: () => void;
   /** Repassado à prática: o fim dela pode levar ao diário. */
-  onEscreverNoDiario?: (comeco: string) => void;
+  /** Abre o diário com a pergunta de partida e de onde ela veio. */
+  onEscreverNoDiario?: (comeco: string, origem: OrigemDoRegistro) => void;
   /** Prática para abrir de saída, vinda da oferta da Home. */
   alvo?: { topico: string; pratica: string } | null;
 }) {

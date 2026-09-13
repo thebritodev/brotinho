@@ -74,9 +74,27 @@ export function useVoiceNote({ onText }: Options) {
       }),
 
       subscribeSpeech('error', (event: { error?: string }) => {
+        /*
+          O que já foi reconhecido é entregue mesmo quando o reconhecimento cai.
+
+          Antes o parcial era jogado fora aqui: quem falava trinta segundos e
+          via o reconhecedor morrer no meio — sem modelo do português, rede
+          trocando, o sistema encerrando o serviço — perdia tudo, e a tela
+          voltava vazia com um recado de erro. Perder o que a pessoa acabou de
+          dizer num app de desabafo é o pior jeito de falhar.
+
+          Vai para o texto pelo mesmo caminho do fim normal, então emenda no que
+          já estava escrito. O aviso continua aparecendo: ela precisa saber que
+          o resto não foi ouvido.
+        */
+        const atePonto = partialRef.current.trim();
         partialRef.current = '';
         setPartial('');
         setState('idle');
+        if (atePonto) {
+          setWasSimulated(false);
+          onTextRef.current(atePonto);
+        }
         // "no-speech" só significa que ninguém falou; não é falha digna de alarme.
         if (event.error === 'no-speech') return;
 

@@ -14,6 +14,7 @@ import { SettingsScreen } from '../screens/app/SettingsScreen';
 import { TherapySummaryScreen } from '../screens/app/TherapySummaryScreen';
 import { ConselhosGuardadosScreen } from '../screens/app/ConselhosGuardadosScreen';
 import type { SubScreen } from '../screens/app/types';
+import type { OrigemDoRegistro } from '../state/types';
 import { CompostaScreen } from '../screens/composta/CompostaScreen';
 import { ValuesScreen } from '../screens/app/ValuesScreen';
 import { onNotificationTap } from '../services/notifications';
@@ -35,6 +36,14 @@ export function MainTabs() {
    * de aba: voltar ao diário depois não é mais o mesmo pedido.
    */
   const [comecoDaPratica, setComecoDaPratica] = useState<string | null>(null);
+  /**
+   * De onde veio a pergunta que abriu o diário — a prática, ou a Composta.
+   *
+   * Viaja junto com a pergunta e pelo mesmo motivo: quem escreve está noutra
+   * tela, e o registro precisa saber de onde nasceu. Some quando a pergunta
+   * some.
+   */
+  const [origemDoRegistro, setOrigemDoRegistro] = useState<OrigemDoRegistro | null>(null);
   /** A prática oferecida na Home, para as Práticas já abrirem nela. */
   const [praticaAlvo, setPraticaAlvo] = useState<{ topico: string; pratica: string } | null>(null);
 
@@ -85,6 +94,7 @@ export function MainTabs() {
       // A pergunta que uma prática mandou para o diário não sobrevive à saída
       // dele, igual ao que a barra de baixo faz.
       setComecoDaPratica(null);
+      setOrigemDoRegistro(null);
       return true;
     }
     return false;
@@ -118,14 +128,25 @@ export function MainTabs() {
       case 'privacidade':
         return <PrivacyScreen onBack={closeSub} />;
       case 'composta':
-        return <CompostaScreen onClose={closeSub} aoFazerExercicio={ancorarAgora} />;
+        return (
+          <CompostaScreen
+            onClose={closeSub}
+            aoFazerExercicio={ancorarAgora}
+            aoEscreverNoDiario={(comeco) => {
+              setComecoDaPratica(comeco);
+              setOrigemDoRegistro({ tipo: 'composta' });
+              setSub('diario');
+            }}
+          />
+        );
       case 'praticas':
         return (
           <PracticesScreen
             alvo={praticaAlvo}
             onBack={closeSub}
-            onEscreverNoDiario={(comeco) => {
+            onEscreverNoDiario={(comeco, origem) => {
               setComecoDaPratica(comeco);
+              setOrigemDoRegistro(origem);
               setSub('diario');
             }}
           />
@@ -143,6 +164,7 @@ export function MainTabs() {
           <JournalScreen
             onBack={closeSub}
             comecoDaPratica={comecoDaPratica}
+            origem={origemDoRegistro}
             aoFazerExercicio={ancorarAgora}
             aoAbrirPratica={abrirPratica}
           />
@@ -205,6 +227,7 @@ export function MainTabs() {
           setTab(next);
           setSub(null);
           setComecoDaPratica(null);
+          setOrigemDoRegistro(null);
         }}
       />
     </View>

@@ -18,11 +18,11 @@ import {
 } from '../../components';
 import { toqueDeConclusao, toqueLeve } from '../../services/toque';
 import { useAppState } from '../../state/AppStateProvider';
-import { vezesQueVoltou } from '../../state/derived';
+import { vezesQueVoltou, voltouAntes } from '../../state/derived';
 import { fonts, radius, useTema } from '../../theme';
 import { AduboAssentando } from './AduboAssentando';
 import { FallingWords } from './FallingWords';
-import { useCompostSession } from './useCompostSession';
+import { useCompostSession, type ModoDaComposta } from './useCompostSession';
 import { useBotaoVoltar } from '../../navigation/useBotaoVoltar';
 import { ALTURA_ERGUIDA } from '../../components/navigation/BottomNav';
 
@@ -34,15 +34,22 @@ const REPS_TO_FADE = 12;
 
 const SUGESTOES = ['vou ser demitido', 'ninguém confia em mim', 'vai dar tudo errado'];
 
+/** "5 de setembro" — a data curta do reconhecimento de frase repetida. */
+const diaDe = (quando: number) =>
+  new Date(quando).toLocaleDateString('pt-BR', { day: 'numeric', month: 'long' });
+
 type Step = 'explain' | 'thought' | 'record' | 'done';
 
 export function CompostaScreen({
   onClose,
   aoFazerExercicio,
+  aoEscreverNoDiario,
 }: {
   onClose: () => void;
   /** Repassado ao CVV: a saída de quem não quer falar com ninguém agora. */
   aoFazerExercicio?: () => void;
+  /** Abre o diário com a pergunta de partida, no fim da prática. */
+  aoEscreverNoDiario?: (comeco: string) => void;
 }) {
   const { colors, palette, shadows, vidros } = useTema();
   const insets = useSafeAreaInsets();
@@ -81,7 +88,17 @@ export function CompostaScreen({
   };
   const voltarDoPensamento = () => (explicacaoAtras ? setStep('explain') : onClose());
   const [thought, setThought] = useState('');
+  /**
+   * Em voz alta ou em silêncio — ver a escolha no passo do pensamento.
+   *
+   * Fica aqui, e não dentro da sessão, porque é uma decisão da pessoa sobre
+   * onde ela está, e ela precisa sobreviver a começar e cancelar.
+   */
+  const [modo, setModo] = useState<ModoDaComposta>('voz');
   const [result, setResult] = useState({ reps: 0, secs: 0 });
+
+  /** Se esta frase já passou por aqui — dito enquanto ela escreve. */
+  const voltou = useMemo(() => voltouAntes(data, thought), [data, thought]);
 
   /**
    * Quantas vezes um pensamento parecido já foi compostado, contando este.
@@ -122,7 +139,7 @@ export function CompostaScreen({
 
   const começar = async () => {
     setStep('record');
-    await session.start();
+    await session.start(modo);
   };
 
   const cancelar = () => {
@@ -416,29 +433,122 @@ export function CompostaScreen({
 
           <View style={{ flex: 1 }} />
 
-          <View
-            style={{
-              backgroundColor: colors.surface,
-              borderRadius: radius.lg,
-              padding: 16,
-              flexDirection: 'row',
-              gap: 12,
-              alignItems: 'center',
-              ...shadows.sm,
-            }}
-          >
-            <Icon name="mic" size={22} color={colors.primaryStrong} />
-            <Text
+          {/*
+            "Isto já passou por aqui", enquanto ela ainda está escrevendo.
+
+            O app já dizia isso no fim, depois da prática. Dito antes, muda de
+            função: deixa de ser um dado sobre o que acabou de acontecer e vira
+            o reconhecimento de que aquela frase é recorrente — que é a razão de
+            compostar de novo, e não um motivo para desistir.
+
+            Não sugere nada e não abre nada. Segue o interruptor de análise,
+            como toda leitura de texto (ver `voltouAntes`).
+          */}
+          {!!voltou && (
+            <View
               style={{
-                flex: 1,
-                fontFamily: fonts.body.regular,
-                fontSize: 14,
-                lineHeight: 14 * 1.45,
-                color: palette.brown700,
+                flexDirection: 'row',
+                gap: 10,
+                alignItems: 'center',
+                padding: 12,
+                borderRadius: radius.md,
+                backgroundColor: colors.primarySoft,
               }}
             >
-              Fale em um lugar onde você possa usar a voz. O broto precisa te ouvir.
-            </Text>
+              <Icon name="ampulheta" size={18} color={colors.primaryStrong} />
+              <Text
+                style={{
+                  flex: 1,
+                  fontFamily: fonts.body.regular,
+                  fontSize: 13,
+                  lineHeight: 13 * 1.45,
+                  color: palette.brown700,
+                }}
+              >
+                {voltou.quantas === 1
+                  ? `Você já compostou algo parecido, em ${diaDe(voltou.quando)}.`
+                  : `Algo parecido já passou por aqui ${voltou.quantas} vezes. A última em ${diaDe(voltou.quando)}.`}
+              </Text>
+            </View>
+          )}
+
+          {/*
+            A escolha do modo, e por que ela existe.
+
+            O aviso que ficava aqui dizia "fale em um lugar onde você possa usar
+            a voz" — o que não é conselho, é condição. Este app é usado na cama
+            de madrugada, com alguém dormindo do lado, e no ônibus: nesses
+            lugares a prática simplesmente não acontecia.
+
+            Em silêncio ela perde força, e a tela diz isso sem enfeitar. Repetir
+            baixinho até a frase virar som é o mesmo mecanismo, mais fraco; e
+            fraco acontecendo vale mais que forte que não acontece.
+          */}
+          <View style={{ gap: 8 }}>
+            {(
+              [
+                {
+                  modo: 'voz' as const,
+                  icone: 'mic' as const,
+                  titulo: 'Em voz alta',
+                  texto: 'O broto ouve e conta sozinho. É assim que funciona melhor.',
+                },
+                {
+                  modo: 'silencio' as const,
+                  icone: 'som' as const,
+                  titulo: 'Baixinho ou só no pensamento',
+                  texto: 'Sem microfone. Você segura o botão enquanto repete.',
+                },
+              ]
+            ).map((opcao) => {
+              const escolhida = modo === opcao.modo;
+              return (
+                <Pressable
+                  key={opcao.modo}
+                  accessibilityRole="radio"
+                  accessibilityState={{ selected: escolhida }}
+                  accessibilityLabel={`${opcao.titulo}. ${opcao.texto}`}
+                  onPress={() => setModo(opcao.modo)}
+                  style={{
+                    flexDirection: 'row',
+                    gap: 12,
+                    alignItems: 'center',
+                    padding: 14,
+                    borderRadius: radius.lg,
+                    borderWidth: 1.5,
+                    borderColor: escolhida ? colors.primaryStrong : colors.border,
+                    backgroundColor: escolhida ? colors.primarySoft : colors.surface,
+                  }}
+                >
+                  <Icon
+                    name={opcao.icone}
+                    size={22}
+                    color={escolhida ? colors.primaryStrong : palette.brown700}
+                  />
+                  <View style={{ flex: 1, gap: 2 }}>
+                    <Text
+                      style={{
+                        fontFamily: fonts.body.bold,
+                        fontSize: 15,
+                        color: escolhida ? colors.primaryStrong : colors.textPrimary,
+                      }}
+                    >
+                      {opcao.titulo}
+                    </Text>
+                    <Text
+                      style={{
+                        fontFamily: fonts.body.regular,
+                        fontSize: 13,
+                        lineHeight: 13 * 1.4,
+                        color: palette.brown700,
+                      }}
+                    >
+                      {opcao.texto}
+                    </Text>
+                  </View>
+                </Pressable>
+              );
+            })}
           </View>
 
           <Button
@@ -610,7 +720,9 @@ export function CompostaScreen({
                   textAlign: 'center',
                 }}
               >
-                Sem acesso ao microfone. Segure o botão enquanto repete em voz alta.
+                {modo === 'silencio'
+                  ? 'Segure o botão enquanto repete — baixinho ou por dentro. Solte entre uma vez e outra.'
+                  : 'Sem acesso ao microfone. Segure o botão enquanto repete em voz alta.'}
               </Text>
               <Pressable
                 accessibilityRole="button"
@@ -814,7 +926,33 @@ export function CompostaScreen({
         <View style={{ flex: 1 }} />
 
         <View style={{ width: '100%', gap: 10 }}>
-          <Button variant="primary" style={{ width: '100%' }} onPress={onClose}>
+          {/*
+            Escrever sobre o que sobrou.
+
+            A Composta terminava em si mesma: a frase virava adubo e a pessoa
+            voltava para a tela inicial. Só que é logo depois de repetir vinte
+            vezes o que mais dói que costuma aparecer alguma coisa para dizer —
+            e o diário estava a três toques dali, com a pessoa tendo de lembrar
+            sozinha o que ia escrever.
+
+            A pergunta de partida já vem escrita, como nas práticas. Fica acima
+            do "voltar ao início" porque é a continuação natural; quem não quer,
+            passa direto.
+          */}
+          {!!aoEscreverNoDiario && (
+            <Button
+              variant="primary"
+              style={{ width: '100%' }}
+              onPress={() => aoEscreverNoDiario('O que ficou depois de compostar isso?')}
+            >
+              Escrever sobre isso
+            </Button>
+          )}
+          <Button
+            variant={aoEscreverNoDiario ? 'secondary' : 'primary'}
+            style={{ width: '100%' }}
+            onPress={onClose}
+          >
             Voltar ao início
           </Button>
           <Button

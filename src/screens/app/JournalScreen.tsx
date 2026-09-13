@@ -14,6 +14,7 @@ import {
   StyleSheet,
   Text,
   TextInput,
+  useWindowDimensions,
   View,
   type NativeSyntheticEvent,
   type TextLayoutEventData,
@@ -23,6 +24,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import {
   AjudaAgora,
   Button,
+  MoodSelector,
   HumorComPalavra,
   Icon,
   InsightCard,
@@ -31,8 +33,9 @@ import {
   Sprout,
   TopBar,
 } from '../../components';
-import { toqueDeConclusao } from '../../services/toque';
+import { toqueDeConclusao, toqueLeve } from '../../services/toque';
 import { useAppState } from '../../state/AppStateProvider';
+import type { OrigemDoRegistro } from '../../state/types';
 import { descartarRascunho, loadRascunho, saveRascunho } from '../../storage/appStorage';
 import { comecoDoDia } from '../../data/comecos';
 import { respostaAoRegistro } from '../../data/resposta';
@@ -135,6 +138,20 @@ const formatDate = (timestamp: number) =>
   new Date(timestamp).toLocaleDateString('pt-BR', { day: 'numeric', month: 'long' });
 
 /**
+ * O mês de um registro, para o cabeçalho da lista.
+ *
+ * O ano entra só quando não é este: "setembro" para o que é de agora,
+ * "dezembro de 2025" para o que é de antes. Sem essa regra, quem usa o app há
+ * dois anos teria dois "setembro" na mesma lista e nenhum jeito de saber qual
+ * é qual.
+ */
+const mesDe = (timestamp: number) => {
+  const d = new Date(timestamp);
+  const mes = d.toLocaleDateString('pt-BR', { month: 'long' });
+  return d.getFullYear() === new Date().getFullYear() ? mes : `${mes} de ${d.getFullYear()}`;
+};
+
+/**
  * Emenda o que foi ditado ao que já está escrito.
  *
  * Uma função só, usada nos dois lugares — na prévia ao vivo e na hora de
@@ -147,12 +164,20 @@ const juntar = (escrito: string, novo: string) => (escrito ? `${escrito} ` : '')
 export function JournalScreen({
   onBack,
   comecoDaPratica,
+  origem,
   aoFazerExercicio,
   aoAbrirPratica,
 }: {
   /** Volta para a tela inicial: o Diário virou tela empilhada. */
   onBack?: () => void;
   comecoDaPratica?: string | null;
+  /**
+   * De onde veio a pergunta que abriu o diário — ver `OrigemDoRegistro`.
+   *
+   * Fica gravada no registro, para que reler "o que estava embaixo da raiva?"
+   * meses depois continue dizendo de onde aquilo saiu.
+   */
+  origem?: OrigemDoRegistro | null;
   /** Repassado ao CVV: a saída de quem não quer falar com ninguém agora. */
   aoFazerExercicio?: () => void;
   /** Abre uma prática direto, para a oferta que vem depois de salvar. */
@@ -160,7 +185,9 @@ export function JournalScreen({
 }) {
   const { colors, palette, shadows } = useTema();
   const insets = useSafeAreaInsets();
-  const { data, addJournalEntry, updateJournalEntry, removeJournalEntry } = useAppState();
+  const { data, addJournalEntry, updateJournalEntry, removeJournalEntry, setTodayMood } =
+    useAppState();
+  const { width: larguraDaTela } = useWindowDimensions();
 
   const [text, setText] = useState('');
 
@@ -355,9 +382,12 @@ export function JournalScreen({
         return {
           id: e.id,
           date: formatDate(e.createdAt),
+          /** Guardado cru para o cabeçalho de mês — ver `mesDe`. */
+          createdAt: e.createdAt,
           text: e.text,
           mood: doDia?.mood ?? null,
           palavra: doDia?.palavra,
+          origem: e.origem,
         };
       }),
     [data.journal, humorPorDia],
@@ -440,7 +470,11 @@ export function JournalScreen({
 
     // O registro é gravado ANTES da animação, nunca depois: um desabafo não pode
     // se perder porque um efeito visual não terminou.
-    addJournalEntry(content);
+    //
+    // A origem só acompanha o registro que nasceu **daquela** pergunta: se a
+    // pessoa apagou o começo e escreveu outra coisa, a origem continua sendo a
+    // mesma sessão, e é isso que ela vai querer lembrar ao reler.
+    addJournalEntry(content, daPratica ? origem ?? undefined : undefined);
     /*
       A resposta é calculada com o estado de ANTES da gravação, de propósito.
 
@@ -683,6 +717,45 @@ export function JournalScreen({
         {!!resposta && <InsightCard text={resposta} />}
 
         {/*
+          A carinha do dia, oferecida aqui — e só para quem ainda não marcou.
+
+          O humor mora na aba do broto desde a reestruturação, e quem abre o app
+          para escrever não passa mais por lá. O registro ficava sem humor, e é
+          o humor que alimenta os padrões, o arco do mês e o resumo da terapia.
+
+          Vem **depois** de escrever, nunca antes: perguntar como foi o dia
+          antes de ela dizer o que aconteceu é formulário. E só aparece uma vez
+          por dia, porque some no instante em que ela toca numa carinha.
+        */}
+        {!!resposta && !humorDeHoje && (
+          <View
+            style={{
+              alignItems: 'center',
+              gap: 10,
+              paddingVertical: 14,
+              paddingHorizontal: 12,
+              borderRadius: radius.lg,
+              backgroundColor: colors.surface,
+              ...shadows.sm,
+            }}
+          >
+            <Text
+              style={{ fontFamily: fonts.body.bold, fontSize: 15, color: colors.textPrimary }}
+            >
+              E o dia, como foi?
+            </Text>
+            <MoodSelector
+              value="neutro"
+              onChange={(m) => {
+                toqueLeve(data.settings.vibracao);
+                setTodayMood(m);
+              }}
+              faceSize={Math.max(34, Math.min(48, (larguraDaTela - 60) / 6.6))}
+            />
+          </View>
+        )}
+
+        {/*
           A prática para o dia que ela marcou, e só quando marcou um difícil.
 
           Fica depois da resposta e antes do CVV, na mesma ordem de sempre: o
@@ -874,21 +947,55 @@ export function JournalScreen({
                 </Text>
               </View>
             )}
-            {aMostrar.map((e) => (
-              <SwipeableEntry
-                key={e.id}
-                id={e.id}
-                date={e.date}
-                text={e.text}
-                mood={e.mood}
-                palavra={e.palavra}
-                openId={linhaAberta}
-                onOpen={setLinhaAberta}
-                onRead={() => setLendo(e)}
-                onEdit={() => setEditando({ id: e.id, text: e.text, original: e.text })}
-                onDelete={() => setExcluindo({ id: e.id, date: e.date })}
-              />
-            ))}
+            {aMostrar.map((e, i) => {
+              /*
+                O mês só aparece quando muda.
+
+                A lista era uma pilha de cartões com "10 de setembro", "9 de
+                setembro", e lá embaixo "carregar mais antigos" — procurar algo
+                de dois meses atrás era rolar no escuro, contando datas. O
+                cabeçalho dá o chão: dá para saber onde se está sem ler cada
+                cartão.
+
+                Comparado com o anterior da **lista visível**, não com o do
+                registro anterior no tempo: com busca ou filtro ligados, a lista
+                pula meses, e o cabeçalho precisa aparecer em cada salto.
+              */
+              const mes = mesDe(e.createdAt);
+              const novoMes = i === 0 || mes !== mesDe(aMostrar[i - 1].createdAt);
+
+              return (
+                <React.Fragment key={e.id}>
+                  {novoMes && (
+                    <Text
+                      style={{
+                        fontFamily: fonts.body.extraBold,
+                        fontSize: 13,
+                        letterSpacing: 1.1,
+                        textTransform: 'uppercase',
+                        color: colors.textSecondary,
+                        marginTop: i === 0 ? 0 : 10,
+                      }}
+                    >
+                      {mes}
+                    </Text>
+                  )}
+                  <SwipeableEntry
+                    id={e.id}
+                    date={e.date}
+                    text={e.text}
+                    mood={e.mood}
+                    palavra={e.palavra}
+                    origem={e.origem}
+                    openId={linhaAberta}
+                    onOpen={setLinhaAberta}
+                    onRead={() => setLendo(e)}
+                    onEdit={() => setEditando({ id: e.id, text: e.text, original: e.text })}
+                    onDelete={() => setExcluindo({ id: e.id, date: e.date })}
+                  />
+                </React.Fragment>
+              );
+            })}
 
           {/* Só o que já foi carregado fica na tela; o resto vem sob demanda. */}
           {restantes > 0 && (

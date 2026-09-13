@@ -31,6 +31,7 @@ import {
   type Compost,
   type JournalEntry,
   type MoodLog,
+  type OrigemDoRegistro,
   type Profile,
   type Settings,
 } from './types';
@@ -44,7 +45,8 @@ type AppStateValue = {
   setTodayMood: (mood: Mood) => void;
   /** Guarda a palavra mais precisa de hoje, ou a tira se for a mesma. */
   setTodayPalavra: (palavra: string) => void;
-  addJournalEntry: (text: string) => void;
+  /** Guarda um registro. `origem` diz de onde ele nasceu, quando não foi o próprio diário. */
+  addJournalEntry: (text: string, origem?: OrigemDoRegistro) => void;
   updateJournalEntry: (id: string, text: string) => void;
   removeJournalEntry: (id: string) => void;
   addCompost: (entry: Omit<Compost, 'id' | 'createdAt'>) => void;
@@ -285,11 +287,14 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
     });
   }, []);
 
-  const addJournalEntry = useCallback((text: string) => {
+  const addJournalEntry = useCallback((text: string, origem?: OrigemDoRegistro) => {
     const entry: JournalEntry = {
       id: `${Date.now()}`,
       createdAt: Date.now(),
       text: text.trim(),
+      // Só grava o campo quando ele existe: registro escrito do próprio diário
+      // não tem origem, e um `origem: undefined` no disco não diz nada.
+      ...(origem ? { origem } : null),
     };
     setData((prev) => ({ ...prev, journal: [entry, ...prev.journal] }));
   }, []);

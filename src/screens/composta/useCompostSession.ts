@@ -180,6 +180,15 @@ function estadoInicial() {
   };
 }
 
+/**
+ * Por onde a repetição é contada.
+ *
+ * `voz` usa o reconhecimento da frase, e cai no volume do microfone quando ele
+ * não existe. `silencio` não toca no microfone: a pessoa segura o botão
+ * enquanto repete baixinho, ou só no pensamento.
+ */
+export type ModoDaComposta = 'voz' | 'silencio';
+
 export type CompostSession = {
   /** Segundos de voz acumulados. */
   secs: number;
@@ -206,7 +215,11 @@ export type CompostSession = {
   /** Cada valor novo é uma repetição a mais — dispara as partículas caindo. */
   repTick: number;
   error: string | null;
-  start: () => Promise<void>;
+  /**
+   * Começa a sessão. Em `silencio` o microfone não entra: quem conta é o
+   * botão de segurar, e `manual` já nasce verdadeiro.
+   */
+  start: (modo?: ModoDaComposta) => Promise<void>;
   stop: () => void;
   /** Usados só no modo manual, enquanto o botão fica pressionado. */
   holdOn: () => void;
@@ -455,21 +468,40 @@ export function useCompostSession({ targetSeconds, frase, onFinish }: Options): 
     return true;
   }, [frase, acumular, somarReps, soltarEventos, iniciarAcustico]);
 
-  const start = useCallback(async () => {
-    setError(null);
-    machine.current = estadoInicial();
-    conferidor.current = null;
-    soltarEventos();
-    setSecs(0);
-    setReps(0);
-    setLevel(0);
-    setSilent(false);
-    temVolume.current = false;
-    ultimaVoz.current = 0;
+  const start = useCallback(
+    async (modo: ModoDaComposta = 'voz') => {
+      setError(null);
+      machine.current = estadoInicial();
+      conferidor.current = null;
+      soltarEventos();
+      setSecs(0);
+      setReps(0);
+      setLevel(0);
+      setSilent(false);
+      temVolume.current = false;
+      ultimaVoz.current = 0;
 
-    if (await iniciarPorFrase()) return;
-    await iniciarAcustico();
-  }, [iniciarPorFrase, iniciarAcustico, soltarEventos]);
+      /*
+        Em silêncio nem se pede o microfone.
+
+        O botão de segurar já existia, mas só como recuo de quem teve a
+        permissão negada — e a tela dizia isso com todas as letras ("Sem acesso
+        ao microfone"). Quem está na cama, com alguém dormindo do lado, não tem
+        um problema de permissão: tem um problema de lugar. Pedir acesso ao
+        microfone para depois não usá-lo seria pedir por nada.
+      */
+      if (modo === 'silencio') {
+        setPorFrase(false);
+        setManual(true);
+        setRunning(true);
+        return;
+      }
+
+      if (await iniciarPorFrase()) return;
+      await iniciarAcustico();
+    },
+    [iniciarPorFrase, iniciarAcustico, soltarEventos],
+  );
 
   const holdOn = useCallback(() => {
     holding.current = true;

@@ -3,6 +3,8 @@ import { Animated, Modal, Pressable, Text, View } from 'react-native';
 import { Swipeable } from 'react-native-gesture-handler';
 
 import { Card, HumorComPalavra, Icon } from '../../components';
+import { findPractice } from '../../data/practices';
+import type { OrigemDoRegistro } from '../../state/types';
 import { fonts, type Mood, radius, useTema } from '../../theme';
 
 /**
@@ -26,6 +28,8 @@ type Props = {
   /** O humor do dia em que foi escrito, e a palavra dele, se houver. */
   mood?: Mood | null;
   palavra?: string;
+  /** De onde o registro nasceu, quando não foi o próprio diário. */
+  origem?: OrigemDoRegistro;
   onEdit: () => void;
   /** Toque na linha: abre o registro inteiro para leitura. */
   onRead: () => void;
@@ -41,6 +45,7 @@ export function SwipeableEntry({
   text,
   mood,
   palavra,
+  origem,
   onEdit,
   onRead,
   onDelete,
@@ -48,6 +53,16 @@ export function SwipeableEntry({
   onOpen,
 }: Props) {
   const { colors, palette, shadows } = useTema();
+
+  /** "depois de Respiração 4-7-8", "depois de compostar um pensamento". */
+  const praticaDaOrigem =
+    origem?.tipo === 'pratica' ? findPractice(origem.topico, origem.pratica) : undefined;
+  const deOndeVeio =
+    origem?.tipo === 'composta'
+      ? 'depois de compostar um pensamento'
+      : praticaDaOrigem
+        ? `depois de ${praticaDaOrigem.title}`
+        : null;
   /**
    * As mesmas duas ações, alcançáveis sem gesto nenhum.
    *
@@ -166,6 +181,25 @@ export function SwipeableEntry({
               </Text>
               {/* Como ela estava naquele dia — e a palavra que escolheu para isso. */}
               {!!mood && <HumorComPalavra mood={mood} palavra={palavra} tamanho="pequeno" />}
+
+              {/*
+                De onde o registro veio, quando não foi ela abrindo o diário.
+
+                O nome da prática é buscado na hora, pela chave: melhorar o
+                título de uma prática melhora também o que aparece nos registros
+                antigos. Se a prática sumir do repertório numa atualização, a
+                linha simplesmente não aparece — o texto continua inteiro.
+              */}
+              {!!deOndeVeio && (
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 5 }}>
+                  <Icon name="leaf" size={12} color={palette.brown400} />
+                  <Text
+                    style={{ fontFamily: fonts.body.regular, fontSize: 12, color: palette.brown400 }}
+                  >
+                    {deOndeVeio}
+                  </Text>
+                </View>
+              )}
             </View>
             <Pressable
               accessibilityRole="button"

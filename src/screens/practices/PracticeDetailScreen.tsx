@@ -6,6 +6,7 @@ import { Button, GrowingSprout, Icon, ScreenTransition, TopBar } from '../../com
 import { PracticeIllustration } from '../../components/brand/PracticeIllustration';
 import type { Practice } from '../../data/practices';
 import { useAppState } from '../../state/AppStateProvider';
+import type { OrigemDoRegistro } from '../../state/types';
 import { useBotaoVoltar } from '../../navigation/useBotaoVoltar';
 import { toqueDeConclusao } from '../../services/toque';
 import { vezesPorPratica } from '../../state/derived';
@@ -26,7 +27,8 @@ type Props = {
    * nenhuma delas oferecia onde. A porta fica no fim, e não na leitura: antes
    * de fazer, o convite competiria com a própria prática.
    */
-  onEscreverNoDiario?: (comeco: string) => void;
+  /** Abre o diário com a pergunta de partida e de onde ela veio. */
+  onEscreverNoDiario?: (comeco: string, origem: OrigemDoRegistro) => void;
 };
 
 type Mode = 'read' | 'guide' | 'finished';
@@ -44,7 +46,10 @@ export function PracticeDetailScreen({
   const [mode, setMode] = useState<Mode>('read');
 
   const comeco = practice.comecoNoDiario;
-  const escrever = comeco && onEscreverNoDiario ? () => onEscreverNoDiario(comeco) : null;
+  const escrever =
+    comeco && onEscreverNoDiario
+      ? () => onEscreverNoDiario(comeco, { tipo: 'pratica', topico: topicKey, pratica: practice.key })
+      : null;
 
   /**
    * No meio do guia, voltar é desistir do guia — e não sair da prática.
