@@ -74,10 +74,11 @@ type Props = {
  *   responde ao ar. O giro sai do pé do caule (`transformOrigin`), e não do
  *   meio do ícone, senão o desenho inteiro gira como uma peça de relógio em vez
  *   de vergar como um talo.
- * - **Início** enche de verde. O disco fica num verde apagado enquanto a aba
- *   está fechada e é preenchido pelo verde cheio ao abrir, crescendo do meio
- *   para fora. É a única das três que muda o estado de repouso, e por isso a
- *   única que não precisa que ninguém esteja olhando na hora.
+ * - **Início** enche como um copo de água. O disco fica num verde apagado com a
+ *   aba fechada, e ao abrir o verde cheio **sobe** por dentro dele, com a
+ *   superfície ondulando de um lado para o outro. É a única das três que muda o
+ *   estado de repouso, e por isso a única que não precisa que ninguém esteja
+ *   olhando na hora.
  * - **Perfil** dá um tranco curto **ao toque**, não ao abrir: não há nada de
  *   vivo naquele ícone para justificar movimento contínuo, e o que ele confirma
  *   é o toque.
@@ -92,6 +93,49 @@ type Props = {
 const VENTO = 7;
 /** O tranco do perfil é mais curto e mais rápido: é resposta a toque. */
 const TRANCO = 9;
+
+/**
+ * A crista da água, e por que ela é um quadrado girando.
+ *
+ * A superfície precisava ondular de um lado para o outro enquanto sobe, e não
+ * subir como uma régua. Desenhar uma senoide em SVG e animar o `d` do caminho
+ * resolveria — e sairia do driver nativo, recalculando o traçado a cada quadro
+ * no JavaScript, no botão que a pessoa mais toca no app.
+ *
+ * O que faz o mesmo de graça é um **quadrado de cantos muito arredondados**
+ * girando devagar, com o centro exatamente na linha da água. Ele não é um
+ * círculo: a distância do centro até a borda varia conforme o giro, mais longa
+ * na diagonal e mais curta no meio do lado. Girando, essa diferença passa pela
+ * superfície como uma crista que vai de um lado ao outro — e é só `rotate`, que
+ * roda no driver nativo.
+ *
+ * São duas, em tamanhos e sentidos diferentes, porque uma sozinha bate sempre
+ * no mesmo ritmo e o olho percebe o compasso. Duas em desacordo não fecham
+ * ciclo à vista.
+ */
+const ONDA = { lado: 1.8, canto: 0.32, giro: 2600, sentido: 1 };
+const ONDA_DE_TRAS = { lado: 1.7, canto: 0.26, giro: 3500, sentido: -1 };
+
+/**
+ * Onde encostar a crista para ela ondular **em volta** da linha da água.
+ *
+ * A primeira tentativa pôs o centro do quadrado na linha — e o quadrado tem
+ * mais de cinquenta pontos de raio num botão de sessenta e quatro: ele cobria o
+ * disco inteiro, cheio ou vazio, e a animação virou um círculo verde liso.
+ *
+ * O que precisa encostar na linha é a **borda de cima**, não o centro. Num
+ * quadrado de lado `L` com canto `r`, a distância do centro à borda vai de
+ * `L/2` no meio do lado até `(L/2 - r)·√2 + r` na diagonal; a diferença entre as
+ * duas é a altura da onda. Baixando a caixa por metade dessa diferença, a
+ * superfície passa a oscilar metade para cima e metade para baixo da linha, que
+ * é o que faz a água parecer balançar em vez de subir e descer inteira.
+ */
+function ondaEncostada(lado: number, canto: number) {
+  const meio = lado / 2;
+  const raio = lado * canto;
+  const naDiagonal = (meio - raio) * Math.SQRT2 + raio;
+  return (naDiagonal - meio) / 2;
+}
 
 /**
  * Um vai-e-vem que morre no zero, no ritmo de folha ao vento.
@@ -155,22 +199,64 @@ export function BottomNav({ active = 'home', onChange }: Props) {
     balancar(vento, 900);
   }, [active, menosMovimento, vento]);
 
+  /**
+   * O giro de cada crista. Só rodam enquanto a água está se mexendo.
+   *
+   * São dois valores, e não um com sinal trocado, porque as duas precisam de
+   * **velocidades** diferentes. Com o mesmo valor elas fechariam ciclo juntas a
+   * cada volta, e a superfície repetiria o mesmo desenho de dois em dois
+   * segundos e meio — que é justamente o compasso que o olho pega.
+   */
+  const marola = useRef(new Animated.Value(0)).current;
+  const marolaDeTras = useRef(new Animated.Value(0)).current;
+
   /*
     A água sobe devagar e para sem repique — é líquido entrando num copo, não
-    um elemento chegando na tela. Por isso `inOut(cubic)` e 560ms: com curva de
-    mola ela sairia pela borda de cima e voltaria, que é coisa de bolha, não de
-    água. Esvaziar é mais rápido, porque ninguém fica olhando a aba que fechou.
+    um elemento chegando na tela.
+
+    `inOut(cubic)` em 1100ms: com curva de mola ela saía pela borda de cima e
+    voltava, que é coisa de bolha. E devagar porque a onda precisa de tempo para
+    atravessar a superfície — enchendo em meio segundo, a crista mal saía de um
+    lado. Esvaziar continua rápido: ninguém fica olhando a aba que fechou.
+
+    A marola gira em laço **junto** com a subida e para quando ela acaba. Deixar
+    girando para sempre custaria um quadro por quadro a vida inteira do app para
+    desenhar uma onda que, com o copo cheio, está inteira fora do recorte.
   */
   useEffect(() => {
     const cheio = active === 'home';
     if (menosMovimento) return nivel.setValue(cheio ? 0 : CENTER_SIZE);
-    Animated.timing(nivel, {
+
+    const lacos = [
+      [marola, ONDA.giro] as const,
+      [marolaDeTras, ONDA_DE_TRAS.giro] as const,
+    ].map(([valor, duracao]) => {
+      valor.setValue(0);
+      return Animated.loop(
+        Animated.timing(valor, {
+          toValue: 1,
+          duration: duracao,
+          easing: Easing.linear,
+          useNativeDriver: true,
+        }),
+      );
+    });
+    lacos.forEach((l) => l.start());
+    const pararMarola = () => lacos.forEach((l) => l.stop());
+
+    const subida = Animated.timing(nivel, {
       toValue: cheio ? 0 : CENTER_SIZE,
-      duration: cheio ? 560 : 260,
+      duration: cheio ? 1100 : 320,
       easing: cheio ? Easing.inOut(Easing.cubic) : Easing.in(Easing.quad),
       useNativeDriver: true,
-    }).start();
-  }, [active, menosMovimento, nivel]);
+    });
+    subida.start(pararMarola);
+
+    return () => {
+      subida.stop();
+      pararMarola();
+    };
+  }, [active, menosMovimento, nivel, marola, marolaDeTras]);
 
   const giro = (valor: Animated.Value, graus: number) =>
     valor.interpolate({ inputRange: [-1, 1], outputRange: [`-${graus}deg`, `${graus}deg`] });
@@ -361,7 +447,7 @@ export function BottomNav({ active = 'home', onChange }: Props) {
             A marca do copo vazio, no verde forte para ser legível no tom claro.
             Ela fica embaixo; a água sobe por cima dela com a sua própria cópia.
           */}
-          <View style={{ position: 'absolute' }}>
+          <View style={{ position: 'absolute', zIndex: 0 }}>
             <BrotinhoMark size={CENTER_SIZE} disco={null} traco={colors.primaryStrong} />
           </View>
 
@@ -388,6 +474,9 @@ export function BottomNav({ active = 'home', onChange }: Props) {
               width: CENTER_SIZE,
               height: CENTER_SIZE,
               overflow: 'hidden',
+              /* Acima das cristas: elas são maiores que o botão e, sem ordem
+                 declarada, cobriam a marca inteira. */
+              zIndex: 2,
               transform: [{ translateY: nivel }],
             }}
           >
@@ -403,6 +492,65 @@ export function BottomNav({ active = 'home', onChange }: Props) {
             >
               <BrotinhoMark size={CENTER_SIZE} disco={null} />
             </Animated.View>
+          </Animated.View>
+
+          {/*
+            As cristas, na linha da água.
+
+            Elas acompanham o nível e só somam para cima: a metade de baixo de
+            cada uma cai dentro da água, que é da mesma cor, e some. O que se vê
+            é a superfície inchando de um lado e do outro conforme elas giram.
+
+            Somem com o copo vazio. Sem isso, no repouso da aba fechada sobraria
+            um fio verde encostado na borda de baixo do disco — a crista de uma
+            água que não existe.
+          */}
+          <Animated.View
+            pointerEvents="none"
+            style={{
+              position: 'absolute',
+              top: 0,
+              left: 0,
+              width: CENTER_SIZE,
+              height: CENTER_SIZE,
+              zIndex: 1,
+              opacity: nivel.interpolate({
+                inputRange: [0, CENTER_SIZE * 0.88, CENTER_SIZE],
+                outputRange: [1, 1, 0],
+              }),
+              transform: [{ translateY: nivel }],
+            }}
+          >
+            {[
+              [ONDA_DE_TRAS, marolaDeTras] as const,
+              [ONDA, marola] as const,
+            ].map(([onda, giro]) => {
+              const lado = CENTER_SIZE * onda.lado;
+              return (
+                <Animated.View
+                  key={onda.giro}
+                  style={{
+                    position: 'absolute',
+                    top: ondaEncostada(lado, onda.canto),
+                    left: (CENTER_SIZE - lado) / 2,
+                    width: lado,
+                    height: lado,
+                    borderRadius: lado * onda.canto,
+                    backgroundColor: MARK_DISCO,
+                    /* Uma gira para cada lado: em desacordo elas não fecham
+                       ciclo à vista. */
+                    transform: [
+                      {
+                        rotate: giro.interpolate({
+                          inputRange: [0, 1],
+                          outputRange: ['0deg', `${onda.sentido * 360}deg`],
+                        }),
+                      },
+                    ],
+                  }}
+                />
+              );
+            })}
           </Animated.View>
         </Pressable>
       </View>
