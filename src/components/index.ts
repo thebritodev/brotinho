@@ -27,7 +27,6 @@ export {
   CenaDoDiario,
 } from './brand/cenasDoCarrossel';
 export { OndeVoceParou } from './brand/OndeVoceParou';
-export { DesenhoDaComposta, DesenhoDoDiario } from './brand/desenhosDoCarrossel';
 export { DesenhoDoTema, ehTemaDesenhado } from './brand/desenhosDosTemas';
 export { LuzDeEstufa } from './brand/LuzDeEstufa';
 export { GraoDePapel } from './brand/GraoDePapel';

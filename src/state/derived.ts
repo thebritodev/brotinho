@@ -861,45 +861,40 @@ export function praticasMaisFeitas(data: AppData, quantas = 3) {
 }
 
 /**
- * Um lugar do app alcançável num toque.
+ * Uma prática alcançável num toque.
  *
- * `quando` é a data da última visita — e é opcional porque a mesma fileira
- * serve para quem nunca esteve em lugar nenhum. Sem data, o cartão mostra
- * quanto tempo a coisa leva no lugar de "ontem"; ver `OndeVoceParou`.
+ * `quando` é a data da última vez que ela foi feita — e é opcional porque a
+ * mesma fileira serve para quem nunca fez nenhuma. Sem data, o cartão mostra
+ * quanto tempo a prática leva no lugar de "ontem"; ver `OndeVoceParou`.
  */
-export type Recente =
-  | { tipo: 'pratica'; topico: string; pratica: string; quando?: number }
-  | { tipo: 'composta'; quando?: number }
-  | { tipo: 'diario'; quando?: number };
+export type PraticaVisitada = { topico: string; pratica: string; quando?: number };
 
 /**
- * Onde a pessoa parou — as ferramentas e práticas mais recentes, em ordem.
+ * As práticas que a pessoa fez, da mais recente para a mais antiga.
  *
  * ## Por que isto existe
  *
- * O app guardava tudo isto e não mostrava quase nada. Quem fez uma prática
- * ontem e quer terminar a série tinha de atravessar a grade de treze temas de
- * novo, escolher o tema, escolher a prática — três toques e duas decisões para
- * voltar a um lugar onde já esteve. A Home sabia a resposta o tempo todo.
+ * O app guardava isto e não mostrava. Quem fez uma prática ontem e quer
+ * terminar a série tinha de atravessar a grade de treze temas de novo, escolher
+ * o tema, escolher a prática — três toques e duas decisões para voltar a um
+ * lugar onde já esteve. A Home sabia a resposta o tempo todo.
  *
- * ## O que entra, e o que não entra
+ * ## Só práticas
  *
- * Entra o que tem **para onde voltar**: uma prática abre naquela prática, a
- * Composta abre a Composta, o Diário abre o Diário. Não entra nada que seja só
- * leitura de histórico — isso é assunto da aba do broto, que é a que olha para
- * trás.
+ * O Diário e a Composta já estiveram nesta fileira, e saíram. Ela ficava
+ * repetindo duas ferramentas que a tela já oferece em cartão grande logo acima,
+ * e sobrava pouco espaço para o que ela sabe fazer de melhor: lembrar em qual
+ * das quarenta e uma práticas a pessoa estava. Com um assunto só, o título
+ * pode dizer qual é — "Práticas recentes".
  *
- * Uma prática aparece **uma vez só**, na data em que foi feita pela última vez.
- * Sem isso, quem repete a mesma respiração cinco dias seguidos via a fileira
- * inteira preenchida por ela, e "onde você parou" viraria "o que você mais
- * faz" — que é outra pergunta, e já tem resposta em `praticasMaisFeitas`.
+ * ## Uma vez por prática
  *
- * O texto do que foi escrito ou compostado **nunca** chega aqui: só a data. O
- * cartão diz "Composta", não diz o que foi dito.
+ * Ela entra pela data em que foi feita **pela última vez**. Sem isso, quem
+ * repete a mesma respiração cinco dias seguidos via a fileira inteira
+ * preenchida por ela, e "recentes" viraria "o que você mais faz" — que é outra
+ * pergunta, e já tem resposta em `praticasMaisFeitas`.
  */
-export function ondeVoceParou(data: AppData, quantos = 6): Recente[] {
-  const itens: Recente[] = [];
-
+export function praticasRecentes(data: AppData, quantas = 6): PraticaVisitada[] {
   /* A prática entra pela última vez em que foi feita, não por cada vez. */
   const ultimaVezDe = new Map<string, number>();
   data.practicesDone.forEach((p) => {
@@ -908,22 +903,12 @@ export function ondeVoceParou(data: AppData, quantos = 6): Recente[] {
     const antes = ultimaVezDe.get(chave);
     if (antes === undefined || p.at > antes) ultimaVezDe.set(chave, p.at);
   });
-  ultimaVezDe.forEach((quando, chave) => {
-    const [topico, pratica] = chave.split('/');
-    itens.push({ tipo: 'pratica', topico, pratica, quando });
-  });
 
-  const maisRecente = (lista: { createdAt: number }[]) =>
-    lista.reduce<number | null>(
-      (maior, item) => (item && item.createdAt > (maior ?? -Infinity) ? item.createdAt : maior),
-      null,
-    );
-
-  const composta = maisRecente(data.composts);
-  if (composta !== null) itens.push({ tipo: 'composta', quando: composta });
-
-  const diario = maisRecente(data.journal);
-  if (diario !== null) itens.push({ tipo: 'diario', quando: diario });
-
-  return itens.sort((a, b) => (b.quando ?? 0) - (a.quando ?? 0)).slice(0, quantos);
+  return [...ultimaVezDe.entries()]
+    .map(([chave, quando]) => {
+      const [topico, pratica] = chave.split('/');
+      return { topico, pratica, quando };
+    })
+    .sort((a, b) => b.quando - a.quando)
+    .slice(0, quantas);
 }

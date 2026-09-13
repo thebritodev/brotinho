@@ -2,14 +2,13 @@ import React from 'react';
 import { Pressable, ScrollView, Text, View } from 'react-native';
 
 import { findPractice } from '../../data/practices';
-import type { Recente } from '../../state/derived';
+import type { PraticaVisitada } from '../../state/derived';
 import { fonts, radius, useTema } from '../../theme';
-import { DesenhoDaComposta, DesenhoDoDiario } from './desenhosDoCarrossel';
 import { DesenhoDoTema, ehTemaDesenhado } from './desenhosDosTemas';
 import { SOBRA_DO_DESENHO, TAMANHO_DO_DESENHO } from './PracticeTopicCard';
 
 /**
- * "Onde você parou" — a fileira de volta ao que já foi feito.
+ * A fileira de práticas da tela inicial.
  *
  * ## O que ela resolve
  *
@@ -18,55 +17,37 @@ import { SOBRA_DO_DESENHO, TAMANHO_DO_DESENHO } from './PracticeTopicCard';
  * treze temas outra vez. Aqui o caminho de volta tem um toque, e o que aparece
  * é o que a pessoa de fato usou — nada de "recomendado para você" fabricado.
  *
- * ## A mesma fileira serve para quem nunca esteve em lugar nenhum
+ * ## A mesma fileira serve para quem nunca fez nenhuma
  *
- * Na primeira versão ela sumia sem histórico, e some sem histórico era a maior
+ * Na primeira versão ela sumia sem histórico, e sumir sem histórico era a maior
  * parte das pessoas: quem instalou hoje via a Home mais curta e nunca soube que
  * a seção existia. Agora quem manda os itens é a tela — com histórico ela manda
- * os lugares visitados, sem histórico manda quatro boas portas de estreia — e o
- * título muda junto, de "Onde você parou" para "Para começar".
+ * as práticas feitas, sem histórico manda quatro de estreia — e o título muda
+ * junto, de "Práticas recentes" para "Para começar".
  *
- * O que **não** muda é o que cada cartão diz: um item sem data nunca se
- * apresenta como visita. No lugar da data ele mostra quanto a coisa leva, que é
- * a pergunta de quem nunca entrou.
+ * O que **não** muda é o que cada cartão diz: uma prática sem data nunca se
+ * apresenta como visita. No lugar da data ela mostra quanto leva, que é a
+ * pergunta de quem nunca entrou.
+ *
+ * ## Só práticas
+ *
+ * O Diário e a Composta já estiveram aqui, em cartão próprio. Saíram: a fileira
+ * repetia duas ferramentas que a tela já oferece em cartão grande logo acima, e
+ * sobrava pouco espaço para o que ela sabe fazer de melhor — lembrar em qual
+ * das quarenta e uma práticas a pessoa estava. Ver `praticasRecentes`.
  *
  * ## Por que os cartões são pequenos e a arte sangra
  *
  * Porque eles **não** podem competir com o carrossel de cima. Ali estão as três
- * ferramentas, grandes, e é ali que alguém sem rumo deve olhar primeiro. Esta
- * fileira é para quem já sabe o que quer: baixa, horizontal, reconhecível de
- * relance pela cena do tema — que é justamente o que a arte cortada na borda
- * faz melhor do que um ícone centralizado.
- *
- * ## O que não aparece aqui
- *
- * O que foi escrito ou compostado. Os cartões dizem "Diário" e "Composta", com
- * a data; o conteúdo continua onde sempre esteve, atrás do toque. Uma Home que
- * mostra pedaço de desabafo é uma Home que não se pode abrir perto de ninguém.
+ * coisas de fazer agora, grandes, e é ali que alguém sem rumo deve olhar
+ * primeiro. Esta fileira é para quem já sabe o que quer: baixa, horizontal,
+ * reconhecível de relance pela cena do tema — que é justamente o que a arte
+ * cortada na borda faz melhor do que um ícone centralizado.
  */
 
 /** Largura e altura de cada cartãozinho da fileira. */
 const LARGURA = 166;
 const ALTURA = 104;
-
-/**
- * O que a linha de baixo diz quando não houve visita nenhuma.
- *
- * O cartão precisa de alguma coisa ali: sem a linha, os cartões da fileira de
- * estreia ficariam com meia altura vazia ao lado dos que têm data. E o que
- * cabe no lugar da data é o custo — quanto tempo aquilo leva —, que é a
- * pergunta de quem nunca entrou.
- */
-const QUANTO_LEVA: Record<'composta' | 'diario', string> = {
-  composta: '30 segundos',
-  /*
-    "escrever ou falar" dizia mais e não cabia: a folha de papel está ancorada
-    à direita do cartão e corria por cima da segunda metade da frase. O cartão
-    tem espaço para doze caracteres nesta linha, e "texto ou voz" diz a mesma
-    coisa — que dá para digitar ou ditar — dentro deles.
-  */
-  diario: 'texto ou voz',
-};
 
 /** "hoje", "ontem", "há 4 dias" — a data sem número quando dá. */
 function quandoFoi(quando: number, agora = Date.now()): string {
@@ -85,10 +66,10 @@ function quandoFoi(quando: number, agora = Date.now()): string {
 }
 
 type Props = {
-  itens: Recente[];
+  itens: PraticaVisitada[];
   /** A margem lateral da tela, para a fileira sangrar até a borda. */
   margem: number;
-  onAbrir: (item: Recente) => void;
+  onAbrir: (item: PraticaVisitada) => void;
 };
 
 export function OndeVoceParou({ itens, margem, onAbrir }: Props) {
@@ -100,40 +81,6 @@ export function OndeVoceParou({ itens, margem, onAbrir }: Props) {
 
   if (!itens.length) return null;
 
-  /** Nome, cena e cor de cada tipo de lugar. */
-  const comoFica = (item: Recente) => {
-    if (item.tipo === 'composta') {
-      return {
-        titulo: 'Composta',
-        cena: <DesenhoDaComposta size={TAMANHO_DO_DESENHO - 8} />,
-        tom: palette.brown100,
-        label: item.quando ? 'Compostar um pensamento de novo' : 'Compostar um pensamento',
-      };
-    }
-    if (item.tipo === 'diario') {
-      return {
-        titulo: 'Diário',
-        cena: <DesenhoDoDiario size={TAMANHO_DO_DESENHO - 8} />,
-        tom: palette.cream300,
-        label: 'Escrever no diário',
-      };
-    }
-    const pratica = findPractice(item.topico, item.pratica);
-    return {
-      titulo: pratica?.title ?? 'Prática',
-      /* Sem cena para o tema, o quadrado fica vazio — melhor a cor sozinha do
-         que um ícone genérico brigando com as cenas dos vizinhos. */
-      cena: ehTemaDesenhado(item.topico) ? (
-        <DesenhoDoTema tema={item.topico} size={TAMANHO_DO_DESENHO} />
-      ) : null,
-      tom: tomDoTema(item.topico),
-      label: item.quando
-        ? `Voltar para ${pratica?.title ?? 'a prática'}`
-        : `Começar por ${pratica?.title ?? 'uma prática'}`,
-      duracao: pratica?.duration,
-    };
-  };
-
   return (
     <ScrollView
       horizontal
@@ -142,20 +89,22 @@ export function OndeVoceParou({ itens, margem, onAbrir }: Props) {
       contentContainerStyle={{ paddingHorizontal: margem, gap: 12 }}
     >
       {itens.map((item) => {
-        const ficha = comoFica(item);
-        const { titulo, cena, tom, label } = ficha;
-        /* Já esteve aqui? mostra quando. Nunca esteve? mostra quanto leva. */
+        const pratica = findPractice(item.topico, item.pratica);
+        /* Já fez? mostra quando. Nunca fez? mostra quanto leva. */
         const rodape =
           item.quando !== undefined
             ? quandoFoi(item.quando)
-            : item.tipo === 'pratica'
-              ? ('duracao' in ficha && ficha.duracao) || 'prática guiada'
-              : QUANTO_LEVA[item.tipo];
-        const chave =
-          item.tipo === 'pratica' ? `${item.topico}/${item.pratica}` : item.tipo;
+            : (pratica?.duration ?? 'prática guiada');
+        const label =
+          item.quando !== undefined
+            ? `Voltar para ${pratica?.title ?? 'a prática'}`
+            : `Começar por ${pratica?.title ?? 'uma prática'}`;
 
         return (
-          <View key={chave} style={{ width: LARGURA, height: ALTURA + SOBRA_DO_DESENHO }}>
+          <View
+            key={`${item.topico}/${item.pratica}`}
+            style={{ width: LARGURA, height: ALTURA + SOBRA_DO_DESENHO }}
+          >
             <Pressable
               accessibilityRole="button"
               accessibilityLabel={`${label}. ${rodape}.`}
@@ -167,7 +116,7 @@ export function OndeVoceParou({ itens, margem, onAbrir }: Props) {
                 right: 0,
                 height: ALTURA,
                 borderRadius: radius.lg,
-                backgroundColor: tom,
+                backgroundColor: tomDoTema(item.topico),
                 padding: 12,
                 justifyContent: 'space-between',
                 opacity: pressed ? 0.85 : 1,
@@ -181,23 +130,16 @@ export function OndeVoceParou({ itens, margem, onAbrir }: Props) {
                   fontSize: 13.5,
                   lineHeight: 13.5 * 1.25,
                   color: palette.brown900,
-                  /* Mesma regra da grade: a primeira linha passa por cima da
-                     folga de cima da cena. Ver `PracticeTopicCard`. */
+                  /* A primeira linha passa por cima da folga de cima da cena.
+                     Ver `PracticeTopicCard`. */
                   width: '74%',
                 }}
               >
-                {titulo}
+                {pratica?.title ?? 'Prática'}
               </Text>
 
-              {/*
-                A linha de baixo também cede a direita para o desenho.
-
-                "ontem" cabia em qualquer canto e passou despercebido; "escrever
-                ou falar", que é o que o cartão do Diário diz na fileira de
-                estreia, corria por baixo da folha de papel. O desenho está
-                ancorado à direita e é o que ele vai continuar fazendo — quem
-                tem de recuar é o texto.
-              */}
+              {/* A linha de baixo também cede a direita para o desenho: a cena
+                  está ancorada ali e é o que ela vai continuar fazendo. */}
               <Text
                 numberOfLines={1}
                 style={{
@@ -214,15 +156,20 @@ export function OndeVoceParou({ itens, margem, onAbrir }: Props) {
             {/*
               A cena, por cima do cartão e passando da borda de baixo dele —
               a mesma regra da grade de temas; ver `SOBRA_DO_DESENHO`.
+
+              Sem cena para o tema, fica só a cor: melhor a cor sozinha do que
+              um ícone genérico brigando com as cenas dos vizinhos.
             */}
-            <View
-              accessibilityElementsHidden
-              importantForAccessibility="no-hide-descendants"
-              pointerEvents="none"
-              style={{ position: 'absolute', right: 0, bottom: 0 }}
-            >
-              {cena}
-            </View>
+            {ehTemaDesenhado(item.topico) && (
+              <View
+                accessibilityElementsHidden
+                importantForAccessibility="no-hide-descendants"
+                pointerEvents="none"
+                style={{ position: 'absolute', right: 0, bottom: 0 }}
+              >
+                <DesenhoDoTema tema={item.topico} size={TAMANHO_DO_DESENHO} />
+              </View>
+            )}
           </View>
         );
       })}

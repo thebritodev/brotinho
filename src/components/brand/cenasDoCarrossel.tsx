@@ -19,13 +19,13 @@ import { BRASA, TERRA, TERRA_CLARA, TERRA_FUNDA, TERRA_SOMBRA } from './terraDoC
  * As cenas grandes dos cartões do carrossel: uma por ferramenta, cobrindo o
  * cartão inteiro.
  *
- * ## Por que não deu para só aumentar os desenhinhos
+ * ## Por que elas são compostas do zero, e não são ícones ampliados
  *
- * Os antigos (`desenhosDoCarrossel`) são quadrados de 60 pontos, compostos para
- * serem lidos do tamanho de um ícone: objeto no meio, sombra embaixo, nada em
- * volta. Esticados para 350 × 300 eles não viram ilustração — viram um ícone
- * grande no meio de um vazio grande, que é exatamente o problema que o cartão
- * novo existe para resolver.
+ * Antes destas havia desenhinhos quadrados de 60 pontos, compostos para serem
+ * lidos do tamanho de um ícone: objeto no meio, sombra embaixo, nada em volta.
+ * Esticados para 350 × 300 eles não viram ilustração — viram um ícone grande no
+ * meio de um vazio grande, que é exatamente o problema que o cartão novo existe
+ * para resolver. Saíram do projeto junto com o cartão pequeno que os usava.
  *
  * Estas são compostas na proporção do cartão: o assunto ocupa a metade de cima,
  * o chão atravessa a largura toda, e há coisa nas beiradas — folhas, torrões,

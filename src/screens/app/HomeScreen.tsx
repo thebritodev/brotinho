@@ -35,8 +35,8 @@ import {
   daysCaredFor,
   daysToNextStage,
   diasSemAparecer,
-  ondeVoceParou,
-  type Recente,
+  praticasRecentes,
+  type PraticaVisitada,
   prontoParaColher,
   sproutStage,
 } from '../../state/derived';
@@ -94,30 +94,40 @@ import { fonts, type Mood, useTema } from '../../theme';
 const DIA_PESADO: readonly Mood[] = ['ansioso', 'triste', 'cansado'];
 
 /**
- * As quatro portas de estreia, para quem ainda não esteve em lugar nenhum.
+ * As práticas de estreia, para quem ainda não fez nenhuma.
  *
- * A fileira de recentes some sem histórico — e sem histórico é a maior parte
+ * A fileira de recentes sumiria sem histórico — e sem histórico é a maior parte
  * das pessoas na primeira semana. Em vez de sumir, ela troca de assunto: as
- * duas ferramentas que qualquer um consegue usar no primeiro dia, mais duas
- * práticas curtas.
+ * mesmas vagas, preenchidas com práticas em vez de lembranças.
  *
- * As duas práticas não são as "melhores" do repertório: são as que pedem menos.
- * O aterramento 5-4-3-2-1 é a mesma que o app oferece como saída de emergência
- * (`ANCORA_RAPIDA`), e os "Dois minutos" da procrastinação é a única que cabe
- * inteira no tempo de quem só abriu para dar uma olhada. Primeira prática ruim
- * é primeira prática longa.
+ * ## Como estas foram escolhidas
+ *
+ * Nenhuma delas é "a melhor" do repertório: são **as que pedem menos**.
+ * Primeira prática ruim é primeira prática longa — todas cabem em três minutos,
+ * nenhuma precisa de voz, de preparo ou de lugar reservado.
+ *
+ * São cinco para a fileira mostrar quatro: o cartão grande já oferece uma
+ * delas, e a fileira não repete o que está logo acima.
+ *
+ * E são de quatro temas diferentes, o que faz a fileira mostrar de saída que o
+ * app não é só sobre ansiedade: tem coisa para adiar, para tensão no corpo e
+ * para reparar no que foi bom. Quatro cores diferentes na fileira dizem isso
+ * antes de qualquer texto.
+ *
+ * O aterramento abre a fila por ser a mesma que o app oferece como saída de
+ * emergência (`ANCORA_RAPIDA`) — a que vale a pena conhecer antes de precisar.
  */
-const PARA_COMECAR: Recente[] = [
-  { tipo: 'pratica', topico: ANCORA_RAPIDA.topico, pratica: ANCORA_RAPIDA.pratica },
-  { tipo: 'diario' },
-  { tipo: 'composta' },
-  { tipo: 'pratica', topico: 'procrastinacao', pratica: 'dois-minutos' },
+const PARA_COMECAR: PraticaVisitada[] = [
+  { topico: ANCORA_RAPIDA.topico, pratica: ANCORA_RAPIDA.pratica },
+  { topico: 'procrastinacao', pratica: 'dois-minutos' },
+  { topico: 'estresse', pratica: 'ombros' },
+  { topico: 'gratidao', pratica: 'saboreio-de-dois-minutos' },
+  { topico: 'solidao', pratica: 'mensagem-de-um-minuto' },
 ];
 
 type Props = {
   name: string;
   onOpenComposta: () => void;
-  onOpenDiario: () => void;
   onOpenSettings: () => void;
   onOpenPractices: (alvo?: { topico: string; pratica: string }) => void;
   onOpenConselhosGuardados: () => void;
@@ -131,7 +141,6 @@ type Props = {
 export function HomeScreen({
   name,
   onOpenComposta,
-  onOpenDiario,
   onOpenSettings,
   onOpenPractices,
   onOpenConselhosGuardados,
@@ -199,7 +208,7 @@ export function HomeScreen({
    * cartão sabe a diferença sozinho: item com data mostra "ontem", item sem
    * data mostra quanto leva. Ver `PARA_COMECAR` e `OndeVoceParou`.
    */
-  const visitados = useMemo(() => ondeVoceParou(data), [data]);
+  const visitados = useMemo(() => praticasRecentes(data), [data]);
 
   /*
     A prática do cartão grande não aparece de novo na fileira logo abaixo.
@@ -209,20 +218,22 @@ export function HomeScreen({
     mesmo desenho e o mesmo nome, aparecia duas vezes em quinze centímetros de
     tela, e a fileira passava a parecer eco do cartão em vez de outra oferta.
   */
-  const semAOferta = (lista: Recente[]) =>
-    lista.filter(
-      (i) => !(i.tipo === 'pratica' && i.topico === oferta.topico && i.pratica === oferta.pratica),
-    );
+  const semAOferta = (lista: PraticaVisitada[]) =>
+    lista.filter((i) => !(i.topico === oferta.topico && i.pratica === oferta.pratica));
 
-  const outrosLugares = semAOferta(visitados);
-  const estreando = outrosLugares.length === 0;
-  const fileira = estreando ? semAOferta(PARA_COMECAR) : outrosLugares;
+  /*
+    Quem nunca fez nenhuma vê as de estreia; quem já fez, as que fez.
 
-  const voltarPara = (item: Recente) => {
-    if (item.tipo === 'composta') return onOpenComposta();
-    if (item.tipo === 'diario') return onOpenDiario();
+    A conta é feita **depois** do filtro da oferta, e não antes: se a única
+    prática do histórico for justamente a do cartão grande, a fileira ficaria
+    vazia — e uma fileira vazia com título em cima é pior que a de estreia.
+  */
+  const feitas = semAOferta(visitados);
+  const estreando = feitas.length === 0;
+  const fileira = estreando ? semAOferta(PARA_COMECAR) : feitas;
+
+  const abrirPratica = (item: PraticaVisitada) =>
     onOpenPractices({ topico: item.topico, pratica: item.pratica });
-  };
 
   /**
    * Os selos do carrossel: sempre um por cartão, e nunca o mesmo o dia inteiro.
@@ -490,13 +501,16 @@ export function HomeScreen({
         </Carrossel>
 
         {/*
-          Onde você parou.
+          A fileira de práticas.
 
-          Vem depois do carrossel e antes das práticas de propósito: quem não
-          sabe o que fazer olha para cima, quem já sabe encontra o caminho de
-          volta aqui sem atravessar treze temas. Some inteira em quem ainda não
-          fez nada — uma fileira vazia com um título em cima é pior que
-          nenhuma. Ver `ondeVoceParou`.
+          Vem depois do carrossel e antes da grade de propósito: quem não sabe o
+          que fazer olha para cima, quem já sabe encontra o caminho de volta
+          aqui sem atravessar treze temas.
+
+          O título é o que muda de assunto junto com a lista. "Para começar" em
+          quem nunca praticou, "Práticas recentes" depois da primeira — e o
+          nome novo não chega sozinho: a fileira inteira passa a ser histórico
+          de verdade no instante em que existe histórico.
         */}
         <View style={{ gap: 12, marginTop: -4 }}>
           <Text
@@ -506,9 +520,9 @@ export function HomeScreen({
               fontSize: 20,
             }}
           >
-            {estreando ? 'Para começar' : 'Onde você parou'}
+            {estreando ? 'Para começar' : 'Práticas recentes'}
           </Text>
-          <OndeVoceParou itens={fileira} margem={20} onAbrir={voltarPara} />
+          <OndeVoceParou itens={fileira} margem={20} onAbrir={abrirPratica} />
         </View>
 
         {/*

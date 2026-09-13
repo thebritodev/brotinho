@@ -247,39 +247,6 @@ export function BrotinhoScreen({
           )}
         </View>
 
-        {/*
-          O Diário, logo depois de dizer como está.
-
-          Ele já foi o primeiro cartão do carrossel da tela inicial e veio para
-          cá por causa desta ordem: marcar o humor e escrever sobre ele são o
-          mesmo gesto em dois tempos — "hoje estou ansioso" e, na sequência,
-          "escrever sobre isso". Na tela inicial os dois estavam a uma aba de
-          distância um do outro.
-
-          Vem **antes** dos cartões de padrão e da fita de humor de propósito:
-          daqui para baixo a tela olha para trás, e escrever é a única coisa
-          desta aba que se faz agora.
-        */}
-        <CartaoHeroi
-          altura={alturaDoHeroi}
-          fundo={palette.cream200}
-          cena={<CenaDoDiario fundo={palette.cream200} />}
-          selo={seloDoDiario}
-          titulo="Diário"
-          linha="Escreva ou fale o que passou hoje. Não sai do seu aparelho."
-          acao="Escrever agora"
-          onPress={onOpenDiario}
-          label="Diário: escrever ou falar o que passou hoje"
-        />
-
-        {/* Um reencontro por vez: empilhados, os dois viram uma seção de
-            nostalgia. O pensamento atravessado ganha por ser o mais raro. */}
-        {passou ? (
-          <CrossedCard atravessado={passou} />
-        ) : (
-          !!memoria && <MemoryCard lembranca={memoria} onPress={() => setLendoMemoria(true)} />
-        )}
-
         {!!padrao && (
           <View>
             <Text
@@ -325,6 +292,39 @@ export function BrotinhoScreen({
             )}
           </View>
         )}
+
+        {/* Um reencontro por vez: empilhados, os dois viram uma seção de
+            nostalgia. O pensamento atravessado ganha por ser o mais raro. */}
+        {passou ? (
+          <CrossedCard atravessado={passou} />
+        ) : (
+          !!memoria && <MemoryCard lembranca={memoria} onPress={() => setLendoMemoria(true)} />
+        )}
+
+        {/*
+          O Diário, fechando a parte de cima da tela.
+
+          Ele veio do carrossel da tela inicial por causa do encadeamento com o
+          humor — marcar como se está e escrever sobre isso são o mesmo gesto em
+          dois tempos. Mas escrever é o **fim** desse encadeamento, não o começo:
+          primeiro ela diz como está, depois o broto mostra o que percebeu, e só
+          então vem o convite para escrever. Colado logo abaixo das carinhas ele
+          chegava antes de haver o que escrever.
+
+          Fica acima da fita de humor e dos atalhos: daí para baixo a tela é só
+          histórico, e escrever é a única coisa desta aba que se faz agora.
+        */}
+        <CartaoHeroi
+          altura={alturaDoHeroi}
+          fundo={palette.cream200}
+          cena={<CenaDoDiario fundo={palette.cream200} />}
+          selo={seloDoDiario}
+          titulo="Diário"
+          linha="Escreva ou fale o que passou hoje. Não sai do seu aparelho."
+          acao="Escrever agora"
+          onPress={onOpenDiario}
+          label="Diário: escrever ou falar o que passou hoje"
+        />
 
         {/* O arco do humor veio do Perfil: ele é sobre o mesmo tempo que o broto
             representa, e ali ficava atrás de três blocos de ajustes. */}

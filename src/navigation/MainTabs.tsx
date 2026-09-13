@@ -123,10 +123,15 @@ export function MainTabs() {
     () =>
       onNotificationTap((destino) => {
         if (destino === 'diario') {
-          // O Diário virou tela empilhada: a aba de baixo é a Início, e ele
-          // abre por cima dela. Voltar do diário devolve a Início, como em
-          // qualquer outra tela de dentro.
-          setTab('home');
+          /*
+            O Diário é tela empilhada, e a aba por baixo dele é a do broto.
+
+            Foi a Início por um tempo, quando o cartão do Diário morava no
+            carrossel de lá. O cartão mudou de tela; a aba por baixo mudou
+            junto. Voltar do diário devolve a pessoa ao lugar de onde ele é
+            aberto, e não a um lugar onde ele não está mais.
+          */
+          setTab('broto');
           setSub('diario');
           return;
         }
@@ -214,7 +219,6 @@ export function MainTabs() {
           <HomeScreen
             name={name}
             onOpenComposta={() => setSub('composta')}
-            onOpenDiario={() => setSub('diario')}
             onOpenSettings={() => setSub('config')}
             onOpenPractices={(alvo) => {
               setPraticaAlvo(alvo ?? null);
