@@ -243,23 +243,19 @@ Brotinho ela está em Perfil → Privacidade.
 
 ## 6. Assinaturas no Android
 
-**Estado: nada existe ainda do lado do Google.** O RevenueCat tem o app iOS
-configurado e os quatro produtos; o app Android nem foi criado lá.
+**Decidido em 13/09/2026: o Android estreia cobrando.** Nada disso existe ainda
+do lado do Google — nem app, nem produtos, nem o app Android no RevenueCat.
 
-A ordem é obrigatória e não dá para inverter — no Google, produto só fica ativo
-depois que existe uma versão enviada:
+A ordem completa, com os comandos, está em
+[`ativar-assinaturas.md`](ativar-assinaturas.md), na FASE 3. O resumo de por que
+ela não pode ser invertida:
 
-1. Criar o app no Play Console
-2. Subir um `.aab` numa trilha de teste
-3. **Monetizar → Assinaturas** — criar `brotinho_mensal` e `brotinho_anual`, cada
-   uma com um plano base, com os **mesmos identificadores da Apple**
-4. **Monetizar → Produtos avulsos** — `brotinho_vitalicio`
-5. RevenueCat → criar o app Android, ligar à conta de serviço do Google
-6. Copiar a chave pública `goog_…` e guardá-la no EAS:
-
-```
-npx eas-cli env:create --environment production --name EXPO_PUBLIC_REVENUECAT_ANDROID --value goog_xxx --visibility sensitive
-```
+1. O app precisa existir antes do `.aab`
+2. O `.aab` precisa estar enviado antes de os produtos ficarem ativos
+3. Os produtos precisam existir antes de o RevenueCat enxergá-los
+4. A chave `goog_…` precisa estar no EAS **antes** do build que vai para
+   produção — ela é embutida na hora de compilar, e guardá-la depois não alcança
+   um binário pronto
 
 > **Sem essa chave o app se dá de graça.** `cobrancaDisponivel()` devolve `false`
 > quando a variável está vazia, e o app deixa todo mundo entrar sem cobrar — foi
@@ -296,9 +292,25 @@ acesso ao Play Console em **Usuários e permissões**.
 
 ## Resumo do que depende de você
 
-1. Criar a conta do Play Console (US$ 25) — eu não crio contas
-2. Verificação de identidade e perfil de pagamentos
+**Estado em 13/09/2026: a conta ainda não existe.** Tudo abaixo é seu, e o
+primeiro item destrava todos os outros.
+
+1. **Criar a conta do Play Console** (US$ 25) — eu não crio contas, e a
+   verificação de identidade pede documento seu
+2. Perfil de pagamentos — sem ele o Google não repassa dinheiro nenhum
 3. Gerar a chave JSON da conta de serviço e deixá-la na raiz do projeto
-4. Criar os produtos de assinatura depois do primeiro envio
-5. Responder os dois questionários acima — são declarações suas
-6. Juntar os 12 testadores, se a conta for de pessoa física
+4. Responder os dois questionários acima — são declarações suas
+5. Juntar 12 testadores que **aceitem o convite e instalem**
+
+### Se a conta for registrada como organização
+
+A regra dos 12 testadores por 14 dias não se aplica, e o Android chega à loja em
+dias em vez de semanas. Registrar como organização exige CNPJ e um número
+D-U-N-S; se você já tem empresa aberta, vale conferir isso antes de criar a
+conta — **o tipo não se troca depois.**
+
+### O que eu faço assim que a conta existir
+
+- Build de produção do Android (`.aab`) e envio para a trilha de teste interno
+- Conferir a ficha inteira contra os limites de campo do Google
+- Rodar `npm run confere-cobranca` antes do build que vai para produção

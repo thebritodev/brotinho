@@ -231,44 +231,94 @@ Precisa definir uma senha, e senha eu não digito.
 
 ## FASE 3 — Google (Android) — não começado
 
+**Decidido em 13/09/2026: o Android estreia cobrando.** Isso fixa a ordem
+abaixo, porque no Google a cobrança depende de coisas que só existem depois do
+primeiro envio — é o contrário da Apple, e é o que trava a maioria.
+
+Os textos da ficha, as respostas dos questionários e as imagens estão em
+[`ficha-google-play.md`](ficha-google-play.md). Aqui fica só a cobrança.
+
+### O portão, antes de tudo
+
+Conta nova de **pessoa física** precisa de um teste fechado com **12 testadores
+por 14 dias seguidos** antes de poder pedir acesso à produção. Conta de
+organização não passa por isso.
+
+**Esses 14 dias não são tempo parado.** São exatamente a janela em que a
+cobrança se configura e se testa: com o `.aab` na trilha fechada e o seu e-mail
+na lista de teste de licença, dá para assinar, cancelar e restaurar de verdade,
+sem pagar nada. Quem deixa a cobrança para depois do portão perde duas semanas
+por nada.
+
 ### 3.1 Criar a conta
 
 - [ ] <https://play.google.com/console/signup> — US$ 25, uma vez só
-- [ ] Faça a verificação de identidade que eles pedem
+- [ ] Verificação de identidade — 1 a 3 dias, às vezes mais
+- [ ] **Configurações → Perfil de pagamentos** — dados bancários e fiscais.
+      Sem ele o Google não repassa dinheiro nenhum, mesmo com produto ativo.
 
-### 3.2 Perfil de pagamentos
-
-- [ ] Play Console → **Configurações** → **Perfil de pagamentos**
-- [ ] Preencha dados bancários e fiscais
-
-### 3.3 Criar o app
+### 3.2 Criar o app
 
 - [ ] Play Console → **Criar app**
-- [ ] Nome: Brotinho · Tipo: App · **Pago ou gratuito: Gratuito**
+- [ ] Nome: `Brotinho: Diário e Bem-estar` · Tipo: App · **Gratuito**
 
 > Sim, **gratuito**. "Pago" é quando se cobra para baixar. O Brotinho é baixado
 > de graça e cobra dentro do app — para o Google, isso é um app gratuito com
-> compras.
+> compras. Escolher "Pago" aqui é irreversível.
 
-### 3.4 Subir uma primeira versão — **obrigatório antes dos produtos**
+### 3.3 Subir o primeiro `.aab` — **obrigatório antes dos produtos**
 
-- [ ] Precisa de um `.aab`, que sai do `eas build`
-- [ ] Suba na trilha **Teste interno**
+```
+npx eas-cli build --profile production --platform android
+npx eas-cli submit --platform android --profile production
+```
 
-> No Google, os produtos só ficam ativos depois que existe uma versão enviada.
-> É o contrário da Apple, e trava muita gente.
+O segundo comando precisa de `chave-google-play.json` na raiz: sai do Google
+Cloud em **IAM → Contas de serviço → Chaves → JSON**, depois de dar a essa conta
+acesso ao Play Console em **Usuários e permissões**. O `eas.json` já aponta para
+esse caminho, na trilha `internal` e como rascunho.
 
-### 3.5 Criar os produtos
+> No Google, produto só fica ativo depois que existe uma versão enviada.
 
-- [ ] **Monetizar** → **Assinaturas** → as três, com um **plano base** cada
-- [ ] **Monetizar** → **Produtos avulsos** → `brotinho_vitalicio`
+### 3.4 Criar os produtos
 
-Use os **mesmos identificadores** da Apple.
+- [ ] **Monetizar → Assinaturas** — `brotinho_mensal` e `brotinho_anual`, cada
+      uma com um plano base
+- [ ] **Monetizar → Produtos avulsos** — `brotinho_vitalicio`
+
+Use os **mesmos identificadores da Apple**. `brotinho_semanal` **não** entra: ele
+sai de venda na Apple assim que a 1.1.0 estiver no ar.
+
+### 3.5 RevenueCat do lado Android
+
+- [ ] Criar o app **Brotinho Android** no projeto `b4c10115`
+- [ ] Ligar à conta de serviço do Google (a mesma chave JSON do 3.3)
+- [ ] Vincular os três produtos ao direito **`premium`**
+- [ ] Acrescentar os pacotes à oferta **`brotinho`**
+- [ ] Copiar a chave pública `goog_…` e guardá-la no EAS:
+
+```
+npx eas-cli env:create --environment production --name EXPO_PUBLIC_REVENUECAT_ANDROID --value goog_xxx --visibility sensitive
+npm run confere-cobranca
+```
+
+> **A chave tem de estar no EAS antes do build que vai para produção.** Ela é
+> embutida no pacote na hora de compilar; guardá-la depois não alcança um
+> binário já feito. O `.aab` do 3.3 vai sair sem ela de propósito — ele é de
+> teste, e teste de licença não precisa de chave de produção.
 
 ### 3.6 Testadores
 
-- [ ] **Configurações** → **Teste de licença** → adicione seu e-mail do Google
-- [ ] Adicione o mesmo e-mail na lista da trilha de Teste interno
+- [ ] **Configurações → Teste de licença** — adicione seu e-mail do Google
+- [ ] Trilha de **Teste fechado** — os 12 e-mails, e eles precisam **aceitar o
+      convite e instalar**; contar 12 na lista não basta
+- [ ] Os 14 dias correm a partir daí, sem interrupção
+
+### 3.7 Refazer o build, agora com a chave
+
+- [ ] `npx eas-cli build --profile production --platform android` de novo
+- [ ] Testar: assinar, cancelar, **restaurar em outro aparelho**
+- [ ] Só então pedir acesso à produção
 
 ---
 
