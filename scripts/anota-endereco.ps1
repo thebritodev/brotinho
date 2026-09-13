@@ -25,12 +25,17 @@ for ($i = 0; $i -lt 60; $i++) {
       $url = $tunel.public_url -replace '^https', 'exp'
       $quando = Get-Date -Format 'dd/MM/yyyy HH:mm'
       Set-Content -Path $Destino -Encoding utf8 -Value @(
-        'Abra este endereco no Expo Go:',
+        'Abra este endereco no BROTINHO (development build) instalado no celular:',
         '',
         $url,
         '',
         "anotado em $quando",
-        'O endereco muda a cada vez que o servidor sobe.'
+        'O endereco muda a cada vez que o servidor sobe.',
+        '',
+        'NAO use o Expo Go. A Play Store atualizou ele para o SDK 57 e o projeto',
+        'esta no 54 — o Expo Go recusa o endereco com "error loading app". O app',
+        'de desenvolvimento proprio vem de:',
+        '  npx eas build --profile development --platform android'
       )
       exit 0
     }
