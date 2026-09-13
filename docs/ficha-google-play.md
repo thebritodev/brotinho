@@ -64,8 +64,16 @@ fitness, cada app de meditação da loja seria de organização — e não são.
 | Trocar depois | **não dá** | **não dá** |
 
 Com CNPJ na mão, organização é o caminho mais curto *e* o mais seguro. Sem CNPJ,
-pessoal é a escolha defensável — e é decisão sua, não minha: isso é declaração
-legal no seu nome.
+pessoal é a escolha defensável — e é declaração legal no seu nome.
+
+**Decidido em 13/09/2026: conta pessoal**, por não haver CNPJ. Consequências que
+passam a valer, e estão no resto deste documento:
+
+- O portão dos 12 testadores por 14 dias vale (seção 0)
+- A declaração de apps de saúde continua obrigatória do mesmo jeito (seção 4.1)
+- Se um dia o Google entender que o Brotinho precisa de conta de organização, o
+  caminho é abrir outra conta e usar a **transferência oficial de apps** — não
+  existe troca de tipo
 
 ---
 
@@ -363,8 +371,8 @@ acesso ao Play Console em **Usuários e permissões**.
 
 ## Resumo do que depende de você
 
-**Estado em 13/09/2026: a conta ainda não existe.** Tudo abaixo é seu, e o
-primeiro item destrava todos os outros.
+**Estado em 13/09/2026: a conta ainda não existe, e vai ser pessoal.** Tudo
+abaixo é seu, e o primeiro item destrava todos os outros.
 
 1. **Criar a conta do Play Console** (US$ 25) — eu não crio contas, e a
    verificação de identidade pede documento seu
@@ -373,12 +381,13 @@ primeiro item destrava todos os outros.
 4. Responder os dois questionários acima — são declarações suas
 5. Juntar 12 testadores que **aceitem o convite e instalem**
 
-### Se a conta for registrada como organização
+### Por que não foi organização
 
-A regra dos 12 testadores por 14 dias não se aplica, e o Android chega à loja em
-dias em vez de semanas. Registrar como organização exige CNPJ e um número
-D-U-N-S; se você já tem empresa aberta, vale conferir isso antes de criar a
-conta — **o tipo não se troca depois.**
+Organização pularia o portão dos 12 testadores e levaria o Android à loja em
+dias. Exige CNPJ e um número D-U-N-S, e não há CNPJ — então a conta é pessoal e
+o portão vale. Fica registrado porque **o tipo não se troca depois**: se um dia
+houver empresa, a mudança é conta nova mais transferência de app, não uma
+configuração.
 
 ### O que eu faço assim que a conta existir
 
