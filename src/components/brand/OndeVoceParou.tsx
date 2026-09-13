@@ -6,6 +6,7 @@ import type { Recente } from '../../state/derived';
 import { fonts, radius, useTema } from '../../theme';
 import { DesenhoDaComposta, DesenhoDoDiario } from './desenhosDoCarrossel';
 import { DesenhoDoTema, ehTemaDesenhado } from './desenhosDosTemas';
+import { SOBRA_DO_DESENHO } from './PracticeTopicCard';
 
 /**
  * "Onde você parou" — a fileira de volta ao que já foi feito.
@@ -98,7 +99,7 @@ export function OndeVoceParou({ itens, margem, onAbrir }: Props) {
     if (item.tipo === 'composta') {
       return {
         titulo: 'Composta',
-        cena: <DesenhoDaComposta size={88} />,
+        cena: <DesenhoDaComposta size={ALTURA - 8} />,
         tom: palette.brown100,
         label: item.quando ? 'Compostar um pensamento de novo' : 'Compostar um pensamento',
       };
@@ -106,7 +107,7 @@ export function OndeVoceParou({ itens, margem, onAbrir }: Props) {
     if (item.tipo === 'diario') {
       return {
         titulo: 'Diário',
-        cena: <DesenhoDoDiario size={88} />,
+        cena: <DesenhoDoDiario size={ALTURA - 8} />,
         tom: palette.cream300,
         label: 'Escrever no diário',
       };
@@ -116,7 +117,9 @@ export function OndeVoceParou({ itens, margem, onAbrir }: Props) {
       titulo: pratica?.title ?? 'Prática',
       /* Sem cena para o tema, o quadrado fica vazio — melhor a cor sozinha do
          que um ícone genérico brigando com as cenas dos vizinhos. */
-      cena: ehTemaDesenhado(item.topico) ? <DesenhoDoTema tema={item.topico} size={92} /> : null,
+      cena: ehTemaDesenhado(item.topico) ? (
+        <DesenhoDoTema tema={item.topico} size={ALTURA} />
+      ) : null,
       tom: tomDoTema(item.topico),
       label: item.quando
         ? `Voltar para ${pratica?.title ?? 'a prática'}`
@@ -146,61 +149,64 @@ export function OndeVoceParou({ itens, margem, onAbrir }: Props) {
           item.tipo === 'pratica' ? `${item.topico}/${item.pratica}` : item.tipo;
 
         return (
-          <Pressable
-            key={chave}
-            accessibilityRole="button"
-            accessibilityLabel={`${label}. ${rodape}.`}
-            onPress={() => onAbrir(item)}
-            style={({ pressed }) => ({
-              width: LARGURA,
-              height: ALTURA,
-              borderRadius: radius.lg,
-              backgroundColor: tom,
-              overflow: 'hidden',
-              padding: 12,
-              justifyContent: 'space-between',
-              opacity: pressed ? 0.85 : 1,
-              ...shadows.sm,
-            })}
-          >
+          <View key={chave} style={{ width: LARGURA, height: ALTURA + SOBRA_DO_DESENHO }}>
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel={`${label}. ${rodape}.`}
+              onPress={() => onAbrir(item)}
+              style={({ pressed }) => ({
+                position: 'absolute',
+                top: 0,
+                left: 0,
+                right: 0,
+                height: ALTURA,
+                borderRadius: radius.lg,
+                backgroundColor: tom,
+                padding: 12,
+                justifyContent: 'space-between',
+                opacity: pressed ? 0.85 : 1,
+                ...shadows.sm,
+              })}
+            >
+              <Text
+                numberOfLines={2}
+                style={{
+                  fontFamily: fonts.body.extraBold,
+                  fontSize: 13.5,
+                  lineHeight: 13.5 * 1.25,
+                  color: palette.brown900,
+                  /* Mesma regra da grade: a primeira linha passa por cima da
+                     folga de cima da cena. Ver `PracticeTopicCard`. */
+                  width: '74%',
+                }}
+              >
+                {titulo}
+              </Text>
+
+              <Text
+                style={{
+                  fontFamily: fonts.body.bold,
+                  fontSize: 11.5,
+                  color: colors.textSecondary,
+                }}
+              >
+                {rodape}
+              </Text>
+            </Pressable>
+
             {/*
-              A cena, ancorada no canto de baixo à direita e maior que o espaço
-              que tem: ela é cortada pela borda do cartão de propósito, que é o
-              que faz a arte parecer continuar em vez de acabar.
+              A cena, por cima do cartão e passando da borda de baixo dele —
+              a mesma regra da grade de temas; ver `SOBRA_DO_DESENHO`.
             */}
             <View
               accessibilityElementsHidden
               importantForAccessibility="no-hide-descendants"
               pointerEvents="none"
-              style={{ position: 'absolute', right: -10, bottom: -14, opacity: 0.95 }}
+              style={{ position: 'absolute', right: 0, bottom: 0 }}
             >
               {cena}
             </View>
-
-            <Text
-              numberOfLines={2}
-              style={{
-                fontFamily: fonts.body.extraBold,
-                fontSize: 13.5,
-                lineHeight: 13.5 * 1.25,
-                color: palette.brown900,
-                /* Deixa o canto de baixo à direita livre para o desenho. */
-                width: '80%',
-              }}
-            >
-              {titulo}
-            </Text>
-
-            <Text
-              style={{
-                fontFamily: fonts.body.bold,
-                fontSize: 11.5,
-                color: colors.textSecondary,
-              }}
-            >
-              {rodape}
-            </Text>
-          </Pressable>
+          </View>
         );
       })}
     </ScrollView>

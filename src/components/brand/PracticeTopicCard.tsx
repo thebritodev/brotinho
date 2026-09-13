@@ -36,7 +36,31 @@ type Props = {
 };
 
 /** Altura do cartão da grade: fixa, para as fileiras baterem. */
-const ALTURA_NA_GRADE = 108;
+const ALTURA_NA_GRADE = 104;
+
+/**
+ * Quanto o desenho passa da borda de baixo do cartão.
+ *
+ * ## Por que o desenho sai do cartão
+ *
+ * Dentro dele, cortado pela borda, o desenho era uma textura: participava do
+ * retângulo em vez de estar em cima dele. Atravessando a borda, ele vira o
+ * objeto na frente — e a grade deixa de ser treze retângulos coloridos para
+ * virar treze cenas apoiadas na tela.
+ *
+ * ## Por que a sobra é espaço de layout, e não `overflow: 'visible'`
+ *
+ * Porque no Android as sombras do app são `elevation`, e view com elevation
+ * recorta o que os filhos desenham fora dos limites dela. Um desenho preso a
+ * `overflow: 'visible'` funcionaria no iOS e na web — onde estas capturas são
+ * feitas — e sumiria pela metade justamente no aparelho de teste.
+ *
+ * Então o cartão não cresce: quem cresce é a caixa em volta dele. O desenho
+ * fica **irmão** do cartão, não filho, e ocupa esta faixa embaixo. Nada é
+ * desenhado fora de limite nenhum, e os dois lugares que usam esta regra —
+ * aqui e em `OndeVoceParou` — fazem igual.
+ */
+export const SOBRA_DO_DESENHO = 20;
 
 /** PracticeTopicCard — leva a um tema de prática (ansiedade, sono...). */
 export function PracticeTopicCard({
@@ -63,53 +87,70 @@ export function PracticeTopicCard({
   */
   if (grade) {
     return (
-      <Pressable
-        accessibilityRole="button"
-        accessibilityLabel={title}
-        onPress={onPress}
-        style={({ pressed }) => [
-          {
+      <View style={[{ height: ALTURA_NA_GRADE + SOBRA_DO_DESENHO }, style]}>
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel={title}
+          onPress={onPress}
+          style={({ pressed }) => ({
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            right: 0,
             height: ALTURA_NA_GRADE,
             backgroundColor: tint,
             borderRadius: radius.lg,
-            overflow: 'hidden',
             padding: 13,
             opacity: pressed ? 0.85 : 1,
             ...shadows.sm,
-          },
-          style,
-        ]}
-      >
+          })}
+        >
+          <Text
+            numberOfLines={2}
+            style={{
+              fontFamily: fonts.body.extraBold,
+              fontSize: 15.5,
+              lineHeight: 15.5 * 1.2,
+              color: palette.brown900,
+              /*
+                O título usa quase toda a largura, e não a metade.
+
+                O desenho começa vinte pontos abaixo do topo do cartão, então a
+                primeira linha passa livre por cima dele — e a borda de cima
+                das cenas é folga, não assunto. Com meia largura,
+                "Procrastinação" quebrava em "Procrastina / ção", que é pior do
+                que qualquer sobreposição.
+              */
+              width: '84%',
+            }}
+          >
+            {title}
+          </Text>
+        </Pressable>
+
+        {/*
+          O desenho, por cima do cartão e passando da borda de baixo dele.
+
+          Irmão e não filho — ver `SOBRA_DO_DESENHO`. Encostado na direita e no
+          chão da caixa: é o canto que o título deixou livre, e é o que faz a
+          cena parecer apoiada no cartão em vez de impressa nele.
+        */}
         <View
           accessibilityElementsHidden
           importantForAccessibility="no-hide-descendants"
           pointerEvents="none"
-          style={{ position: 'absolute', right: -14, bottom: -16 }}
+          style={{ position: 'absolute', right: 0, bottom: 0 }}
         >
           {ehTemaDesenhado(chave ?? '') ? (
-            <DesenhoDoTema tema={chave ?? ''} size={96} />
+            <DesenhoDoTema tema={chave ?? ''} size={ALTURA_NA_GRADE} />
           ) : (
             /* Tema novo, ainda sem cena: o ícone de traço segura o lugar. */
-            <View style={{ padding: 20 }}>
-              <Icon name={icon} size={52} color={palette.brown900} />
+            <View style={{ padding: 26 }}>
+              <Icon name={icon} size={58} color={palette.brown900} />
             </View>
           )}
         </View>
-
-        <Text
-          numberOfLines={2}
-          style={{
-            fontFamily: fonts.body.extraBold,
-            fontSize: 16,
-            lineHeight: 16 * 1.2,
-            color: palette.brown900,
-            /* Larga o canto de baixo à direita para o desenho. */
-            width: '68%',
-          }}
-        >
-          {title}
-        </Text>
-      </Pressable>
+      </View>
     );
   }
 

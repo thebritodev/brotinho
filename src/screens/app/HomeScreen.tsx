@@ -547,7 +547,11 @@ export function HomeScreen({
             com meia largura — esticá-lo faria o tema de baixo parecer outra
             categoria, mais importante que os doze de cima.
           */}
-          <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 12 }}>
+          {/* O vão entre fileiras é menor que o das colunas porque cada célula
+              já carrega embaixo a faixa em que o desenho passa da borda do
+              cartão — ver `SOBRA_DO_DESENHO`. Com 12 nos dois, as fileiras
+              ficariam com o dobro do respiro das colunas. */}
+          <View style={{ flexDirection: 'row', flexWrap: 'wrap', columnGap: 12, rowGap: 0 }}>
             {PRACTICE_TOPICS.map((t) => (
               <PracticeTopicCard
                 key={t.key}

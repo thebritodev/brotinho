@@ -1,4 +1,4 @@
-import React, { useRef, useState } from 'react';
+import React, { useMemo, useRef, useState } from 'react';
 import { ScrollView, useWindowDimensions, View } from 'react-native';
 
 import { useTema } from '../../theme';
@@ -54,19 +54,50 @@ export function Carrossel({ children, rotulos }: Props) {
   const largura = Math.max(220, width - MARGEM_DA_TELA * 2 - ESPIA);
   const passo = largura + VAO;
 
+  /**
+   * Onde a rolagem pode parar, uma posição por cartão.
+   *
+   * A última é limitada ao fim do conteúdo: o último cartão não tem vizinho
+   * para espiar do outro lado, então a rolagem máxima é menor que o passo
+   * multiplicado — e mandar o `ScrollView` parar além do fim é o que produzia
+   * aquele repuxo ao soltar o dedo no fim da fileira.
+   */
+  const paradas = useMemo(() => {
+    const conteudo = cartoes.length * largura + (cartoes.length - 1) * VAO;
+    const tela = width - MARGEM_DA_TELA * 2;
+    const fim = Math.max(0, conteudo - tela);
+    return cartoes.map((_, i) => Math.min(i * passo, fim));
+  }, [cartoes.length, largura, passo, width]);
+
   const [atual, setAtual] = useState(0);
   const ultimo = useRef(0);
 
   return (
     <View style={{ gap: 12 }}>
+      {/*
+        Por que `snapToOffsets` e não `snapToInterval`.
+
+        `snapToInterval` multiplica um passo: ele acerta o primeiro e o último
+        cartão por acidente, porque o recuo das pontas não é múltiplo de nada.
+        Na prática o último cartão parava alguns pontos fora do lugar e o
+        carrossel "puxava" de volta ao soltar. `snapToOffsets` diz as posições
+        exatas — e a última é encurtada para o fim do conteúdo, que é onde a
+        rolagem realmente para.
+
+        E `disableIntervalMomentum` saiu. Ele trava a rolagem em **um** cartão
+        por gesto: um peteleco rápido, que deveria atravessar a fileira, morria
+        no vizinho. Era isso que fazia o carrossel parecer preso — cada gesto
+        batia num freio que ele não pediu.
+      */}
       <ScrollView
         horizontal
         showsHorizontalScrollIndicator={false}
         decelerationRate="fast"
-        snapToInterval={passo}
+        snapToOffsets={paradas}
         snapToAlignment="start"
-        disableIntervalMomentum
-        scrollEventThrottle={32}
+        /* 16ms = um quadro. Os pontinhos acompanham o dedo sem atraso, e o
+           `setState` só acontece quando o cartão muda mesmo. */
+        scrollEventThrottle={16}
         onScroll={(e) => {
           const i = Math.round(e.nativeEvent.contentOffset.x / passo);
           // Só avisa quando o cartão realmente muda: um `setState` por quadro
