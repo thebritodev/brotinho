@@ -3,6 +3,8 @@ import { Modal, Pressable, ScrollView, Text, useWindowDimensions, View } from 'r
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import {
+  AnimatedSprout,
+  BalaoDoBroto,
   BoasVindas,
   Carrossel,
   CartaoHeroi,
@@ -22,6 +24,7 @@ import {
 import { toqueLeve } from '../../services/toque';
 import { conselhoDoDia } from '../../data/conselhos';
 import { ANCORA_RAPIDA, PRACTICE_TOPICS } from '../../data/practices';
+import { falaDaHome } from '../../data/falaDaHome';
 import { sugestaoParaOHumor } from '../../data/sugestao';
 import { useAppState } from '../../state/AppStateProvider';
 import type { Plant } from '../../state/types';
@@ -30,6 +33,7 @@ import {
   colheita,
   dayKey,
   daysCaredFor,
+  daysToNextStage,
   diasSemAparecer,
   ondeVoceParou,
   type Recente,
@@ -212,6 +216,18 @@ export function HomeScreen({
    * - **Frase do dia** — "uma por dia" enquanto está enterrada, "lida hoje"
    *   depois. O cartão dela carrega o próprio selo; ver `CartaoDoConselho`.
    */
+  /** O que o broto fala no alto da tela — ver `falaDaHome`. */
+  const fala = useMemo(
+    () =>
+      falaDaHome({
+        agora: new Date(),
+        diasCuidados: daysCaredFor(data),
+        diasParaCrescer: daysToNextStage(data),
+        fraseAberta: data.conselhos.some((c) => c.date === today),
+      }),
+    [data, today],
+  );
+
   const escreveuHoje = data.journal.some((e) => dayKey(e.createdAt) === today);
   const diaPesado = !!humorMarcado && DIA_PESADO.includes(humorMarcado);
   const fimDoDia = new Date().getHours() >= 18;
@@ -358,28 +374,37 @@ export function HomeScreen({
         </View>
 
         {/*
-          A pergunta do dia, em versalete.
+          O broto falando, logo abaixo do nome.
 
-          Ela não é conteúdo: emoldura o nome, como uma linha de olho emoldura
-          um título, e em caixa alta espaçada lê como rótulo.
+          Aqui havia uma linha em versalete — "VAMOS CUIDAR DE VOCÊ HOJE?" —
+          que era moldura, não fala: ninguém a dizia e ela não sabia de nada.
+          Com o personagem e o balão, a primeira coisa da tela passa a ser
+          alguém falando, que é a diferença entre uma tela de ferramentas e um
+          app que tem alguém dentro.
 
-          A saudação do broto, que morava aqui, foi junto com ele: fala dele
-          pede o balão, e o balão pede o desenho para apontar. Ela aparece
-          inteira na aba do broto, e repeti-la aqui como texto solto seria a
-          mesma frase duas vezes, em dois lugares, sem ninguém dizendo.
+          Ele é pequeno de propósito. O broto grande, com humor e conversa,
+          mora na aba dele; repetir aquele tamanho aqui devolveria a esta tela
+          o problema que a reorganização resolveu — o personagem ocupando a
+          primeira dobra e empurrando as práticas para fora dela.
+
+          O que ele diz vem de `falaDaHome`: fato do app quando há um, e a
+          saudação do dia quando não há.
         */}
-        <Text
-          style={{
-            marginTop: -14,
-            fontFamily: fonts.body.bold,
-            fontSize: 13,
-            letterSpacing: 1.3,
-            textTransform: 'uppercase',
-            color: colors.textSecondary,
-          }}
-        >
-          Vamos cuidar de você hoje?
-        </Text>
+        <View style={{ marginTop: -14, flexDirection: 'row', alignItems: 'center', gap: 10 }}>
+          <AnimatedSprout mood={humorMarcado ?? 'neutro'} stage={stage} size={60} swayOnMount />
+          <BalaoDoBroto lado="esquerda" tom="suave" style={{ flex: 1 }}>
+            <Text
+              style={{
+                fontFamily: fonts.body.regular,
+                fontSize: 14,
+                lineHeight: 14 * 1.4,
+                color: palette.brown700,
+              }}
+            >
+              {fala}
+            </Text>
+          </BalaoDoBroto>
+        </View>
 
         {voltando && <VoltaCard dias={ausente} />}
 
@@ -566,6 +591,32 @@ export function HomeScreen({
                 onPress={() => onOpenPractices({ topico: t.key, pratica: '' })}
               />
             ))}
+          </View>
+
+          {/*
+            O broto fechando a tela.
+
+            A lista acabava num cartão, e uma tela que acaba num cartão parece
+            cortada — a pessoa rola até o fim e o que encontra é o mesmo
+            retângulo de antes, só que sem vizinho embaixo. Aqui ele encerra,
+            do jeito que um rodapé desenhado encerra uma página.
+
+            É o mesmo broto de cima, no mesmo estágio, e não tem balão: o de
+            cima fala, o de baixo despede. Dois personagens falando na mesma
+            tela seriam duas conversas.
+          */}
+          <View
+            accessibilityElementsHidden
+            importantForAccessibility="no-hide-descendants"
+            /* A barra de baixo flutua por cima do conteúdo: sem a folga, o vaso
+               fica atrás do botão redondo do meio dela. */
+            style={{ alignItems: 'center', paddingTop: 20, paddingBottom: 34 }}
+          >
+            <AnimatedSprout
+              mood={humorMarcado ?? 'neutro'}
+              stage={stage}
+              size={Math.min(largura * 0.3, 132)}
+            />
           </View>
         </View>
       </ScrollView>
