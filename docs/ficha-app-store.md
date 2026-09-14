@@ -5,6 +5,28 @@ questionários. Revise antes de enviar: são suas palavras publicadas no seu nom
 
 ---
 
+## Estado: 1.1.0 aguardando revisão
+
+Enviada em **14/09/2026**. Compilação **14**, versão 1.1.0.
+
+| | |
+|---|---|
+| Lançamento | **manual** — aprovada, ela só vai ao ar quando você mandar |
+| Prazo da revisão | até 48 horas, com e-mail no fim |
+| Capturas | 8, refeitas com o redesenho |
+| Descrição | 2.083 de 4.000 |
+| Novidades | 742 de 4.000, cobrindo a 1.0.2 e a 1.1.0 |
+| Declaração de exportação | não foi pedida — `ITSAppUsesNonExemptEncryption: false` está no binário desde 21/08 |
+
+Enquanto está aguardando, dá para editar alguns textos. Trocar a **compilação**
+exige remover a versão da fila e enviá-la de novo.
+
+**Ainda não foi visto rodando num iPhone.** Todo o redesenho foi verificado na
+versão web e num APK de Android. Se a revisão reprovar por comportamento nativo,
+é aqui que se deve olhar primeiro.
+
+---
+
 ## 1. Textos da ficha
 
 ### Os três campos de busca são um só
