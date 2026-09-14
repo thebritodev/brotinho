@@ -124,7 +124,10 @@ O QUE TEM AQUI DENTRO
 • Práticas guiadas — 41 exercícios para ansiedade, tristeza, luto, insônia,
   estresse, solidão, raiva, procrastinação, autoestima, culpa e vergonha,
   comparação, foco e gratidão.
+• Uma prática para o seu dia — escolhida pelo humor que você marcou, na abertura
+  do app.
 • Frase do dia — uma por dia, desenterrada do canteiro, para guardar e compartilhar.
+• Registro de humor — uma carinha por dia, e o desenho do mês inteiro depois.
 • Resumo para a terapia — suas semanas em PDF, para levar à sessão sem depender
   da memória.
 
@@ -147,6 +150,18 @@ Se você estiver em sofrimento intenso ou pensando em se machucar, procure
 ajuda. O CVV atende de graça, 24 horas por dia, pelo telefone 188 e em
 cvv.org.br.
 ```
+
+> **Duas linhas acrescentadas em 14/09/2026, na revisão antes do envio.** A lista
+> tinha cinco itens e descrevia um app anterior a esta versão:
+>
+> - **O registro de humor** não aparecia em lugar nenhum do texto, embora as
+>   capturas 1 e 6 sejam dominadas pelas carinhas. Quem lia a descrição e olhava
+>   a imagem via dois apps diferentes.
+> - **A prática escolhida para o dia** só existia em "O que há de novo" — e esse
+>   campo é substituído na versão seguinte. O coração da tela inicial nova
+>   sumiria da ficha na 1.2.
+>
+> São 2.083 de 4.000 caracteres. Já aplicado no App Store Connect.
 
 ---
 
