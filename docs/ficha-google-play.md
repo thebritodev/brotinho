@@ -310,13 +310,26 @@ faturamento do Google normalmente.
 
 ## 5. Links obrigatórios
 
-Os mesmos da App Store, já publicados e acessíveis sem login:
+Os mesmos da App Store. Conferidos em 14/09/2026, os três respondendo 200 sem
+login — que é como o Google acessa:
 
-- **Política de privacidade** — `https://claude.ai/code/artifact/233e5a2a-0e5b-4ef9-b870-3789a54de19b`
-- **Suporte / e-mail de contato** — `brotinho.suporte@gmail.com`
+- **Política de privacidade** — `https://thebritodev.github.io/brotinho/privacidade.html`
+- **Suporte** — `https://thebritodev.github.io/brotinho/suporte.html`
+- **Site** — `https://thebritodev.github.io/brotinho/`
+- **E-mail de contato** — `brotinho.suporte@gmail.com`
+
+> Esta seção apontava para links do `claude.ai/code/artifact/…`, que foram os
+> primeiros endereços da política. O App Store Connect já usa o GitHub Pages, e
+> era ele que estava certo: domínio do próprio projeto, sem depender de um
+> serviço de terceiros continuar servindo a página.
 
 O Google exige a política de privacidade **na ficha e dentro do app**. No
 Brotinho ela está em Perfil → Privacidade.
+
+**No cadastro do Play Console há um campo "Site"** — preencha com
+`https://thebritodev.github.io/brotinho/`. Não é o campo da política de
+privacidade; serve para confirmar identidade, e ter um site ali tende a reduzir
+o número de verificações.
 
 ---
 
