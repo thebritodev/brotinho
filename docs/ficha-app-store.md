@@ -183,18 +183,28 @@ o que o app faz por alguém num dia difícil.
 
 ```
 • Tela inicial nova: cada ferramenta ganhou um cartão grande, com ilustração e um botão que diz o que acontece ao tocar.
+• Frase do dia: uma frase por dia, desenterrada do canteiro. Guarde as que tocarem você e compartilhe nos stories.
 • Uma prática escolhida para o seu dia, logo na abertura — e a fileira de práticas recentes, para voltar de onde você parou num toque.
 • O diário mudou para a aba do Brotinho, logo depois de você dizer como está.
 • As 41 práticas agora aparecem inteiras na tela inicial, com uma ilustração para cada tema.
+• A palavra exata do seu humor agora aparece no Perfil, no Diário e no resumo para a terapia.
 • Tema claro/escuro direto no seu perfil.
+• Boas-vindas novas, onboarding mais leve e vibração nos botões.
 ```
 
-> Cinco linhas, e não sete: a tela do "O que há de novo" mostra três antes do
-> "mais", e quem toca em "mais" é minoria. As duas primeiras são as que a pessoa
-> vai ler.
+> **Oito linhas, e não cinco.** A primeira versão desta lista tinha só as cinco
+> mudanças da 1.1.0, e estava errada: a **1.0.2 nunca virou build**. O último
+> binário publicado é a 1.0.1, então quem atualiza recebe a 1.0.2 e a 1.1.0 de
+> uma vez — e as quatro novidades da 1.0.2 ficariam sem anúncio nenhum. Uma
+> delas é a Frase do dia, que é a **captura número 2** da própria ficha.
+>
+> Corrigido no App Store Connect e aqui em 14/09/2026. As três primeiras linhas
+> continuam sendo as que aparecem antes do "mais", então a ordem foi escolhida
+> por isso: tela inicial, Frase do dia, prática de hoje.
 
-**A versão anterior desta ficha era a 1.0.2, que nunca virou build.** O último
-binário publicado é a 1.0.1, então o texto acima é o que mudou desde ela.
+Vindas da 1.0.2, que nunca foi publicada: Frase do dia, a palavra do humor no
+Perfil/Diário/resumo, o onboarding mais leve e a vibração nos botões. As outras
+quatro são da 1.1.0.
 
 Os tamanhos exatos aparecem na tela de upload do App Store Connect e mudam a
 cada geração de iPhone — confirme lá em vez de confiar nesta lista.
