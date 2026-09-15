@@ -2,7 +2,7 @@ import React, { useMemo, useState } from 'react';
 import { Pressable, Text, View } from 'react-native';
 
 import { ROTULO_DO_HUMOR } from '../../data/humores';
-import { moodMeses, moodWeek } from '../../state/derived';
+import { type DiaDoCalendario, moodMeses, moodWeek } from '../../state/derived';
 import { useAppState } from '../../state/AppStateProvider';
 import { fonts, type Mood, radius, useTema } from '../../theme';
 import { Card } from '../core/Card';
@@ -59,10 +59,12 @@ import { MoodFace } from './MoodFace';
  * tamanho conforme o aparelho. Noventa dias davam barras de quatro pontos e
  * meio em duas fileiras de quarenta e cinco, número que não significa nada.
  *
- * Agora cada **coluna é uma semana** e cada **linha é um dia da semana**, com
- * as iniciais à esquerda. A quebra deixa de ser acidente e passa a ser a
- * informação: dá para correr o dedo numa linha e ver como foram todas as
- * segundas-feiras.
+ * Depois foram uma grade transposta — semanas em coluna, dias da semana em
+ * linha. Cabia muita coisa e ninguém lia: mês não se lê de lado.
+ *
+ * Agora são **calendário**: sete colunas, iniciais em cima, as semanas descendo
+ * em linhas. É a forma que todo mundo já sabe ler sem legenda, e quem bate o
+ * olho reconhece o mês antes de entender que aquilo é um gráfico.
  *
  * ## E o período é o mês do calendário, não os últimos trinta dias
  *
@@ -72,46 +74,169 @@ import { MoodFace } from './MoodFace';
  * que ninguém guarda, e não existe mês nenhum para nomear — o desenho era um
  * pedaço de agosto grudado num pedaço de setembro.
  *
- * Fechado no mês, ele ganha nome: o rótulo aparece em cima da coluna em que o
- * mês começa, como num calendário de verdade. E "como foi o meu setembro", que
- * é o que se quer saber olhando para trás, passa a ser pergunta que o desenho
- * responde.
+ * Fechado no mês, ele ganha nome — escrito por extenso em cima do calendário.
+ * E "como foi o meu setembro", que é o que se quer saber olhando para trás,
+ * passa a ser pergunta que o desenho responde.
  *
  * O preço é que o mês corrente termina no futuro. Esses dias aparecem
  * apagados, como na semana — o mês tem o tamanho que tem, e ver quanto falta
  * encher é informação. O que eles não fazem é contar como falta.
  */
-/** Altura de cada dia na grade do mês e do trimestre, e o vão entre eles. */
-const GRADE_CELULA = 18;
+/** O vão entre as casas do calendário. */
 const GRADE_VAO = 3;
-
-/**
- * A largura da coluna das iniciais.
- *
- * Constante porque é usada duas vezes — na coluna das letras e no espaçador
- * que alinha a fileira dos meses. Se as duas discordarem, todo nome de mês cai
- * uma casa ao lado da coluna em que aquele mês começa.
- */
-const LARGURA_DA_INICIAL = 11;
 
 /**
  * As iniciais dos dias, de domingo a sábado.
  *
  * Três delas são "S" e duas são "Q", e é assim mesmo — é a abreviação que todo
- * calendário brasileiro usa, e a posição na coluna resolve o resto. Trocar por
- * duas letras roubaria largura das semanas para desfazer uma ambiguidade que
- * ninguém tem ao olhar uma grade de sete linhas.
+ * calendário brasileiro usa, e a posição resolve o resto. Trocar por duas
+ * letras roubaria largura das casas para desfazer uma ambiguidade que ninguém
+ * tem ao olhar um calendário.
  */
 const INICIAIS = ['D', 'S', 'T', 'Q', 'Q', 'S', 'S'];
 
 const DIAS_DA_SEMANA = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
 const MESES = ['jan', 'fev', 'mar', 'abr', 'mai', 'jun', 'jul', 'ago', 'set', 'out', 'nov', 'dez'];
 
+const MESES_LONGOS = [
+  'janeiro', 'fevereiro', 'março', 'abril', 'maio', 'junho',
+  'julho', 'agosto', 'setembro', 'outubro', 'novembro', 'dezembro',
+];
+
 /** "Qua, 9 set" — curto, porque divide a linha com o humor e a palavra. */
 function nomeDoDia(chave: string): string {
   const d = new Date(`${chave}T12:00:00`);
   if (Number.isNaN(d.getTime())) return '';
   return `${DIAS_DA_SEMANA[d.getDay()]}, ${d.getDate()} ${MESES[d.getMonth()]}`;
+}
+
+/**
+ * Os dias de um mês repartidos em linhas de domingo a sábado.
+ *
+ * As casas que sobram nas pontas ficam `null`, e é de propósito: o dia 30 de
+ * agosto **não** aparece no calendário de setembro. Um calendário de papel
+ * costuma mostrar esses dias em cinza, mas aqui cada casa é um humor — uma casa
+ * de agosto dentro de setembro entraria na leitura de um mês a que ela não
+ * pertence, e o rodapé embaixo contaria outra coisa.
+ */
+function semanasDoMes(dias: DiaDoCalendario[]): (DiaDoCalendario | null)[][] {
+  const semanas: (DiaDoCalendario | null)[][] = [];
+  let linha: (DiaDoCalendario | null)[] = new Array(7).fill(null);
+
+  for (const dia of dias) {
+    linha[dia.diaDaSemana] = dia;
+    if (dia.diaDaSemana === 6) {
+      semanas.push(linha);
+      linha = new Array(7).fill(null);
+    }
+  }
+  if (linha.some(Boolean)) semanas.push(linha);
+  return semanas;
+}
+
+/**
+ * Um mês desenhado como calendário: iniciais em cima, dias embaixo.
+ *
+ * ## Por que calendário, e não a grade transposta de antes
+ *
+ * A versão anterior punha as semanas em coluna e os dias da semana em linha —
+ * era compacta e cabiam noventa dias, mas ninguém lê mês assim. Calendário tem
+ * uma forma que todo mundo já sabe ler sem legenda: sete colunas, a semana
+ * andando da esquerda para a direita, as linhas descendo. Quem bate o olho
+ * reconhece o mês antes de entender o gráfico.
+ *
+ * ## A casa é quadrada quando cabe
+ *
+ * Com `alturaDaCelula` em branco ela usa `aspectRatio`, fica quadrada e o
+ * número do dia cabe dentro. É o mês sozinho. No trimestre a altura vem
+ * apertada e o número sai: três calendários quadrados empilhados passariam de
+ * oitocentos pontos, e a conta por humor — que é onde mora o detalhe — ficaria
+ * a dois telefones de rolagem do gráfico que ela resume.
+ */
+function CalendarioDoMes({
+  mes,
+  dias,
+  alturaDaCelula,
+}: {
+  mes: number;
+  dias: DiaDoCalendario[];
+  /** Em branco, a casa fica quadrada e mostra o número do dia. */
+  alturaDaCelula?: number;
+}) {
+  const { colors, moodColors, palette } = useTema();
+  const semanas = semanasDoMes(dias);
+  const comNumero = alturaDaCelula === undefined;
+
+  return (
+    <View style={{ gap: GRADE_VAO }}>
+      <Text
+        style={{
+          fontFamily: fonts.body.bold,
+          fontSize: 12,
+          color: palette.brown400,
+          marginBottom: 2,
+        }}
+      >
+        {MESES_LONGOS[mes]}
+      </Text>
+
+      {/* As iniciais dos dias, uma vez, em cima das colunas. */}
+      <View style={{ flexDirection: 'row', gap: GRADE_VAO }}>
+        {INICIAIS.map((letra, i) => (
+          <View key={i} style={{ flex: 1, alignItems: 'center' }}>
+            <Text style={{ fontFamily: fonts.body.bold, fontSize: 10, color: palette.brown400 }}>
+              {letra}
+            </Text>
+          </View>
+        ))}
+      </View>
+
+      {semanas.map((linha, s) => (
+        <View key={s} style={{ flexDirection: 'row', gap: GRADE_VAO }}>
+          {linha.map((dia, i) => (
+            <View
+              key={i}
+              style={{
+                flex: 1,
+                ...(comNumero ? { aspectRatio: 1 } : { height: alturaDaCelula }),
+                borderRadius: 5,
+                alignItems: 'center',
+                justifyContent: 'center',
+                // Dia sem registro fica vazado; casa fora do mês fica vazia de
+                // verdade, sem contorno, para não contar um dia que não há.
+                backgroundColor: dia?.mood ? moodColors[dia.mood] : 'transparent',
+                borderWidth: dia && !dia.mood ? 1 : 0,
+                borderColor: palette.brown100,
+                /*
+                  O dia que ainda não chegou aparece mais apagado que o dia sem
+                  registro — a mesma regra da fita da semana, pelo mesmo motivo:
+                  um é o tempo, o outro é uma ausência dela.
+                */
+                opacity: dia?.futuro ? 0.35 : 1,
+              }}
+            >
+              {comNumero && !!dia && (
+                <Text
+                  style={{
+                    fontFamily: fonts.body.bold,
+                    fontSize: 12,
+                    /*
+                      Sobre a cor do humor o número precisa ser escuro; sobre a
+                      casa vazada ele acompanha o texto do tema, que no escuro é
+                      claro. Uma cor só serviria a um dos dois fundos.
+                    */
+                    color: dia.mood ? palette.brown900 : colors.textSecondary,
+                  }}
+                >
+                  {Number(dia.date.slice(8, 10))}
+                </Text>
+              )}
+            </View>
+          ))}
+        </View>
+      ))}
+    </View>
+  );
 }
 
 export function HumorNoTempo() {
@@ -164,54 +289,6 @@ export function HumorNoTempo() {
     de: diasQueVieram.length,
   };
 
-  /**
-   * O período em colunas de semana, uma linha por dia da semana.
-   *
-   * Uma coluna nova começa a cada domingo. A primeira e a última costumam vir
-   * pela metade — o período não começa num domingo nem termina num sábado — e
-   * os buracos das pontas ficam `null`: são dias fora do intervalo, e não dias
-   * sem registro. Os dois se parecem e não são a mesma coisa, então só o dia
-   * sem registro ganha contorno.
-   */
-  const colunas = useMemo(() => {
-    type Celula = { date: string; mood: Mood | null; futuro: boolean } | null;
-    /** `mes` só vem preenchido na coluna em que aquele mês começa. */
-    type Coluna = { celulas: Celula[]; mes: number | null };
-
-    const feitas: Coluna[] = [];
-    let celulas: Celula[] = new Array(7).fill(null);
-    let mesDaColuna: number | null = null;
-    let ultimoRotulado: number | null = null;
-    let comecou = false;
-
-    const fechar = () => {
-      feitas.push({ celulas, mes: mesDaColuna });
-      celulas = new Array(7).fill(null);
-      mesDaColuna = null;
-    };
-
-    for (const dia of longo) {
-      if (dia.diaDaSemana === 0 && comecou) fechar();
-      celulas[dia.diaDaSemana] = { date: dia.date, mood: dia.mood, futuro: dia.futuro };
-
-      /*
-        O rótulo do mês vai na coluna em que o mês estreia, e não naquela em que
-        ele tem mais dias. É o que os calendários de contribuição fazem, e é o
-        que o olho espera: o nome marca onde a coisa começa.
-
-        Sai da chave "2026-09-14", e não de um `Date` novo — ver o comentário em
-        `moodMeses` sobre por que refazer a data aqui erraria o fuso.
-      */
-      const mes = Number(dia.date.slice(5, 7)) - 1;
-      if (mesDaColuna === null && mes !== ultimoRotulado) {
-        mesDaColuna = mes;
-        ultimoRotulado = mes;
-      }
-      comecou = true;
-    }
-    if (comecou) fechar();
-    return feitas;
-  }, [longo]);
 
   /** Quantos dias de cada humor no período, do mais frequente ao menos. */
   const contagem = useMemo(() => {
@@ -336,89 +413,36 @@ export function HumorNoTempo() {
           })}
         </View>
       ) : (
-        /* Com 30 ou 90 dias não cabe rótulo por dia: viram uma grade de
-           semanas, onde o que se lê é o desenho do período.
+        /*
+          No mês e no trimestre o desenho é um calendário: as iniciais dos dias
+          em cima, os dias do mês embaixo, em linhas de domingo a sábado.
 
-           Escondida do leitor de tela de propósito. Noventa formas anunciadas
-           uma a uma seriam noventa paradas para chegar ao fim de um cartão —
-           a leitura deste bloco mora na conta por humor, logo abaixo, que diz
-           a mesma coisa em quatro linhas. */
-        <View accessibilityElementsHidden importantForAccessibility="no-hide-descendants">
-          {/* Os nomes dos meses, cada um em cima da coluna em que ele começa. */}
-          <View style={{ flexDirection: 'row', gap: GRADE_VAO, marginBottom: 4 }}>
-            <View style={{ width: LARGURA_DA_INICIAL }} />
-            {colunas.map((coluna, c) => (
-              <View key={c} style={{ flex: 1 }}>
-                {coluna.mes !== null && (
-                  <Text
-                    /*
-                      Sem quebrar e sem empurrar: o nome tem três letras e a
-                      coluna pode ter vinte pontos, então ele transborda para a
-                      direita, por cima da coluna seguinte, que naquele ponto
-                      está vazia de rótulo. É como o calendário de contribuição
-                      do GitHub resolve, e evita alargar a grade por causa do
-                      texto.
-                    */
-                    numberOfLines={1}
-                    style={{
-                      fontFamily: fonts.body.bold,
-                      fontSize: 10,
-                      color: palette.brown400,
-                      width: 30,
-                    }}
-                  >
-                    {MESES[coluna.mes]}
-                  </Text>
-                )}
-              </View>
-            ))}
-          </View>
-
-          <View style={{ flexDirection: 'row', gap: GRADE_VAO }}>
-            {/* As iniciais dos dias da semana, uma vez, à esquerda de tudo. */}
-            <View style={{ gap: GRADE_VAO }}>
-              {INICIAIS.map((letra, i) => (
-                <View key={i} style={{ height: GRADE_CELULA, justifyContent: 'center' }}>
-                  <Text
-                    style={{
-                      fontFamily: fonts.body.bold,
-                      fontSize: 10,
-                      lineHeight: GRADE_CELULA,
-                      color: palette.brown400,
-                      width: LARGURA_DA_INICIAL,
-                    }}
-                  >
-                    {letra}
-                  </Text>
-                </View>
-              ))}
-            </View>
-
-            {colunas.map((coluna, c) => (
-              <View key={c} style={{ flex: 1, gap: GRADE_VAO }}>
-                {coluna.celulas.map((celula, i) => (
-                  <View
-                    key={i}
-                    style={{
-                      height: GRADE_CELULA,
-                      borderRadius: 3,
-                      // Dia fora do mês não é dia sem registro: fica vazio de
-                      // verdade, sem contorno, para não contar um dia que não há.
-                      backgroundColor: celula?.mood ? moodColors[celula.mood] : 'transparent',
-                      borderWidth: celula && !celula.mood ? 1 : 0,
-                      borderColor: palette.brown100,
-                      /*
-                        O dia que ainda não chegou aparece mais apagado que o dia
-                        sem registro — a mesma regra da fita da semana, pelo mesmo
-                        motivo: um é o tempo, o outro é uma ausência dela.
-                      */
-                      opacity: celula?.futuro ? 0.35 : 1,
-                    }}
-                  />
-                ))}
-              </View>
-            ))}
-          </View>
+          Escondido do leitor de tela de propósito. Noventa formas anunciadas
+          uma a uma seriam noventa paradas para chegar ao fim de um cartão — a
+          leitura deste bloco mora na conta por humor, logo abaixo, que diz a
+          mesma coisa em quatro linhas.
+        */
+        <View
+          accessibilityElementsHidden
+          importantForAccessibility="no-hide-descendants"
+          style={{ gap: periodo === "mes" ? 0 : 16 }}
+        >
+          {meses.map((m) => (
+            <CalendarioDoMes
+              key={m.chave}
+              mes={m.mes}
+              dias={m.dias}
+              /*
+                Um mês sozinho cabe grande, com o número do dia dentro da
+                casa. Três não cabem: seriam quase novecentos pontos de altura
+                num cartão, e a pessoa rolaria dois telefones de calendário
+                para chegar à conta que resume tudo. No trimestre a casa
+                encolhe e o número sai — ali o que se lê é o desenho, e o
+                detalhe está na conta por humor logo abaixo.
+              */
+              alturaDaCelula={periodo === "mes" ? undefined : 24}
+            />
+          ))}
         </View>
       )}
 
