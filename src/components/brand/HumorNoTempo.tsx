@@ -2,7 +2,7 @@ import React, { useMemo, useState } from 'react';
 import { Pressable, Text, View } from 'react-native';
 
 import { ROTULO_DO_HUMOR } from '../../data/humores';
-import { moodRange, moodWeek } from '../../state/derived';
+import { moodMeses, moodWeek } from '../../state/derived';
 import { useAppState } from '../../state/AppStateProvider';
 import { fonts, type Mood, radius, useTema } from '../../theme';
 import { Card } from '../core/Card';
@@ -10,7 +10,7 @@ import { HumorComPalavra } from './HumorComPalavra';
 import { MoodFace } from './MoodFace';
 
 /**
- * O humor da pessoa em 7, 30 ou 90 dias.
+ * O humor da pessoa na semana, no mês ou no trimestre — sempre do calendário.
  *
  * Existia só dentro de "Para minha terapia", e ali dizia respeito a outra
  * pessoa — o terapeuta. Quem não faz terapia registrava o humor todos os dias
@@ -45,12 +45,12 @@ import { MoodFace } from './MoodFace';
  * alto e "Triste" é baixo convida a bater o próprio recorde de felicidade.
  *
  * O segundo canal é a **carinha** — a mesma que a pessoa toca para registrar,
- * distinta por expressão e não por cor. Na semana ela cabe dentro da barra. Em
- * 30 e 90 dias a célula tem uns vinte pixels e não cabe nada, então ali o
+ * distinta por expressão e não por cor. Na semana ela cabe dentro da barra. No
+ * mês e no trimestre a célula tem uns vinte pixels e não cabe nada, então ali o
  * segundo canal é **texto**: a conta por humor embaixo do gráfico. Some a
  * informação por outro caminho, sem inventar eixo nenhum.
  *
- * ## Trinta e noventa dias são uma grade, não uma fita
+ * ## O mês e o trimestre são uma grade, não uma fita
  *
  * Eram uma fita: um retângulo por dia, lado a lado, com a largura em
  * porcentagem. A porcentagem não fecha. Trinta dias a 3% davam 265 pontos de
@@ -62,13 +62,37 @@ import { MoodFace } from './MoodFace';
  * Agora cada **coluna é uma semana** e cada **linha é um dia da semana**, com
  * as iniciais à esquerda. A quebra deixa de ser acidente e passa a ser a
  * informação: dá para correr o dedo numa linha e ver como foram todas as
- * segundas-feiras. Noventa dias viram treze colunas de vinte pontos, e trinta
- * viram cinco colunas largas — os dois enchem a mesma altura, cabem no cartão
- * e não dependem da largura da tela para não ficarem tortos.
+ * segundas-feiras.
+ *
+ * ## E o período é o mês do calendário, não os últimos trinta dias
+ *
+ * A fita de sete dias já era a semana do calendário; estes dois continuavam
+ * sendo janela corrida, e a incoerência aparecia. Numa janela de trinta dias a
+ * mesma quarta-feira muda de coluna todo dia, o começo é uma data arbitrária
+ * que ninguém guarda, e não existe mês nenhum para nomear — o desenho era um
+ * pedaço de agosto grudado num pedaço de setembro.
+ *
+ * Fechado no mês, ele ganha nome: o rótulo aparece em cima da coluna em que o
+ * mês começa, como num calendário de verdade. E "como foi o meu setembro", que
+ * é o que se quer saber olhando para trás, passa a ser pergunta que o desenho
+ * responde.
+ *
+ * O preço é que o mês corrente termina no futuro. Esses dias aparecem
+ * apagados, como na semana — o mês tem o tamanho que tem, e ver quanto falta
+ * encher é informação. O que eles não fazem é contar como falta.
  */
-/** Altura de cada dia na grade de 30 e 90 dias, e o vão entre eles. */
+/** Altura de cada dia na grade do mês e do trimestre, e o vão entre eles. */
 const GRADE_CELULA = 18;
 const GRADE_VAO = 3;
+
+/**
+ * A largura da coluna das iniciais.
+ *
+ * Constante porque é usada duas vezes — na coluna das letras e no espaçador
+ * que alinha a fileira dos meses. Se as duas discordarem, todo nome de mês cai
+ * uma casa ao lado da coluna em que aquele mês começa.
+ */
+const LARGURA_DA_INICIAL = 11;
 
 /**
  * As iniciais dos dias, de domingo a sábado.
@@ -94,7 +118,15 @@ export function HumorNoTempo() {
   const { colors, moodColors, palette } = useTema();
   const { data } = useAppState();
 
-  const [periodo, setPeriodo] = useState<7 | 30 | 90>(7);
+  /**
+   * Os três períodos, e por que deixaram de ser números.
+   *
+   * Eram `7 | 30 | 90`, e os números passaram a mentir: o mês do calendário tem
+   * 28, 30 ou 31 dias, e o trimestre tem entre 89 e 92. Um botão escrito "30
+   * dias" abrindo uma grade de 31 é pequeno, mas é falso — e o rodapé embaixo
+   * dele diria "12 de 31 dias", discordando do próprio botão.
+   */
+  const [periodo, setPeriodo] = useState<'semana' | 'mes' | 'trimestre'>('semana');
   const semana = useMemo(() => moodWeek(data), [data]);
 
   /**
@@ -107,23 +139,30 @@ export function HumorNoTempo() {
   const [diaTocado, setDiaTocado] = useState<string | null>(null);
   const ultimoRegistrado = [...semana].reverse().find((d) => d.mood && !d.futuro)?.date ?? null;
   const escolhido = semana.find((d) => d.date === (diaTocado ?? ultimoRegistrado));
-  const longo = useMemo(() => moodRange(data, periodo), [data, periodo]);
+  const meses = useMemo(
+    () => moodMeses(data, periodo === 'trimestre' ? 3 : 1),
+    [data, periodo],
+  );
+  const longo = useMemo(() => meses.flatMap((m) => m.dias), [meses]);
+
   /**
-   * A conta embaixo do gráfico, e por que ela tem duas formas.
+   * A conta embaixo do gráfico.
    *
-   * Em 30 e 90 dias é o período inteiro: todos aqueles dias já aconteceram.
+   * O denominador é sempre **quantos dias já vieram**, nos três períodos. Antes
+   * valia só para a semana, porque só ela era do calendário: o mês e o
+   * trimestre eram janela corrida e terminavam hoje, então todos os dias deles
+   * já tinham acontecido.
    *
-   * Em 7 dias não dá para usar a mesma conta. A fita virou a semana do
-   * calendário, e numa quarta-feira três dos sete ainda não chegaram — dizer
-   * "4 de 7" contaria como falta o que ainda nem pôde acontecer, e a legenda
-   * passaria a discordar do que está desenhado logo acima dela. O denominador
-   * é quantos dias da semana já vieram.
+   * Fechados no calendário, os dois passam a ter futuro dentro — no dia 9 de
+   * setembro, vinte e um dias do mês ainda não chegaram. Dizer "4 de 30"
+   * contaria como falta o que ainda nem pôde acontecer, e a legenda passaria a
+   * discordar do que está desenhado logo acima dela.
    */
-  const diasQueVieram = semana.filter((d) => !d.futuro);
-  const registrados =
-    periodo === 7
-      ? { feitos: diasQueVieram.filter((d) => d.mood).length, de: diasQueVieram.length }
-      : { feitos: longo.filter((d) => d.mood).length, de: periodo };
+  const diasQueVieram = (periodo === 'semana' ? semana : longo).filter((d) => !d.futuro);
+  const registrados = {
+    feitos: diasQueVieram.filter((d) => d.mood).length,
+    de: diasQueVieram.length,
+  };
 
   /**
    * O período em colunas de semana, uma linha por dia da semana.
@@ -135,21 +174,43 @@ export function HumorNoTempo() {
    * sem registro ganha contorno.
    */
   const colunas = useMemo(() => {
-    type Celula = { date: string; mood: Mood | null } | null;
-    const semanas: Celula[][] = [];
-    let coluna: Celula[] = new Array(7).fill(null);
+    type Celula = { date: string; mood: Mood | null; futuro: boolean } | null;
+    /** `mes` só vem preenchido na coluna em que aquele mês começa. */
+    type Coluna = { celulas: Celula[]; mes: number | null };
+
+    const feitas: Coluna[] = [];
+    let celulas: Celula[] = new Array(7).fill(null);
+    let mesDaColuna: number | null = null;
+    let ultimoRotulado: number | null = null;
     let comecou = false;
 
+    const fechar = () => {
+      feitas.push({ celulas, mes: mesDaColuna });
+      celulas = new Array(7).fill(null);
+      mesDaColuna = null;
+    };
+
     for (const dia of longo) {
-      if (dia.diaDaSemana === 0 && comecou) {
-        semanas.push(coluna);
-        coluna = new Array(7).fill(null);
+      if (dia.diaDaSemana === 0 && comecou) fechar();
+      celulas[dia.diaDaSemana] = { date: dia.date, mood: dia.mood, futuro: dia.futuro };
+
+      /*
+        O rótulo do mês vai na coluna em que o mês estreia, e não naquela em que
+        ele tem mais dias. É o que os calendários de contribuição fazem, e é o
+        que o olho espera: o nome marca onde a coisa começa.
+
+        Sai da chave "2026-09-14", e não de um `Date` novo — ver o comentário em
+        `moodMeses` sobre por que refazer a data aqui erraria o fuso.
+      */
+      const mes = Number(dia.date.slice(5, 7)) - 1;
+      if (mesDaColuna === null && mes !== ultimoRotulado) {
+        mesDaColuna = mes;
+        ultimoRotulado = mes;
       }
-      coluna[dia.diaDaSemana] = { date: dia.date, mood: dia.mood };
       comecou = true;
     }
-    if (comecou) semanas.push(coluna);
-    return semanas;
+    if (comecou) fechar();
+    return feitas;
   }, [longo]);
 
   /** Quantos dias de cada humor no período, do mais frequente ao menos. */
@@ -172,13 +233,19 @@ export function HumorNoTempo() {
           Seu humor ao longo do tempo
         </Text>
         <View style={{ flexDirection: 'row', gap: 8 }}>
-          {([7, 30, 90] as const).map((d) => {
+          {(
+            [
+              { chave: 'semana', rotulo: 'Esta semana' },
+              { chave: 'mes', rotulo: 'Este mês' },
+              { chave: 'trimestre', rotulo: '3 meses' },
+            ] as const
+          ).map(({ chave: d, rotulo }) => {
             const ativo = periodo === d;
             return (
               <Pressable
                 key={d}
                 accessibilityRole="button"
-                accessibilityLabel={`Ver ${d} dias`}
+                accessibilityLabel={`Ver ${rotulo.toLowerCase()}`}
                 accessibilityState={{ selected: ativo }}
                 onPress={() => setPeriodo(d)}
                 style={{
@@ -197,7 +264,7 @@ export function HumorNoTempo() {
                     color: ativo ? colors.primaryStrong : palette.brown700,
                   }}
                 >
-                  {d} dias
+                  {rotulo}
                 </Text>
               </Pressable>
             );
@@ -205,7 +272,7 @@ export function HumorNoTempo() {
         </View>
       </View>
 
-      {periodo === 7 ? (
+      {periodo === 'semana' ? (
         <View style={{ flexDirection: 'row', gap: 6 }}>
           {semana.map((d, i) => {
             const tocado = escolhido?.date === d.date;
@@ -276,48 +343,82 @@ export function HumorNoTempo() {
            uma a uma seriam noventa paradas para chegar ao fim de um cartão —
            a leitura deste bloco mora na conta por humor, logo abaixo, que diz
            a mesma coisa em quatro linhas. */
-        <View
-          accessibilityElementsHidden
-          importantForAccessibility="no-hide-descendants"
-          style={{ flexDirection: 'row', gap: GRADE_VAO }}
-        >
-          {/* As iniciais dos dias da semana, uma vez, à esquerda de tudo. */}
-          <View style={{ gap: GRADE_VAO }}>
-            {INICIAIS.map((letra, i) => (
-              <View key={i} style={{ height: GRADE_CELULA, justifyContent: 'center' }}>
-                <Text
-                  style={{
-                    fontFamily: fonts.body.bold,
-                    fontSize: 10,
-                    lineHeight: GRADE_CELULA,
-                    color: palette.brown400,
-                    width: 11,
-                  }}
-                >
-                  {letra}
-                </Text>
+        <View accessibilityElementsHidden importantForAccessibility="no-hide-descendants">
+          {/* Os nomes dos meses, cada um em cima da coluna em que ele começa. */}
+          <View style={{ flexDirection: 'row', gap: GRADE_VAO, marginBottom: 4 }}>
+            <View style={{ width: LARGURA_DA_INICIAL }} />
+            {colunas.map((coluna, c) => (
+              <View key={c} style={{ flex: 1 }}>
+                {coluna.mes !== null && (
+                  <Text
+                    /*
+                      Sem quebrar e sem empurrar: o nome tem três letras e a
+                      coluna pode ter vinte pontos, então ele transborda para a
+                      direita, por cima da coluna seguinte, que naquele ponto
+                      está vazia de rótulo. É como o calendário de contribuição
+                      do GitHub resolve, e evita alargar a grade por causa do
+                      texto.
+                    */
+                    numberOfLines={1}
+                    style={{
+                      fontFamily: fonts.body.bold,
+                      fontSize: 10,
+                      color: palette.brown400,
+                      width: 30,
+                    }}
+                  >
+                    {MESES[coluna.mes]}
+                  </Text>
+                )}
               </View>
             ))}
           </View>
 
-          {colunas.map((semana, c) => (
-            <View key={c} style={{ flex: 1, gap: GRADE_VAO }}>
-              {semana.map((celula, i) => (
-                <View
-                  key={i}
-                  style={{
-                    height: GRADE_CELULA,
-                    borderRadius: 3,
-                    // Dia fora do período não é dia sem registro: fica vazio de
-                    // verdade, sem contorno, para não contar um dia que não há.
-                    backgroundColor: celula?.mood ? moodColors[celula.mood] : 'transparent',
-                    borderWidth: celula && !celula.mood ? 1 : 0,
-                    borderColor: palette.brown100,
-                  }}
-                />
+          <View style={{ flexDirection: 'row', gap: GRADE_VAO }}>
+            {/* As iniciais dos dias da semana, uma vez, à esquerda de tudo. */}
+            <View style={{ gap: GRADE_VAO }}>
+              {INICIAIS.map((letra, i) => (
+                <View key={i} style={{ height: GRADE_CELULA, justifyContent: 'center' }}>
+                  <Text
+                    style={{
+                      fontFamily: fonts.body.bold,
+                      fontSize: 10,
+                      lineHeight: GRADE_CELULA,
+                      color: palette.brown400,
+                      width: LARGURA_DA_INICIAL,
+                    }}
+                  >
+                    {letra}
+                  </Text>
+                </View>
               ))}
             </View>
-          ))}
+
+            {colunas.map((coluna, c) => (
+              <View key={c} style={{ flex: 1, gap: GRADE_VAO }}>
+                {coluna.celulas.map((celula, i) => (
+                  <View
+                    key={i}
+                    style={{
+                      height: GRADE_CELULA,
+                      borderRadius: 3,
+                      // Dia fora do mês não é dia sem registro: fica vazio de
+                      // verdade, sem contorno, para não contar um dia que não há.
+                      backgroundColor: celula?.mood ? moodColors[celula.mood] : 'transparent',
+                      borderWidth: celula && !celula.mood ? 1 : 0,
+                      borderColor: palette.brown100,
+                      /*
+                        O dia que ainda não chegou aparece mais apagado que o dia
+                        sem registro — a mesma regra da fita da semana, pelo mesmo
+                        motivo: um é o tempo, o outro é uma ausência dela.
+                      */
+                      opacity: celula?.futuro ? 0.35 : 1,
+                    }}
+                  />
+                ))}
+              </View>
+            ))}
+          </View>
         </View>
       )}
 
@@ -330,7 +431,7 @@ export function HumorNoTempo() {
         seria escolher qual vem antes, e é aí que nasce a pontuação que este
         gráfico não tem.
       */}
-      {periodo !== 7 && contagem.length > 0 && (
+      {periodo !== 'semana' && contagem.length > 0 && (
         <View
           style={{
             flexDirection: 'row',
@@ -362,7 +463,7 @@ export function HumorNoTempo() {
       )}
 
       {/* O dia tocado da semana, com a palavra que ela escolheu para ele. */}
-      {periodo === 7 && !!escolhido && (
+      {periodo === 'semana' && !!escolhido && (
         <View
           style={{
             flexDirection: 'row',
@@ -397,7 +498,11 @@ export function HumorNoTempo() {
         }}
       >
         {registrados.feitos} de {registrados.de}{' '}
-        {periodo === 7 ? 'dias desta semana' : 'dias registrados'}
+        {periodo === 'semana'
+          ? 'dias desta semana'
+          : periodo === 'mes'
+            ? 'dias deste mês'
+            : 'dias destes três meses'}
       </Text>
     </Card>
   );

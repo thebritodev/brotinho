@@ -589,31 +589,87 @@ export function lembranca(data: AppData, hoje = new Date()): Lembranca | null {
 
 // --- Humor ao longo do tempo ---------------------------------------------
 
-/**
- * Humor de um período qualquer, do mais antigo ao mais recente.
- *
- * `moodWeek` só mostrava 7 dias. Quem registra há meses não tinha como ver o
- * próprio arco — que é justamente o motivo de registrar todo dia.
- */
-export function moodRange(
-  data: AppData,
-  dias: number,
-): { date: string; mood: Mood | null; diaDaSemana: number }[] {
-  const porDia = new Map(data.moodHistory.map((m) => [m.date, m.mood]));
-  return Array.from({ length: dias }).map((_, i) => {
-    const d = new Date();
-    d.setDate(d.getDate() - (dias - 1 - i));
-    const date = dayKey(d);
-    /*
-      O dia da semana sai daqui, do `Date` que já existe, e não da string.
+export type DiaDoCalendario = {
+  date: string;
+  mood: Mood | null;
+  /** 0 domingo … 6 sábado. Diz em que linha da grade o dia cai. */
+  diaDaSemana: number;
+  /** Ainda não chegou. */
+  futuro: boolean;
+};
 
-      Quem recebe isto precisa saber em que coluna o dia cai, e a tentação é
-      fazer `new Date(date)` do outro lado — que lê "2026-09-01" como meia-noite
-      em UTC e, no Brasil, devolve o dia anterior. O erro apareceria como uma
-      grade inteira deslocada uma casa, e só em alguns fusos.
-    */
-    return { date, mood: porDia.get(date) ?? null, diaDaSemana: d.getDay() };
-  });
+export type MesDeHumor = {
+  /** "2026-09", para servir de chave de lista. */
+  chave: string;
+  /** 0 a 11, para quem desenha escolher a abreviação. */
+  mes: number;
+  dias: DiaDoCalendario[];
+};
+
+/**
+ * O humor de um ou mais meses do **calendário**, dia a dia.
+ *
+ * ## Por que meses, e não os últimos trinta dias
+ *
+ * Pelo mesmo motivo que a fita de sete dias é a semana do calendário e não os
+ * últimos sete: janela corrida não tem onde se apoiar. Numa janela de trinta
+ * dias, a mesma quarta-feira muda de coluna todo dia, o começo do período é uma
+ * data arbitrária que ninguém guarda, e não há como escrever "setembro" em
+ * lugar nenhum — o período não é setembro, é um pedaço de agosto mais um pedaço
+ * de setembro.
+ *
+ * Com o mês fechado dá para dizer o nome dele. E o que a pessoa quer saber
+ * quando olha para trás — "como foi o meu setembro" — passa a ser uma pergunta
+ * que o desenho responde.
+ *
+ * ## Os dias que ainda não chegaram vêm junto
+ *
+ * O mês corrente quase sempre termina no futuro, e esses dias aparecem na grade
+ * apagados, como na semana. Apagá-los é diferente de escondê-los: o mês tem o
+ * tamanho que tem, e ver o espaço que falta encher é informação. O que não pode
+ * é contá-los como falta — ver `futuro`.
+ */
+export function moodMeses(
+  data: AppData,
+  quantosMeses: number,
+  agora: Date = new Date(),
+): MesDeHumor[] {
+  const porDia = new Map(data.moodHistory.map((m) => [m.date, m.mood]));
+  const chaveDeHoje = dayKey(agora);
+  const meses: MesDeHumor[] = [];
+
+  for (let atras = quantosMeses - 1; atras >= 0; atras -= 1) {
+    /* Mês negativo ou acima de 11 o próprio `Date` resolve, virando o ano. */
+    const primeiro = new Date(agora.getFullYear(), agora.getMonth() - atras, 1);
+    const ano = primeiro.getFullYear();
+    const mes = primeiro.getMonth();
+    /* Dia 0 do mês seguinte é o último deste — a regra que acerta fevereiro. */
+    const quantosDias = new Date(ano, mes + 1, 0).getDate();
+
+    const dias = Array.from({ length: quantosDias }, (_, i) => {
+      const d = new Date(ano, mes, i + 1);
+      const date = dayKey(d);
+      /*
+        O dia da semana sai daqui, do `Date` que já existe, e não da string.
+
+        Quem recebe isto precisa saber em que coluna o dia cai, e a tentação é
+        fazer `new Date(date)` do outro lado — que lê "2026-09-01" como
+        meia-noite em UTC e, no Brasil, devolve o dia anterior. O erro
+        apareceria como uma grade inteira deslocada uma casa, e só em alguns
+        fusos.
+      */
+      return {
+        date,
+        mood: porDia.get(date) ?? null,
+        diaDaSemana: d.getDay(),
+        futuro: date > chaveDeHoje,
+      };
+    });
+
+    meses.push({ chave: `${ano}-${String(mes + 1).padStart(2, '0')}`, mes, dias });
+  }
+
+  return meses;
 }
 
 // --- Pensamentos que voltam ----------------------------------------------
