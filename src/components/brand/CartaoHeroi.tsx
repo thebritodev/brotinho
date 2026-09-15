@@ -1,6 +1,7 @@
 import React from 'react';
 import { Pressable, Text, View } from 'react-native';
 
+import { useToqueAnimado } from '../../hooks/useToqueAnimado';
 import { fonts, radius, useTema } from '../../theme';
 
 /**
@@ -37,8 +38,17 @@ import { fonts, radius, useTema } from '../../theme';
  */
 
 type Props = {
-  /** A cena, desenhada para cobrir o cartão inteiro. */
-  cena: React.ReactNode;
+  /**
+   * A cena, desenhada para cobrir o cartão inteiro.
+   *
+   * Recebe o passo da animação de toque, de 0 a 1, e devolve o desenho naquele
+   * instante. É função, e não um nó pronto, porque o cartão precisa redesenhar
+   * a cena a cada quadro enquanto ela se mexe — ver `useToqueAnimado`.
+   *
+   * Cena que não anima simplesmente ignora o passo, e aí a função é chamada uma
+   * vez só, como seria um nó.
+   */
+  cena: (p: number) => React.ReactNode;
   /** Cor de fundo do cartão — a mesma em que o véu da cena termina. */
   fundo: string;
   /** A etiqueta do alto, quando há um motivo verdadeiro para ela. */
@@ -67,12 +77,17 @@ export function CartaoHeroi({
   altura,
 }: Props) {
   const { colors, palette, shadows } = useTema();
+  /*
+    A cena se mexe antes de a tela abrir — o mesmo gesto dos cartões de tema,
+    pelo mesmo motivo e com a mesma duração. Ver `useToqueAnimado`.
+  */
+  const { p, tocar } = useToqueAnimado(onPress);
 
   return (
     <Pressable
       accessibilityRole="button"
       accessibilityLabel={label}
-      onPress={onPress}
+      onPress={tocar}
       style={({ pressed }) => ({
         height: altura,
         borderRadius: radius.lg,
@@ -84,7 +99,7 @@ export function CartaoHeroi({
       })}
     >
       {/* A cena, atrás de tudo e do tamanho do cartão. */}
-      <View style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }}>{cena}</View>
+      <View style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }}>{cena(p)}</View>
 
       {!!selo && (
         <View

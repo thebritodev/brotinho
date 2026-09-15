@@ -1,8 +1,8 @@
-import React, { useEffect, useId, useState } from 'react';
-import type { Animated } from 'react-native';
+import React, { useId } from 'react';
 import Svg, { Circle, Defs, Ellipse, G, LinearGradient, Path, RadialGradient, Stop } from 'react-native-svg';
 
 import { palette, tracos } from '../../theme/tokens';
+import { cresce, curva, desloca, gira } from './movimentoDaCena';
 import { BRASA, TERRA, TERRA_CLARA, TERRA_SOMBRA } from './terraDoCanteiro';
 
 /**
@@ -101,46 +101,10 @@ const FOLHA = 'M0 0 C -6 -14 -18 -26 -32 -24 C -42 -22 -44 -6 -34 4 C -22 16 -8 
   em `PracticeTopicCard`, e por isso as treze duram o mesmo e param juntas.
 */
 
-/**
- * Gira `graus` em torno de um ponto do desenho.
- *
- * Em SVG, giro sem centro explícito acontece em torno de (0, 0) — o canto de
- * cima à esquerda da caixa. Uma ampulheta girada assim sairia voando pela
- * diagonal em vez de pender no lugar.
- */
-const gira = (graus: number, cx: number, cy: number) => `rotate(${graus} ${cx} ${cy})`;
-
-/**
- * Cresce ou encolhe `fator` vezes em torno de um ponto do desenho.
- *
- * SVG não tem origem de escala: `scale` sempre puxa para (0, 0). O jeito de
- * fixar outro ponto é o sanduíche — leva o ponto até a origem, escala, devolve.
- * É isso que deixa a areia encolher para dentro do próprio bico e o monte de
- * baixo crescer a partir do chão do vidro.
- */
-const cresce = (fator: number, cx: number, cy: number) =>
-  `translate(${cx} ${cy}) scale(${fator}) translate(${-cx} ${-cy})`;
-
-/** Desloca, em unidades do desenho. */
-const desloca = (dx: number, dy: number) => `translate(${dx} ${dy})`;
-
 type CenaProps = {
   /** O passo da animação de toque: 0 parada, 1 no fim. */
   p: number;
 };
-
-/**
- * Mapeia o passo numa curva de cinco tempos.
- *
- * Cinco e não dois porque quase todo movimento daqui vai e volta — a ampulheta
- * pende para um lado, passa do ponto para o outro e assenta. Com só começo e
- * fim, tudo viraria deslizamento em linha reta.
- */
-function curva(p: number, valores: [number, number, number, number, number]) {
-  const t = Math.min(Math.max(p, 0), 1) * 4;
-  const i = Math.min(Math.floor(t), 3);
-  return valores[i] + (valores[i + 1] - valores[i]) * (t - i);
-}
 
 function Ansiedade({ p }: CenaProps) {
   return (
@@ -663,36 +627,18 @@ export function ehTemaDesenhado(chave: string): chave is Tema {
 export function DesenhoDoTema({
   tema,
   size = 46,
-  passo,
+  passo = 0,
 }: {
   tema: string;
   size?: number;
-  /** O passo da animação de toque, de 0 a 1. Ver `PracticeTopicCard`. */
-  passo?: Animated.Value;
+  /** O passo da animação de toque, de 0 a 1. Ver `useToqueAnimado`. */
+  passo?: number;
 }) {
-  /*
-    O valor animado vira estado comum.
-
-    É a ponte entre os dois mundos: quem toca no cartão ganha um `Animated` com
-    curva e duração, e a cena recebe um número que ela sabe interpretar em
-    qualquer plataforma. Ver o comentário lá em cima sobre por que não dá para
-    entregar o valor animado direto ao SVG.
-
-    Sem `passo`, nada disso acontece: nenhum ouvinte, nenhum estado, nenhuma
-    re-renderização. É o caso da maioria dos lugares que desenham um tema.
-  */
-  const [p, setP] = useState(0);
-  useEffect(() => {
-    if (!passo) return;
-    const id = passo.addListener(({ value }) => setP(value));
-    return () => passo.removeListener(id);
-  }, [passo]);
-
   if (!ehTemaDesenhado(tema)) return null;
   const Cena = CENAS[tema];
   return (
     <Svg viewBox="0 0 60 60" width={size} height={size}>
-      <Cena p={passo ? p : 0} />
+      <Cena p={passo} />
     </Svg>
   );
 }

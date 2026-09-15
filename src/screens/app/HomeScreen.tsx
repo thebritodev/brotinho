@@ -456,9 +456,9 @@ export function HomeScreen({
           <CartaoHeroi
             altura={alturaDoHeroi}
             fundo={tomDaPratica}
-            cena={
+            cena={() => (
               <CenaDaPratica fundo={tomDaPratica} tema={oferta.topico} altura={alturaDoHeroi} />
-            }
+            )}
             selo={oferta.selo}
             titulo={oferta.titulo}
             linha={`${oferta.convite} ${oferta.duracao}, guiada pelo app.`}
@@ -470,7 +470,7 @@ export function HomeScreen({
           <CartaoHeroi
             altura={alturaDoHeroi}
             fundo={palette.green100}
-            cena={<CenaDaComposta fundo={palette.green100} />}
+            cena={() => <CenaDaComposta fundo={palette.green100} />}
             selo={seloDaComposta}
             titulo="Composta"
             linha="Repita em voz alta o pensamento que te incomoda até ele virar só som."

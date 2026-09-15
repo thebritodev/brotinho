@@ -61,6 +61,15 @@ export function MainTabs() {
    * porque é justamente a Home que deixa de existir no meio do caminho.
    */
   const rolagemDaHome = useRef(0);
+  /**
+   * O mesmo, para a aba do broto.
+   *
+   * Ela precisa disto desde que o Diário mudou de lugar: o cartão do Diário fica
+   * no meio da tela, e o diário é tela empilhada — abrir desmontava a aba, e
+   * voltar montava uma aba nova, no topo. Quem tinha descido para escrever
+   * voltava lá em cima e tinha de descer de novo, toda vez.
+   */
+  const rolagemDoBroto = useRef(0);
 
   /**
    * Fecha a tela empilhada — e joga fora a pergunta que trouxe alguém até aqui.
@@ -208,6 +217,10 @@ export function MainTabs() {
             onOpenPractices={(alvo) => {
               setPraticaAlvo(alvo ?? null);
               setSub('praticas');
+            }}
+            rolagemInicial={rolagemDoBroto.current}
+            aoRolar={(y) => {
+              rolagemDoBroto.current = y;
             }}
           />
         );

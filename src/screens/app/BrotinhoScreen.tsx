@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useRef, useState } from 'react';
 import {
   Modal,
   Pressable,
@@ -74,6 +74,14 @@ type Props = {
   onOpenConselhosGuardados: () => void;
   onOpenValues: () => void;
   onOpenPractices: (alvo?: { topico: string; pratica: string }) => void;
+  /**
+   * A altura em que esta aba estava quando alguém saiu dela.
+   *
+   * Mora no `MainTabs`, e não aqui, porque é justamente esta tela que deixa de
+   * existir quando o diário abre — ver o comentário de `rolagemDoBroto` lá.
+   */
+  rolagemInicial?: number;
+  aoRolar?: (y: number) => void;
 };
 
 export function BrotinhoScreen({
@@ -82,6 +90,8 @@ export function BrotinhoScreen({
   onOpenConselhosGuardados,
   onOpenValues,
   onOpenPractices,
+  rolagemInicial = 0,
+  aoRolar,
 }: Props) {
   const { colors, palette } = useTema();
   const insets = useSafeAreaInsets();
@@ -93,6 +103,17 @@ export function BrotinhoScreen({
   const humorMarcado = registroDeHoje?.mood ?? null;
   const mood = humorMarcado ?? 'neutro';
   const stage = sproutStage(data);
+
+  /**
+   * A altura em que esta tela abre — congelada no instante da montagem.
+   *
+   * `rolagemInicial` chega de uma `ref` e muda conforme a pessoa rola. Lida a
+   * cada render, ela viraria um `contentOffset` novo a cada vez, e o Android
+   * reagiria a isso rolando: a tela puxaria o tapete de quem está lendo.
+   */
+  const alturaInicial = useRef(rolagemInicial).current;
+  const rolagem = useRef<ScrollView>(null);
+  const jaRestaurou = useRef(false);
 
   /** A mesma medida dos cartões do carrossel da tela inicial. */
   const alturaDoHeroi = Math.round(Math.min(Math.max(320, width) * 0.84, 330));
@@ -172,6 +193,23 @@ export function BrotinhoScreen({
       <TopBar title={nomeDoBroto} />
 
       <ScrollView
+        ref={rolagem}
+        /*
+          A tela **monta** já na altura certa, em vez de montar no zero e
+          corrigir depois — corrigir depois pisca um quadro do topo. É o mesmo
+          que a tela inicial faz, e pelo mesmo motivo: abrir o diário desmonta
+          esta aba, e voltar montava uma aba nova, que nascia no começo.
+        */
+        contentOffset={{ x: 0, y: alturaInicial }}
+        scrollEventThrottle={64}
+        onScroll={(e) => aoRolar?.(e.nativeEvent.contentOffset.y)}
+        /* Rede para quem ignorar o `contentOffset` — o `react-native-web` é um. */
+        onContentSizeChange={(_, altura) => {
+          if (jaRestaurou.current || alturaInicial <= 0) return;
+          if (altura <= alturaInicial) return;
+          jaRestaurou.current = true;
+          rolagem.current?.scrollTo({ y: alturaInicial, animated: false });
+        }}
         contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 32, gap: 22 }}
         showsVerticalScrollIndicator={false}
       >
@@ -317,7 +355,7 @@ export function BrotinhoScreen({
         <CartaoHeroi
           altura={alturaDoHeroi}
           fundo={palette.cream200}
-          cena={<CenaDoDiario fundo={palette.cream200} />}
+          cena={(p) => <CenaDoDiario fundo={palette.cream200} passo={p} />}
           selo={seloDoDiario}
           titulo="Diário"
           linha="Escreva ou fale o que passou hoje. Não sai do seu aparelho."

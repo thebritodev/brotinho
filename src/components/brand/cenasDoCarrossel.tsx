@@ -13,6 +13,7 @@ import Svg, {
 
 import { palette, tracos } from '../../theme/tokens';
 import { DesenhoDoTema } from './desenhosDosTemas';
+import { curva, desloca, estica, gira } from './movimentoDaCena';
 import { BRASA, TERRA, TERRA_CLARA, TERRA_FUNDA, TERRA_SOMBRA } from './terraDoCanteiro';
 
 /**
@@ -225,8 +226,22 @@ export function CenaDaPratica({
  * papel é o objeto que diz isso sem escrever. O caderno está **aberto** e não
  * fechado porque a ação é escrever agora, não guardar.
  */
-export function CenaDoDiario({ fundo }: { fundo: string }) {
+/**
+ * A cena do Diário.
+ *
+ * ## O que ela faz ao ser tocada
+ *
+ * O lápis sai da mesa e sobe até a página, endireitando; e a última pauta da
+ * esquerda — a curta, que é onde a escrita parou — cresce.
+ *
+ * As duas coisas contam a mesma frase, que é a frase do cartão: *a página está
+ * começada, e agora você continua*. Nenhuma das duas termina o serviço: o lápis
+ * não chega a encostar e a linha não alcança o comprimento das outras, porque
+ * quem escreve é a pessoa, do outro lado do toque.
+ */
+export function CenaDoDiario({ fundo, passo = 0 }: { fundo: string; passo?: number }) {
   const id = useId().replace(/[^a-zA-Z0-9]/g, '');
+  const p = passo;
 
   return (
     <Cena fundo={fundo}>
@@ -294,15 +309,29 @@ export function CenaDoDiario({ fundo }: { fundo: string }) {
             [-14, -16],
             [4, -16],
             [22, -44],
-          ].map(([y, fim]) => (
-            <Path
-              key={`e${y}`}
-              d={`M-68 ${y} L${fim} ${y}`}
-              stroke={palette.brown200}
-              strokeWidth={2.8}
-              strokeLinecap="round"
-            />
-          ))}
+          ].map(([y, fim], i) => {
+            /*
+              Só a última cresce, e só ao longo do próprio eixo.
+
+              Por isso `estica` e não `cresce`: uma pauta que engordasse junto
+              com o comprimento viraria um borrão, não uma frase sendo escrita.
+              A origem é a margem esquerda, que é de onde se escreve.
+            */
+            const escrevendo = i === 3;
+            return (
+              <G
+                key={`e${y}`}
+                transform={escrevendo ? estica(curva(p, [1, 1.3, 1.6, 1.8, 1.9]), 1, -68, y) : undefined}
+              >
+                <Path
+                  d={`M-68 ${y} L${fim} ${y}`}
+                  stroke={palette.brown200}
+                  strokeWidth={2.8}
+                  strokeLinecap="round"
+                />
+              </G>
+            );
+          })}
           {[-32, -14, 4, 22].map((y) => (
             <Path
               key={`d${y}`}
@@ -315,8 +344,20 @@ export function CenaDoDiario({ fundo }: { fundo: string }) {
         </G>
       </G>
 
-      {/* O lápis, pousado na mesa ao lado do caderno. */}
-      <G transform="translate(204 132) rotate(18)">
+      {/*
+        O lápis, pousado na mesa ao lado do caderno — e, no toque, subindo até
+        a página e endireitando, como quem o pega para escrever.
+
+        O deslocamento vem antes do giro na lista de transformações porque a
+        ordem importa em SVG: girar primeiro giraria também o caminho que ele
+        ainda vai percorrer, e o lápis subiria de lado.
+      */}
+      <G
+        transform={[
+          desloca(204 + curva(p, [0, -5, -11, -15, -17]), 132 + curva(p, [0, -6, -13, -17, -19])),
+          gira(curva(p, [18, 15, 11, 8, 7]), 0, 0),
+        ].join(' ')}
+      >
         <Rect
           x={-38}
           y={-4.4}
