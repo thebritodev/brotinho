@@ -1,6 +1,7 @@
-import React from 'react';
-import { Pressable, StyleProp, Text, View, ViewStyle } from 'react-native';
+import React, { useRef } from 'react';
+import { Animated, Easing, Pressable, StyleProp, Text, View, ViewStyle } from 'react-native';
 
+import { useMenosMovimento } from '../../hooks/useMenosMovimento';
 import { fonts, radius, useTema } from '../../theme';
 import { Icon, type IconName } from '../core/Icon';
 import { DesenhoDoTema, ehTemaDesenhado } from './desenhosDosTemas';
@@ -74,6 +75,20 @@ export const SOBRA_DO_DESENHO = 40;
  */
 export const TAMANHO_DO_DESENHO = 118;
 
+/**
+ * Quanto a cena se mexe antes de a tela trocar.
+ *
+ * É perto do tempo da própria transição entre telas do app, e isso não é
+ * coincidência: a animação precisa caber no intervalo que a pessoa já aceita
+ * como "o app respondeu". Passando disso, ela deixa de ser resposta ao toque e
+ * vira espera.
+ *
+ * Quem abre o Brotinho para respirar num dia ruim toca nestes cartões todos os
+ * dias. Meio segundo de enfeite encanta três vezes e atrapalha na trigésima —
+ * por isso o número é o menor que ainda deixa a ampulheta escorrer inteira.
+ */
+const DURACAO_DO_TOQUE = 350;
+
 /** PracticeTopicCard — leva a um tema de prática (ansiedade, sono...). */
 export function PracticeTopicCard({
   title,
@@ -86,6 +101,81 @@ export function PracticeTopicCard({
   grade = false,
 }: Props) {
   const { colors, palette, shadows } = useTema();
+  const menosMovimento = useMenosMovimento();
+
+  /**
+   * O passo da cena, de 0 a 1. Quem interpreta é cada desenho, em
+   * `desenhosDosTemas` — aqui só se decide quando ele anda e por quanto tempo.
+   */
+  const passo = useRef(new Animated.Value(0)).current;
+  /** Um toque de cada vez. Ver `tocar`. */
+  const andando = useRef(false);
+
+  /**
+   * Toca a cena do tema e só então abre a tela.
+   *
+   * A ordem é essa de propósito: a animação é a resposta ao dedo, e resposta
+   * que chega junto com a tela nova não é vista por ninguém.
+   */
+  const tocar = () => {
+    if (!onPress) return;
+
+    /*
+      Sem movimento, sem espera.
+
+      Quem pediu ao sistema para reduzir animações costuma ter pedido por
+      enjoo ou enxaqueca. Fazer essa pessoa esperar 350 ms por uma animação
+      que ela não vai ver seria cobrar duas vezes pelo mesmo ajuste.
+    */
+    if (menosMovimento) {
+      onPress();
+      return;
+    }
+
+    /*
+      Dois toques seguidos não abrem duas telas.
+
+      Sem o trinco, o segundo toque reiniciava a cena e agendava uma segunda
+      navegação — que chegava depois de a tela já ter trocado e empilhava o
+      mesmo tema duas vezes, obrigando a voltar duas.
+    */
+    if (andando.current) return;
+    andando.current = true;
+    passo.setValue(0);
+
+    Animated.timing(passo, {
+      toValue: 1,
+      duration: DURACAO_DO_TOQUE,
+      /*
+        Sai rápido e desacelera no fim. É o que faz a areia parecer escoar por
+        peso, e não ser arrastada por um cursor — movimento de coisa, não de
+        interface.
+      */
+      easing: Easing.out(Easing.quad),
+      /*
+        Nó de SVG não aceita driver nativo — ver `desenhosDosTemas`.
+
+        Aqui isso custa pouco: é um cartão por vez, e a tela seguinte só é
+        montada **depois** que a animação acaba. A linha do JavaScript está
+        livre justamente durante os 350 ms em que ela precisa estar.
+      */
+      useNativeDriver: false,
+    }).start(({ finished }) => {
+      andando.current = false;
+      /*
+        Animação interrompida não navega. Ela só é interrompida quando o cartão
+        sai da tela, e nesse caso a pessoa já está noutro lugar.
+      */
+      if (!finished) return;
+      onPress();
+      /*
+        E a cena volta ao repouso. Na tela inicial o cartão é desmontado logo
+        em seguida, mas na lista de Práticas ele continua vivo por baixo: sem
+        isto, voltar encontraria a ampulheta vazia e a chuva já caída.
+      */
+      passo.setValue(0);
+    });
+  };
 
   /*
     Na grade, o tom do tema deixa de ser um quadradinho e vira o cartão.
@@ -103,7 +193,7 @@ export function PracticeTopicCard({
         <Pressable
           accessibilityRole="button"
           accessibilityLabel={title}
-          onPress={onPress}
+          onPress={tocar}
           style={({ pressed }) => ({
             position: 'absolute',
             top: 0,
@@ -154,7 +244,7 @@ export function PracticeTopicCard({
           style={{ position: 'absolute', right: 0, bottom: 0 }}
         >
           {ehTemaDesenhado(chave ?? '') ? (
-            <DesenhoDoTema tema={chave ?? ''} size={TAMANHO_DO_DESENHO} />
+            <DesenhoDoTema tema={chave ?? ''} size={TAMANHO_DO_DESENHO} passo={passo} />
           ) : (
             /* Tema novo, ainda sem cena: o ícone de traço segura o lugar. */
             <View style={{ padding: 26 }}>
@@ -169,7 +259,7 @@ export function PracticeTopicCard({
   return (
     <Pressable
       accessibilityRole="button"
-      onPress={onPress}
+      onPress={tocar}
       style={({ pressed }) => [
         {
           flexDirection: 'row',
@@ -202,7 +292,7 @@ export function PracticeTopicCard({
           ver `desenhosDosTemas`. O `Icon` fica para um tema novo que ainda não
           tenha cena: melhor um ícone genérico do que um quadrado vazio.
         */}
-        <DesenhoDoTema tema={chave ?? ''} size={40} />
+        <DesenhoDoTema tema={chave ?? ''} size={40} passo={passo} />
         {!ehTemaDesenhado(chave ?? '') && <Icon name={icon} size={26} color={palette.brown900} />}
       </View>
       <View style={{ flex: 1, gap: 3 }}>
