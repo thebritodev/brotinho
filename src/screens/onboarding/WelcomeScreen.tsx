@@ -49,35 +49,69 @@ export function WelcomeScreen({ onStart }: { onStart: () => void }) {
         }}
         showsVerticalScrollIndicator={false}
       >
-        <WindowScene width={width} />
+        {/*
+          A arte e a promessa são um bloco só, e isso é o que conserta a tela.
 
-        <View style={{ paddingHorizontal: 24, gap: 12, marginTop: 8 }}>
-          <Text
-            style={{
-              color: colors.textPrimary,
-              fontFamily: fonts.display.extraBold,
-              fontSize: 30,
-              lineHeight: 30 * 1.2,
-              textAlign: 'center',
-            }}
-          >
-            Um lugar só seu para deixar o que pesa
-          </Text>
-          <Text
-            style={{
-              fontFamily: fonts.body.regular,
-              fontSize: 16,
-              lineHeight: 16 * 1.55,
-              color: palette.brown700,
-              textAlign: 'center',
-            }}
-          >
-            Fale, escreva, respire. O broto cresce conforme você aparece — e o que você contar não
-            sai deste aparelho.
-          </Text>
+          Eram três filhos soltos num `space-between`: desenho, texto, botões.
+          Num aparelho alto a sobra se parte em **duas** — cento e quarenta
+          pontos entre o desenho e o título, cento e setenta entre o texto e o
+          botão. Um terço da primeira tela do app era buraco, e buraco no meio
+          de uma composição não lê como respiro, lê como inacabado.
+
+          Com dois filhos a sobra vai para um lugar só, e ela cai no lugar
+          certo: acima do botão. O texto encosta no desenho e vira legenda
+          dele, que é o que ele sempre foi.
+        */}
+        <View>
+          <WindowScene width={width} />
+
+          <View style={{ paddingHorizontal: 24, gap: 12, marginTop: 28 }}>
+            <Text
+              style={{
+                color: colors.textPrimary,
+                fontFamily: fonts.display.extraBold,
+                fontSize: 30,
+                lineHeight: 30 * 1.2,
+                textAlign: 'center',
+              }}
+            >
+              Um lugar só seu para deixar o que pesa
+            </Text>
+            {/*
+              O subtítulo diz o que o desenho não consegue.
+
+              Ele era "Fale, escreva, respire. O broto cresce conforme você
+              aparece — e o que você contar não sai deste aparelho." Falar,
+              escrever e respirar é o que todo app de bem-estar faz, e o broto
+              crescendo já está desenhado bem ali em cima, na janela. Das três
+              frases, duas gastavam espaço com o que a imagem já mostra ou com
+              o que não separa o Brotinho de ninguém.
+
+              O que ele tem e mais ninguém tem é a Composta — repetir em voz
+              alta até a frase virar só som —, e a pessoa vai **fazer** isso no
+              sétimo passo. Anunciar aqui é a diferença entre entrar num diário
+              e entrar para experimentar uma coisa que não dá para entender
+              lendo.
+
+              A privacidade fica, e fica por último: ela não traz ninguém para
+              dentro, mas é o que tira o medo de começar a escrever.
+            */}
+            <Text
+              style={{
+                fontFamily: fonts.body.regular,
+                fontSize: 16,
+                lineHeight: 16 * 1.55,
+                color: palette.brown700,
+                textAlign: 'center',
+              }}
+            >
+              Escreva ou fale o que passou hoje. E repita em voz alta o pensamento que te
+              persegue, até ele virar só som. Nada disso sai do seu aparelho.
+            </Text>
+          </View>
         </View>
 
-        <View style={{ paddingHorizontal: 24, gap: 10, marginTop: 22 }}>
+        <View style={{ paddingHorizontal: 24, gap: 10, marginTop: 32 }}>
           <Button size="lg" style={{ width: '100%' }} onPress={onStart}>
             Começar
           </Button>
