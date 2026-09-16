@@ -482,11 +482,11 @@ export function HomeScreen({
           /* Sempre demonstrando: fora do carrossel, ela não tem vez de chegar. */
           cena={() => <CenaDaComposta fundo={palette.green100} demonstrando />}
           selo={seloDaComposta}
-          titulo="Composta"
+          titulo="Compostar pensamentos"
           linha="Repita em voz alta o pensamento que te incomoda até ele virar só som."
-          acao="Compostar um pensamento"
+          acao="Compostar agora"
           onPress={onOpenComposta}
-          label="Composta: repita em voz alta um pensamento que incomoda"
+          label="Compostar pensamentos: repita em voz alta um pensamento que incomoda"
         />
 
         {/*

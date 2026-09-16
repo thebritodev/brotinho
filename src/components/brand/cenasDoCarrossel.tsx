@@ -404,10 +404,17 @@ export function CenaDoDiario({ fundo, passo = 0 }: { fundo: string; passo?: numb
  * atropela ninguém: quando a última acaba de sumir, a primeira recomeça, e a
  * volta fecha sem emenda.
  *
- * Mil e cem milissegundos é o tempo de ler uma palavra sem pressa. Mais rápido
- * vira chuva de letras; mais devagar, e o cartão parece travado.
+ * Começou em mil e cem, escolhidos no papel como "o tempo de ler uma palavra
+ * sem pressa". No cartão real era pressa: a palavra fica cheia entre um sétimo
+ * e dois terços da queda, ou seja meio segundo a 1100 — e meio segundo não é
+ * ler, é entrever.
+ *
+ * A mil e oitocentos, a mesma janela dá oitocentos e sessenta milissegundos,
+ * e a frase inteira leva sete segundos. Vale para o que este cartão é: não é
+ * um aviso que precisa ser visto antes de a pessoa rolar, é a ferramenta
+ * fazendo o gesto dela em ritmo de gesto.
  */
-const QUEDA_DA_PALAVRA = 1100;
+const QUEDA_DA_PALAVRA = 1800;
 
 /**
  * O tempo parado antes da primeira queda.
