@@ -101,13 +101,17 @@ termina na privacidade, que é o que separa o Brotinho dos concorrentes.*
 ### Descrição completa (máx. 4000 caracteres)
 
 ```
-Cuidar da própria cabeça se parece mais com jardinagem do que com conserto. Não
-existe um botão que resolve: existe rega, luz, tempo e alguma paciência com os
-dias em que nada parece acontecer.
+Desabafe por texto ou voz, faça uma prática guiada a partir de dois minutos e
+repita em voz alta o pensamento que te persegue até ele perder o peso. Nada do
+que você escreve sai do seu aparelho.
 
 O Brotinho é um lugar para deixar o que pesa. Você escreve ou fala, e um broto
 cresce conforme você aparece. Ele não cobra, não pontua e não fica bravo quando
 você some por uma semana.
+
+Cuidar da própria cabeça se parece mais com jardinagem do que com conserto: não
+existe um botão que resolve. Existe rega, luz, tempo e alguma paciência com os
+dias em que nada parece acontecer.
 
 
 COMPOSTAR UM PENSAMENTO
@@ -137,7 +141,7 @@ O QUE TEM AQUI DENTRO
 PARA QUEM NÃO SABE POR ONDE COMEÇAR
 
 A tela inicial escolhe uma prática para o seu dia — pelo humor que você marcou,
-ou pela última que você fez. São de três a dez minutos, com voz e respiração
+ou pela última que você fez. São a partir de dois minutos, com voz e respiração
 guiadas, e nenhuma delas precisa de preparo, lugar silencioso ou roupa própria.
 
 

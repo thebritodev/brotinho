@@ -5,27 +5,40 @@ questionários. Revise antes de enviar: são suas palavras publicadas no seu nom
 
 ---
 
-## Estado: 1.1.0 aguardando revisão
+## Estado: 1.1.0 **aprovada**, esperando você soltar
 
-Enviada em **14/09/2026**. Compilação **14**, versão 1.1.0.
+Enviada em 14/09/2026, aprovada pela Apple e conferida aqui em **15/09/2026**.
+Compilação **14**, versão 1.1.0, estado `Pronto para distribuição`.
 
 | | |
 |---|---|
-| Lançamento | **manual** — aprovada, ela só vai ao ar quando você mandar |
-| Prazo da revisão | até 48 horas, com e-mail no fim |
+| Revisão | **passou** |
+| Lançamento | **manual** — ela fica parada até alguém apertar o botão |
 | Capturas | 8, refeitas com o redesenho |
-| Descrição | 2.083 de 4.000 |
 | Novidades | 742 de 4.000, cobrindo a 1.0.2 e a 1.1.0 |
 | Declaração de exportação | não foi pedida — `ITSAppUsesNonExemptEncryption: false` está no binário desde 21/08 |
 
-Enquanto está aguardando, dá para editar alguns textos. Trocar a **compilação**
-exige remover a versão da fila e enviá-la de novo.
+> **O botão de soltar é seu.** Ela nunca rodou num iPhone de verdade: todo o
+> redesenho foi conferido na versão web e num APK de Android. A revisão da
+> Apple passar não é a mesma coisa que ter visto a tela. Se a 1.1.0 tiver um
+> problema de comportamento nativo, é aqui que se deve olhar primeiro.
 
-**Ainda não foi visto rodando num iPhone.** Todo o redesenho foi verificado na
-versão web e num APK de Android. Se a revisão reprovar por comportamento nativo,
-é aqui que se deve olhar primeiro.
+### O que ainda dá para mudar, e o que não dá
+
+Com a versão aprovada, o formulário dela fica **travado inteiro** — descrição,
+novidades, palavras-chave, URLs, tudo cinza. Sobram dois campos, e os dois
+ficam fora da versão:
+
+| Campo | Precisa de revisão? |
+|---|---|
+| **Texto promocional** | não — é o único texto da ficha que se troca a qualquer hora |
+| **Acessibilidade do app** | não — vive fora da versão e publica sozinho |
+
+Tudo o mais espera a próxima versão. A lista do que está preparado e esperando
+está em [O que já está escrito para a próxima versão](#o-que-ja-esta-escrito-para-a-proxima-versao).
 
 ---
+
 
 ## 1. Textos da ficha
 
@@ -110,23 +123,46 @@ ideia de tratamento clínico, o que o app diz com todas as letras que não é.
 
 ### Texto promocional (máx. 170 caracteres)
 
-Este é o único campo que dá para mudar **sem passar por revisão de novo**. Use
-para novidades e datas.
+Este é o único campo que dá para mudar **sem passar por revisão de novo**, e é
+por isso que ele é o mais importante da ficha enquanto a descrição está presa.
 
 ```
-Fale em voz alta o que te incomoda e veja a frase perder o peso. Diário, práticas guiadas e um broto que cresce conforme você aparece.
+Desabafe por texto ou voz e veja o pensamento que te persegue perder o peso. Práticas guiadas, sem cadastro: nada do que você escreve sai do seu aparelho.
 ```
+
+*155 de 170. Aplicado nas **duas** fichas (Português e Inglês do Reino Unido)
+em 15/09/2026.*
+
+> **O que ele era, e por que mudou.** Era *"Fale em voz alta o que te incomoda
+> e veja a frase perder o peso. Diário, práticas guiadas e um broto que cresce
+> conforme você aparece."* — 134 caracteres, e nada de errado com ele: abria
+> pelo mecanismo, que é o certo.
+>
+> O que faltava era a **privacidade**, que é a única coisa da ficha que os
+> concorrentes não podem copiar sem refazer o produto. Ela estava na descrição,
+> no penúltimo bloco, depois de dois mil caracteres — e a descrição não pode ser
+> tocada até a próxima versão.
+>
+> O texto promocional aparece **acima** da descrição na página do produto. Com
+> a descrição travada na versão antiga (a que abre pela jardinagem), ele é o
+> único lugar da ficha onde cabe a frase que responde *"o que eu ganho se
+> instalar?"*. Por isso ele carrega os três: o que você faz, o que acontece com
+> o pensamento, e que nada disso sai do aparelho.
 
 ### Descrição
 
 ```
-Cuidar da própria cabeça se parece mais com jardinagem do que com conserto. Não
-existe um botão que resolve: existe rega, luz, tempo e alguma paciência com os
-dias em que nada parece acontecer.
+Desabafe por texto ou voz, faça uma prática guiada a partir de dois minutos e
+repita em voz alta o pensamento que te persegue até ele perder o peso. Nada do
+que você escreve sai do seu aparelho.
 
 O Brotinho é um lugar para deixar o que pesa. Você escreve ou fala, e um broto
 cresce conforme você aparece. Ele não cobra, não pontua e não fica bravo quando
 você some por uma semana.
+
+Cuidar da própria cabeça se parece mais com jardinagem do que com conserto: não
+existe um botão que resolve. Existe rega, luz, tempo e alguma paciência com os
+dias em que nada parece acontecer.
 
 
 COMPOSTAR UM PENSAMENTO
@@ -184,6 +220,27 @@ cvv.org.br.
 >   sumiria da ficha na 1.2.
 >
 > São 2.083 de 4.000 caracteres. Já aplicado no App Store Connect.
+
+> **A abertura foi trocada em 15/09/2026.** O texto começava com a frase da
+> jardinagem — bonita, e filosofia. Só que as três primeiras linhas são as
+> únicas que aparecem antes do "mais", e são elas que respondem (ou não) a
+> pergunta que decide a instalação: **o que eu ganho se instalar?**
+>
+> A jardinagem não respondia. Agora as três primeiras linhas dizem as três
+> coisas concretas que o app faz — desabafar por texto ou voz, uma prática
+> guiada curta, repetir o pensamento em voz alta até ele perder o peso — e
+> terminam na privacidade, que é o que separa o Brotinho dos concorrentes.
+> A mesma estrutura da descrição curta da Play, que já era melhor que esta.
+>
+> A frase da jardinagem não foi jogada fora: virou o terceiro parágrafo, onde
+> quem tocou em "mais" já quer saber por que o app é assim.
+>
+> "A partir de dois minutos" é conferido: das 41 práticas, quatro são de dois
+> minutos e 35 têm dez ou menos. Prometer "três minutos" seria mais bonito e
+> seria mentira para a metade delas.
+>
+> São 2.287 de 4.000. Feito com a 1.1.0 na fila de revisão — descrição é dos
+> campos que a Apple deixa editar sem tirar a versão da fila.
 
 ---
 
@@ -313,6 +370,43 @@ Cada uma vai declarada com seu motivo oficial, e `NSPrivacyTracking` vai como
 
 ---
 
+## 3.1 Acessibilidade do app — publicada em 15/09/2026
+
+A Apple mostra na página do produto quais recursos de acessibilidade o app
+atende. **Não passa por revisão e não pertence a nenhuma versão**: publica na
+hora, e é um dos dois campos que dá para mexer com a 1.1.0 travada.
+
+Estava preenchido e **nunca publicado** — dois recursos parados num rascunho,
+com o aviso amarelo na tela. Rascunho não aparece para ninguém.
+
+Publicado, para iPhone:
+
+| Recurso | Por que é verdade |
+|---|---|
+| **Interface escura** | tema escuro completo, com opção no Perfil e `sistema` como padrão — ver `TemaProvider.tsx` |
+| **Contraste suficiente** | os doze pares de texto dos dois temas medidos, o pior em 4,74 contra o mínimo de 4,5 da WCAG AA |
+| **Movimento reduzido** | `useMenosMovimento` escuta `isReduceMotionEnabled` e o evento `reduceMotionChanged`; com ele ligado as animações não rodam |
+
+**Interface escura** foi a que entrou hoje; as outras duas já estavam no
+rascunho.
+
+### Os quatro que ficaram de fora, e o motivo de cada um
+
+Caixa marcada a mais aqui não é otimismo: é alguém com deficiência visual
+instalando o app por causa da promessa e descobrindo que ela não vale.
+
+| Recurso | Por que não |
+|---|---|
+| **VoiceOver** | os rótulos existem, mas ninguém nunca navegou o app inteiro com VoiceOver ligado — não há iPhone nesta casa. A caixa promete percorrer o app todo |
+| **Texto maior** | `allowFontScaling` nunca foi desligado, mas a caixa pede **200%** e ninguém olhou o que a tela faz nesse tamanho |
+| **Diferenciação sem usar apenas cor** | quatro dos seis humores se distinguem pela expressão da carinha; "Feliz" e "Leve" têm a mesma boca. Quatro de seis não é o que a caixa promete — ver a nota no topo de `HumorNoTempo.tsx` |
+| **Legendas** e **Descrições de áudio** | não há vídeo no app |
+
+> As três primeiras são trabalho de verdade que dá para fazer — e as duas de
+> cima precisam de um iPhone na mão antes de virarem caixa marcada.
+
+---
+
 ## 4. Classificação etária
 
 Responda com honestidade — errar aqui dá rejeição, e não adianta tentar baixar
@@ -352,24 +446,80 @@ adicione você mesmo.
 
 ## 6. Links obrigatórios na ficha
 
-- [x] **URL da política de privacidade** — publicada e pública:
-      `https://claude.ai/code/artifact/233e5a2a-0e5b-4ef9-b870-3789a54de19b`
-- [x] **URL de suporte** — publicada e pública:
-      `https://claude.ai/code/artifact/97423828-4a27-4ef8-ab40-e32bc1ceb7df`
+Conferidos na própria ficha e na rede em 15/09/2026, os três respondendo 200
+sem login — que é como a Apple e qualquer pessoa acessam:
 
-> As duas foram conferidas sem login, que é como a Apple acessa. O código-fonte
-> das páginas está em `docs/privacidade.html` e `docs/suporte.html`: se um dia
-> houver domínio próprio, é só subir e trocar os links na ficha.
+- [x] **Política de privacidade** — `https://thebritodev.github.io/brotinho/privacidade.html`
+- [x] **Suporte** — `https://thebritodev.github.io/brotinho/suporte.html`
+- [x] **Marketing** — `https://thebritodev.github.io/brotinho/`
+
+> **Este trecho estava errado até hoje.** Ele ainda apontava para dois
+> artefatos do `claude.ai`, que era onde as páginas moravam antes de existir o
+> GitHub Pages. A ficha já usava o domínio novo; só a documentação não sabia.
+>
+> O código-fonte das páginas continua em `docs/privacidade.html`,
+> `docs/suporte.html` e `docs/index.html` — é de lá que o Pages publica.
+
+---
+
+## O que já está escrito para a próxima versão
+
+<a id="o-que-ja-esta-escrito-para-a-proxima-versao"></a>
+
+Três coisas prontas que **não cabem na 1.1.0** porque o formulário dela está
+travado desde a aprovação. Quando a 1.1.1 (ou 1.2) abrir, é colar.
+
+### 1. A abertura nova da descrição
+
+O texto da seção [Descrição](#descrição) acima já é o novo. O que muda são as
+três primeiras linhas — que são as únicas que aparecem antes do "mais", e as
+únicas que a maioria lê.
+
+### 2. A ficha inglesa está dois lançamentos atrasada
+
+Conferido em 15/09/2026, campo por campo. A ficha **Inglês (Reino Unido)** —
+que é a que a Apple mostra para quem usa o iPhone em inglês aqui no Brasil —
+ficou para trás nas duas últimas correções da portuguesa:
+
+| Campo | Português | Inglês (Reino Unido) |
+|---|---|---|
+| Descrição | 2.083 caracteres | **1.916** — sem as duas linhas de 14/09 (registro de humor e prática do dia) |
+| O que há de novo | 8 linhas, cobrindo 1.0.2 e 1.1.0 | **4 linhas, só as da 1.0.2** |
+| Texto promocional | novo | novo *(aplicado hoje nas duas)* |
+
+A segunda linha é a que dói: quem abre o app em inglês e toca em "O que há de
+novo" na 1.1.0 lê as novidades da **1.0.2** — uma versão que nunca virou
+binário. A tela inicial nova, que é a mudança inteira desta versão, não é
+mencionada.
+
+Aconteceu porque as duas correções de 14/09 foram feitas com a ficha
+portuguesa aberta, e trocar de idioma é um menu que não avisa nada. **Toda
+correção de texto vale para as duas fichas** — vale a pena reler esta linha
+antes de fechar o App Store Connect da próxima vez.
+
+### 3. O que sai de venda quando a 1.1.0 estiver no ar
+
+`brotinho_semanal` e `brotinho_vitalicio`, em Assinaturas → remover da venda.
+Quem já assinou continua assinando; some só da tela de planos.
 
 ---
 
 ## Resumo do que falta de você
 
-1. Ligar a resposta automática do `brotinho.suporte@gmail.com` — a conta já
-   existe, e o texto está pronto em `docs/resposta-automatica.md`
-2. Revisar os textos acima
-3. Tirar as capturas de tela
-4. Confirmar a declaração de criptografia
+Atualizado em 15/09/2026. Capturas, criptografia e revisão saíram daqui porque
+estão feitas — a versão passou pela revisão da Apple com elas.
+
+1. **Soltar a 1.1.0.** Ela está aprovada e parada. É um botão, e é seu — ver
+   o aviso no topo sobre ela nunca ter rodado num iPhone.
+2. **Ligar a resposta automática** do `brotinho.suporte@gmail.com` — a conta
+   já existe, e o texto está pronto em `docs/resposta-automatica.md`.
+3. **Criar a conta do Google Play.** Todo o resto do Android está pronto em
+   [`ficha-google-play.md`](ficha-google-play.md); falta a conta, e ela abre
+   um relógio de 14 dias que não tem atalho.
+4. **Instalar uma build posterior a 07/09** no celular. O redesenho, a tela de
+   carregamento nova e as animações de toque só aparecem num binário novo — o
+   Metro não atualiza splash nem ícone, que são nativos. O APK baixa inteiro e
+   o Android não instala; a suspeita é o Auto Blocker da Samsung.
 
 ## O que já está pronto do lado técnico
 
