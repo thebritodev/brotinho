@@ -157,12 +157,64 @@ com este runtime, e trocar de SDK troca o que ela já revisou. Ver `AGENTS.md`.
 
 ---
 
+## Quando o APK baixa inteiro e não instala
+
+Acontece desde 07/09/2026 no aparelho de teste, e é o motivo de nenhuma
+build nova ter chegado nele desde então: o download vai até 100%, o arquivo
+está lá, e tocar nele não abre instalador nenhum. Sem erro, sem aviso.
+
+**O que está descartado.** Não é a build: os mesmos arquivos instalam em
+outros aparelhos, e o EAS marca `FINISHED` com o APK assinado. Não é espaço
+em disco nem download corrompido — o arquivo chega completo.
+
+**A suspeita, e ela é suspeita.** O Auto Blocker do One UI bloqueia
+instalação de app vindo de fora da loja, e quando bloqueia ele faz
+exatamente isto: nada. É o comportamento que bate com o sintoma, e ainda
+não foi confirmado no aparelho.
+
+### Os três caminhos, do mais provável para o mais trabalhoso
+
+1. **Desligar o Auto Blocker.** Ajustes → Segurança e privacidade → Auto
+   Blocker. Se estiver ligado, é quase certo que era ele.
+2. **Autorizar só o navegador.** Ajustes → Apps → o navegador usado →
+   Instalar apps desconhecidos → permitir. Mantém o Auto Blocker ligado para
+   o resto.
+3. **Instalar pelo cabo, com `adb install`.** É o caminho que não depende de
+   nenhum ajuste do aparelho, e o único que dá **mensagem de erro** quando
+   falha — que é o que falta hoje para sair do palpite.
+
+### O caminho do cabo, passo a passo
+
+O `adb` **não está nesta máquina** (conferido em 16/09/2026: não está no
+PATH nem nas pastas padrão do Android SDK). Ele vem no pacote
+`platform-tools`, que é um zip de uns 10 MB e não precisa instalar nada:
+
+1. Baixar o `platform-tools` para Windows, do site de desenvolvedores do
+   Android, e descompactar numa pasta qualquer.
+2. No celular: Ajustes → Sobre o telefone → Informações de software → tocar
+   sete vezes em "Número da versão". Isso liga as Opções do desenvolvedor.
+3. Ajustes → Opções do desenvolvedor → **Depuração USB**, ligar.
+4. Ligar o cabo e aceitar a pergunta que aparece na tela do celular.
+5. Na pasta do `platform-tools`: `.\adb.exe devices` deve listar o aparelho,
+   e `.\adb.exe install -r caminho\do\brotinho.apk` instala.
+
+O `-r` reinstala por cima mantendo os dados. Sem ele, um app já instalado
+com assinatura diferente devolve `INSTALL_FAILED_UPDATE_INCOMPATIBLE` — e aí
+o caminho é desinstalar antes, **o que apaga o diário do aparelho**, porque
+os dados são locais e não existe cópia nossa. Antes de desinstalar qualquer
+coisa, exportar em Ajustes → Meus dados.
+
+---
+
 ## Quando a build é obrigatória
 
 - Testar **cobrança** (compra, restaurar, sandbox).
 - Testar o **ditado do diário** e a contagem da Composta: os dois usam
   `ExpoSpeechRecognition`, módulo nativo que o Expo Go nunca teve. No
   development build funcionam.
+- Ouvir a **voz das práticas guiadas**: `expo-speech`, desde 16/09/2026. É
+  módulo nativo como os outros, então não chega por recarregar o bundle —
+  o app antigo continua mudo por mais que o Metro atualize o JavaScript.
 - Qualquer coisa que dependa do `app.json`: ícone, splash, permissões,
   `privacyManifests`.
 
