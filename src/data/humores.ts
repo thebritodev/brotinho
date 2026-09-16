@@ -49,6 +49,19 @@ export const ROTULO_DO_HUMOR: Record<Mood, string> = {
 };
 
 /**
+ * Os humores em que o app não oferece nada que dê trabalho.
+ *
+ * Quem marcou um destes hoje não recebe o convite para compostar em destaque
+ * nem a pergunta sobre o peso de uma frase antiga — ver `compostaParaRepesar`.
+ * Devolver a alguém a própria dor num dia assim é o oposto do que o app existe
+ * para fazer.
+ *
+ * Mora aqui, e não na tela que o usa, porque quem precisa da lista são duas
+ * telas e uma derivação. Era uma constante privada da tela inicial.
+ */
+export const DIA_PESADO: readonly Mood[] = ['ansioso', 'triste', 'cansado'];
+
+/**
  * As palavras de cada humor.
  *
  * Cinco por humor: o bastante para a pessoa se reconhecer numa, pouco o

@@ -11,6 +11,7 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import {
+  AFraseVoltou,
   alturaDoMascote,
   AnimatedSprout,
   BalaoDoBroto,
@@ -35,12 +36,15 @@ import { toqueLeve } from '../../services/toque';
 import { useAppState } from '../../state/AppStateProvider';
 import {
   atravessou,
+  compostaParaRepesar,
   dayKey,
   daysCaredFor,
   lembranca,
   padraoDoDia,
   sproutStage,
 } from '../../state/derived';
+import type { Compost } from '../../state/types';
+import { ANCORA_RAPIDA } from '../../data/practices';
 import { fonts, useTema } from '../../theme';
 
 /**
@@ -74,6 +78,8 @@ type Props = {
   onOpenConselhosGuardados: () => void;
   onOpenValues: () => void;
   onOpenPractices: (alvo?: { topico: string; pratica: string }) => void;
+  /** A Composta, para quem respondeu que a frase ainda pesa igual. */
+  onOpenComposta: () => void;
   /**
    * A altura em que esta aba estava quando alguém saiu dela.
    *
@@ -90,13 +96,14 @@ export function BrotinhoScreen({
   onOpenConselhosGuardados,
   onOpenValues,
   onOpenPractices,
+  onOpenComposta,
   rolagemInicial = 0,
   aoRolar,
 }: Props) {
   const { colors, palette } = useTema();
   const insets = useSafeAreaInsets();
   const { width, height } = useWindowDimensions();
-  const { data, setTodayMood, setTodayPalavra } = useAppState();
+  const { data, setTodayMood, setTodayPalavra, repesarComposta } = useAppState();
 
   const today = dayKey();
   const registroDeHoje = data.moodHistory.find((m) => m.date === today);
@@ -163,7 +170,29 @@ export function BrotinhoScreen({
   );
 
   const padrao = useMemo(() => padraoDoDia(data), [data]);
-  const passo = useMemo(() => (padrao ? null : proximoPasso(data)), [padrao, data]);
+
+  /**
+   * A frase compostada que voltou para ser pesada — ver `AFraseVoltou`.
+   *
+   * `travada` existe por causa de um efeito da própria regra: responder grava a
+   * resposta, e a regra "uma por dia" passa a valer no mesmo instante, de modo
+   * que `compostaParaRepesar` devolve `null` e o cartão sumiria **antes** de a
+   * pessoa ler o que o app respondeu a ela. Travando a frase no primeiro toque,
+   * o cartão continua montado para dizer o fecho.
+   */
+  const candidata = useMemo(() => compostaParaRepesar(data), [data]);
+  const [travada, setTravada] = useState<Compost | null>(null);
+  const aFrase = travada ?? candidata;
+
+  /*
+    Um oferecimento por vez nesta faixa da tela. A pergunta sobre o peso ganha
+    do passo da primeira semana: ela só existe para quem já compostou, o que
+    quer dizer que a primeira semana ficou para trás.
+  */
+  const passo = useMemo(
+    () => (padrao || aFrase ? null : proximoPasso(data)),
+    [padrao, aFrase, data],
+  );
   const memoria = useMemo(() => lembranca(data), [data]);
   const passou = useMemo(() => atravessou(data), [data]);
   const [lendoMemoria, setLendoMemoria] = useState(false);
@@ -299,6 +328,30 @@ export function BrotinhoScreen({
             </Text>
             <InsightCard text={padrao} />
           </View>
+        )}
+
+        {/*
+          Sem título em cima.
+
+          Os outros blocos desta faixa têm um ("Seu broto percebeu", "Tem isto
+          aqui também"), e este não pode ter: qualquer frase minha antes da
+          frase dela seria o app comentando a dor antes de devolvê-la. O cartão
+          já abre dizendo de onde aquilo veio.
+        */}
+        {!!aFrase && (
+          <AFraseVoltou
+            composta={aFrase}
+            aoResponder={(resposta) => {
+              setTravada(aFrase);
+              repesarComposta(aFrase.id, resposta);
+            }}
+            aoDispensar={() => {
+              setTravada(null);
+              repesarComposta(aFrase.id, null);
+            }}
+            aoCompostarDeNovo={onOpenComposta}
+            aoAncorar={() => onOpenPractices(ANCORA_RAPIDA)}
+          />
         )}
 
         {!!passo && (

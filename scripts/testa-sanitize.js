@@ -203,7 +203,42 @@ const CASOS = [
     );
   }
 
-  console.log(`\n${CASOS.length + ESPERADOS.length + ORIGENS.length} casos · ${falhas} falha(s)`);
+
+  /*
+    A repesagem da Composta.
+
+    Este bloco existe por causa de um defeito real: o campo `peso` foi criado
+    no tipo e na tela, e o sanitizador — que reconstrói cada composta campo a
+    campo — simplesmente não o copiava. A pessoa respondia, o app dizia algo
+    sobre a resposta dela, e no dia seguinte a pergunta voltava como se nada
+    tivesse acontecido. Typecheck limpo, teste verde, tudo perdido no disco.
+
+    `resposta: null` é o caso que mais importa aqui: é quem dispensou a
+    pergunta. Se ele virar ausência, a pergunta volta a insistir justamente
+    com quem disse que não queria responder.
+  */
+  const PESOS = [
+    ['peso respondido atravessa o disco', { quando: 111, resposta: 'menos' }, { quando: 111, resposta: 'menos' }],
+    ['dispensa (resposta nula) atravessa o disco', { quando: 222, resposta: null }, { quando: 222, resposta: null }],
+    ['resposta inventada é descartada', { quando: 333, resposta: 'muito' }, undefined],
+    ['peso sem data é descartado', { resposta: 'igual' }, undefined],
+    ['peso que virou texto é descartado', 'menos', undefined],
+  ];
+  console.log('\nrepesagem da composta:');
+  for (const [nome, entrada, esperado] of PESOS) {
+    const [c] = sanitizarDados(
+      { composts: [{ thought: "nao vou dar conta", createdAt: 1, reps: 3, secs: 9, peso: entrada }] },
+      HOJE,
+    ).composts;
+    const ok = !!c && c.thought === "nao vou dar conta"
+      && JSON.stringify(c.peso) === JSON.stringify(esperado);
+    if (!ok) falhas += 1;
+    console.log(
+      `  ${ok ? 'ok   ' : 'FALHA'} ${nome.padEnd(46)} ${ok ? 'ok' : `veio ${JSON.stringify(c && c.peso)}`}`,
+    );
+  }
+
+  console.log(`\n${CASOS.length + ESPERADOS.length + ORIGENS.length + PESOS.length} casos · ${falhas} falha(s)`);
   process.exit(falhas === 0 ? 0 : 1);
 })().catch((e) => {
   console.error('falhou:', e.message);

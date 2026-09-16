@@ -17,6 +17,7 @@ export { ProgressStem } from './brand/ProgressStem';
 export { BalaoDoBroto } from './brand/BalaoDoBroto';
 export { BoasVindas } from './brand/BoasVindas';
 export { Carrossel } from './brand/Carrossel';
+export { AFraseVoltou } from './brand/AFraseVoltou';
 export { CartaoHeroi } from './brand/CartaoHeroi';
 export { SeletorDeTema } from './brand/SeletorDeTema';
 export { FundoDaTela } from './brand/FundoDaTela';

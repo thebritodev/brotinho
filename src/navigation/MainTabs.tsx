@@ -212,6 +212,7 @@ export function MainTabs() {
           <BrotinhoScreen
             onOpenGarden={() => setSub('jardim')}
             onOpenDiario={() => setSub('diario')}
+            onOpenComposta={() => setSub('composta')}
             onOpenConselhosGuardados={() => setSub('conselhos')}
             onOpenValues={() => setSub('valores')}
             onOpenPractices={(alvo) => {

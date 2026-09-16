@@ -1,9 +1,9 @@
 import type { SproutStage } from '../components';
-import { ROTULO_DO_HUMOR } from '../data/humores';
+import { DIA_PESADO, ROTULO_DO_HUMOR } from '../data/humores';
 import { ROTULO_DO_VALOR, type ValueKey } from '../data/valores';
 import type { Mood } from '../theme/tokens';
 import { TENTOU_TERAPIA } from '../data/onboarding';
-import type { AppData, Plant } from './types';
+import type { AppData, Compost, Plant } from './types';
 
 /**
  * Tudo o que o app mostra como número é calculado aqui, a partir do que a
@@ -732,6 +732,91 @@ export function voltouAntes(
 
   const ultima = iguais.reduce((a, b) => (a.createdAt >= b.createdAt ? a : b));
   return { quantas: iguais.length, quando: ultima.createdAt };
+}
+
+/**
+ * Quantos dias depois o Brotinho pergunta se aquela frase ainda pesa.
+ *
+ * Sete é curto o bastante para a pessoa ainda lembrar da frase e longo o
+ * bastante para alguma coisa ter mudado. Composta de verdade leva de semanas a
+ * meses, então é um chute informado, não uma medida — está aqui como constante
+ * nomeada justamente para ser fácil mudar quando houver uso real para olhar.
+ */
+export const DIAS_ATE_REPESAR = 7;
+
+const UM_DIA = 24 * 60 * 60 * 1000;
+
+/**
+ * A frase que voltou para ser pesada de novo — ou `null`, que é o normal.
+ *
+ * ## O que isto faz pelo app
+ *
+ * A Composta termina numa tela de resultado e acaba ali. Com esta pergunta ela
+ * ganha duração: uma semana depois, a frase volta e a pessoa diz se ela pesa
+ * menos. É a única prova que este app consegue mostrar de que alguma coisa
+ * funcionou — e ela vem da própria pessoa, não de um número inventado.
+ *
+ * ## As travas fazem parte da funcionalidade
+ *
+ * Nenhuma delas é ajuste fino: sem qualquer uma, isto não deveria existir.
+ *
+ * - **Nunca num dia pesado.** Devolver a alguém a frase mais dolorosa dela num
+ *   dia em que ela marcou "triste" é crueldade com passos extras.
+ * - **Uma por vez, a mais antiga primeiro.** Uma fila de perguntas viraria
+ *   dever de casa, e dever de casa é o que este app não faz.
+ * - **Uma pergunta por dor, não por sessão.** Quem compostou a mesma frase três
+ *   vezes responde uma vez — por isso o agrupamento por `mesmaDor`.
+ * - **Obedece ao interruptor de análise**, como toda leitura de texto daqui.
+ *
+ * E não vira notificação em lugar nenhum. A regra é a mesma da Frase do dia: o
+ * que torna aceitável devolver uma frase dura é ela ter sido pedida. Chegando
+ * sozinha às nove da noite, seria outra coisa.
+ */
+export function compostaParaRepesar(data: AppData, agora: Date = new Date()): Compost | null {
+  if (!data.settings.analysis) return null;
+
+  const hoje = dayKey(agora);
+
+  const humorDeHoje = data.moodHistory.find((m) => m.date === hoje)?.mood ?? null;
+  if (humorDeHoje && DIA_PESADO.includes(humorDeHoje)) return null;
+
+  /*
+    Uma por dia, e a trava mora aqui — não na tela.
+
+    Sem isto, responder uma pergunta faria a seguinte aparecer no mesmo
+    instante, e quem compostou cinco frases na mesma semana receberia cinco
+    perguntas seguidas. Isso é fila, e fila é dever de casa.
+
+    Na tela a regra sobreviveria só até a próxima montagem; aqui ela sobrevive
+    ao app inteiro ser fechado e reaberto.
+  */
+  const jaPerguntouHoje = data.composts.some((c) => c.peso && dayKey(c.peso.quando) === hoje);
+  if (jaPerguntouHoje) return null;
+
+  const limite = agora.getTime() - DIAS_ATE_REPESAR * UM_DIA;
+  const maduras = data.composts.filter((c) => !c.peso && c.createdAt <= limite);
+  if (!maduras.length) return null;
+
+  /* Dor sobre a qual já se perguntou não volta, mesmo numa sessão diferente. */
+  const jaPerguntadas = data.composts.filter((c) => c.peso);
+  const candidatas = maduras.filter(
+    (c) => !jaPerguntadas.some((p) => mesmaDor(assinatura(c.thought), p.thought)),
+  );
+  if (!candidatas.length) return null;
+
+  /*
+    Uma pergunta por dor: de cada grupo fica a sessão mais recente, que é a que
+    tem a redação mais fresca na memória de quem escreveu. Entre grupos, ganha a
+    mais antiga — a que está esperando há mais tempo.
+  */
+  const porDor: Compost[] = [];
+  for (const c of candidatas) {
+    const grupo = porDor.findIndex((g) => mesmaDor(assinatura(c.thought), g.thought));
+    if (grupo < 0) porDor.push(c);
+    else if (c.createdAt > porDor[grupo].createdAt) porDor[grupo] = c;
+  }
+
+  return porDor.reduce((a, b) => (a.createdAt <= b.createdAt ? a : b));
 }
 
 export function vezesQueVoltou(data: AppData, texto: string): number {

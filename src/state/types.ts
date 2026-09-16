@@ -61,6 +61,17 @@ export type Compost = {
   thought: string;
   reps: number;
   secs: number;
+  /**
+   * A repesagem: uma semana depois, a frase ainda pesa o mesmo?
+   *
+   * Ausente enquanto a pergunta não foi feita. Presente com `resposta: null`
+   * quando a pessoa dispensou sem responder — é o que faz a pergunta não voltar
+   * a insistir. Ver `compostaParaRepesar`.
+   */
+  peso?: {
+    quando: number;
+    resposta: 'menos' | 'igual' | 'mais' | null;
+  };
 };
 
 export type Settings = {

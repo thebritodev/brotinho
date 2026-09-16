@@ -50,6 +50,13 @@ type AppStateValue = {
   updateJournalEntry: (id: string, text: string) => void;
   removeJournalEntry: (id: string) => void;
   addCompost: (entry: Omit<Compost, 'id' | 'createdAt'>) => void;
+  /**
+   * Anota se uma frase compostada ainda pesa, uma semana depois.
+   *
+   * `null` guarda que a pessoa dispensou a pergunta sem responder — é o que
+   * faz a pergunta não voltar a insistir. Ver `compostaParaRepesar`.
+   */
+  repesarComposta: (id: string, resposta: 'menos' | 'igual' | 'mais' | null) => void;
   /** Registra que a pessoa já viu a comemoração deste estágio. */
   markStageSeen: (stage: number) => void;
   /** Anota a frase desenterrada hoje. Ignora se hoje já tem uma. */
@@ -315,6 +322,18 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
     setData((prev) => ({ ...prev, composts: [compost, ...prev.composts] }));
   }, []);
 
+  const repesarComposta = useCallback(
+    (id: string, resposta: 'menos' | 'igual' | 'mais' | null) => {
+      setData((prev) => ({
+        ...prev,
+        composts: prev.composts.map((c) =>
+          c.id === id ? { ...c, peso: { quando: Date.now(), resposta } } : c,
+        ),
+      }));
+    },
+    [],
+  );
+
   /**
    * Substitui o estado inteiro pelo que veio do arquivo.
    *
@@ -351,6 +370,7 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
       updateJournalEntry,
       removeJournalEntry,
       addCompost,
+      repesarComposta,
       markStageSeen,
       marcarVisto,
       desenterrarConselho,
@@ -371,6 +391,7 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
       updateJournalEntry,
       removeJournalEntry,
       addCompost,
+      repesarComposta,
       markStageSeen,
       marcarVisto,
       desenterrarConselho,

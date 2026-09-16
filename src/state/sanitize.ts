@@ -158,18 +158,45 @@ function diarioLimpo(v: unknown): JournalEntry[] {
   });
 }
 
+const RESPOSTAS_DE_PESO = ['menos', 'igual', 'mais'] as const;
+
+/**
+ * A repesagem guardada, ou `undefined` se não houver uma válida.
+ *
+ * `resposta: null` é valor legítimo, e não ausência: é quem dispensou a
+ * pergunta sem responder. Perder essa distinção faria a pergunta voltar a
+ * insistir com quem já disse que não queria — ver `compostaParaRepesar`.
+ */
+function pesoLimpo(v: unknown): Compost['peso'] {
+  if (!v || typeof v !== 'object') return undefined;
+  const p = v as Record<string, unknown>;
+  if (typeof p.quando !== 'number' || !Number.isFinite(p.quando)) return undefined;
+  if (p.resposta === null) return { quando: p.quando, resposta: null };
+  const r = RESPOSTAS_DE_PESO.find((x) => x === p.resposta);
+  return r ? { quando: p.quando, resposta: r } : undefined;
+}
+
 function compostasLimpas(v: unknown): Compost[] {
   if (!ehLista(v)) return [];
   return v.flatMap((item) => {
     const c = (item ?? {}) as Record<string, unknown>;
     if (typeof c.thought !== 'string') return [];
     const createdAt = typeof c.createdAt === 'number' && Number.isFinite(c.createdAt) ? c.createdAt : Date.now();
+    const peso = pesoLimpo(c.peso);
     return [{
       id: typeof c.id === 'string' ? c.id : `${createdAt}`,
       createdAt,
       thought: c.thought,
       reps: typeof c.reps === 'number' && c.reps >= 0 ? c.reps : 0,
       secs: typeof c.secs === 'number' && c.secs >= 0 ? c.secs : 0,
+      /*
+        Só entra no objeto quando existe.
+
+        Escrever `peso: undefined` sempre gravaria a chave em todo registro
+        antigo do disco, e a comparação de estado passaria a ver diferença onde
+        não há. Ausente é ausente.
+      */
+      ...(peso ? { peso } : null),
     }];
   });
 }
