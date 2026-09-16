@@ -793,6 +793,15 @@ export const PRACTICE_TOPICS: PracticeTopic[] = [
           { title: 'Se ainda dá para reparar, escreva o primeiro passo', text: 'Se não dá mais, escreva isso também. Também é uma resposta.' },
         ],
         why: 'Culpa incha quando fica vaga. Escrever o fato separado do julgamento devolve o tamanho da coisa: sobra o que você fez, que quase sempre é menor do que "eu estraguei tudo".',
+        guide: {
+          kind: 'steps',
+          steps: [
+            { label: 'Escreva o fato, sem adjetivo', text: 'Só o que uma câmera teria registrado. Nada de "eu sou".', seconds: 120 },
+            { label: 'Separe o que era seu', text: 'O que dependia de você, e o que dependia dos outros, do acaso e do que ninguém sabia na hora.', seconds: 120 },
+            { label: 'O que você faria diferente hoje', text: 'Com o que você sabe agora — não com o que sabia naquele dia.', seconds: 90 },
+            { label: 'Escreva o primeiro passo', text: 'Se não dá mais para reparar, escreva isso. Também é uma resposta.', seconds: 60 },
+          ],
+        },
       },
       {
         key: 'tirar-do-escuro',
@@ -808,6 +817,15 @@ export const PRACTICE_TOPICS: PracticeTopic[] = [
           { title: 'Decida se quer contar, sem prazo', text: 'Decidir que ainda não é hora também é decidir.' },
         ],
         why: 'Vergonha se alimenta de segredo e da certeza de ser o único assim. Dizer em voz alta, mesmo sem ninguém ouvindo, quebra a parte que diz que aquilo nunca pode ser dito.',
+        guide: {
+          kind: 'steps',
+          steps: [
+            { label: 'Escreva a frase que você nunca disse', text: 'Aquela que você tem certeza de que faria as pessoas se afastarem.', seconds: 120 },
+            { label: 'Leia em voz alta, uma vez', text: 'Sozinho. Repare que a sala continua igual depois.', seconds: 60 },
+            { label: 'Quem ouviria sem te largar', text: 'Uma pessoa basta. Vale alguém a quem você ainda não contou nada.', seconds: 90 },
+            { label: 'Decida se quer contar', text: 'Sem prazo. Decidir que ainda não é hora também é decidir.', seconds: 60 },
+          ],
+        },
       },
       {
         key: 'de-quem-e-a-regua',
@@ -823,6 +841,15 @@ export const PRACTICE_TOPICS: PracticeTopic[] = [
           { title: 'Reescreva a regra do jeito que você assinaria', text: 'Uma que dê para cumprir também num dia ruim.' },
         ],
         why: 'Boa parte da culpa vem de regras que a pessoa nunca escolheu e nunca leu inteiras. Escrever a regra por extenso é o que permite discordar dela — em vez de discordar de si mesma.',
+        guide: {
+          kind: 'steps',
+          steps: [
+            { label: 'Escreva a regra inteira', text: 'Ela começa com "eu deveria". Vá até o fim dela.', seconds: 90 },
+            { label: 'Descubra de quem ela é', text: 'De uma pessoa, de uma casa, de uma época, da internet. Quase nunca é sua.', seconds: 120 },
+            { label: 'Você exigiria isso de outra pessoa?', text: 'Na mesma situação, com as mesmas informações e o mesmo cansaço.', seconds: 90 },
+            { label: 'Reescreva do jeito que você assinaria', text: 'Uma que dê para cumprir também num dia ruim.', seconds: 90 },
+          ],
+        },
       },
     ],
   },
@@ -847,6 +874,15 @@ export const PRACTICE_TOPICS: PracticeTopic[] = [
           { title: 'Compare o tamanho das duas listas', text: 'A segunda é sempre maior. Era com a primeira que você estava se medindo.' },
         ],
         why: 'A comparação nas redes coloca o que a outra pessoa escolheu mostrar contra tudo o que você sabe de você. Escrever a segunda lista não é consolo — é repor a informação que faltava na conta.',
+        guide: {
+          kind: 'steps',
+          steps: [
+            { label: 'Escolha uma pessoa só', text: 'Provavelmente ela já veio à cabeça enquanto você lia.', seconds: 45 },
+            { label: 'Escreva o que você viu', text: 'O post, a notícia, o que te contaram. Só o que chegou até você.', seconds: 90 },
+            { label: 'Escreva o que você não viu', text: 'Quanto custou, quem ajudou, o que ficou pelo caminho, como essa pessoa dorme.', seconds: 150 },
+            { label: 'Compare o tamanho das duas listas', text: 'A segunda é sempre maior. Era com a primeira que você estava se medindo.', seconds: 45 },
+          ],
+        },
       },
       {
         key: 'a-sua-linha',
@@ -862,8 +898,29 @@ export const PRACTICE_TOPICS: PracticeTopic[] = [
           { title: 'Escolha o próximo passo dessa linha', text: 'Da sua linha. Não da de ninguém.' },
         ],
         why: 'Comparação com os outros não tem fim, porque sempre há mais gente. Comparar com quem você era tem um ponto de referência só, e ele é o seu — o que também é o único que você tem informação suficiente para julgar.',
+        guide: {
+          kind: 'steps',
+          steps: [
+            { label: 'Onde você estava há um ano', text: 'No que importa para você — não no que rende foto.', seconds: 120 },
+            { label: 'Onde você está agora', text: 'Inclua o que não parece conquista: continuar, aguentar, mudar de ideia a tempo.', seconds: 120 },
+            { label: 'Marque a distância', text: 'Pode ser pequena. Pequena e sua continua sendo distância.', seconds: 60 },
+            { label: 'Escolha o próximo passo', text: 'Da sua linha. Não da de ninguém.', seconds: 60 },
+          ],
+        },
       },
       {
+        /*
+          A única das seis de culpa e comparação que ficou sem guia, e é de
+          propósito.
+
+          O exercício é passar uma hora longe da tela. Um guia seria o app
+          pedindo para ser olhado durante exatamente a hora em que a pessoa
+          combinou de não olhar para telas — e com voz seria pior, porque a
+          voz precisa do telefone por perto para ser ouvida.
+
+          A lista de "Como fazer" dá conta: as quatro linhas se leem em meio
+          minuto, antes de começar, que é quando elas servem.
+        */
         key: 'uma-hora-sem-vitrine',
         comecoNoDiario: 'Como você chegou no fim da hora sem tela?',
         title: 'Uma hora sem vitrine',
