@@ -264,7 +264,15 @@ export function CompostaScreen({
     return (
       <ScreenTransition transitionKey="explain" mode="forward">
       <View style={{ flex: 1, backgroundColor: colors.bg }}>
-        {header('Composta', onClose)}
+        {/*
+          O mesmo nome do cartao que abre esta tela.
+
+          Dizia "Composta", e o cartao da tela inicial passou a dizer
+          "Compostar pensamentos": tocar numa coisa e chegar noutra com outro
+          nome faz a pessoa conferir se errou o botao. O nome que a ferramenta
+          tem e o nome que ela mostra tem de ser o mesmo.
+        */}
+        {header('Compostar pensamentos', onClose)}
         <ScrollView
           contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 28, gap: 20 }}
           showsVerticalScrollIndicator={false}
