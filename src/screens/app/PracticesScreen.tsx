@@ -361,7 +361,24 @@ export function PracticesScreen({
         {PRACTICE_TOPICS.map((t) => (
           <PracticeTopicCard
             key={t.key}
-            title={t.title}
+            /*
+              O mesmo nome que a tela inicial usa, e não o `title`.
+
+              Não é só coerência de vocabulário: os dois lugares dividem o
+              **mesmo desenho**, e as cenas passaram a mostrar o depois — a
+              pedra posta no chão, a nuvem saindo da frente do sol, a brasa no
+              lugar da chama. Um desenho de alívio embaixo da palavra
+              "Estresse" é exatamente o descasamento que essas cenas foram
+              refeitas para tirar; mantê-lo aqui o recriaria numa tela só.
+
+              O substantivo não se perde: ele abre o `subtitle` de onze dos
+              treze intros ("Tristeza não é um problema a resolver", "Raiva
+              quase sempre é a capa de outra coisa") e é o título do próprio
+              tema quando ele abre, em `TopBar`. Os dois que não trazem a
+              palavra no resumo são insônia e comparação, e os dois abrem com
+              o verbo — "Dormir não se força", "Comparar é automático".
+            */
+            title={t.solucao}
             subtitle={resumoDoTema(t.intro)}
             icon={t.icon}
             chave={t.key}

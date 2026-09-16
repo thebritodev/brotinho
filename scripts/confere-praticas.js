@@ -75,7 +75,7 @@ const RAIZ = path.join(__dirname, '..');
   }
 
   const comoUrl = (p) => 'file://' + p.split(path.sep).join('/');
-  const { PRACTICE_TOPICS, ANCORA_RAPIDA, resumoDoTema, ORCAMENTO_DO_RESUMO } = await import(
+  const { PRACTICE_TOPICS, ANCORA_RAPIDA, GRUPOS_DE_PRATICAS, resumoDoTema, ORCAMENTO_DO_RESUMO } = await import(
     comoUrl(achar('practices.js')),
   );
   const { tintsDosTemas } = await import(comoUrl(achar('tokens.js')));
@@ -93,6 +93,42 @@ const RAIZ = path.join(__dirname, '..');
    */
   const SEM_DIARIO = new Set(['mensagem-de-um-minuto', 'blocos-de-atencao']);
 
+  /** O teto de caracteres da frase de solucao. Ver a nota onde ele e usado. */
+  const ORCAMENTO_DA_SOLUCAO = 30;
+
+  /*
+    Os grupos da tela inicial cobrem os treze temas, e cada um uma vez so.
+
+    Sem esta conferencia, acrescentar um tema catorze e esquecer de por ele
+    num grupo faz ele **sumir da tela inicial** sem quebrar nada: o tema
+    existe, abre pelo link, aparece na lista de praticas, e simplesmente nao
+    esta na grade. E o tipo de falha que so aparece quando alguem reclama que
+    nao acha uma coisa que o app tem.
+
+    A repetida e o espelho disso: o mesmo tema em dois blocos vira dois
+    cartoes iguais em lugares diferentes da mesma tela.
+  */
+  {
+    const vistos = new Map();
+    for (const g of GRUPOS_DE_PRATICAS) {
+      if (!texto(g.titulo)) erro("grupos", "grupo sem titulo");
+      for (const chave of g.temas) {
+        if (vistos.has(chave)) {
+          erro(`grupos/${chave}`, `tema em dois grupos: "${vistos.get(chave)}" e "${g.titulo}"`);
+        }
+        vistos.set(chave, g.titulo);
+        if (!PRACTICE_TOPICS.some((t) => t.key === chave)) {
+          erro(`grupos/${chave}`, `grupo "${g.titulo}" aponta para um tema que nao existe`);
+        }
+      }
+    }
+    for (const tema of PRACTICE_TOPICS) {
+      if (!vistos.has(tema.key)) {
+        erro(`grupos/${tema.key}`, "tema fora de todos os grupos: nao aparece na tela inicial");
+      }
+    }
+  }
+
   const chavesDeTema = new Set();
   let total = 0;
 
@@ -101,8 +137,36 @@ const RAIZ = path.join(__dirname, '..');
     if (!texto(tema.key)) erro(t, 'tema sem chave');
     if (chavesDeTema.has(tema.key)) erro(t, 'chave de tema repetida');
     chavesDeTema.add(tema.key);
-    for (const campo of ['title', 'icon', 'intro']) {
+    for (const campo of ['title', 'solucao', 'icon', 'intro']) {
       if (!texto(tema[campo])) erro(t, `tema sem ${campo}`);
+    }
+    /*
+      A frase de solucao tem de caber em duas linhas no cartao da grade.
+
+      ## De onde sai o 30
+
+      De medicao no app rodando, e nao de estimativa. A caixa do titulo na
+      grade tem 130px num aparelho de 414 de largura, 120 num de 390 e **108**
+      num de 360 -- e sao dois renglones de 18,6, ou 37px de altura util.
+
+      As treze frases de hoje passam nas tres larguras, e a mais longa delas,
+      "Aliviar a culpa e a vergonha", tem 28 caracteres. O orcamento fica logo
+      acima disso.
+
+      ## O que ele pega, e o que nao pega
+
+      Contar caractere e uma regua grosseira: quebra de linha depende da
+      largura de cada letra e de onde cabe o espaco. Uma frase de 29 com uma
+      palavra enorme no meio ainda pode estourar.
+
+      Ele existe para pegar o caso real, que e alguem escrever uma frase de
+      quarenta e cinco caracteres aqui sem abrir o app. Para o caso fino, o
+      jeito e medir na tela -- foi assim que este numero apareceu, e o
+      sabotador confirmou: uma frase de 56 caracteres devolve 93px de conteudo
+      dentro de 37 de caixa, nas tres larguras.
+    */
+    if (texto(tema.solucao) && tema.solucao.length > ORCAMENTO_DA_SOLUCAO) {
+      erro(t, `solucao com ${tema.solucao.length} caracteres (o teto e ${ORCAMENTO_DA_SOLUCAO})`);
     }
     /*
       O tom do quadradinho nao e mais um campo daqui: ele vem de

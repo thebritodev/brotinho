@@ -2,7 +2,7 @@ import React, { useId } from 'react';
 import Svg, { Circle, Defs, Ellipse, G, LinearGradient, Path, RadialGradient, Stop } from 'react-native-svg';
 
 import { palette, tracos } from '../../theme/tokens';
-import { cresce, curva, desloca, gira } from './movimentoDaCena';
+import { cresce, curva, desloca, estica, gira } from './movimentoDaCena';
 import { BRASA, TERRA, TERRA_CLARA, TERRA_SOMBRA } from './terraDoCanteiro';
 
 /**
@@ -109,30 +109,59 @@ type CenaProps = {
 function Ansiedade({ p }: CenaProps) {
   return (
     <>
-      {/* Três rajadas e uma folha levada: agitação, sem desenhar ninguém. */}
-      {/* No toque o vento passa: as rajadas varrem para a direita e somem na
-          borda, e a folha é levada junto, girando. */}
-      <G transform={desloca(curva(p, [0, 5, 9, 11, 12]), 0)} opacity={curva(p, [0.5, 0.5, 0.36, 0.16, 0])}>
-        {[
-          'M7 21 Q21 15 33 21',
-          'M11 31 Q27 24 43 31',
-          'M9 41 Q23 35 35 41',
-        ].map((d) => (
-          <Path key={d} d={d} stroke={palette.brown400} strokeWidth={2.6} strokeLinecap="round" fill="none" />
-        ))}
-      </G>
+      {/*
+        Água parada e uma folha pousada nela.
+
+        Era o oposto: três rajadas varrendo a cena e uma folha sendo levada,
+        girando. Aquilo desenhava a ansiedade — e o cartão hoje diz "Acalmar a
+        ansiedade". Imagem de agitação embaixo de uma palavra de calma faz a
+        pessoa ler duas coisas e acreditar na imagem.
+
+        Água porque é o oposto exato de vento, e porque não se repete em
+        nenhuma das outras doze cenas. As práticas deste tema começam pelo
+        corpo — é isso que está desenhado: o corpo depois que desacelerou.
+      */}
+      {/*
+        A água tem contorno, e o tom dela é o médio, não o claro.
+
+        A primeira versão usava `blue100` sem traço nenhum — e o tom do cartão
+        da ansiedade é justamente um azul claro. Ficavam duas manchas quase
+        iguais uma sobre a outra: sobrava uma folha pousada no nada.
+
+        As outras doze cenas todas têm contorno; esta não tinha. Era a única
+        coisa a consertar.
+      */}
+      <Ellipse
+        cx={30}
+        cy={35}
+        rx={20}
+        ry={7.5}
+        fill={palette.blue300}
+        stroke={CONTORNO}
+        strokeWidth={TRACO}
+      />
+      <Ellipse cx={30} cy={33.4} rx={14} ry={4} fill={palette.blue100} opacity={0.75} />
+      {/*
+        Um anel só, abrindo devagar até sumir na borda.
+
+        Dois ou três anéis viram chuva caindo na poça, que era a cena da
+        tristeza. Um anel que abre e some diz o contrário: alguma coisa
+        encostou uma vez, e a água voltou a ficar lisa.
+      */}
       <G
-        transform={[
-          desloca(curva(p, [0, 2, 5, 7, 8]), curva(p, [0, -2, -1, 1, 3])),
-          gira(curva(p, [0, -14, -26, -34, -40]), 48, 17),
-        ].join(' ')}
+        transform={cresce(curva(p, [0.34, 0.6, 0.85, 1.05, 1.2]), 30, 35)}
+        opacity={curva(p, [0.7, 0.55, 0.38, 0.18, 0])}
       >
+        <Ellipse cx={30} cy={35} rx={16} ry={6} fill="none" stroke={palette.cream100} strokeWidth={1.8} />
+      </G>
+      {/* A folha sobe e desce um fio de ponto, como quem boia. */}
+      <G transform={desloca(0, curva(p, [0, -0.7, -1, -0.5, 0]))}>
         <Path
           d={FOLHA}
-          fill={tracos.folhaClara}
+          fill={tracos.folha}
           stroke={tracos.contornoFolha}
           strokeWidth={2.4}
-          transform="translate(48 17) rotate(-34) scale(0.3)"
+          transform="translate(37 33) rotate(-14) scale(0.3)"
         />
       </G>
     </>
@@ -142,11 +171,25 @@ function Ansiedade({ p }: CenaProps) {
 function Tristeza({ p }: CenaProps) {
   return (
     <>
-      {/* Nuvem, chuva fina e uma poça: o dia que não passa. */}
-      {/* A nuvem afunda um pouco no toque, como quem solta o peso. */}
-      <G transform={desloca(0, curva(p, [0, 0.6, 1.2, 1.6, 1.8]))}>
+      {/*
+        O sol que estava atrás o tempo todo, e a nuvem saindo da frente dele.
+
+        Era nuvem, chuva fina e poça — o dia que não passa. O cartão diz
+        "Atravessar a tristeza", e atravessar tem um outro lado; a cena não
+        mostrava nenhum.
+      */}
+      <Circle cx={43} cy={21} r={11} fill={palette.yellow300} stroke={CONTORNO} strokeWidth={TRACO} />
+      {/*
+        A nuvem continua na cena, e continua inteira.
+
+        Apagá-la diria que a tristeza foi embora, e o intro deste tema diz o
+        contrário com todas as letras: "não é um problema a resolver". Ela sai
+        da frente do sol — oito pontos, no toque — e para. O que muda é o que
+        ela está tapando, não que ela exista.
+      */}
+      <G transform={desloca(curva(p, [0, -2, -4.5, -6.5, -8]), 0)}>
         <Path
-          d="M19 30 C14 30 11 27 11 23.5 C11 20 14 17 18 17.5 C19 12 24 9 29 10 C34 11 37 15 37 19.5 C41 19 45 22 45 26 C45 28.5 43 30 40 30 Z"
+          d="M19 31 C14 31 11 28 11 24.5 C11 21 14 18 18 18.5 C19 13 24 10 29 11 C34 12 37 16 37 20.5 C41 20 45 23 45 27 C45 29.5 43 31 40 31 Z"
           fill={palette.cream100}
           stroke={CONTORNO}
           strokeWidth={TRACO}
@@ -154,30 +197,16 @@ function Tristeza({ p }: CenaProps) {
         />
       </G>
       {/*
-        As gotas caem e desaparecem antes de encostar na poça.
+        A poça do que já choveu saiu daqui.
 
-        Sumir no meio do caminho é de propósito: gota que chega até a água teria
-        de espirrar, e espirro num desenho de doze pontos de altura vira sujeira.
+        Ela ficava em y=47, e a borda do cartão corta o desenho em y=40: a
+        poça inteira caía fora, sozinha sobre o creme da página. É a mancha
+        solta que a nota do topo deste arquivo proíbe — a mesma razão que
+        tirou as sombras de chão das treze cenas.
+
+        Não fez falta. O sol saindo de trás da nuvem já é a frase inteira, e
+        uma poça embaixo dele voltava a falar de chuva.
       */}
-      <G transform={desloca(0, curva(p, [0, 3, 6, 9, 11]))} opacity={curva(p, [1, 1, 0.8, 0.4, 0])}>
-        {[
-          [20, 36],
-          [30, 39],
-          [40, 36],
-        ].map(([x, y]) => (
-          <Path
-            key={x}
-            d={`M${x} ${y} L${x - 2} ${y + 7}`}
-            stroke={palette.blue300}
-            strokeWidth={2.6}
-            strokeLinecap="round"
-          />
-        ))}
-      </G>
-      {/* A poça recebe o que caiu e se espalha. */}
-      <G transform={cresce(curva(p, [1, 1.06, 1.14, 1.2, 1.24]), 30, 50)}>
-        <Ellipse cx={30} cy={50} rx={13} ry={3} fill={palette.blue100} />
-      </G>
     </>
   );
 }
@@ -193,12 +222,16 @@ function Luto({ p }: CenaProps) {
         </LinearGradient>
       </Defs>
       {/*
-        Uma folha caída, grande, e o galho de onde ela veio.
+        A folha caída fica, e ao lado dela um broto novo.
 
-        Antes era um montinho de terra com uma folha pequena em cima, e no
-        tamanho real a folha sumia — sobrava uma pedra marrom. Aqui o assunto é
-        a folha: ela ocupa o meio do quadrado, deitada no chão, e o galho vazio
-        acima diz de onde ela caiu sem precisar de mais nada.
+        A cena era só a perda: o galho vazio e a folha no chão. O cartão passou
+        a dizer "Seguir com a saudade", e seguir é a segunda metade que faltava
+        desenhar — a mesma que a prática "O que ficou de herança" trabalha.
+
+        O broto é pequeno de propósito, e não substitui a folha: nasce **do
+        lado**, na mesma terra. Se ele tomasse o lugar dela, a cena diria que a
+        perda virou outra coisa, que é a frase que ninguém enlutado suporta
+        ouvir.
       */}
       <Path
         d="M8 20 C16 22 22 24 27 27"
@@ -210,10 +243,8 @@ function Luto({ p }: CenaProps) {
       />
       <Path d="M9 45 C9 42 17 40 30 40 C43 40 51 42 51 45 Z" fill={`url(#terra-${id})`} opacity={0.9} />
       {/*
-        A folha caída se ajeita: gira pouco e assenta.
-
-        É o movimento mais contido dos treze, e tem de ser. Luto não pede
-        animação animada — pede que a coisa se mexa uma vez e pare.
+        A folha caída se ajeita: gira pouco e assenta. É o movimento mais
+        contido dos treze, e tem de ser — luto não pede animação animada.
       */}
       <G
         transform={[
@@ -229,47 +260,79 @@ function Luto({ p }: CenaProps) {
           transform="translate(45 33) rotate(163) scale(0.45)"
         />
       </G>
+      {/* O broto novo sobe um fio, devagar, e para. */}
+      <G transform={cresce(curva(p, [1, 1.05, 1.1, 1.14, 1.16]), 16, 41)}>
+        <Path d="M16 41 L16 31" stroke={tracos.haste} strokeWidth={2.2} strokeLinecap="round" />
+        <Path
+          d={FOLHA}
+          fill={tracos.folhaClara}
+          stroke={tracos.contornoFolha}
+          strokeWidth={3}
+          transform="translate(16 31) rotate(-54) scale(0.16)"
+        />
+        <Path
+          d={FOLHA}
+          fill={tracos.folha}
+          stroke={tracos.contornoFolha}
+          strokeWidth={3}
+          transform="translate(16 31) rotate(234) scale(0.13)"
+        />
+      </G>
     </>
   );
 }
 
 function Insonia({ p }: CenaProps) {
   const estrelas = [
-    { x: 42, y: 20, r: 3.2 },
-    { x: 46, y: 34, r: 2.2 },
-  ];
-  /*
-    As duas estrelas piscam fora de compasso.
-
-    Juntas viravam um pisca-pisca de árvore de Natal. Defasadas, a cena fica
-    com a inquietação que o tema pede: alguma coisa sempre se mexendo quando
-    você queria que tudo parasse.
-  */
-  const brilho: [number, number, number, number, number][] = [
-    [1, 0.35, 1, 0.5, 1],
-    [1, 1, 0.3, 1, 0.45],
+    { x: 44, y: 18, r: 3 },
+    { x: 48, y: 31, r: 2 },
   ];
   return (
     <>
-      {/* Lua e duas estrelas: a noite acordada. */}
-      {/* A lua inclina devagar, como quem vira na cama. */}
-      <G transform={gira(curva(p, [0, -3, -6, -8, -9]), 28, 30)}>
+      {/*
+        A lua, duas estrelas quietas e uma nuvem baixa assentando.
+
+        As estrelas piscavam fora de compasso de propósito, para dar "a noite
+        acordada" — e a noite acordada era o tema quando ele se chamava
+        "Insônia". Hoje o cartão diz "Preparar o sono", e o que a cena precisa
+        mostrar é o contrário: nada se mexendo quando você quer que tudo pare.
+
+        Agora elas baixam juntas, as duas, até um brilho fraco — e a nuvem desce
+        e se acomoda embaixo da lua, como travesseiro recebendo peso.
+      */}
+      <G transform={gira(curva(p, [0, -1, -2, -2.6, -3]), 28, 28)}>
         <Path
-          d="M34 11 C25 13 18 21 18 30 C18 39 25 47 34 48 C28 43 25 37 25 30 C25 23 28 16 34 11 Z"
+          d="M34 9 C25 11 18 19 18 28 C18 37 25 45 34 46 C28 41 25 35 25 28 C25 21 28 14 34 9 Z"
           fill={palette.yellow100}
           stroke={CONTORNO}
           strokeWidth={TRACO}
           strokeLinejoin="round"
         />
       </G>
-      {estrelas.map((e, i) => (
-        <G key={e.x} opacity={curva(p, brilho[i])}>
+      <G opacity={curva(p, [1, 0.86, 0.7, 0.56, 0.45])}>
+        {estrelas.map((e) => (
           <Path
+            key={e.x}
             d={`M${e.x} ${e.y - e.r} L${e.x + e.r * 0.34} ${e.y - e.r * 0.34} L${e.x + e.r} ${e.y} L${e.x + e.r * 0.34} ${e.y + e.r * 0.34} L${e.x} ${e.y + e.r} L${e.x - e.r * 0.34} ${e.y + e.r * 0.34} L${e.x - e.r} ${e.y} L${e.x - e.r * 0.34} ${e.y - e.r * 0.34} Z`}
             fill={palette.amber400}
           />
-        </G>
-      ))}
+        ))}
+      </G>
+      {/* A nuvem desce e alarga um fio, do jeito que travesseiro cede. */}
+      <G
+        transform={[
+          desloca(0, curva(p, [0, 0.7, 1.3, 1.7, 2])),
+          cresce(curva(p, [1, 1.01, 1.02, 1.03, 1.04]), 30, 50),
+        ].join(' ')}
+      >
+        <Path
+          d="M14 50 C10 50 8 47.6 8 45 C8 42.2 10.6 40 13.8 40.4 C15 36.6 19 34.4 23 35.4 C26.4 36.2 28.8 39 29.2 42 C33 41.2 37 43.6 37 47 C37 48.8 35.6 50 33 50 Z"
+          fill={palette.lavender100}
+          stroke={CONTORNO}
+          strokeWidth={1.6}
+          strokeLinejoin="round"
+        />
+      </G>
     </>
   );
 }
@@ -278,43 +341,42 @@ function Estresse({ p }: CenaProps) {
   return (
     <>
       {/*
-        Uma pedra pesada, e uma folha que continua saindo debaixo dela.
+        A pedra no chão, ao lado, e o broto de pé.
 
-        A primeira versão era uma cúpula lisa com um brilho curvo em cima, e no
-        tamanho real lia como tampa de travessa. Pedra tem quina: a silhueta
-        agora é quebrada, e a face clara é um plano, não um reflexo.
-      */}
-      {/*
-        No toque a pedra afunda, e a folha escapa por baixo.
+        Ela estava **em cima** do broto, e a folha escapava por baixo: peso, e
+        alguém passando apesar dele. O cartão diz "Baixar o estresse", e baixar
+        é exatamente o que a pedra faz agora — saiu de cima e foi posta no chão.
+        Continua ali, e continua pedra: o estresse não evapora, sai de cima.
 
-        Os dois movimentos são o mesmo gesto visto de dois lados: a pedra
-        desce um ponto e meio, a folha sai. Se só a pedra afundasse, seria peso;
-        se só a folha saísse, seria fuga. Juntos é o que o tema diz — apertado,
-        e ainda assim passando.
+        Ela foi para a esquerda e encolheu, e o broto ocupa o lugar que era
+        dela. Quem está mais alto numa cena é quem manda nela.
       */}
-      <G transform={desloca(0, curva(p, [0, 0.7, 1.3, 1.6, 1.5]))}>
+      <G transform={desloca(0, curva(p, [0, 0.5, 0.9, 1.1, 1.2]))}>
         <Path
-          d="M11 46 L15 31 L24 23 L37 26 L47 38 L48 46 Z"
+          d="M8 47 L11 38 L17 33 L26 35 L31 42 L32 47 Z"
           fill={palette.slate300}
           stroke={CONTORNO}
           strokeWidth={TRACO}
           strokeLinejoin="round"
         />
-        <Path d="M15 31 L24 23 L31 33 L19 39 Z" fill={palette.slate100} opacity={0.85} />
-        <Path d="M31 33 L47 38 L48 46 L33 46 Z" fill={CONTORNO} opacity={0.12} />
+        <Path d="M11 38 L17 33 L21 39 L14 42 Z" fill={palette.slate100} opacity={0.85} />
       </G>
-      <G
-        transform={[
-          desloca(curva(p, [0, 1.4, 2.8, 3.8, 4.4]), 0),
-          gira(curva(p, [0, -3, -6, -8, -9]), 53, 45),
-        ].join(' ')}
-      >
+      {/* O broto estica, sem pressa, como talo que perdeu o que o dobrava. */}
+      <G transform={cresce(curva(p, [1, 1.05, 1.09, 1.12, 1.13]), 41, 48)}>
+        <Path d="M41 48 L41 26" stroke={tracos.haste} strokeWidth={2.6} strokeLinecap="round" />
         <Path
           d={FOLHA}
           fill={tracos.folha}
           stroke={tracos.contornoFolha}
-          strokeWidth={2.6}
-          transform="translate(53 45) rotate(-28) scale(0.26)"
+          strokeWidth={2.4}
+          transform="translate(41 26) rotate(-50) scale(0.27)"
+        />
+        <Path
+          d={FOLHA}
+          fill={tracos.folhaClara}
+          stroke={tracos.contornoFolha}
+          strokeWidth={2.4}
+          transform="translate(41 26) rotate(230) scale(0.23)"
         />
       </G>
     </>
@@ -324,37 +386,49 @@ function Estresse({ p }: CenaProps) {
 function Solidao({ p }: CenaProps) {
   return (
     <>
-      {/* Um vaso com broto e o contorno vazio de outro: a falta, desenhada. */}
       {/*
-        O broto se inclina na direção do vaso vazio — e não alcança.
+        Dois vasos com broto, inclinados um para o outro.
 
-        O giro sai da boca do vaso, não do meio da planta: é de lá que um caule
-        verga de verdade. E ele volta quase todo no fim, porque o tema é a
-        falta, não a companhia: se ficasse inclinado, a cena passaria a contar
-        outra história.
+        O segundo vaso era um contorno tracejado e vazio, e o broto do primeiro
+        se inclinava **sem alcançar** — a falta, desenhada. Estava certo quando
+        o cartão dizia "Solidão".
+
+        Ele diz "Diminuir a solidão", e diminuir é o que a cena faz: o vaso de
+        lá agora tem alguém, e os dois se inclinam um para o outro. **Sem
+        encostar**, e em vasos separados — o intro do tema define solidão como
+        "a distância entre o que você sente e o que os outros sabem", e o que as
+        práticas fazem é encurtar essa distância, não apagá-la. Duas plantas no
+        mesmo vaso seria outra promessa.
       */}
-      <G transform={gira(curva(p, [0, 5, 9, 11, 10]), 21, 34)}>
+      <G transform={gira(curva(p, [0, 2.5, 4.5, 6, 6.5]), 19, 35)}>
         <Path
-          d="M13 34 L29 34 L27 47 C27 48.6 25.6 49.5 21 49.5 C16.4 49.5 15 48.6 15 47 Z"
+          d="M11 35 L27 35 L25 48 C25 49.6 23.6 50.5 19 50.5 C14.4 50.5 13 49.6 13 48 Z"
           fill={tracos.vaso}
           stroke={CONTORNO}
           strokeWidth={TRACO}
           strokeLinejoin="round"
         />
-        <Path d="M21 34 L21 26" stroke={tracos.haste} strokeWidth={2.4} strokeLinecap="round" />
-        <Path d={FOLHA} fill={tracos.folha} stroke={tracos.contornoFolha} strokeWidth={2.8} transform="translate(21 26) rotate(-50) scale(0.2)" />
-        <Path d={FOLHA} fill={tracos.folhaClara} stroke={tracos.contornoFolha} strokeWidth={2.8} transform="translate(21 26) rotate(230) scale(0.17)" />
+        <Path d="M19 35 L19 27" stroke={tracos.haste} strokeWidth={2.4} strokeLinecap="round" />
+        <Path d={FOLHA} fill={tracos.folha} stroke={tracos.contornoFolha} strokeWidth={2.8} transform="translate(19 27) rotate(-50) scale(0.2)" />
+        <Path d={FOLHA} fill={tracos.folhaClara} stroke={tracos.contornoFolha} strokeWidth={2.8} transform="translate(19 27) rotate(230) scale(0.17)" />
       </G>
-      {/* O vaso vazio respira de leve, como se ainda houvesse alguém nele. */}
-      <G opacity={curva(p, [1, 0.8, 0.62, 0.8, 1])}>
+      {/*
+        O de lá se inclina na mesma medida, e para junto.
+
+        Ninguém se estica mais do que o outro: a cena é de encontro, não de
+        resgate.
+      */}
+      <G transform={gira(curva(p, [0, -2.5, -4.5, -6, -6.5]), 42, 35)}>
         <Path
-          d="M35 36 L49 36 L47.5 47 C47.5 48.4 46.3 49.2 42 49.2 C37.7 49.2 36.5 48.4 36.5 47 Z"
-          fill="none"
-          stroke={palette.brown400}
-          strokeWidth={2}
+          d="M34 35 L50 35 L48 48 C48 49.6 46.6 50.5 42 50.5 C37.4 50.5 36 49.6 36 48 Z"
+          fill={tracos.vaso}
+          stroke={CONTORNO}
+          strokeWidth={TRACO}
           strokeLinejoin="round"
-          strokeDasharray="3.5 3.5"
         />
+        <Path d="M42 35 L42 28" stroke={tracos.haste} strokeWidth={2.4} strokeLinecap="round" />
+        <Path d={FOLHA} fill={tracos.folhaClara} stroke={tracos.contornoFolha} strokeWidth={2.8} transform="translate(42 28) rotate(130) scale(0.18)" />
+        <Path d={FOLHA} fill={tracos.folha} stroke={tracos.contornoFolha} strokeWidth={2.8} transform="translate(42 28) rotate(50) scale(0.15)" />
       </G>
     </>
   );
@@ -366,34 +440,56 @@ function Raiva({ p }: CenaProps) {
     <>
       <Defs>
         <RadialGradient id={`brasa-${id}`} cx="50%" cy="50%" r="50%">
-          <Stop offset="0" stopColor={BRASA} stopOpacity={0.5} />
+          <Stop offset="0" stopColor={BRASA} stopOpacity={0.55} />
           <Stop offset="1" stopColor={BRASA} stopOpacity={0} />
         </RadialGradient>
       </Defs>
-      {/* A brasa pulsa por baixo, um tempo atrás da chama. */}
-      <G transform={cresce(curva(p, [1, 1.16, 1.28, 1.14, 1]), 30, 44)}>
-        <Ellipse cx={30} cy={44} rx={16} ry={9} fill={`url(#brasa-${id})`} />
-      </G>
-      {/* Chama: o corpo antes da palavra. */}
       {/*
-        Ela treme esticando, e não girando.
+        A brasa depois da chama, e um fio de fumaça subindo.
 
-        Fogo que balança para os lados vira bandeira. O que faz uma chama
-        parecer chama é subir e encolher — por isso a escala é só no eixo Y, e
-        com origem na base: a ponta se mexe, o pé fica onde está.
+        Era uma chama inteira, tremendo. O cartão diz "Descarregar a raiva", e
+        descarregar tem um depois: o que sobra quando o corpo já gastou o que
+        tinha para gastar. A brasa é isso, e é o que o intro do tema promete —
+        "descarregar o corpo primeiro é o que deixa ver o que tem embaixo".
+
+        Ela não apaga. Fogo apagado diria que a raiva foi embora, e ela não vai:
+        baixa de temperatura e fica olhável. Por isso a brasa continua quente no
+        meio, com o halo por baixo.
       */}
-      <G transform={cresce(curva(p, [1, 1.1, 0.95, 1.06, 1]), 30, 47)}>
+      <G transform={cresce(curva(p, [1, 1.1, 1.18, 1.1, 1.04]), 30, 38)}>
+        <Ellipse cx={30} cy={38} rx={18} ry={10} fill={`url(#brasa-${id})`} />
+      </G>
+      {/* O fio de fumaça sobe e se desfaz: o único movimento que sobe na cena. */}
+      <G transform={desloca(0, curva(p, [0, -2, -4, -6, -8]))} opacity={curva(p, [0.5, 0.45, 0.34, 0.18, 0])}>
         <Path
-          d="M30 10 C34 19 42 23 42 32 C42 41 36 47 30 47 C24 47 18 41 18 32 C18 27 22 23 25 18 C26 22 28 23 30 10 Z"
+          d="M30 25 C27 21 33 17 30 12"
+          stroke={palette.brown400}
+          strokeWidth={1.8}
+          strokeLinecap="round"
+          fill="none"
+        />
+      </G>
+      {/* O monte de brasa: forma baixa e larga, o oposto da chama que subia. */}
+      <G transform={cresce(curva(p, [1, 1.02, 1.01, 0.99, 1]), 30, 41)}>
+        {/*
+          A silhueta é quebrada, e não um arco.
+
+          Com a borda lisa, um monte cor de fogo subindo do pé do quadrado lê
+          como sol nascendo — que é quase o contrário do tema. Carvão tem
+          quina: três bossas desiguais, e duas fendas escuras entre elas. É a
+          mesma correção que a pedra do estresse já tinha recebido.
+        */}
+        <Path
+          d="M16 41 C17 35 21 31.5 24 32.6 C26 28.6 32 28.6 34 31.8 C38 30 43 34 44 41 Z"
           fill={palette.terracotta400}
           stroke={CONTORNO}
           strokeWidth={TRACO}
           strokeLinejoin="round"
         />
-        <Path
-          d="M30 26 C32 30 35 32 35 36 C35 40 33 43 30 43 C27 43 25 40 25 36 C25 33 28 30 30 26 Z"
-          fill={palette.amber400}
-        />
+        <Path d="M23 41 C24 37 27 34.8 30 35.6 C33 34.8 36 37 37 41 Z" fill={palette.amber400} />
+        {/* As fendas: é por elas que a brasa mostra que ainda está quente. */}
+        <Path d="M25 41 L26.5 36.5" stroke={CONTORNO} strokeWidth={1.4} strokeLinecap="round" opacity={0.3} />
+        <Path d="M35 41 L33.5 36.5" stroke={CONTORNO} strokeWidth={1.4} strokeLinecap="round" opacity={0.3} />
       </G>
     </>
   );
@@ -402,17 +498,20 @@ function Raiva({ p }: CenaProps) {
 function Procrastinacao({ p }: CenaProps) {
   return (
     /*
-      Ampulheta: o tempo que passa enquanto se adia.
+      A ampulheta já virada, com areia correndo e monte no fundo.
 
-      No toque ela pende para um lado, passa do ponto para o outro e assenta —
-      e, enquanto isso, a areia escorre: o triângulo de cima encolhe na direção
-      do próprio bico, o monte de baixo cresce, e o fio entre os dois aparece.
+      Ela pendia para um lado e para o outro antes de assentar — hesitação
+      desenhada, que era o tema quando ele se chamava "Procrastinação". Hoje o
+      cartão diz "Começar o que você adia", e começar não balança: acontece.
 
-      Os três movimentos são um só relógio. A areia não espera a balançada
-      acabar, porque o tempo não espera ninguém se decidir — que é o assunto
-      do tema.
+      Então a cena parada já é o depois. O triângulo de cima está pela metade, o
+      monte de baixo tem tamanho, e o fio entre os dois está nítido — alguém
+      virou isto faz um tempo. No toque só continua: mais areia desce.
+
+      O vidro ficou imóvel. Era ele que balançava, e a ampulheta parada com a
+      areia correndo diz a coisa certa: o que se move é o trabalho, não o móvel.
     */
-    <G transform={gira(curva(p, [0, -7, 4, -2, 0]), 30, 30)}>
+    <G>
       <Path
         d="M19 15 L41 15 L32 30 L41 45 L19 45 L28 30 Z"
         fill={palette.cream100}
@@ -426,18 +525,17 @@ function Procrastinacao({ p }: CenaProps) {
         A origem da escala é o vértice de baixo do triângulo (31,5 · 29), que é
         justamente onde fica o estrangulamento do vidro. Encolhendo para lá, a
         borda de cima desce enquanto a ponta fica parada — que é como areia
-        escoa. Com origem no centro, ela encolheria por todos os lados ao mesmo
-        tempo, e pareceria sumir por mágica em vez de escorrer.
+        escoa.
       */}
-      <G transform={cresce(curva(p, [1, 0.82, 0.58, 0.36, 0.2]), 31.5, 29)}>
+      <G transform={cresce(curva(p, [0.62, 0.55, 0.46, 0.36, 0.28]), 31.5, 29)}>
         <Path d="M22 18 L38 18 L31.5 29 Z" fill={palette.amber400} />
       </G>
       {/* O monte de baixo cresce a partir do chão do vidro. */}
-      <G transform={cresce(curva(p, [1, 1.08, 1.16, 1.24, 1.3]), 30, 42)}>
+      <G transform={cresce(curva(p, [1.3, 1.36, 1.42, 1.47, 1.5]), 30, 42)}>
         <Path d="M24 42 L36 42 L33 37 C32 35.5 28 35.5 27 37 Z" fill={palette.amber400} />
       </G>
-      {/* O fio de areia caindo: quase invisível parado, nítido enquanto escorre. */}
-      <G opacity={curva(p, [0.35, 1, 1, 0.9, 0.5])}>
+      {/* O fio de areia caindo: já nítido parado, porque já começou. */}
+      <G opacity={curva(p, [0.9, 1, 1, 0.95, 0.85])}>
         <Path d="M30 30 L30 36" stroke={palette.amber400} strokeWidth={1.6} strokeLinecap="round" />
       </G>
       {[13, 47].map((y) => (
@@ -450,21 +548,33 @@ function Procrastinacao({ p }: CenaProps) {
 function Autoestima({ p }: CenaProps) {
   return (
     <>
-      {/* Espelho: olhar para si sem inventar um rosto para a pessoa. */}
-      <Path d="M27 44 L33 44 L34 50 L26 50 Z" fill={palette.brown700} stroke={CONTORNO} strokeWidth={1.4} strokeLinejoin="round" />
-      <Ellipse cx={30} cy={27} rx={14} ry={17} fill={palette.amber100} stroke={palette.brown700} strokeWidth={3.4} />
       {/*
-        O brilho corre pelo vidro, de cima a baixo.
+        O espelho, e no vidro um broto.
 
-        É o único movimento da cena, e é o certo: espelho não balança nem
-        pulsa — ele pega a luz. O reflexo entra fraco, ganha força no meio da
-        travessia e sai, como quem passa na frente de uma janela.
+        Ele estava vazio, com um brilho correndo pelo nada. O cartão diz
+        "Melhorar a autoestima", e o intro do tema diz como: "se constrói
+        reparando no que já está lá". Então o espelho devolve uma planta, e ela
+        está ali antes de qualquer toque — não é recompensa, é o que já havia.
+
+        Continua sem rosto: desenhar alguém seria dizer com que cara a pessoa
+        deveria se ver. O broto é o mesmo do app inteiro, e quem olha se
+        reconhece nele porque já o viu crescer.
       */}
+      <Path d="M27 44 L33 44 L34 50 L26 50 Z" fill={palette.brown700} stroke={CONTORNO} strokeWidth={1.4} strokeLinejoin="round" />
+      <Ellipse cx={30} cy={26} rx={14} ry={17} fill={palette.amber100} stroke={palette.brown700} strokeWidth={3.4} />
+      {/* O reflexo cresce um fio no toque: reparar em si mesmo por um segundo a
+          mais já muda o tamanho do que se vê. */}
+      <G transform={cresce(curva(p, [1, 1.03, 1.06, 1.08, 1.09]), 30, 37)}>
+        <Path d="M30 37 L30 26" stroke={tracos.haste} strokeWidth={2.2} strokeLinecap="round" />
+        <Path d={FOLHA} fill={tracos.folha} stroke={tracos.contornoFolha} strokeWidth={3} transform="translate(30 26) rotate(-52) scale(0.17)" />
+        <Path d={FOLHA} fill={tracos.folhaClara} stroke={tracos.contornoFolha} strokeWidth={3} transform="translate(30 26) rotate(232) scale(0.14)" />
+      </G>
+      {/* O brilho do vidro continua, e agora passa por cima do reflexo. */}
       <G
         transform={desloca(curva(p, [-2, -1, 0, 1, 2]), curva(p, [-7, -3.5, 0, 3.5, 7]))}
-        opacity={curva(p, [0.75, 0.95, 1, 0.8, 0.55])}
+        opacity={curva(p, [0.5, 0.7, 0.8, 0.6, 0.4])}
       >
-        <Path d="M24 34 C21 29 22 21 27 16" stroke="#FFFFFF" strokeWidth={3} strokeLinecap="round" fill="none" />
+        <Path d="M22 32 C19 27 20 19 25 14" stroke="#FFFFFF" strokeWidth={3} strokeLinecap="round" fill="none" />
       </G>
     </>
   );
@@ -472,52 +582,108 @@ function Autoestima({ p }: CenaProps) {
 
 function Culpa({ p }: CenaProps) {
   return (
-    /*
-      A trouxa balança pendurada pelo nó.
+    <>
+      {/*
+        A trouxa desamarrada e aberta, com o que estava dentro à vista.
 
-      A origem do giro é o nó, no alto — é de lá que uma trouxa pende. E o
-      balanço é lento e curto: peso grande oscila devagar. Se fosse rápido, a
-      cena diria que a trouxa está vazia, que é o contrário do tema.
-    */
-    <G transform={gira(curva(p, [0, 4, -3, 1.5, 0]), 30, 19)}>
-      {/* Uma trouxa amarrada: o peso que se carrega sem abrir. */}
+        Ela estava pendurada pelo nó, balançando devagar — o peso que se carrega
+        sem abrir. O cartão diz "Aliviar a culpa e a vergonha", e a prática que
+        dá nome a isto se chama "Tirar a vergonha do escuro". Escuro é o
+        assunto; abrir é o remédio. A cena mostra o remédio.
+
+        ## A primeira tentativa não deu, e o motivo vale ficar escrito
+
+        Ela tinha as quatro pontas do pano caídas para fora e um facho de luz
+        descendo de cima. No tamanho real as pontas viraram asas e o facho virou
+        um abajur: três objetos que ninguém pediu, e nenhum deles a trouxa.
+
+        Um desenho de doze pontos de altura não comporta encenação. O que
+        sobrou é o essencial — a boca aberta, o que havia lá dentro, e o cordão
+        solto ao lado, que é a única peça que diz *desamarrada* sem precisar de
+        mais nada.
+
+        O pano fica. Não some e não vira outra coisa: continua ali, aberto. O
+        que mudou é que dá para ver o que tem dentro.
+      */}
       <Path
-        d="M20 28 C20 23 24 21 30 21 C36 21 40 23 40 28 L44 45 C44 48 39 49.5 30 49.5 C21 49.5 16 48 16 45 Z"
+        d="M11 32 C11 42 18 47 30 47 C42 47 49 42 49 32 Z"
         fill={palette.cream200}
         stroke={CONTORNO}
         strokeWidth={TRACO}
         strokeLinejoin="round"
       />
-      <Path d="M17 33 C24 36 36 36 43 33" stroke={palette.brown400} strokeWidth={2.2} strokeLinecap="round" fill="none" />
+      {/* A boca do pano. No toque ela abre um fio, só na largura: pano cede
+          para os lados, não para cima. */}
+      <G transform={estica(curva(p, [1, 1.02, 1.04, 1.06, 1.07]), 1, 30, 32)}>
+        <Ellipse cx={30} cy={32} rx={19} ry={6.5} fill={palette.cream300} stroke={CONTORNO} strokeWidth={TRACO} />
+        {/* O claro de dentro: é ele que cresce, e é o assunto inteiro. */}
+        <G opacity={curva(p, [0.55, 0.7, 0.84, 0.94, 1])}>
+          <Ellipse cx={30} cy={32} rx={13} ry={4.2} fill={palette.yellow100} />
+        </G>
+      </G>
+      {/*
+        O que estava guardado: um papel dobrado, e não uma bolinha.
+
+        Era um círculo âmbar dentro do claro amarelo, e no tamanho real virava
+        gema de ovo numa tigela. Papel resolve duas coisas de uma vez: não se
+        parece com comida, e é o que as três práticas deste tema pedem — "O
+        tamanho real da culpa", "Tirar a vergonha do escuro" e "De quem é essa
+        régua" são todas de escrever.
+      */}
+      <G transform={gira(-8, 30, 31)}>
+        <Path
+          d="M24 27 L36 27 L36 35 L24 35 Z"
+          fill={palette.cream100}
+          stroke={CONTORNO}
+          strokeWidth={1.6}
+          strokeLinejoin="round"
+        />
+        <Path d="M26.5 30 L33.5 30" stroke={palette.brown400} strokeWidth={1.3} strokeLinecap="round" />
+        <Path d="M26.5 32.5 L31.5 32.5" stroke={palette.brown400} strokeWidth={1.3} strokeLinecap="round" />
+      </G>
+      {/* O cordão que amarrava, largado ao lado e no chão. Ele não se mexe: já
+          fez o que tinha de fazer. */}
       <Path
-        d="M25 21 C27 16 33 16 35 21 C33 19 27 19 25 21 Z"
-        fill={palette.cream300}
-        stroke={CONTORNO}
-        strokeWidth={1.5}
-        strokeLinejoin="round"
+        d="M44 37 C47 34.5 50 38 53 35.5"
+        stroke={palette.brown400}
+        strokeWidth={2}
+        strokeLinecap="round"
+        fill="none"
       />
-    </G>
+    </>
   );
 }
 
 function Comparacao({ p }: CenaProps) {
   return (
     <>
-      {/* Dois brotos de tamanhos diferentes, na mesma terra. */}
-      <Path d="M8 46 C8 42 15 40 30 40 C45 40 52 42 52 46 Z" fill={TERRA} />
       {/*
-        O broto pequeno estica — e para bem antes de alcançar o grande.
+        Os dois brotos continuam de tamanhos diferentes. O que mudou é para onde
+        o pequeno olha.
 
-        Ele cresce 16% e o outro não se mexe. É o tema inteiro num gesto: o
-        esforço é real, acontece, e mesmo assim a distância continua lá. Se ele
-        chegasse ao mesmo tamanho, a cena viraria uma promessa que o app não
-        tem como cumprir.
+        A versão anterior tinha ele esticando 16% e parando bem antes de
+        alcançar o grande — "o esforço é real, acontece, e mesmo assim a
+        distância continua lá". Essa honestidade fica: igualar os dois seria uma
+        promessa que o app não tem como cumprir, e o cartão não pede isso. Ele
+        diz "Parar de se comparar", e parar de comparar não é alcançar — é
+        deixar de usar o outro como régua.
+
+        Então o pequeno ganhou um sol só dele, fora do eixo entre os dois, e é
+        para lá que ele se vira no toque: para longe do grande. A distância não
+        muda um ponto. O que muda é que ela deixou de ser o assunto.
       */}
-      <G transform={cresce(curva(p, [1, 1.05, 1.09, 1.12, 1.1]), 19, 41)}>
+      <Path d="M8 46 C8 42 15 40 30 40 C45 40 52 42 52 46 Z" fill={TERRA} />
+      <G transform={cresce(curva(p, [1, 1.04, 1.08, 1.12, 1.14]), 10, 25)} opacity={curva(p, [0.85, 0.9, 0.95, 1, 1])}>
+        <Circle cx={10} cy={25} r={7.5} fill={palette.yellow300} stroke={palette.amber400} strokeWidth={1.4} />
+      </G>
+      {/* O pequeno se vira para o sol dele. Gira a partir da terra, que é de
+          onde um caule verga. */}
+      <G transform={gira(curva(p, [0, -3, -6, -8, -9]), 19, 41)}>
         <Path d="M19 41 L19 31" stroke={tracos.haste} strokeWidth={2.4} strokeLinecap="round" />
         <Path d={FOLHA} fill={tracos.folha} stroke={tracos.contornoFolha} strokeWidth={2.8} transform="translate(19 31) rotate(-52) scale(0.19)" />
         <Path d={FOLHA} fill={tracos.folhaClara} stroke={tracos.contornoFolha} strokeWidth={2.8} transform="translate(19 31) rotate(232) scale(0.16)" />
       </G>
+      {/* O grande não se mexe, e não é castigo: ele nunca esteve fazendo nada. */}
       <G>
         <Path d="M41 41 L41 19" stroke={tracos.haste} strokeWidth={2.6} strokeLinecap="round" />
         <Path d={FOLHA} fill={tracos.folha} stroke={tracos.contornoFolha} strokeWidth={2.4} transform="translate(41 19) rotate(-52) scale(0.3)" />

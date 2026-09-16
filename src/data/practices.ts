@@ -58,6 +58,35 @@ export type PracticeTopic = {
    */
   key: TintDoTema;
   title: string;
+  /**
+   * O mesmo tema dito pelo que ele resolve, e não pelo que ele é.
+   *
+   * `title` é o nome do assunto — "Ansiedade", "Luto" —, e é ele que aparece
+   * dentro do tema e no resumo para a terapia, onde o que se quer nomear é a
+   * coisa. `solucao` é a mesma linha vista do outro lado — "Acalmar a
+   * ansiedade", "Seguir com a saudade" —, e é ela que aparece na tela
+   * inicial, onde ninguém está estudando o assunto: está procurando saída.
+   *
+   * ## Por que os dois existem, em vez de um só
+   *
+   * Porque servem a leituras opostas. Treze substantivos numa grade são treze
+   * diagnósticos, e obrigam a pessoa a se rotular antes de receber qualquer
+   * coisa. Treze verbos no lugar de um índice clínico apagariam a palavra que
+   * ela procura — quem quer dormir procura "insônia", e quem leva o PDF ao
+   * terapeuta precisa que ali esteja escrito "Insônia".
+   *
+   * ## A regra ao escrever uma
+   *
+   * **Ela é uma promessa, e o `intro` do tema é o contrato.** "Tristeza não é
+   * um problema a resolver", diz o `intro`; por isso a solução é *atravessar*
+   * a tristeza, não curá-la. "Dormir não se força" — por isso é *preparar* o
+   * sono. "O esforço é real e a distância continua lá", diz a cena da
+   * comparação — por isso é *parar de se comparar*, e não alcançar ninguém.
+   *
+   * Onde o substantivo cabe sem forçar, ele fica: é a palavra que a pessoa
+   * está procurando com os olhos.
+   */
+  solucao: string;
   icon: IconName;
   intro: string;
   practices: Practice[];
@@ -130,6 +159,7 @@ export const PRACTICE_TOPICS: PracticeTopic[] = [
   {
     key: 'ansiedade',
     title: 'Ansiedade',
+    solucao: 'Acalmar a ansiedade',
     icon: 'sparkle',
     intro: 'A ansiedade acelera o corpo antes da cabeça entender por quê. Estas práticas começam pelo corpo.',
     practices: [
@@ -214,6 +244,7 @@ export const PRACTICE_TOPICS: PracticeTopic[] = [
   {
     key: 'tristeza',
     title: 'Tristeza',
+    solucao: 'Atravessar a tristeza',
     icon: 'flower',
     intro: 'Tristeza não é um problema a resolver. É um estado que pede companhia — inclusive a sua.',
     practices: [
@@ -275,6 +306,7 @@ export const PRACTICE_TOPICS: PracticeTopic[] = [
   {
     key: 'luto',
     title: 'Luto',
+    solucao: 'Seguir com a saudade',
     icon: 'ampulheta',
     intro:
       'Luto não é só morte, e não tem prazo. É o que sobra quando alguma coisa que era sua deixou de ser.',
@@ -337,6 +369,7 @@ export const PRACTICE_TOPICS: PracticeTopic[] = [
   {
     key: 'insonia',
     title: 'Insônia',
+    solucao: 'Preparar o sono',
     icon: 'moon',
     intro: 'Dormir não se força. O que dá para fazer é preparar o corpo e tirar a pressa da cabeça.',
     practices: [
@@ -412,6 +445,7 @@ export const PRACTICE_TOPICS: PracticeTopic[] = [
   {
     key: 'estresse',
     title: 'Estresse',
+    solucao: 'Baixar o estresse',
     icon: 'pressao',
     intro: 'Estresse acumula no corpo antes de virar pensamento. Estas práticas são curtas de propósito.',
     practices: [
@@ -470,6 +504,7 @@ export const PRACTICE_TOPICS: PracticeTopic[] = [
   {
     key: 'solidao',
     title: 'Solidão',
+    solucao: 'Diminuir a solidão',
     icon: 'user',
     intro: 'Solidão não é falta de gente por perto. É a distância entre o que você sente e o que os outros sabem.',
     practices: [
@@ -527,6 +562,7 @@ export const PRACTICE_TOPICS: PracticeTopic[] = [
   {
     key: 'raiva',
     title: 'Raiva',
+    solucao: 'Descarregar a raiva',
     icon: 'chama',
     intro: 'Raiva quase sempre é a capa de outra coisa. Descarregar o corpo primeiro é o que deixa ver o que tem embaixo.',
     practices: [
@@ -589,6 +625,7 @@ export const PRACTICE_TOPICS: PracticeTopic[] = [
   {
     key: 'procrastinacao',
     title: 'Procrastinação',
+    solucao: 'Começar o que você adia',
     icon: 'check',
     intro: 'Procrastinar raramente é preguiça. É quase sempre uma tarefa grande demais para o estado em que você está.',
     practices: [
@@ -650,6 +687,7 @@ export const PRACTICE_TOPICS: PracticeTopic[] = [
   {
     key: 'autoestima',
     title: 'Autoestima',
+    solucao: 'Melhorar a autoestima',
     icon: 'heart',
     intro: 'Autoestima não se conserta com elogio. Se constrói reparando no que já está lá.',
     practices: [
@@ -736,6 +774,7 @@ export const PRACTICE_TOPICS: PracticeTopic[] = [
   {
     key: 'culpa',
     title: 'Culpa e vergonha',
+    solucao: 'Aliviar a culpa e a vergonha',
     icon: 'lock',
     intro:
       'Culpa é "eu fiz uma coisa ruim". Vergonha é "eu sou ruim". A primeira dá para resolver; a segunda só cresce no escuro.',
@@ -790,6 +829,7 @@ export const PRACTICE_TOPICS: PracticeTopic[] = [
   {
     key: 'comparacao',
     title: 'Comparação',
+    solucao: 'Parar de se comparar',
     icon: 'search',
     intro: 'Comparar é automático. O que machuca é medir o seu bastidor contra a estreia dos outros.',
     practices: [
@@ -843,6 +883,7 @@ export const PRACTICE_TOPICS: PracticeTopic[] = [
   {
     key: 'foco',
     title: 'Foco',
+    solucao: 'Recuperar o foco',
     icon: 'alvo',
     intro: 'Foco não é força de vontade. É reduzir o número de coisas competindo pela sua atenção.',
     practices: [
@@ -905,6 +946,7 @@ export const PRACTICE_TOPICS: PracticeTopic[] = [
   {
     key: 'gratidao',
     title: 'Gratidão',
+    solucao: 'Enxergar o que foi bom',
     icon: 'star',
     intro: 'Gratidão não é fingir que está tudo bem. É reparar no que sustentou o dia.',
     practices: [
@@ -984,6 +1026,71 @@ export const PRACTICE_TOPICS: PracticeTopic[] = [
         why: 'Chama-se subtração mental. Agradecer pelo que se tem tem efeito curto porque a cabeça se acostuma com tudo. Imaginar a ausência quebra esse hábito — e funciona melhor do que simplesmente listar o que é bom.',
       },
     ],
+  },
+];
+
+/**
+ * Os treze temas repartidos pelo **momento** em que se procura por eles.
+ *
+ * ## O que a grade solta estava pedindo da pessoa
+ *
+ * Treze cartões lado a lado não têm ordem nenhuma que se leia: para achar o
+ * seu é preciso ler os treze e comparar. E quem abre um app de saúde mental
+ * num dia ruim tem exatamente a capacidade que um dia ruim deixa. A grade
+ * pedia justamente a atenção que faltava.
+ *
+ * Em quatro blocos ela pede outra coisa: ler quatro títulos, escolher um, e só
+ * então olhar dois ou três cartões. É a mesma informação com um quarto do
+ * esforço.
+ *
+ * ## Por que estes quatro, e não os treze substantivos agrupados por afinidade
+ *
+ * Porque o corte não é por assunto — é pelo **estado em que a pessoa está**
+ * quando pega o telefone:
+ *
+ * - **o corpo acelerado** é quem não consegue parar: ansiedade, estresse,
+ *   raiva e insônia são o mesmo corpo ligado, e as práticas dos quatro
+ *   começam pelo corpo. A insônia mora aqui, e não num bloco de noite
+ *   sozinha: às três da manhã ela é um agora, não um horário;
+ * - **o que dói** é quem perdeu alguma coisa — tristeza, luto, solidão;
+ * - **voltar a fazer as coisas** é quem está parado e quer sair do lugar;
+ * - **se tratar melhor** é o único bloco que não é urgência. É para quando
+ *   não há incêndio nenhum, que é quando essas quatro coisas cabem.
+ *
+ * ## A ordem dos blocos
+ *
+ * Do mais urgente para o menos. Quem está em crise encontra no primeiro
+ * bloco, sem rolar; quem está bem o bastante para trabalhar a autoestima está
+ * bem o bastante para rolar a tela.
+ *
+ * ## O que isto não pode virar
+ *
+ * Um bloco não é um diagnóstico e não é um caminho. Nada aqui marca por onde
+ * a pessoa "deveria" começar, nada tranca um bloco atrás do outro, e os treze
+ * continuam abertos o tempo todo — é uma prateleira arrumada, não uma trilha.
+ */
+export type GrupoDePraticas = {
+  titulo: string;
+  /** As chaves, na ordem em que aparecem no bloco. */
+  temas: TintDoTema[];
+};
+
+export const GRUPOS_DE_PRATICAS: GrupoDePraticas[] = [
+  {
+    titulo: 'Para o corpo acelerado',
+    temas: ['ansiedade', 'estresse', 'raiva', 'insonia'],
+  },
+  {
+    titulo: 'Para o que dói',
+    temas: ['tristeza', 'luto', 'solidao'],
+  },
+  {
+    titulo: 'Para voltar a fazer as coisas',
+    temas: ['procrastinacao', 'foco'],
+  },
+  {
+    titulo: 'Para se tratar melhor',
+    temas: ['autoestima', 'culpa', 'comparacao', 'gratidao'],
   },
 ];
 

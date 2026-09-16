@@ -36,8 +36,23 @@ type Props = {
   grade?: boolean;
 };
 
-/** Altura do cartão da grade: fixa, para as fileiras baterem. */
-const ALTURA_NA_GRADE = 104;
+/**
+ * Altura do cartão da grade: fixa, para as fileiras baterem.
+ *
+ * Eram 104, e 104 era a altura de uma palavra. Os cartões diziam "Ansiedade",
+ * "Luto", "Foco" — um substantivo, uma linha. Hoje dizem o que o tema resolve,
+ * e "Começar o que você adia" não cabe numa linha em meia largura.
+ *
+ * Com 104, a segunda linha do título terminava em 50 e o objeto do desenho
+ * começava em 53,5: três pontos e meio de folga entre a letra e a ilustração,
+ * o que na prática é encavalar. Os vinte pontos a mais empurram o desenho para
+ * baixo junto — ele é ancorado no pé da caixa —, e a folga vira vinte e três.
+ *
+ * O desenho continua cruzando a borda do cartão no mesmo ponto: `SOBRA_DO_DESENHO`
+ * e o tamanho não mudaram, e os dois estão presos ao pé. Subir a altura não
+ * reenquadra a cena, só afasta o texto dela.
+ */
+const ALTURA_NA_GRADE = 124;
 
 /**
  * Quanto o desenho passa da borda de baixo do cartão.

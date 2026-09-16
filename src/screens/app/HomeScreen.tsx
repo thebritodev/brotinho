@@ -27,7 +27,12 @@ import { conselhoDoDia } from '../../data/conselhos';
    precisou dela. Aqui ela responde a mesma pergunta de sempre: hoje está
    pesado? — e decide a comemoração, o selo e a ordem do carrossel. */
 import { DIA_PESADO } from '../../data/humores';
-import { ANCORA_RAPIDA, PRACTICE_TOPICS } from '../../data/practices';
+import {
+  ANCORA_RAPIDA,
+  findTopic,
+  GRUPOS_DE_PRATICAS,
+  PRACTICE_TOPICS,
+} from '../../data/practices';
 import { falaDaHome } from '../../data/falaDaHome';
 import { praticaDeHoje } from '../../data/praticaDeHoje';
 import { useAppState } from '../../state/AppStateProvider';
@@ -622,35 +627,68 @@ export function HomeScreen({
                 color: colors.textSecondary,
               }}
             >
-              {quantasPraticas} exercícios em {PRACTICE_TOPICS.length} temas, de ansiedade a luto
+              {quantasPraticas} exercícios guiados, em {PRACTICE_TOPICS.length} temas
             </Text>
           </View>
 
           {/*
-            Treze em duas colunas. O último fica sozinho na fileira e continua
-            com meia largura — esticá-lo faria o tema de baixo parecer outra
-            categoria, mais importante que os doze de cima.
+            Quatro blocos, e não uma grade de treze.
+
+            Ver `GRUPOS_DE_PRATICAS` para o corte e o motivo dele. Aqui só
+            importa a consequência de desenho: os cartões passaram a dizer o
+            que o tema resolve — "Acalmar a ansiedade" — em vez do nome do
+            assunto, e treze frases soltas numa grade são pior de ler do que
+            treze palavras. Com título em cima de cada punhado, a pessoa lê
+            quatro linhas e só então olha dois ou três cartões.
+
+            Os blocos têm tamanhos diferentes de propósito (4, 3, 2, 4): o
+            corte é pelo estado em que a pessoa está, e estado não vem em
+            porções iguais. Igualar os blocos obrigaria a mudar o critério.
+
+            O de três e o de dois deixam meia fileira vazia no fim, e o cartão
+            continua com meia largura ali — esticá-lo faria aquele tema
+            parecer mais importante que os vizinhos, que é exatamente o que
+            uma lista de saídas não pode sugerir.
           */}
-          {/* O vão entre fileiras é menor que o das colunas porque cada célula
-              já carrega embaixo a faixa em que o desenho passa da borda do
-              cartão — ver `SOBRA_DO_DESENHO`. Com 12 nos dois, as fileiras
-              ficariam com o dobro do respiro das colunas. */}
-          <View style={{ flexDirection: 'row', flexWrap: 'wrap', columnGap: 12, rowGap: 0 }}>
-            {PRACTICE_TOPICS.map((t) => (
-              <PracticeTopicCard
-                key={t.key}
-                grade
-                title={t.title}
-                icon={t.icon}
-                chave={t.key}
-                /* A chave vira cor aqui, com o tema que está no ar — `practices`
-                   é dado, e guardaria a cor do tema claro para sempre. */
-                tint={tintsDosTemas[t.key]}
-                style={{ width: (largura - 40 - 12) / 2 }}
-                onPress={() => onOpenPractices({ topico: t.key, pratica: '' })}
-              />
-            ))}
-          </View>
+          {GRUPOS_DE_PRATICAS.map((grupo) => (
+            <View key={grupo.titulo} style={{ gap: 8 }}>
+              <Text
+                style={{
+                  fontFamily: fonts.body.extraBold,
+                  fontSize: 13.5,
+                  color: colors.textSecondary,
+                }}
+              >
+                {grupo.titulo}
+              </Text>
+
+              {/* O vão entre fileiras é menor que o das colunas porque cada
+                  célula já carrega embaixo a faixa em que o desenho passa da
+                  borda do cartão — ver `SOBRA_DO_DESENHO`. Com 12 nos dois, as
+                  fileiras ficariam com o dobro do respiro das colunas. */}
+              <View style={{ flexDirection: 'row', flexWrap: 'wrap', columnGap: 12, rowGap: 0 }}>
+                {grupo.temas.map((chave) => {
+                  const tema = findTopic(chave);
+                  if (!tema) return null;
+                  return (
+                    <PracticeTopicCard
+                      key={tema.key}
+                      grade
+                      title={tema.solucao}
+                      icon={tema.icon}
+                      chave={tema.key}
+                      /* A chave vira cor aqui, com o tema que está no ar —
+                         `practices` é dado, e guardaria a cor do tema claro
+                         para sempre. */
+                      tint={tintsDosTemas[tema.key]}
+                      style={{ width: (largura - 40 - 12) / 2 }}
+                      onPress={() => onOpenPractices({ topico: tema.key, pratica: '' })}
+                    />
+                  );
+                })}
+              </View>
+            </View>
+          ))}
 
           {/*
             O broto fechando a tela.
