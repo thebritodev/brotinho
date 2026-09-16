@@ -4,7 +4,7 @@ import { Pressable, Text, View } from 'react-native';
 import { ROTULO_DO_HUMOR } from '../../data/humores';
 import { type DiaDoCalendario, moodMeses, moodWeek } from '../../state/derived';
 import { useAppState } from '../../state/AppStateProvider';
-import { fonts, type Mood, radius, useTema } from '../../theme';
+import { fonts, type Mood, radius, tracos, useTema } from '../../theme';
 import { Card } from '../core/Card';
 import { HumorComPalavra } from './HumorComPalavra';
 import { MoodFace } from './MoodFace';
@@ -45,10 +45,33 @@ import { MoodFace } from './MoodFace';
  * alto e "Triste" é baixo convida a bater o próprio recorde de felicidade.
  *
  * O segundo canal é a **carinha** — a mesma que a pessoa toca para registrar,
- * distinta por expressão e não por cor. Na semana ela cabe dentro da barra. No
- * mês e no trimestre a célula tem uns vinte pixels e não cabe nada, então ali o
- * segundo canal é **texto**: a conta por humor embaixo do gráfico. Some a
- * informação por outro caminho, sem inventar eixo nenhum.
+ * distinta por expressão e não por cor. Na semana ela cabe dentro da barra.
+ *
+ * No mês ela passou a caber, e isso mudou em 15/09/2026. Esta nota dizia que a
+ * célula tinha "uns vinte pixels e não cabe nada", e era verdade da fita: um
+ * retângulo por dia, lado a lado, trinta numa linha. A grade do calendário deu
+ * à casa uns quarenta e cinco pontos quadrados — ela já carregava o número do
+ * dia em doze —, e num quadrado desse tamanho cabem o número em dez e a carinha
+ * em vinte e dois. A razão da exceção sumiu junto com a fita, e a exceção tinha
+ * ficado.
+ *
+ * O trimestre continua só com a cor, e aqui a escolha é de leitura, não de
+ * espaço: a casa tem vinte e quatro pontos de altura e a carinha caberia. Mas
+ * são noventa dias, e noventa rostinhos numa tela não se leem um a um — viram
+ * textura. O que se lê ali é o desenho da estação, e para ele a mancha de cor é
+ * a representação certa.
+ *
+ * Nos dois casos a **conta por humor** embaixo do gráfico continua: ela é o
+ * canal que diz *quanto* de cada humor teve o período, que nem a cor nem a
+ * carinha dizem. No trimestre ela é o único segundo canal.
+ *
+ * Falta uma coisa, e está anotada porque não é resolvida: "Feliz" e "Leve" têm
+ * a mesma boca sorrindo, uma mais funda que a outra, e a vinte e dois pontos a
+ * diferença é de quase nada. Separá-las de verdade é mexer no conjunto de
+ * rostos, que é a cara do app inteiro e não deste gráfico. Enquanto isso não
+ * for feito, a ficha da App Store **não** declara "Diferenciação sem usar apenas
+ * cor" — quatro dos seis humores se distinguem pela expressão, e quatro de seis
+ * não é o que aquela caixinha promete.
  *
  * ## O mês e o trimestre são uma grade, não uma fita
  *
@@ -153,6 +176,20 @@ function semanasDoMes(dias: DiaDoCalendario[]): (DiaDoCalendario | null)[][] {
  * oitocentos pontos, e a conta por humor — que é onde mora o detalhe — ficaria
  * a dois telefones de rolagem do gráfico que ela resume.
  */
+/**
+ * O que o leitor de tela diz ao parar numa casa do calendario.
+ *
+ * Sem isto ele le so o numero — "12" —, que e a unica coisa que a casa tem
+ * escrita. O humor esta na cor e na expressao, e nenhuma das duas e texto.
+ */
+function rotuloDaCasa(dia: DiaDoCalendario): string {
+  const numero = Number(dia.date.slice(8, 10));
+  const mes = MESES_LONGOS[Number(dia.date.slice(5, 7)) - 1];
+  if (dia.futuro) return `${numero} de ${mes}, ainda nao chegou`;
+  if (!dia.mood) return `${numero} de ${mes}, sem registro`;
+  return `${numero} de ${mes}, ${ROTULO_DO_HUMOR[dia.mood]}`;
+}
+
 function CalendarioDoMes({
   mes,
   dias,
@@ -196,6 +233,8 @@ function CalendarioDoMes({
           {linha.map((dia, i) => (
             <View
               key={i}
+              accessible={comNumero && !!dia}
+              accessibilityLabel={comNumero && dia ? rotuloDaCasa(dia) : undefined}
               style={{
                 flex: 1,
                 ...(comNumero ? { aspectRatio: 1 } : { height: alturaDaCelula }),
@@ -219,18 +258,40 @@ function CalendarioDoMes({
                 <Text
                   style={{
                     fontFamily: fonts.body.bold,
-                    fontSize: 12,
                     /*
-                      Sobre a cor do humor o número precisa ser escuro; sobre a
-                      casa vazada ele acompanha o texto do tema, que no escuro é
-                      claro. Uma cor só serviria a um dos dois fundos.
+                      O número encolhe quando divide a casa com a carinha: os
+                      dois em doze pontos passam da altura do quadrado, e o que
+                      sobra cortado é o queixo do rosto.
                     */
-                    color: dia.mood ? palette.brown900 : colors.textSecondary,
+                    fontSize: dia.mood ? 10 : 12,
+                    lineHeight: dia.mood ? 12 : 16,
+                    /*
+                      Sobre a cor do humor o número usa a tinta do desenho, e
+                      não `palette.brown900`.
+
+                      Eram a mesma coisa no tema claro, e por isso o erro durou:
+                      no escuro `brown900` troca de ponta e vira creme, enquanto
+                      as cores de humor continuam claras nos dois temas — ver
+                      `moodColorsEscuros`. O número saía creme sobre pastel, e o
+                      dia registrado era o único do calendário sem data legível.
+
+                      `tracos.contorno` é a tinta escura que não segue o tema; é
+                      a mesma que a carinha usa, pelo mesmo motivo.
+
+                      Sobre a casa vazada o número acompanha o texto do tema, que
+                      no escuro é claro — ali o fundo é o do cartão, não o humor.
+                    */
+                    color: dia.mood ? tracos.contorno : colors.textSecondary,
                   }}
                 >
                   {Number(dia.date.slice(8, 10))}
                 </Text>
               )}
+              {/*
+                A carinha, sem o círculo dela: a cor já está na casa. É o
+                segundo canal do mês — ver a nota do topo do arquivo.
+              */}
+              {comNumero && !!dia?.mood && <MoodFace mood={dia.mood} size={22} semFundo />}
             </View>
           ))}
         </View>

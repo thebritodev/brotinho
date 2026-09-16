@@ -16,9 +16,18 @@ type Props = {
   size?: number;
   /** Contorno mais forte quando o humor esta escolhido. */
   selected?: boolean;
+  /**
+   * Desenha so a expressao, sem o circulo colorido embaixo.
+   *
+   * Serve para quando a cor do humor ja esta na peca que recebe o rosto — a
+   * casa do calendario do mes, por exemplo. Ali o circulo seria da mesma cor
+   * do fundo e so acrescentaria um anel de contorno dentro de um quadrado
+   * arredondado, que e ruido.
+   */
+  semFundo?: boolean;
 };
 
-export function MoodFace({ mood, size = 44, selected = false }: Props) {
+export function MoodFace({ mood, size = 44, selected = false, semFundo = false }: Props) {
   const { moodColors, palette } = useTema();
   /*
     A carinha usa a tinta escura nos dois temas.
@@ -50,14 +59,16 @@ export function MoodFace({ mood, size = 44, selected = false }: Props) {
   return (
     // viewBox centrada em 0,0 para as coordenadas do rosto valerem direto.
     <Svg viewBox="-26 -26 52 52" width={size} height={size}>
-      <Circle
-        cx={0}
-        cy={0}
-        r={23}
-        fill={moodColors[mood]}
-        stroke={selected ? tracos.folha : palette.brown200}
-        strokeWidth={selected ? 3 : 2}
-      />
+      {!semFundo && (
+        <Circle
+          cx={0}
+          cy={0}
+          r={23}
+          fill={moodColors[mood]}
+          stroke={selected ? tracos.folha : palette.brown200}
+          strokeWidth={selected ? 3 : 2}
+        />
+      )}
       <G>
         {olho(-8)}
         {olho(8)}

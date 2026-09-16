@@ -188,6 +188,31 @@ de responder a sugestão** — motivo a mais para o lembrete não virar cobranç
 43 `accessibilityLabel` e 53 `accessibilityRole` para 52 elementos tocáveis, e
 `allowFontScaling` nunca desligado. Coberto.
 
+> **A lacuna apareceu depois, em 15/09/2026, e era o calendário do humor.**
+>
+> "Seu humor ao longo do tempo" codificava o humor **só pela cor da casa**, e
+> as seis cores são pastéis de luminosidade parecida de propósito. Quem não
+> distingue matiz — e são cerca de 8% dos homens — abria a tela que existe
+> para responder *"como foi o meu mês?"* e via trinta quadradinhos iguais. A
+> casa também não tinha rótulo nenhum: o leitor de tela lia "12", que é a
+> única coisa ali que é texto.
+>
+> O mês passou a desenhar a **carinha** dentro da casa, e cada casa a dizer
+> *"12 de setembro, Ansioso"*. O trimestre ficou como estava — ver a nota no
+> topo de `HumorNoTempo.tsx` para o porquê.
+>
+> Junto saiu um defeito que estava no ar desde o redesenho: no tema escuro o
+> número do dia sobre a cor do humor era **creme sobre pastel**, contraste de
+> 1,0. `palette.brown900` troca de ponta entre os temas e a cor do humor não.
+> Nenhum dos dois medidores pegava — `confere-cor-do-texto.js` só procura
+> `<Text>` sem cor, e `confere-contraste.js` não media esse par. Mede agora.
+>
+> **Continua em aberto:** "Feliz" e "Leve" têm a mesma boca, e a vinte e dois
+> pontos a diferença de profundidade é quase nada. São quatro dos seis humores
+> distinguíveis sem cor, e é por isso que a ficha da App Store declara
+> "Contraste suficiente" e "Movimento reduzido" mas **não** "Diferenciação sem
+> usar apenas cor".
+
 ### A exportação era uma porta que só abria para fora
 
 Esta rendeu. O comentário de `services/exportarDados.ts` já dizia:

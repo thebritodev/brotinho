@@ -101,10 +101,12 @@ function razao(frente, fundo) {
       **matiz**, e razão de contraste só enxerga luminosidade. Amarelo-claro e
       verde-claro podem ter a mesma luminância e ainda assim serem óbvios.
 
-      A pergunta certa sobre eles é outra, e não é de contraste: o gráfico
-      codifica humor **só** por cor, o que não serve para quem não distingue
-      matiz. Isso vale para os dois temas e está anotado em `docs/retencao.md`
-      como achado em aberto — não é coisa que este medidor resolva.
+      A pergunta certa sobre eles é outra, e não é de contraste: se a matiz é
+      o único canal, o gráfico não diz nada a quem não distingue matiz. Desde
+      15/09/2026 ela não é: a semana e o mês desenham a carinha junto da cor,
+      e o trimestre continua só com cor, com a conta por humor embaixo. As
+      duas linhas abaixo medem o que esse segundo canal precisa para existir —
+      a tinta do desenho sobre cada uma das seis cores.
     */
 
     // Texto sobre os três fundos onde ele de fato aparece.
@@ -191,6 +193,28 @@ function razao(frente, fundo) {
 
     for (const [humor, cor] of Object.entries(t.moodColors)) {
       linha(`carinha "${humor}" sobre a cor do humor`, TINTA_DA_CARINHA, cor, AA_GRANDE);
+    }
+
+    /*
+      O número do dia no calendário do mês, sobre a cor do humor.
+
+      Ele usa a mesma tinta da carinha, e isso é uma correção, não um detalhe:
+      a versão anterior usava `palette.brown900`. No tema claro as duas são o
+      mesmo hex, e por isso o erro durou — no escuro `brown900` troca de ponta
+      e vira creme, enquanto a cor do humor continua clara nos dois temas. O
+      número saía creme sobre pastel, e o dia registrado era o único do
+      calendário sem data legível.
+
+      A régua é a de texto normal, e não os 3,0 da carinha: dez pontos, texto
+      de verdade, lido algarismo a algarismo.
+
+      O que esta linha guarda é a **tinta contra a paleta**: se alguém
+      escurecer as cores de humor, ela reprova. O que ela não alcança é a
+      fiação do componente — trocar a cor de volta lá dentro passa por aqui.
+      Isso está anotado no próprio `HumorNoTempo.tsx`, junto da linha.
+    */
+    for (const [humor, cor] of Object.entries(t.moodColors)) {
+      linha(`número do dia sobre "${humor}"`, TINTA_DA_CARINHA, cor, AA_TEXTO);
     }
 
     /*
