@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { View } from 'react-native';
 
-import { BottomNav, ScreenTransition, type TabKey } from '../components';
+import { BottomNav, ScreenTransition, useModoDaTransicao, type TabKey } from '../components';
 import { BrotinhoScreen } from '../screens/app/BrotinhoScreen';
 import { HomeScreen } from '../screens/app/HomeScreen';
 import { GardenScreen } from '../screens/app/GardenScreen';
@@ -250,10 +250,27 @@ export function MainTabs() {
     }
   };
 
+  /** 0 é uma aba; 1 é qualquer tela empilhada por cima dela. */
+  const modoDaTela = useModoDaTransicao(sub ?? tab, sub ? 1 : 0);
+
   return (
     <View style={{ flex: 1, backgroundColor: colors.bg }}>
-      {/* Abrir uma tela empilhada desliza da direita; trocar de aba só aparece. */}
-      <ScreenTransition transitionKey={sub ?? tab} mode={sub ? 'forward' : 'fade'}>
+      {/*
+        Abrir uma tela empilhada desliza da direita, fechar desliza de volta,
+        e trocar de aba só aparece.
+
+        O `fechar` é o que faltava. A condição aqui era `sub ? forward :
+        fade`: com `sub` em branco — que é exatamente o caso de estar
+        voltando — sobrava o `fade`, e voltar de uma prática ficava
+        indistinguível de trocar de aba. Quem reclamou disse "travada seca",
+        e a parte "seca" era isto.
+
+        Aba com aba continua sendo `fade` de propósito: abas são vizinhas,
+        não uma mais funda que a outra, e deslizar entre elas inventaria uma
+        hierarquia que não existe. `useModoDaTransicao` devolve `fade`
+        sozinho quando a profundidade não muda.
+      */}
+      <ScreenTransition transitionKey={sub ?? tab} mode={modoDaTela}>
         {sub ? renderSub() : renderTab()}
       </ScreenTransition>
       <BottomNav

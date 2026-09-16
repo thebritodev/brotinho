@@ -56,7 +56,7 @@ export { WindowScene } from './brand/WindowScene';
 export { CountUp } from './feedback/CountUp';
 export { StatRow, type Stat } from './feedback/StatRow';
 
-export { ScreenTransition, type TransitionMode } from './ScreenTransition';
+export { ScreenTransition, useModoDaTransicao, type TransitionMode } from './ScreenTransition';
 
 export { BottomNav, type TabKey } from './navigation/BottomNav';
 export { TopBar } from './navigation/TopBar';

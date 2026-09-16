@@ -10,7 +10,6 @@ import Svg, {
   Rect,
   Stop,
   Text as SvgText,
-  TSpan,
 } from 'react-native-svg';
 
 import { fraseQueODiaDemonstra } from '../../data/composta';
@@ -397,35 +396,50 @@ export function CenaDoDiario({ fundo, passo = 0 }: { fundo: string; passo?: numb
  * uma história em vez de mostrar um objeto: balão entrando de um lado, broto
  * saindo do outro.
  */
-/** Quanto dura o desmanche da frase no cartão, e a espera antes dele. */
-const DEMONSTRACAO = 2200;
 /**
- * O tempo parado antes de começar.
+ * Quanto cada palavra leva para cair, do alto até o adubo.
  *
- * A frase precisa ser **lida** antes de sumir. Sem a espera, quem chega ao
- * cartão pega o desmanche no meio e não vê o que estava escrito — o que
- * transforma a demonstração num borrão.
+ * O ciclo inteiro é este número vezes o tamanho da frase — três ou quatro
+ * palavras, conforme o dia. Cada uma tem a sua fatia do ciclo e ninguém
+ * atropela ninguém: quando a última acaba de sumir, a primeira recomeça, e a
+ * volta fecha sem emenda.
+ *
+ * Mil e cem milissegundos é o tempo de ler uma palavra sem pressa. Mais rápido
+ * vira chuva de letras; mais devagar, e o cartão parece travado.
  */
-const ESPERA_PARA_LER = 900;
+const QUEDA_DA_PALAVRA = 1100;
 
-/** Cabe nesta largura de balão, contando letras. */
-const LETRAS_POR_LINHA = 13;
+/**
+ * O tempo parado antes da primeira queda.
+ *
+ * O cartão entra no carrossel deslizando. Uma palavra caindo no meio desse
+ * deslize é movimento dentro de movimento, e não se lê nem uma coisa nem
+ * outra.
+ */
+const ESPERA_PARA_LER = 500;
 
-/** Quebra a frase em linhas curtas, sem cortar palavra. */
-function emLinhas(frase: string): string[][] {
-  const linhas: string[][] = [[]];
-  let largura = 0;
-  for (const palavra of frase.split(/\s+/).filter(Boolean)) {
-    const custo = palavra.length + (largura ? 1 : 0);
-    if (largura && largura + custo > LETRAS_POR_LINHA) {
-      linhas.push([palavra]);
-      largura = palavra.length;
-    } else {
-      linhas[linhas.length - 1].push(palavra);
-      largura += custo;
-    }
-  }
-  return linhas;
+/** De onde a palavra parte e onde ela encosta, na altura da cena. */
+const ALTO = 34;
+const SOLO = 132;
+
+/** A coluna por onde elas descem, à esquerda do broto que nasce em 232. */
+const COLUNA = 118;
+
+/**
+ * A opacidade de uma palavra ao longo da própria queda.
+ *
+ * Ela **entra** também, e não só sai. Sem a entrada, o primeiro quadro de cada
+ * volta punha a palavra no alto já opaca, do nada — e num laço isso é um
+ * piscar a cada ciclo, na mesma posição, que é o tipo de coisa que o olho
+ * aprende a esperar e passa a incomodar.
+ *
+ * Ela fica cheia do primeiro sétimo até quase dois terços do caminho, que é
+ * onde dá para ler. Dali para baixo some, e chega no chão em zero.
+ */
+function opacidadeDaQueda(t: number): number {
+  const entra = Math.min(1, t / 0.14);
+  const sai = 1 - Math.max(0, (t - 0.62) / 0.38);
+  return entra * sai;
 }
 
 /**
@@ -457,23 +471,13 @@ export function CenaDaComposta({
   demonstrando = false,
 }: {
   fundo: string;
-  /** O cartão está à vista: hora de desmanchar a frase. */
+  /** O cartão está à vista: hora de deixar a frase cair. */
   demonstrando?: boolean;
 }) {
   const id = useId().replace(/[^a-zA-Z0-9]/g, '');
   const menosMovimento = useMenosMovimento();
 
-  const linhas = useMemo(() => emLinhas(fraseQueODiaDemonstra()), []);
-  /** Quantas palavras vieram antes de cada linha, para o ritmo continuar. */
-  const antesDaLinha = useMemo(() => {
-    let n = 0;
-    return linhas.map((l) => {
-      const inicio = n;
-      n += l.length;
-      return inicio;
-    });
-  }, [linhas]);
-  const totalDePalavras = antesDaLinha[antesDaLinha.length - 1] + linhas[linhas.length - 1].length;
+  const palavras = useMemo(() => fraseQueODiaDemonstra().split(/\s+/).filter(Boolean), []);
 
   /*
     O valor animado vira número comum, pelo mesmo motivo de sempre: `Animated`
@@ -489,43 +493,32 @@ export function CenaDaComposta({
   }, [valor]);
 
   useEffect(() => {
-    if (!demonstrando || menosMovimento) return;
     valor.setValue(0);
-    const anim = Animated.timing(valor, {
-      toValue: 1,
-      duration: DEMONSTRACAO,
-      delay: ESPERA_PARA_LER,
-      easing: Easing.inOut(Easing.quad),
-      useNativeDriver: false,
-    });
-    anim.start();
-    return () => anim.stop();
-  }, [demonstrando, menosMovimento, valor]);
+    if (!demonstrando || menosMovimento) return;
+    /*
+      Linear, e não suavizado nas pontas.
 
-  /*
-    A mesma conta da tela da Composta, para o cartão e a ferramenta falarem a
-    mesma língua: cada palavra some num ritmo próprio, e as primeiras da frase
-    se desmancham antes.
-  */
-  const opacidadeDa = (indice: number) => {
-    const t = Math.max(
-      0,
-      Math.min(1, p * 1.5 - indice * (0.45 / Math.max(1, totalDePalavras - 1))),
+      Uma queda com `easing` desacelera no fim — o que descreve uma coisa
+      pousando, e não uma coisa se desfazendo. E, num laço, a emenda entre o
+      fim lento e o começo lento aparece como uma batida a cada volta.
+    */
+    const laco = Animated.loop(
+      Animated.timing(valor, {
+        toValue: 1,
+        duration: QUEDA_DA_PALAVRA * palavras.length,
+        easing: Easing.linear,
+        useNativeDriver: false,
+      }),
     );
-    return 1 - 0.85 * t;
-  };
+    const espera = setTimeout(() => laco.start(), ESPERA_PARA_LER);
+    return () => {
+      clearTimeout(espera);
+      laco.stop();
+    };
+  }, [demonstrando, menosMovimento, valor, palavras.length]);
 
-  /*
-    O bloco de texto na barriga do balão — e baixo, não centrado.
-
-    O selo do cartão ("30 segundos", "para agora") mora no canto de cima à
-    esquerda, e é exatamente por cima do topo do balão que ele cai. Isso nunca
-    incomodou enquanto o balão tinha duas barras abstratas: o selo cobria uma
-    barra e ninguém reparava. Com palavras de verdade lá dentro, ele passou a
-    cobrir a primeira linha da frase — que é justamente a que se lê primeiro.
-  */
-  const alturaDaLinha = 17;
-  const primeiraBase = -1 - ((linhas.length - 1) * alturaDaLinha) / 2 + 4.5;
+  /** A fatia do ciclo que cabe a cada palavra: uma inteira, sem sobra. */
+  const fatia = 1 / palavras.length;
 
   return (
     <Cena fundo={fundo}>
@@ -544,44 +537,6 @@ export function CenaDaComposta({
           <Stop offset="1" stopColor={TERRA_SOMBRA} stopOpacity={0} />
         </RadialGradient>
       </Defs>
-
-      {/*
-        O balão grande, inclinado, entrando na terra pelo canto de cima. As duas
-        linhas dizem "palavras" sem dizer quais — o que a pessoa escreve nunca
-        vira desenho.
-      */}
-      <G transform="translate(98 56) rotate(-11)">
-        <Path
-          d="M-60 -32 C-60 -37.5 -55.5 -42 -50 -42 L50 -42 C55.5 -42 60 -37.5 60 -32 L60 10 C60 15.5 55.5 20 50 20 L-18 20 L-36 37 L-32 20 L-50 20 C-55.5 20 -60 15.5 -60 10 Z"
-          fill={palette.cream100}
-          stroke={tracos.contorno}
-          strokeWidth={2.8}
-          strokeLinejoin="round"
-        />
-        {/*
-          As palavras, onde antes havia duas barras.
-
-          `TSpan` flui sozinho dentro do `Text`: cada palavra fica onde a
-          anterior terminou, sem eu precisar medir largura nenhuma — que é o que
-          torna isto seguro com uma fonte que eu não posso medir daqui.
-        */}
-        {linhas.map((palavras, l) => (
-          <SvgText
-            key={l}
-            x={-42}
-            y={primeiraBase + l * alturaDaLinha}
-            fontSize={13}
-            fontFamily={fonts.body.bold}
-            fill={palette.brown700}
-          >
-            {palavras.map((palavra, i) => (
-              <TSpan key={`${l}-${i}`} fillOpacity={opacidadeDa(antesDaLinha[l] + i)}>
-                {i ? ` ${palavra}` : palavra}
-              </TSpan>
-            ))}
-          </SvgText>
-        ))}
-      </G>
 
       {/* O calor de dentro do monte, e a sombra dele no chão. */}
       <Ellipse cx={150} cy={136} rx={80} ry={38} fill={`url(#brasa-${id})`} />
@@ -621,6 +576,61 @@ export function CenaDaComposta({
           opacity={0.5}
         />
       ))}
+
+      {/*
+        As palavras caindo — uma de cada vez, do alto até o adubo.
+
+        ## Por que o balão saiu
+
+        A frase morava dentro de um balão de fala inclinado, e as palavras
+        desbotavam no lugar, da esquerda para a direita. O balão dizia "alguém
+        falou isto", que é verdade, mas custava metade do cartão para dizer
+        uma coisa que já está escrita logo abaixo dele: que a Composta é
+        repetir em voz alta.
+
+        O que ele atrapalhava é o resto. Desbotar no lugar mostra a frase
+        **sumindo**; cair no monte mostra a frase **virando adubo**, que é a
+        palavra que dá nome à ferramenta e a metáfora que o app inteiro usa. A
+        terra já estava desenhada ali embaixo, e não recebia nada.
+
+        ## Uma de cada vez, e em laço
+
+        Cada palavra tem a sua fatia inteira do ciclo, e por isso duas nunca
+        dividem a coluna: dá para ler cada uma antes de a seguinte aparecer.
+        Quando a última encosta no chão, a primeira parte de novo do alto — e a
+        volta fecha sem emenda porque a opacidade começa e termina em zero.
+
+        A coluna é 118, à esquerda do broto que nasce em 232: as palavras
+        descem de um lado e a planta sobe do outro, que é a frase inteira da
+        ferramenta num cartão só.
+      */}
+      {palavras.map((palavra, i) => {
+        const t = Math.max(0, Math.min(1, (p - i * fatia) / fatia));
+        const opacidade = opacidadeDaQueda(t);
+        if (opacidade <= 0.001) return null;
+        /*
+          A palavra tomba um pouco enquanto desce, para um lado ou para o outro
+          conforme a posição dela na frase. Caindo reta, parece objeto descendo
+          de elevador; tombando, parece folha.
+        */
+        const giro = (i % 2 === 0 ? -1 : 1) * t * 9;
+        const y = ALTO + t * (SOLO - ALTO);
+        return (
+          <SvgText
+            key={`${i}-${palavra}`}
+            x={COLUNA}
+            y={y}
+            fontSize={25}
+            fontFamily={fonts.body.bold}
+            fill={tracos.contorno}
+            textAnchor="middle"
+            fillOpacity={opacidade}
+            transform={`rotate(${giro} ${COLUNA} ${y})`}
+          >
+            {palavra}
+          </SvgText>
+        );
+      })}
 
       {/*
         O broto que sai do adubo — o fim da história.
