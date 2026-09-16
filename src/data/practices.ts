@@ -237,6 +237,15 @@ export const PRACTICE_TOPICS: PracticeTopic[] = [
           { title: 'Releia no dia seguinte', text: 'Quase sempre parece menor no papel do que parecia na cabeça.' },
         ],
         why: 'Nomear o que se sente costuma tirar força do sentimento. Escrever cria distância: você deixa de ser a ansiedade e passa a ser quem escreve sobre ela.',
+        guide: {
+          kind: 'steps',
+          steps: [
+            { label: 'Escreva: "Oi, ansiedade"', text: 'Trate como alguém que chegou sem avisar, não como um defeito seu.', seconds: 60 },
+            { label: 'Conte o que ela tenta proteger', text: 'Ela quase sempre acha que está te defendendo de alguma coisa. Escreva do quê.', seconds: 150 },
+            { label: 'Diga o que você vai fazer mesmo assim', text: 'Não precisa expulsá-la. Só deixe claro quem decide.', seconds: 120 },
+            { label: 'Deixe a carta para amanhã', text: 'Releia no dia seguinte: quase sempre parece menor no papel.', seconds: 45 },
+          ],
+        },
       },
     ],
   },
@@ -262,6 +271,15 @@ export const PRACTICE_TOPICS: PracticeTopic[] = [
           { title: 'Pergunte o que ela está apontando', text: 'Tristeza costuma marcar uma perda. Do que você sente falta?' },
         ],
         why: 'Chama-se rotulação afetiva. Pôr o sentimento em palavras específicas costuma diminuir o tamanho dele. "Estou mal" não é nome: é um balde onde cabe tudo.',
+        guide: {
+          kind: 'steps',
+          steps: [
+            { label: 'Escreva sem editar', text: 'Frases quebradas servem. Ninguém vai ler.', seconds: 90 },
+            { label: 'Troque "estou mal" pela palavra certa', text: 'Desamparo? Saudade? Vergonha? Cansaço? Vazio?', seconds: 60 },
+            { label: 'Aponte onde dói no corpo', text: 'Peito, garganta, ombros, estômago. Quase sempre tem endereço.', seconds: 45 },
+            { label: 'Do que você sente falta?', text: 'Tristeza costuma marcar uma perda.', seconds: 45 },
+          ],
+        },
       },
       {
         key: 'um-passo-pequeno',
@@ -299,6 +317,15 @@ export const PRACTICE_TOPICS: PracticeTopic[] = [
           { title: 'Faça por você agora', text: 'Você não precisa merecer isso primeiro.' },
         ],
         why: 'Quase todo mundo tem um repertório de cuidado pronto e só não aplica em si. A autocompaixão pesquisada por Kristin Neff não é elogio: é tratar-se com a mesma decência com que você trataria alguém que sofre.',
+        guide: {
+          kind: 'steps',
+          steps: [
+            { label: 'Pense em quem você mais ama, triste assim', text: 'Mesma situação, mesmo peso.', seconds: 60 },
+            { label: 'Escreva o que você faria por essa pessoa', text: 'Não o que diria. O que faria: sentar junto, fazer um chá, não cobrar nada.', seconds: 150 },
+            { label: 'Escolha a mais fácil da lista', text: 'Uma só.', seconds: 45 },
+            { label: 'Faça por você agora', text: 'Você não precisa merecer isso primeiro.', seconds: 120 },
+          ],
+        },
       },
     ],
   },
@@ -325,6 +352,15 @@ export const PRACTICE_TOPICS: PracticeTopic[] = [
           { title: 'Termine sem fechar', text: 'Não precisa de despedida. Você pode escrever de novo depois.' },
         ],
         why: 'Escrever para alguém que não pode responder tira o peso de ter que dizer em voz alta, e o que ficou por dizer costuma ser justamente o que mais pesa. Continuar conversando com quem se foi é comum, e não é sinal de que você não aceitou.',
+        guide: {
+          kind: 'steps',
+          steps: [
+            { label: 'Comece como conversa', text: 'Sem começo formal. Continue de onde vocês pararam.', seconds: 60 },
+            { label: 'Conte o que ficou por dizer', text: 'O agradecimento, a briga, o pedido de desculpa. O que estiver ali.', seconds: 200 },
+            { label: 'Diga como as coisas estão agora', text: 'O que mudou desde então. O que essa pessoa perderia de ver.', seconds: 150 },
+            { label: 'Termine sem fechar', text: 'Não precisa de despedida. Você pode escrever de novo depois.', seconds: 60 },
+          ],
+        },
       },
       {
         key: 'o-que-ficou-de-heranca',
@@ -340,6 +376,15 @@ export const PRACTICE_TOPICS: PracticeTopic[] = [
           { title: 'Repare que aquilo continua acontecendo', text: 'Está em você, e está em uso.' },
         ],
         why: '"O que ficou" é uma pergunta diferente de "o que eu perdi", e as duas são verdadeiras ao mesmo tempo. Olhar para o que continua não apaga a falta — coloca ela ao lado de outra coisa.',
+        guide: {
+          kind: 'steps',
+          steps: [
+            { label: 'Liste manias e frases que pegou dela', text: 'O jeito de fazer café, a expressão que você repete sem perceber.', seconds: 150 },
+            { label: 'O que você faz melhor por causa dela', text: 'Ensinado de propósito, ou aprendido de tanto conviver.', seconds: 120 },
+            { label: 'Escolha uma para fazer hoje', text: 'A mais fácil da lista.', seconds: 45 },
+            { label: 'Repare que aquilo continua', text: 'Está em você, e está em uso.', seconds: 45 },
+          ],
+        },
       },
       {
         key: 'quando-vem-em-onda',
@@ -438,6 +483,15 @@ export const PRACTICE_TOPICS: PracticeTopic[] = [
           { title: 'Feche o caderno', text: 'O gesto de fechar conta. Ficou registrado, pode soltar.' },
         ],
         why: 'Existe um estudo conhecido em que pessoas que escreviam a lista de tarefas do dia seguinte antes de dormir adormeciam mais rápido do que quem escrevia sobre o que já tinha feito. A cabeça segura o que não foi anotado.',
+        guide: {
+          kind: 'steps',
+          steps: [
+            { label: 'Escreva o que ficou em aberto', text: 'Tudo que a cabeça insiste em lembrar. Lista solta, sem organizar.', seconds: 120 },
+            { label: 'Marque o que é do dia seguinte', text: 'Só marcar já basta. Você não precisa resolver agora.', seconds: 45 },
+            { label: 'Uma frase sobre o dia', text: 'Como ele foi, em uma linha. Boa ou ruim, tanto faz.', seconds: 45 },
+            { label: 'Feche o caderno', text: 'O gesto de fechar conta. Ficou registrado, pode soltar.', seconds: 30 },
+          ],
+        },
       },
     ],
   },
@@ -483,6 +537,15 @@ export const PRACTICE_TOPICS: PracticeTopic[] = [
           { title: 'Dobre para frente', text: 'Sentado ou em pé, deixe o tronco cair solto. Deixe a cabeça pesar.' },
         ],
         why: 'Estresse prolongado mantém músculos em contração baixa e constante, principalmente pescoço e ombros. Alongar interrompe esse padrão e aumenta o fluxo sanguíneo — o alívio é físico e imediato.',
+        guide: {
+          kind: 'steps',
+          steps: [
+            { label: 'Pescoço', text: 'Incline a cabeça para um lado, sem forçar com a mão. Troque no meio.', seconds: 60 },
+            { label: 'Braços acima da cabeça', text: 'Entrelace os dedos, palmas para cima, e estique. Respire fundo duas vezes.', seconds: 50 },
+            { label: 'Torção sentada', text: 'Gire o tronco apoiando a mão no encosto. Troque de lado.', seconds: 60 },
+            { label: 'Dobre para a frente', text: 'Deixe o tronco cair solto, e a cabeça pesar.', seconds: 50 },
+          ],
+        },
       },
       {
         key: 'ombros',
@@ -497,6 +560,15 @@ export const PRACTICE_TOPICS: PracticeTopic[] = [
           { title: 'Repare onde ficaram', text: 'Quase sempre mais baixos do que estavam. Esse é o ponto.' },
         ],
         why: 'Elevar os ombros é uma resposta automática de proteção. Como é automática, você não percebe que está fazendo. Exagerar de propósito e soltar devolve o controle voluntário sobre o músculo.',
+        guide: {
+          kind: 'steps',
+          steps: [
+            { label: 'Suba os ombros até as orelhas', text: 'Bem alto. Segure contando até cinco.', seconds: 20 },
+            { label: 'Deixe cair de uma vez', text: 'Solte sem controlar a descida. Repita três vezes.', seconds: 30 },
+            { label: 'Gire para trás', text: 'Cinco círculos lentos e amplos.', seconds: 40 },
+            { label: 'Repare onde eles ficaram', text: 'Quase sempre mais baixos do que estavam. Esse é o ponto.', seconds: 20 },
+          ],
+        },
       },
     ],
   },
@@ -542,8 +614,28 @@ export const PRACTICE_TOPICS: PracticeTopic[] = [
           { title: 'Marque com quem você não fala há mais de um mês', text: 'Sem culpa. É só um mapa.' },
         ],
         why: 'A solidão distorce a leitura social: faz parecer que ninguém se importa e que nunca ninguém se importou. Escrever nomes e fatos coloca evidência contra uma impressão — e a impressão costuma perder.',
+        guide: {
+          kind: 'steps',
+          steps: [
+            { label: 'Liste quem apareceu num momento difícil', text: 'Vale quem apareceu uma vez só. Vale gente com quem você não fala mais.', seconds: 150 },
+            { label: 'Escreva o que cada um fez', text: 'Concreto: ficou ao telefone, buscou você, mandou mensagem todo dia.', seconds: 120 },
+            { label: 'Marque com quem você não fala há um mês', text: 'Sem culpa. É só um mapa.', seconds: 60 },
+          ],
+        },
       },
       {
+        /*
+          A outra sem guia, pela mesma razão da "Uma hora sem vitrine".
+
+          O exercício é ficar meia hora num lugar com gente, sem precisar
+          falar com ninguém. Um guia poria o telefone na mão durante a meia
+          hora inteira, e a voz o poria no ouvido — no meio de um café.
+
+          As duas exceções seguem a mesma regra, e ela vale a pena ficar
+          escrita: **prática que pede para a pessoa sair do app não ganha
+          guia.** Conduzir é bom em trinta e nove das quarenta e uma; nestas
+          duas, conduzir é atrapalhar.
+        */
         key: 'presenca-sem-conversa',
         title: 'Presença sem conversa',
         duration: '30 minutos',
@@ -603,6 +695,14 @@ export const PRACTICE_TOPICS: PracticeTopic[] = [
           { title: 'Releia no dia seguinte', text: 'Aí sim decida se alguma coisa dali precisa virar conversa de verdade.' },
         ],
         why: 'A escrita expressiva dá saída ao que está preso sem os custos de dizer no pico. E o intervalo de um dia é o que protege as relações: quase nenhuma decisão tomada no auge da raiva sobrevive ao dia seguinte.',
+        guide: {
+          kind: 'steps',
+          steps: [
+            { label: 'Escreva para a pessoa, sem poupar', text: 'Ninguém vai ler. Injusto pode. Exagerado pode.', seconds: 240 },
+            { label: 'Diga o que você não diria na frente dela', text: 'É justamente essa parte que está te consumindo.', seconds: 150 },
+            { label: 'Guarde sem enviar', text: 'Vinte e quatro horas. Não apague, não mande. Só espere.', seconds: 45 },
+          ],
+        },
       },
       {
         key: 'o-que-estava-embaixo',
@@ -618,6 +718,15 @@ export const PRACTICE_TOPICS: PracticeTopic[] = [
           { title: 'Reescreva a frase com essa emoção', text: '"Fiquei com raiva" vira "me senti descartado". É outra conversa.' },
         ],
         why: 'A raiva é frequentemente uma emoção secundária: chega por cima de uma mais vulnerável, porque protege melhor. Enquanto ela é a única nomeada, o que de fato dói fica sem tratamento.',
+        guide: {
+          kind: 'steps',
+          steps: [
+            { label: 'Descreva o que aconteceu em uma frase', text: 'Só o fato, sem adjetivo.', seconds: 60 },
+            { label: 'O que foi ameaçado?', text: 'Sua dignidade? Sua segurança? Algo que você considera justo?', seconds: 90 },
+            { label: 'Procure a emoção de baixo', text: 'Quase sempre é mágoa, medo, vergonha ou impotência. Nomeie.', seconds: 90 },
+            { label: 'Reescreva a frase com ela', text: '"Fiquei com raiva" vira "me senti descartado". É outra conversa.', seconds: 75 },
+          ],
+        },
       },
     ],
   },
@@ -665,6 +774,15 @@ export const PRACTICE_TOPICS: PracticeTopic[] = [
           { title: 'Faça só esse', text: 'O resto da lista não é para agora.' },
         ],
         why: 'A tarefa que trava é quase sempre a que não tem primeiro passo definido — a cabeça encara o bloco inteiro e recua. Quebrar até o absurdo tira a decisão do caminho: não sobra o que avaliar, só o que fazer.',
+        guide: {
+          kind: 'steps',
+          steps: [
+            { label: 'Escreva a tarefa como ela está na cabeça', text: 'Provavelmente algo tipo "resolver o imposto".', seconds: 45 },
+            { label: 'Quebre em quatro ou cinco partes', text: 'Ainda vai parecer grande.', seconds: 75 },
+            { label: 'Quebre a primeira de novo', text: 'E de novo, até o primeiro passo parecer bobo de tão pequeno.', seconds: 75 },
+            { label: 'Faça só esse', text: 'O resto da lista não é para agora.', seconds: 45 },
+          ],
+        },
       },
       {
         key: 'custo-de-adiar',
@@ -680,6 +798,15 @@ export const PRACTICE_TOPICS: PracticeTopic[] = [
           { title: 'Compare com o tempo real da tarefa', text: 'Quase sempre carregar custa mais caro do que fazer.' },
         ],
         why: 'Adiar alivia agora e cobra depois, e a conta chega em parcelas invisíveis: atenção ocupada, sono pior, culpa de fundo. Tornar esse custo explícito equilibra uma comparação que a cabeça costuma fazer torta.',
+        guide: {
+          kind: 'steps',
+          steps: [
+            { label: 'Escreva o que adiar já te custou', text: 'Prazo, dinheiro, uma conversa que ficou pior.', seconds: 75 },
+            { label: 'Inclua o custo que ninguém vê', text: 'Lembrar disso toda vez que deita. Acordar com isso. Isso conta.', seconds: 60 },
+            { label: 'Como seria não ter mais isso na cabeça', text: 'Descreva a sensação, não a tarefa.', seconds: 60 },
+            { label: 'Compare com o tempo real da tarefa', text: 'Quase sempre carregar custa mais caro do que fazer.', seconds: 30 },
+          ],
+        },
       },
     ],
   },
@@ -705,6 +832,15 @@ export const PRACTICE_TOPICS: PracticeTopic[] = [
           { title: 'Troque para "você"', text: 'Releia endereçando a si mesmo. É a mesma carta, e agora é sua.' },
         ],
         why: 'É a prática central da autocompaixão pesquisada por Kristin Neff. Quase todo mundo tem um repertório de gentileza pronto — só não o aplica em si. A troca de destinatário torna esse repertório acessível.',
+        guide: {
+          kind: 'steps',
+          steps: [
+            { label: 'Pense na coisa em que você mais se cobra', text: 'Aquela em que você é mais duro consigo.', seconds: 60 },
+            { label: 'Imagine um amigo te contando isso', text: 'Exatamente a mesma situação, dita por alguém de quem você gosta.', seconds: 60 },
+            { label: 'Escreva o que você diria a ele', text: 'Com as palavras que usaria de verdade.', seconds: 180 },
+            { label: 'Troque para "você"', text: 'Releia endereçando a si mesmo. É a mesma carta, e agora é sua.', seconds: 75 },
+          ],
+        },
       },
       {
         key: 'tres-conquistas',
@@ -743,6 +879,15 @@ export const PRACTICE_TOPICS: PracticeTopic[] = [
           { title: 'Releia a lista de qualidades', text: 'Não é o que você acha de si. É o que você já demonstrou.' },
         ],
         why: 'Elogio não gruda em quem não acredita nele — a cabeça descarta como exagero. Evidência gruda. Listar o que você atravessou substitui opinião por histórico, que é bem mais difícil de discutir consigo mesmo.',
+        guide: {
+          kind: 'steps',
+          steps: [
+            { label: 'Liste três coisas difíceis que já passaram', text: 'Na época pareciam sem saída. E passaram.', seconds: 120 },
+            { label: 'Escreva o que você fez em cada uma', text: 'Concreto. Aguentou, pediu ajuda, mudou de rota, esperou.', seconds: 150 },
+            { label: 'Nomeie a qualidade que aquilo exigiu', text: 'Teimosia, paciência, coragem, humildade. Uma palavra por item.', seconds: 60 },
+            { label: 'Releia só as qualidades', text: 'Não é o que você acha de si. É o que você já demonstrou.', seconds: 45 },
+          ],
+        },
       },
       {
         key: 'cinco-minutos-de-gentileza',
@@ -981,6 +1126,15 @@ export const PRACTICE_TOPICS: PracticeTopic[] = [
           { title: 'Pare antes de cansar', text: 'Cinco minutos de pausa longe da tela. Parar cedo é o que permite voltar.' },
         ],
         why: 'Cada troca de tarefa cobra um custo de retomada que pode passar de vários minutos. O ganho não vem do cronômetro, e sim da decisão antecipada do que você não vai fazer nesse intervalo.',
+        guide: {
+          kind: 'steps',
+          steps: [
+            { label: 'Escolha uma tarefa só', text: 'Escreva numa linha. Se não couber numa linha, está grande demais — corte.', seconds: 45 },
+            { label: 'Tire o que compete', text: 'Celular longe do alcance do braço, abas fechadas, notificações mudas.', seconds: 45 },
+            { label: 'Trabalhe até o bloco acabar', text: 'Se lembrar de outra coisa, anote num papel e volte.', seconds: 1500 },
+            { label: 'Pare antes de cansar', text: 'Cinco minutos longe da tela. Parar cedo é o que permite voltar.', seconds: 60 },
+          ],
+        },
       },
       {
         key: 'descarregar-a-cabeca',
@@ -996,6 +1150,15 @@ export const PRACTICE_TOPICS: PracticeTopic[] = [
           { title: 'Escolha uma e comece por ela', text: 'O resto está escrito. Não vai sumir enquanto você faz esta.' },
         ],
         why: 'Uma cabeça com muita coisa em aberto gasta atenção só em não esquecer delas. Escrever tudo passa essa tarefa para o papel, que lembra melhor — e o que sobra de atenção fica livre para uma coisa de cada vez.',
+        guide: {
+          kind: 'steps',
+          steps: [
+            { label: 'Escreva tudo o que está em aberto', text: 'Trabalho, casa, mensagem não respondida, consulta não marcada. Sem ordem.', seconds: 180 },
+            { label: 'Vá até acabar, inclusive as bobagens', text: 'Bobagem que ocupa espaço ocupa o mesmo espaço que o resto.', seconds: 90 },
+            { label: 'Marque o que é de hoje', text: 'Quase sempre são duas ou três coisas, e não a lista inteira.', seconds: 60 },
+            { label: 'Escolha uma e comece por ela', text: 'O resto está escrito. Não vai sumir enquanto você faz esta.', seconds: 45 },
+          ],
+        },
       },
     ],
   },
@@ -1044,6 +1207,15 @@ export const PRACTICE_TOPICS: PracticeTopic[] = [
           { title: 'Entregue, se quiser', text: 'Escrever já funciona. Entregar funciona mais — mas é opcional.' },
         ],
         why: 'Nos estudos de Seligman, a carta de gratidão produziu o maior aumento de bem-estar entre os exercícios testados, com efeito mensurável por até um mês. Funciona mesmo sem entregar.',
+        guide: {
+          kind: 'steps',
+          steps: [
+            { label: 'Pense em quem te ajudou e nunca soube', text: 'Alguém a quem você nunca agradeceu de verdade.', seconds: 60 },
+            { label: 'Escreva o que essa pessoa fez', text: 'Concreto: o que ela fez, quando, e o que mudou para você.', seconds: 240 },
+            { label: 'Diga como isso te afeta hoje', text: 'A parte que ela provavelmente não sabe.', seconds: 180 },
+            { label: 'Entregue, se quiser', text: 'Escrever já funciona. Entregar funciona mais — mas é opcional.', seconds: 60 },
+          ],
+        },
       },
       {
         key: 'saboreio-de-dois-minutos',
@@ -1081,6 +1253,15 @@ export const PRACTICE_TOPICS: PracticeTopic[] = [
           { title: 'Volte para o presente', text: 'E repare que aquilo está aqui.' },
         ],
         why: 'Chama-se subtração mental. Agradecer pelo que se tem tem efeito curto porque a cabeça se acostuma com tudo. Imaginar a ausência quebra esse hábito — e funciona melhor do que simplesmente listar o que é bom.',
+        guide: {
+          kind: 'steps',
+          steps: [
+            { label: 'Escolha algo bom que existe na sua vida', text: 'Uma pessoa, um trabalho, um lugar onde morar.', seconds: 45 },
+            { label: 'Escreva como aquilo apareceu', text: 'A sequência de acasos que precisou dar certo.', seconds: 90 },
+            { label: 'Tire um desses acasos', text: 'Você não foi naquela festa. Descreva a vida sem isso.', seconds: 75 },
+            { label: 'Volte para o presente', text: 'E repare que aquilo está aqui.', seconds: 40 },
+          ],
+        },
       },
     ],
   },
