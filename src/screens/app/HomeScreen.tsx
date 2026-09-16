@@ -271,30 +271,6 @@ export function HomeScreen({
   const diaPesado = !!humorMarcado && DIA_PESADO.includes(humorMarcado);
   const seloDaComposta = diaPesado ? 'para agora' : '30 segundos';
 
-  /**
-   * A ordem do carrossel, e por que ela muda num dia pesado.
-   *
-   * A Composta é a ferramenta que este app tem e os outros não, e num dia em
-   * que a pessoa marcou "ansioso", "triste" ou "cansado" ela também é a mais
-   * útil das três. Mesmo assim ficava em segundo, atrás de um arraste — o selo
-   * dela já dizia "para agora" e ela continuava escondida.
-   *
-   * Nos outros dias a prática de hoje continua na frente: ela é personalizada,
-   * é mais leve, e não pressupõe que haja algo pesando.
-   */
-  const ordemDoCarrossel = useMemo(
-    () => (diaPesado ? (['composta', 'pratica', 'frase'] as const) : (['pratica', 'composta', 'frase'] as const)),
-    [diaPesado],
-  );
-
-  /**
-   * Qual cartão está à vista.
-   *
-   * Só a Composta usa isto, para desmanchar a frase do balão quando chega a vez
-   * dela — ver `CenaDaComposta`. Rodar essa animação escondida atrás da borda
-   * seria gastar bateria para ninguém ver.
-   */
-  const [cartaoAtual, setCartaoAtual] = useState(0);
 
   /*
     A frase de hoje, e se ela já foi desenterrada. `conselhoDoDia` é pura e
@@ -474,97 +450,92 @@ export function HomeScreen({
           um embaixo do outro. Ver `BrotinhoScreen`.
 
           No lugar dele entrou a prática de hoje, que era uma pílula pequena
-          acima da grade e quase nunca aparecia. Os três cartões passam a ser a
-          mesma coisa em três formatos: uma ação de agora, escolhida para hoje.
-          As que olham para trás — jardim, valores, frases guardadas — continuam
-          na aba do broto.
+          acima da grade e quase nunca aparecia. O que fica aqui é ação de agora,
+          escolhida para hoje; o que olha para trás — jardim, valores, frases
+          guardadas — continua na aba do broto.
         */}
+
         {/*
-          Os três cartões são montados por chave e só depois postos em ordem.
+          A Composta sai do carrossel e passa a morar sozinha, acima dele.
 
-          A ordem muda num dia pesado (ver `ordemDoCarrossel`), e o rótulo de
-          acessibilidade tem de acompanhar: uma lista fixa de rótulos diria
-          "Composta, 2 de 3" com a Composta em primeiro, e quem navega por voz
-          receberia a posição errada.
+          Ela é a ferramenta que este app tem e os outros não — repetir a frase
+          em voz alta até ela virar só som —, e estava em segundo lugar dentro
+          de um carrossel: para chegar nela era preciso arrastar. O único jeito
+          de ela aparecer primeiro era num dia pesado, e mesmo assim como uma
+          de três, com os pontinhos embaixo dizendo que havia mais.
+
+          Quem abre o app pela primeira vez não arrasta nada. Via dois cartões
+          de conteúdo do dia e ia embora sem saber que o mecanismo existe.
+
+          Agora ela tem a largura inteira, está sempre à vista, e a queda das
+          palavras roda sem depender de a pessoa ter chegado até ela. O
+          carrossel continua, com as duas coisas que de fato rodam todo dia: a
+          prática escolhida para hoje e a frase do dia.
+
+          O custo é vertical: a tela ficou uns duzentos e trinta pontos mais
+          longa antes de "Para começar". É o preço de a ferramenta principal
+          não depender de um gesto para existir.
         */}
-        {(() => {
-          const cartoes = {
-            pratica: {
-              rotulo: 'Prática de hoje',
-              no: (
-                <CartaoHeroi
-                  altura={alturaDoHeroi}
-                  fundo={tomDaPratica}
-                  cena={() => (
-                    <CenaDaPratica fundo={tomDaPratica} tema={oferta.topico} altura={alturaDoHeroi} />
-                  )}
-                  selo={oferta.selo}
-                  titulo={oferta.titulo}
-                  linha={`${oferta.convite} ${oferta.duracao}, guiada pelo app.`}
-                  acao="Fazer agora"
-                  onPress={() => onOpenPractices({ topico: oferta.topico, pratica: oferta.pratica })}
-                  label={`${oferta.titulo}: ${oferta.duracao}`}
-                />
-              ),
-            },
-            composta: {
-              rotulo: 'Composta',
-              no: (
-                <CartaoHeroi
-                  altura={alturaDoHeroi}
-                  fundo={palette.green100}
-                  cena={() => (
-                    <CenaDaComposta
-                      fundo={palette.green100}
-                      demonstrando={ordemDoCarrossel[cartaoAtual] === 'composta'}
-                    />
-                  )}
-                  selo={seloDaComposta}
-                  titulo="Composta"
-                  linha="Repita em voz alta o pensamento que te incomoda até ele virar só som."
-                  acao="Compostar um pensamento"
-                  onPress={onOpenComposta}
-                  label="Composta: repita em voz alta um pensamento que incomoda"
-                />
-              ),
-            },
-            frase: {
-              rotulo: 'Frase do dia',
-              no: (
-                <CartaoDoConselho
-                  heroi={alturaDoHeroi}
-                  texto={conselho.texto}
-                  aberto={conselhoAberto}
-                  guardada={data.conselhosGuardados.includes(conselho.id)}
-                  onDesenterrar={() => {
-                    toqueLeve(data.settings.vibracao);
-                    desenterrarConselho(conselho.id);
-                  }}
-                  onGuardar={() => {
-                    toqueLeve(data.settings.vibracao);
-                    guardarConselho(conselho.id);
-                  }}
-                  onVerGuardadas={onOpenConselhosGuardados}
-                  totalGuardadas={data.conselhosGuardados.length}
-                  onCompartilhar={() => story.compartilhar(conselho.texto)}
-                  compartilhando={story.compartilhando}
-                  aviso={story.aviso}
-                />
-              ),
-            },
-          };
+        <CartaoHeroi
+          altura={alturaDoHeroi}
+          fundo={palette.green100}
+          /* Sempre demonstrando: fora do carrossel, ela não tem vez de chegar. */
+          cena={() => <CenaDaComposta fundo={palette.green100} demonstrando />}
+          selo={seloDaComposta}
+          titulo="Composta"
+          linha="Repita em voz alta o pensamento que te incomoda até ele virar só som."
+          acao="Compostar um pensamento"
+          onPress={onOpenComposta}
+          label="Composta: repita em voz alta um pensamento que incomoda"
+        />
 
-          return (
-            <Carrossel
-              rotulos={ordemDoCarrossel.map((c) => cartoes[c].rotulo)}
-              aoTrocar={setCartaoAtual}
-            >
-              {ordemDoCarrossel.map((c) => (
-                <React.Fragment key={c}>{cartoes[c].no}</React.Fragment>
-              ))}
-            </Carrossel>
-          );
-        })()}
+        {/*
+          O carrossel do que muda todo dia.
+
+          Sobraram dois, e os dois são conteúdo do dia: a prática escolhida pelo
+          humor de hoje e a frase de hoje. A Composta não era isso — ela é uma
+          ferramenta, está sempre ali, e é por isso que ficava estranha numa
+          fileira de coisas que rodam.
+
+          Os rótulos voltaram a ser uma lista fixa. Eles precisavam ser montados
+          por chave enquanto a ordem mudava sozinha em dia pesado; sem a
+          Composta, a ordem não muda mais, e o leitor de tela pode ouvir
+          "Prática de hoje, 1 de 2" com a certeza de que é verdade.
+        */}
+        <Carrossel rotulos={['Prática de hoje', 'Frase do dia']}>
+          <CartaoHeroi
+            altura={alturaDoHeroi}
+            fundo={tomDaPratica}
+            cena={() => (
+              <CenaDaPratica fundo={tomDaPratica} tema={oferta.topico} altura={alturaDoHeroi} />
+            )}
+            selo={oferta.selo}
+            titulo={oferta.titulo}
+            linha={`${oferta.convite} ${oferta.duracao}, guiada pelo app.`}
+            acao="Fazer agora"
+            onPress={() => onOpenPractices({ topico: oferta.topico, pratica: oferta.pratica })}
+            label={`${oferta.titulo}: ${oferta.duracao}`}
+          />
+          <CartaoDoConselho
+            heroi={alturaDoHeroi}
+            texto={conselho.texto}
+            aberto={conselhoAberto}
+            guardada={data.conselhosGuardados.includes(conselho.id)}
+            onDesenterrar={() => {
+              toqueLeve(data.settings.vibracao);
+              desenterrarConselho(conselho.id);
+            }}
+            onGuardar={() => {
+              toqueLeve(data.settings.vibracao);
+              guardarConselho(conselho.id);
+            }}
+            onVerGuardadas={onOpenConselhosGuardados}
+            totalGuardadas={data.conselhosGuardados.length}
+            onCompartilhar={() => story.compartilhar(conselho.texto)}
+            compartilhando={story.compartilhando}
+            aviso={story.aviso}
+          />
+        </Carrossel>
 
         {/*
           A fileira de práticas.
