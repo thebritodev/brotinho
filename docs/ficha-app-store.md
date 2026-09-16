@@ -488,6 +488,21 @@ push.
 5. `description` e Open Graph, que não existiam: link colado no WhatsApp ou no
    Instagram agora abre um cartão em vez de uma URL crua.
 
+### O cartão do link (`docs/og.png`)
+
+Sai de `node scripts/gera-og.js`, em 1200 × 630 — o formato que o WhatsApp, o
+Facebook e o Instagram desenham grande. O ícone sozinho não servia: é quadrado
+de 1024, e essas plataformas cortam quadrado em círculo pequeno.
+
+O cartão mostra a **frase no meio do caminho de se desmanchar**, congelada em
+62% da dissolução. É o único lugar onde o mecanismo aparece antes de alguém
+tocar em qualquer coisa — é a primeira impressão do link, e ela é o truque, e
+não o logo.
+
+É script, e não um PNG feito à mão, pelo mesmo motivo das capturas da loja: a
+manchete e as cores vêm do mesmo lugar que a página, então o cartão não vence
+o prazo sozinho quando a manchete mudar.
+
 ### As duas regras deste arquivo
 
 **A demonstração tem de ser tão privada quanto o app.** Não há campo de texto,
