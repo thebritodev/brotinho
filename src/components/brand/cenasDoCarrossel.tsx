@@ -1,5 +1,5 @@
-import React, { useId } from 'react';
-import { View } from 'react-native';
+import React, { useEffect, useId, useMemo, useRef, useState } from 'react';
+import { Animated, Easing, View } from 'react-native';
 import Svg, {
   Defs,
   Ellipse,
@@ -9,8 +9,13 @@ import Svg, {
   RadialGradient,
   Rect,
   Stop,
+  Text as SvgText,
+  TSpan,
 } from 'react-native-svg';
 
+import { fraseQueODiaDemonstra } from '../../data/composta';
+import { useMenosMovimento } from '../../hooks/useMenosMovimento';
+import { fonts } from '../../theme';
 import { palette, tracos } from '../../theme/tokens';
 import { DesenhoDoTema } from './desenhosDosTemas';
 import { curva, desloca, estica, gira } from './movimentoDaCena';
@@ -392,8 +397,135 @@ export function CenaDoDiario({ fundo, passo = 0 }: { fundo: string; passo?: numb
  * uma história em vez de mostrar um objeto: balão entrando de um lado, broto
  * saindo do outro.
  */
-export function CenaDaComposta({ fundo }: { fundo: string }) {
+/** Quanto dura o desmanche da frase no cartão, e a espera antes dele. */
+const DEMONSTRACAO = 2200;
+/**
+ * O tempo parado antes de começar.
+ *
+ * A frase precisa ser **lida** antes de sumir. Sem a espera, quem chega ao
+ * cartão pega o desmanche no meio e não vê o que estava escrito — o que
+ * transforma a demonstração num borrão.
+ */
+const ESPERA_PARA_LER = 900;
+
+/** Cabe nesta largura de balão, contando letras. */
+const LETRAS_POR_LINHA = 13;
+
+/** Quebra a frase em linhas curtas, sem cortar palavra. */
+function emLinhas(frase: string): string[][] {
+  const linhas: string[][] = [[]];
+  let largura = 0;
+  for (const palavra of frase.split(/\s+/).filter(Boolean)) {
+    const custo = palavra.length + (largura ? 1 : 0);
+    if (largura && largura + custo > LETRAS_POR_LINHA) {
+      linhas.push([palavra]);
+      largura = palavra.length;
+    } else {
+      linhas[linhas.length - 1].push(palavra);
+      largura += custo;
+    }
+  }
+  return linhas;
+}
+
+/**
+ * A cena da Composta — e, dentro do balão, o gesto acontecendo.
+ *
+ * ## Por que o cartão faz o truque
+ *
+ * A Composta é o mecanismo único deste app: repetir a frase em voz alta até ela
+ * perder o peso. Mas o que encanta nela — ver as palavras se desmancharem — só
+ * acontecia **depois** de a pessoa entrar, escrever e ligar o microfone. De
+ * fora, o cartão era um desenho bonito, e desenho não demonstra nada.
+ *
+ * Agora o balão que dizia "palavras" diz palavras de verdade, e elas somem da
+ * esquerda para a direita, como somem lá dentro. Quem passa o dedo pelo
+ * carrossel vê o app funcionando antes de tocar em coisa alguma.
+ *
+ * ## A frase é do app, nunca da pessoa
+ *
+ * Esta era a parte da ideia que estava errada, e o próprio desenho já dizia por
+ * quê: *"o que a pessoa escreve nunca vira desenho"*. A tela inicial é o que
+ * qualquer um lê por cima do ombro dela no ônibus — a frase mais dolorosa que
+ * ela digitou no app não pode morar ali em corpo grande.
+ *
+ * E, para o objetivo, a frase do app é melhor mesmo: quem precisa ser
+ * convencido pela demonstração é justamente quem ainda não compostou nada.
+ */
+export function CenaDaComposta({
+  fundo,
+  demonstrando = false,
+}: {
+  fundo: string;
+  /** O cartão está à vista: hora de desmanchar a frase. */
+  demonstrando?: boolean;
+}) {
   const id = useId().replace(/[^a-zA-Z0-9]/g, '');
+  const menosMovimento = useMenosMovimento();
+
+  const linhas = useMemo(() => emLinhas(fraseQueODiaDemonstra()), []);
+  /** Quantas palavras vieram antes de cada linha, para o ritmo continuar. */
+  const antesDaLinha = useMemo(() => {
+    let n = 0;
+    return linhas.map((l) => {
+      const inicio = n;
+      n += l.length;
+      return inicio;
+    });
+  }, [linhas]);
+  const totalDePalavras = antesDaLinha[antesDaLinha.length - 1] + linhas[linhas.length - 1].length;
+
+  /*
+    O valor animado vira número comum, pelo mesmo motivo de sempre: `Animated`
+    entrega valor a um nó de SVG por `setNativeProps`, que o react-native-web
+    não implementa. Ver `movimentoDaCena`.
+  */
+  const valor = useRef(new Animated.Value(0)).current;
+  const [p, setP] = useState(0);
+
+  useEffect(() => {
+    const ouvinte = valor.addListener(({ value }) => setP(value));
+    return () => valor.removeListener(ouvinte);
+  }, [valor]);
+
+  useEffect(() => {
+    if (!demonstrando || menosMovimento) return;
+    valor.setValue(0);
+    const anim = Animated.timing(valor, {
+      toValue: 1,
+      duration: DEMONSTRACAO,
+      delay: ESPERA_PARA_LER,
+      easing: Easing.inOut(Easing.quad),
+      useNativeDriver: false,
+    });
+    anim.start();
+    return () => anim.stop();
+  }, [demonstrando, menosMovimento, valor]);
+
+  /*
+    A mesma conta da tela da Composta, para o cartão e a ferramenta falarem a
+    mesma língua: cada palavra some num ritmo próprio, e as primeiras da frase
+    se desmancham antes.
+  */
+  const opacidadeDa = (indice: number) => {
+    const t = Math.max(
+      0,
+      Math.min(1, p * 1.5 - indice * (0.45 / Math.max(1, totalDePalavras - 1))),
+    );
+    return 1 - 0.85 * t;
+  };
+
+  /*
+    O bloco de texto na barriga do balão — e baixo, não centrado.
+
+    O selo do cartão ("30 segundos", "para agora") mora no canto de cima à
+    esquerda, e é exatamente por cima do topo do balão que ele cai. Isso nunca
+    incomodou enquanto o balão tinha duas barras abstratas: o selo cobria uma
+    barra e ninguém reparava. Com palavras de verdade lá dentro, ele passou a
+    cobrir a primeira linha da frase — que é justamente a que se lê primeiro.
+  */
+  const alturaDaLinha = 17;
+  const primeiraBase = -1 - ((linhas.length - 1) * alturaDaLinha) / 2 + 4.5;
 
   return (
     <Cena fundo={fundo}>
@@ -426,8 +558,29 @@ export function CenaDaComposta({ fundo }: { fundo: string }) {
           strokeWidth={2.8}
           strokeLinejoin="round"
         />
-        <Path d="M-42 -21 L42 -21" stroke={palette.brown200} strokeWidth={4.2} strokeLinecap="round" />
-        <Path d="M-42 -3 L18 -3" stroke={palette.brown200} strokeWidth={4.2} strokeLinecap="round" />
+        {/*
+          As palavras, onde antes havia duas barras.
+
+          `TSpan` flui sozinho dentro do `Text`: cada palavra fica onde a
+          anterior terminou, sem eu precisar medir largura nenhuma — que é o que
+          torna isto seguro com uma fonte que eu não posso medir daqui.
+        */}
+        {linhas.map((palavras, l) => (
+          <SvgText
+            key={l}
+            x={-42}
+            y={primeiraBase + l * alturaDaLinha}
+            fontSize={13}
+            fontFamily={fonts.body.bold}
+            fill={palette.brown700}
+          >
+            {palavras.map((palavra, i) => (
+              <TSpan key={`${l}-${i}`} fillOpacity={opacidadeDa(antesDaLinha[l] + i)}>
+                {i ? ` ${palavra}` : palavra}
+              </TSpan>
+            ))}
+          </SvgText>
+        ))}
       </G>
 
       {/* O calor de dentro do monte, e a sombra dele no chão. */}

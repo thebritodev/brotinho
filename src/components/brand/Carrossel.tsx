@@ -43,9 +43,17 @@ type Props = {
   children: React.ReactNode;
   /** Rótulo de cada cartão, para o leitor de tela anunciar a posição. */
   rotulos: string[];
+  /**
+   * Qual cartão está à vista agora.
+   *
+   * Existe porque um cartão pode ter algo a fazer quando chega a vez dele —
+   * o da Composta desmancha a frase do balão para demonstrar o gesto. Sem isto,
+   * ou a animação roda escondida atrás da borda, ou roda o tempo todo.
+   */
+  aoTrocar?: (indice: number) => void;
 };
 
-export function Carrossel({ children, rotulos }: Props) {
+export function Carrossel({ children, rotulos, aoTrocar }: Props) {
   const { colors, palette } = useTema();
   const { width } = useWindowDimensions();
   const cartoes = React.Children.toArray(children);
@@ -105,6 +113,7 @@ export function Carrossel({ children, rotulos }: Props) {
           if (i !== ultimo.current) {
             ultimo.current = i;
             setAtual(i);
+            aoTrocar?.(i);
           }
         }}
         style={{ marginHorizontal: -MARGEM_DA_TELA }}

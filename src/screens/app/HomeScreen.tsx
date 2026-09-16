@@ -23,6 +23,10 @@ import {
 } from '../../components';
 import { toqueLeve } from '../../services/toque';
 import { conselhoDoDia } from '../../data/conselhos';
+/* A lista mora em `data/humores` desde que a repesagem da Composta também
+   precisou dela. Aqui ela responde a mesma pergunta de sempre: hoje está
+   pesado? — e decide a comemoração, o selo e a ordem do carrossel. */
+import { DIA_PESADO } from '../../data/humores';
 import { ANCORA_RAPIDA, PRACTICE_TOPICS } from '../../data/practices';
 import { falaDaHome } from '../../data/falaDaHome';
 import { praticaDeHoje } from '../../data/praticaDeHoje';
@@ -40,7 +44,7 @@ import {
   prontoParaColher,
   sproutStage,
 } from '../../state/derived';
-import { fonts, type Mood, useTema } from '../../theme';
+import { fonts, useTema } from '../../theme';
 
 /**
  * A tela inicial: o lugar de **fazer**.
@@ -85,13 +89,6 @@ import { fonts, type Mood, useTema } from '../../theme';
  * do broto, porque esta é a tela que abre. Uma planta que amadureceu e espera
  * a pessoa trocar de aba para ser colhida não seria colhida.
  */
-
-/**
- * Humores em que uma comemoração cai mal — e em que a Composta é a ferramenta
- * do dia. Os dois usos leem a mesma lista de propósito: é a mesma pergunta,
- * "hoje está pesado?".
- */
-const DIA_PESADO: readonly Mood[] = ['ansioso', 'triste', 'cansado'];
 
 /**
  * As práticas de estreia, para quem ainda não fez nenhuma.
@@ -268,6 +265,31 @@ export function HomeScreen({
 
   const diaPesado = !!humorMarcado && DIA_PESADO.includes(humorMarcado);
   const seloDaComposta = diaPesado ? 'para agora' : '30 segundos';
+
+  /**
+   * A ordem do carrossel, e por que ela muda num dia pesado.
+   *
+   * A Composta é a ferramenta que este app tem e os outros não, e num dia em
+   * que a pessoa marcou "ansioso", "triste" ou "cansado" ela também é a mais
+   * útil das três. Mesmo assim ficava em segundo, atrás de um arraste — o selo
+   * dela já dizia "para agora" e ela continuava escondida.
+   *
+   * Nos outros dias a prática de hoje continua na frente: ela é personalizada,
+   * é mais leve, e não pressupõe que haja algo pesando.
+   */
+  const ordemDoCarrossel = useMemo(
+    () => (diaPesado ? (['composta', 'pratica', 'frase'] as const) : (['pratica', 'composta', 'frase'] as const)),
+    [diaPesado],
+  );
+
+  /**
+   * Qual cartão está à vista.
+   *
+   * Só a Composta usa isto, para desmanchar a frase do balão quando chega a vez
+   * dela — ver `CenaDaComposta`. Rodar essa animação escondida atrás da borda
+   * seria gastar bateria para ninguém ver.
+   */
+  const [cartaoAtual, setCartaoAtual] = useState(0);
 
   /*
     A frase de hoje, e se ela já foi desenterrada. `conselhoDoDia` é pura e
@@ -452,53 +474,92 @@ export function HomeScreen({
           As que olham para trás — jardim, valores, frases guardadas — continuam
           na aba do broto.
         */}
-        <Carrossel rotulos={['Prática de hoje', 'Composta', 'Frase do dia']}>
-          <CartaoHeroi
-            altura={alturaDoHeroi}
-            fundo={tomDaPratica}
-            cena={() => (
-              <CenaDaPratica fundo={tomDaPratica} tema={oferta.topico} altura={alturaDoHeroi} />
-            )}
-            selo={oferta.selo}
-            titulo={oferta.titulo}
-            linha={`${oferta.convite} ${oferta.duracao}, guiada pelo app.`}
-            acao="Fazer agora"
-            onPress={() => onOpenPractices({ topico: oferta.topico, pratica: oferta.pratica })}
-            label={`${oferta.titulo}: ${oferta.duracao}`}
-          />
+        {/*
+          Os três cartões são montados por chave e só depois postos em ordem.
 
-          <CartaoHeroi
-            altura={alturaDoHeroi}
-            fundo={palette.green100}
-            cena={() => <CenaDaComposta fundo={palette.green100} />}
-            selo={seloDaComposta}
-            titulo="Composta"
-            linha="Repita em voz alta o pensamento que te incomoda até ele virar só som."
-            acao="Compostar um pensamento"
-            onPress={onOpenComposta}
-            label="Composta: repita em voz alta um pensamento que incomoda"
-          />
+          A ordem muda num dia pesado (ver `ordemDoCarrossel`), e o rótulo de
+          acessibilidade tem de acompanhar: uma lista fixa de rótulos diria
+          "Composta, 2 de 3" com a Composta em primeiro, e quem navega por voz
+          receberia a posição errada.
+        */}
+        {(() => {
+          const cartoes = {
+            pratica: {
+              rotulo: 'Prática de hoje',
+              no: (
+                <CartaoHeroi
+                  altura={alturaDoHeroi}
+                  fundo={tomDaPratica}
+                  cena={() => (
+                    <CenaDaPratica fundo={tomDaPratica} tema={oferta.topico} altura={alturaDoHeroi} />
+                  )}
+                  selo={oferta.selo}
+                  titulo={oferta.titulo}
+                  linha={`${oferta.convite} ${oferta.duracao}, guiada pelo app.`}
+                  acao="Fazer agora"
+                  onPress={() => onOpenPractices({ topico: oferta.topico, pratica: oferta.pratica })}
+                  label={`${oferta.titulo}: ${oferta.duracao}`}
+                />
+              ),
+            },
+            composta: {
+              rotulo: 'Composta',
+              no: (
+                <CartaoHeroi
+                  altura={alturaDoHeroi}
+                  fundo={palette.green100}
+                  cena={() => (
+                    <CenaDaComposta
+                      fundo={palette.green100}
+                      demonstrando={ordemDoCarrossel[cartaoAtual] === 'composta'}
+                    />
+                  )}
+                  selo={seloDaComposta}
+                  titulo="Composta"
+                  linha="Repita em voz alta o pensamento que te incomoda até ele virar só som."
+                  acao="Compostar um pensamento"
+                  onPress={onOpenComposta}
+                  label="Composta: repita em voz alta um pensamento que incomoda"
+                />
+              ),
+            },
+            frase: {
+              rotulo: 'Frase do dia',
+              no: (
+                <CartaoDoConselho
+                  heroi={alturaDoHeroi}
+                  texto={conselho.texto}
+                  aberto={conselhoAberto}
+                  guardada={data.conselhosGuardados.includes(conselho.id)}
+                  onDesenterrar={() => {
+                    toqueLeve(data.settings.vibracao);
+                    desenterrarConselho(conselho.id);
+                  }}
+                  onGuardar={() => {
+                    toqueLeve(data.settings.vibracao);
+                    guardarConselho(conselho.id);
+                  }}
+                  onVerGuardadas={onOpenConselhosGuardados}
+                  totalGuardadas={data.conselhosGuardados.length}
+                  onCompartilhar={() => story.compartilhar(conselho.texto)}
+                  compartilhando={story.compartilhando}
+                  aviso={story.aviso}
+                />
+              ),
+            },
+          };
 
-          <CartaoDoConselho
-            heroi={alturaDoHeroi}
-            texto={conselho.texto}
-            aberto={conselhoAberto}
-            guardada={data.conselhosGuardados.includes(conselho.id)}
-            onDesenterrar={() => {
-              toqueLeve(data.settings.vibracao);
-              desenterrarConselho(conselho.id);
-            }}
-            onGuardar={() => {
-              toqueLeve(data.settings.vibracao);
-              guardarConselho(conselho.id);
-            }}
-            onVerGuardadas={onOpenConselhosGuardados}
-            totalGuardadas={data.conselhosGuardados.length}
-            onCompartilhar={() => story.compartilhar(conselho.texto)}
-            compartilhando={story.compartilhando}
-            aviso={story.aviso}
-          />
-        </Carrossel>
+          return (
+            <Carrossel
+              rotulos={ordemDoCarrossel.map((c) => cartoes[c].rotulo)}
+              aoTrocar={setCartaoAtual}
+            >
+              {ordemDoCarrossel.map((c) => (
+                <React.Fragment key={c}>{cartoes[c].no}</React.Fragment>
+              ))}
+            </Carrossel>
+          );
+        })()}
 
         {/*
           A fileira de práticas.

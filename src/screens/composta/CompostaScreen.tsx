@@ -19,6 +19,7 @@ import {
 import { toqueDeConclusao, toqueLeve } from '../../services/toque';
 import { useAppState } from '../../state/AppStateProvider';
 import { vezesQueVoltou, voltouAntes } from '../../state/derived';
+import { SUGESTOES_DA_COMPOSTA } from '../../data/composta';
 import { fonts, radius, useTema } from '../../theme';
 import { AduboAssentando } from './AduboAssentando';
 import { FallingWords } from './FallingWords';
@@ -32,7 +33,9 @@ const TARGET_SECONDS = 35;
 /** Repetições até a frase se desmanchar por completo. */
 const REPS_TO_FADE = 12;
 
-const SUGESTOES = ['vou ser demitido', 'ninguém confia em mim', 'vai dar tudo errado'];
+/* As frases moram em `data/composta` desde que o cartão da tela inicial
+   passou a usar as mesmas para demonstrar o gesto. */
+const SUGESTOES = SUGESTOES_DA_COMPOSTA;
 
 /** "5 de setembro" — a data curta do reconhecimento de frase repetida. */
 const diaDe = (quando: number) =>
