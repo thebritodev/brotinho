@@ -177,6 +177,17 @@ export function SettingsScreen({ onBack }: { onBack: () => void }) {
               onChange={(somDaRespiracao) => updateSettings({ somDaRespiracao })}
             />
           </Row>
+          <Row
+            icon="mic"
+            label="Voz nas práticas"
+            hint="O app lê cada passo em voz alta. Ele fala só o texto das práticas — nunca o que você escreveu"
+          >
+            <Switch
+              label="Voz nas práticas"
+              checked={data.settings.voz}
+              onChange={(voz) => updateSettings({ voz })}
+            />
+          </Row>
         </Section>
 
         <Section title="Conta">

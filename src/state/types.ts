@@ -89,6 +89,18 @@ export type Settings = {
    */
   somDaRespiracao: boolean;
   /**
+   * O app conduz a prática em voz alta.
+   *
+   * Nasce ligada: quem abre o Aterramento 5-4-3-2-1 está, quase por
+   * definição, sem condição de ler — é a prática que a porta de "estou
+   * muito mal agora" abre. Uma voz que só existe para quem foi procurar o
+   * interruptor não serviria justamente a quem ela existe para servir.
+   *
+   * Ela fala só texto do app, nunca o que a pessoa escreveu. Ver
+   * `services/voz.ts`, que é onde essa regra mora.
+   */
+  voz: boolean;
+  /**
    * Claro, escuro, ou o que o aparelho estiver usando.
    *
    * `sistema` é o padrão: a pessoa já escolheu isso uma vez, no celular, e um
@@ -235,6 +247,7 @@ export const INITIAL_SETTINGS: Settings = {
   analysis: true,
   vibracao: true,
   somDaRespiracao: true,
+  voz: true,
 };
 
 export const INITIAL_APP_DATA: AppData = {

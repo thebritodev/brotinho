@@ -54,7 +54,15 @@ const CASOS = [
   ['jardim com planta torta', { garden: [{ dias: 'muitos', maturedAt: null, mood: 42 }] }],
   ['práticas com chave estranha', { practicesDone: [{ topic: 9, practice: {}, at: 'agora' }] }],
 
-  ['settings com tipos trocados', { settings: { reminders: 'sim', vibracao: 1, somDaRespiracao: null } }],
+  ['settings com tipos trocados', { settings: { reminders: 'sim', vibracao: 1, somDaRespiracao: null, voz: 'talvez' } }],
+  /*
+    Estado gravado antes de a voz existir.
+
+    E o caso de todo mundo que ja tem o app: o disco nao tem o campo, e ele
+    precisa nascer ligado. Se nascesse `undefined`, a tela de Ajustes leria
+    uma chave sem valor e a pratica ficaria muda sem ninguem ter pedido.
+  */
+  ['settings sem o campo da voz', { settings: { reminders: true, vibracao: true, somDaRespiracao: true } }],
   ['startedAt inválido', { startedAt: 'quando eu era feliz' }],
   ['stageSeen absurdo', { stageSeen: 9999 }],
 
@@ -116,6 +124,18 @@ const CASOS = [
           if (!Array.isArray(r[campo])) problemas.push(`${campo} não é lista`);
         }
         if (typeof r.settings !== 'object' || r.settings == null) problemas.push('settings inutilizável');
+        else {
+          /*
+            Os interruptores tem de sair booleanos, sempre.
+
+            Antes daqui, o unico teste sobre `settings` era que ele fosse um
+            objeto -- passava com qualquer lixo dentro. `voz` entrou em
+            16/09/2026 e teria passado tambem.
+          */
+          for (const campo of ['reminders', 'weeklySummary', 'appLock', 'analysis', 'vibracao', 'somDaRespiracao', 'voz']) {
+            if (typeof r.settings[campo] !== 'boolean') problemas.push(`settings.${campo} não é booleano`);
+          }
+        }
         for (const campo of ['boasVindasVistas', 'jardimAberto']) {
           if (typeof r[campo] !== 'boolean') problemas.push(`${campo} não é booleano`);
         }
