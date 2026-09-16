@@ -3,24 +3,36 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Brotinho</title>
+<title>Brotinho — desabafe por texto ou voz</title>
+<meta name="description" content="Um diário por texto ou voz, e uma técnica de terapia que faz o pensamento que te persegue virar só som. Experimente aqui nesta página. Nada do que você escreve sai do seu aparelho.">
+<link rel="icon" href="brotinho.png">
+<link rel="canonical" href="https://thebritodev.github.io/brotinho/">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Brotinho — desabafe por texto ou voz">
+<meta property="og:description" content="O pensamento que não sai da sua cabeça vira só som. Experimente a técnica aqui, antes de instalar.">
+<meta property="og:image" content="https://thebritodev.github.io/brotinho/brotinho.png">
+<meta property="og:url" content="https://thebritodev.github.io/brotinho/">
+<meta name="twitter:card" content="summary">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700;800&family=Nunito:wght@400;600;700&display=swap">
 <style>
   :root {
     --ground: #FBF6EC; --surface: #FFFFFF; --ink: #3A3630;
-    --ink-muted: #716B60; --accent: #3E6B54; --rule: #E9E2D2;
+    --ink-muted: #716B60; --accent: #3E6B54; --accent-ink: #FFFFFF;
+    --rule: #E9E2D2; --soft: #E3EDE6; --terra: #AD512B;
   }
   @media (prefers-color-scheme: dark) {
     :root:not([data-theme="light"]) {
       --ground: #23211D; --surface: #2C2925; --ink: #EDE7DA;
-      --ink-muted: #A8A093; --accent: #8CB68B; --rule: #3B3730;
+      --ink-muted: #A8A093; --accent: #8CB68B; --accent-ink: #1A1714;
+      --rule: #3B3730; --soft: #2B3A32; --terra: #D98866;
     }
   }
   :root[data-theme="dark"] {
     --ground: #23211D; --surface: #2C2925; --ink: #EDE7DA;
-    --ink-muted: #A8A093; --accent: #8CB68B; --rule: #3B3730;
+    --ink-muted: #A8A093; --accent: #8CB68B; --accent-ink: #1A1714;
+    --rule: #3B3730; --soft: #2B3A32; --terra: #D98866;
   }
   * { box-sizing: border-box; }
   body {
@@ -30,14 +42,84 @@
     -webkit-font-smoothing: antialiased;
   }
   .wrap { max-width: 34rem; margin: 0 auto; }
-  header { padding: 72px 0 8px; display: flex; flex-direction: column; gap: 18px; }
+
+  header { padding: 56px 0 0; display: flex; flex-direction: column; gap: 22px; }
   .marca { display: flex; align-items: center; gap: 14px; }
-  .marca svg { width: 52px; height: 52px; flex: none; }
+  .marca img { width: 52px; height: 52px; border-radius: 13px; flex: none; }
   .marca b {
     font-family: 'Baloo 2', 'Trebuchet MS', system-ui, sans-serif;
     font-weight: 800; font-size: 24px;
   }
-  p.sub { margin: 0; color: var(--ink-muted); }
+  h1 {
+    font-family: 'Baloo 2', 'Trebuchet MS', system-ui, sans-serif;
+    font-weight: 800; font-size: clamp(30px, 8vw, 40px); line-height: 1.14;
+    margin: 0; text-wrap: balance;
+  }
+  p.lead { margin: 0; color: var(--ink-muted); font-size: 18px; }
+
+  section { margin-top: 52px; }
+  h2 {
+    font-family: 'Baloo 2', 'Trebuchet MS', system-ui, sans-serif;
+    font-weight: 700; font-size: 23px; line-height: 1.25; margin: 0 0 14px;
+  }
+  p.olho {
+    font-size: 13px; font-weight: 700; letter-spacing: .09em;
+    text-transform: uppercase; color: var(--accent); margin: 0 0 8px;
+  }
+
+  /* ---- A demonstração ---- */
+  .demo {
+    background: var(--surface); border: 1px solid var(--rule);
+    border-radius: 22px; padding: 26px 22px; display: flex;
+    flex-direction: column; gap: 18px; align-items: center; text-align: center;
+  }
+  .demo h2 { margin: 0; }
+  p.dica { margin: 0; font-size: 14.5px; color: var(--ink-muted); }
+  p.frase {
+    display: flex; flex-wrap: wrap; justify-content: center; gap: 0 9px;
+    min-height: 3.2em; align-items: center; width: 100%; margin: 0;
+    font-weight: 700; font-size: clamp(21px, 6vw, 27px); line-height: 1.35;
+  }
+  p.frase span { transition: opacity .55s ease, transform .55s ease; }
+  @media (prefers-reduced-motion: reduce) { p.frase span { transition: none; } }
+
+  button.toque, a.baixar {
+    font: inherit; font-weight: 700; border-radius: 16px; border: 0;
+    padding: 16px 22px; width: 100%; cursor: pointer; text-align: center;
+    background: var(--accent); color: var(--accent-ink); text-decoration: none;
+    display: block;
+  }
+  button.toque[disabled] { opacity: .55; cursor: default; }
+  button.toque:hover:not([disabled]), a.baixar:hover { filter: brightness(1.07); }
+  .contagem { font-variant-numeric: tabular-nums; opacity: .85; }
+
+  p.sobrou { margin: 0; font-size: 15.5px; color: var(--ink-muted); }
+  p.sobrou b { color: var(--ink); }
+  [hidden] { display: none !important; }
+
+  /* ---- Listas ---- */
+  ul.dentro { list-style: none; margin: 0; padding: 0; display: grid; gap: 14px; }
+  ul.dentro li {
+    background: var(--surface); border: 1px solid var(--rule);
+    border-radius: 16px; padding: 16px 18px;
+  }
+  ul.dentro b { display: block; }
+  ul.dentro span { color: var(--ink-muted); font-size: 15.5px; }
+
+  .metodo { display: grid; gap: 16px; }
+  .metodo div { border-left: 3px solid var(--soft); padding-left: 16px; }
+  .metodo b { display: block; }
+  .metodo span { color: var(--ink-muted); font-size: 15.5px; }
+
+  p.fino { font-size: 14.5px; color: var(--ink-muted); margin: 12px 0 0; text-align: center; }
+
+  p.aviso {
+    margin: 52px 0 0; background: var(--surface); border: 1px solid var(--rule);
+    border-radius: 16px; padding: 18px 20px; font-size: 15px; color: var(--ink-muted);
+  }
+  p.aviso b { color: var(--ink); }
+  p.aviso a { color: var(--terra); }
+
   nav { display: flex; flex-direction: column; gap: 12px; margin-top: 28px; }
   nav a {
     display: flex; align-items: center; justify-content: space-between;
@@ -58,20 +140,123 @@
 <div class="wrap">
   <header>
     <div class="marca">
-      <svg viewBox="0 0 100 100" role="img" aria-label="Símbolo do Brotinho">
-        <circle cx="50" cy="50" r="49" fill="#EFB183"></circle>
-        <path d="M 47.9 88.5 C 47.9 79 48.2 69.5 49.3 63 C 50.2 57.5 52.1 54.4 54.6 52.6"
-              fill="none" stroke="#8CB68B" stroke-width="2.2" stroke-linecap="round"></path>
-        <g fill="#8CB68B">
-          <path d="M 13.7 26.4 C 36.7 26.6 49.1 38.8 49.6 64.6 C 30.7 63.8 12.4 45.8 13.7 26.4 Z"></path>
-          <path d="M 13.7 26.4 C 36.7 26.6 49.1 38.8 49.6 64.6 C 30.7 63.8 12.4 45.8 13.7 26.4 Z"
-                transform="translate(100 0) scale(-1 1) rotate(-7 13.7 26.4)"></path>
-        </g>
-      </svg>
+      <img src="brotinho.png" alt="" width="52" height="52">
       <b>Brotinho</b>
     </div>
-    <p class="sub">Um lugar só seu para desabafar.</p>
+    <h1>O pensamento que não sai da sua cabeça vira só som.</h1>
+    <p class="lead">
+      Um diário por texto ou voz, e uma técnica de terapia que você pode
+      experimentar agora — aqui nesta página, sem instalar nada.
+    </p>
   </header>
+
+  <section>
+    <p class="olho">A Composta</p>
+    <div class="demo">
+      <h2 id="titulo-demo">Leia a frase e toque a cada vez</h2>
+      <p class="dica" id="dica-demo">
+        Se estiver num lugar onde dá, diga em voz alta — funciona bem melhor.
+        Se não der, leia devagar.
+      </p>
+
+      <p class="frase" id="frase"></p>
+
+      <button class="toque" id="toque" type="button">
+        Toquei <span class="contagem" id="contagem">· 0 de 6</span>
+      </button>
+
+      <p class="sobrou" id="sobrou" hidden>
+        <b>Repare no que sobrou.</b> A frase continua tão verdadeira ou tão
+        falsa quanto era. O que mudou é o quanto ela puxa você.
+      </p>
+    </div>
+  </section>
+
+  <section>
+    <h2>Isso que você acabou de fazer tem nome</h2>
+    <div class="metodo">
+      <div>
+        <b>Repetir esvazia</b>
+        <span>Diga qualquer palavra trinta vezes seguidas e ela vira som. O
+        cérebro para de buscar o significado — e vale também para a frase que
+        te persegue.</span>
+      </div>
+      <div>
+        <b>O objetivo não é parar de pensar</b>
+        <span>Tentar não pensar em algo dá mais força a esse algo. A saída é o
+        contrário: chegar perto, olhar de frente, até a frase deixar de mandar
+        em você.</span>
+      </div>
+      <div>
+        <b>Chama-se defusão cognitiva</b>
+        <span>Vem da ACT, uma terapia com décadas de pesquisa. O Brotinho não
+        inventou isso — só transformou numa coisa que cabe em trinta segundos
+        do seu dia.</span>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2>O que mais tem lá dentro</h2>
+    <ul class="dentro">
+      <li>
+        <b>Diário por texto ou voz</b>
+        <span>Escreva, ou fale e deixe o aparelho transcrever. A transcrição
+        acontece no próprio celular.</span>
+      </li>
+      <li>
+        <b>41 práticas guiadas</b>
+        <span>A partir de dois minutos, para ansiedade, tristeza, luto,
+        insônia, estresse, solidão, raiva, procrastinação, autoestima, culpa,
+        vergonha, comparação, foco e gratidão.</span>
+      </li>
+      <li>
+        <b>Um humor por dia, e o desenho do mês</b>
+        <span>Uma carinha por dia. No fim, o mês inteiro num calendário — sem
+        nota, sem média e sem placar.</span>
+      </li>
+      <li>
+        <b>Um resumo para levar à terapia</b>
+        <span>Suas semanas em PDF, para a sessão não depender da sua
+        memória.</span>
+      </li>
+      <li>
+        <b>Um broto que cresce conforme você aparece</b>
+        <span>Ele não cobra, não pontua e não fica bravo quando você some por
+        uma semana.</span>
+      </li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>Seus registros não saem do seu aparelho</h2>
+    <p>
+      Não há cadastro, não há servidor, e o que você escreve não sai do celular
+      — nem para nós. O diário costuma ser o texto mais difícil que alguém
+      digita no dia, e ninguém além de quem escreveu lê.
+    </p>
+    <p>
+      Isso tem um custo, e preferimos assumir: sem conta, não dá para abrir o
+      diário de outro aparelho. Em troca, não existe um banco de dados com a
+      sua vida dentro.
+    </p>
+  </section>
+
+  <section>
+    <a class="baixar" href="https://apps.apple.com/br/app/id6803963494">Baixar na App Store</a>
+    <p class="fino">
+      Assinatura a partir de R$ 14,99 por mês no plano anual — o preço que vale
+      é o que a App Store mostrar. Android em preparação.
+    </p>
+  </section>
+
+  <p class="aviso">
+    <b>Isto não é tratamento.</b> As práticas daqui são de autocuidado, baseadas
+    em técnicas conhecidas: ajudam, mas não substituem acompanhamento
+    psicológico ou médico. Se você estiver em sofrimento intenso ou pensando em
+    se machucar, procure ajuda. O CVV atende de graça, 24 horas por dia, pelo
+    telefone 188 e em <a href="https://www.cvv.org.br">cvv.org.br</a>.
+  </p>
 
   <nav>
     <a href="suporte.html">Suporte <span class="seta">→</span></a>
@@ -83,5 +268,72 @@
     Contato: brotinho.suporte@gmail.com
   </footer>
 </div>
+
+<script>
+  /*
+    A Composta, jogável antes de instalar.
+
+    A frase é do app, nunca de quem visita. Ninguém escreve nada aqui, e esta
+    página não guarda nada: não há campo, não há armazenamento e não há envio.
+    Uma demonstração de um app que promete privacidade precisa ser tão privada
+    quanto ele.
+
+    A matemática é a mesma do experimento do onboarding, em
+    `ExperimentoComposta`: as palavras desbotam da esquerda para a direita, de
+    modo que a frase se desfaz na ordem em que é lida.
+
+    E, como lá, nada aqui afirma que a pessoa falou em voz alta — a página não
+    tem como saber. O toque conta como leitura, que é o que ele de fato é.
+  */
+  (function () {
+    var ALVO = 6;
+    var FRASE = 'vai dar tudo errado';
+
+    var caixa = document.getElementById('frase');
+    var botao = document.getElementById('toque');
+    var contagem = document.getElementById('contagem');
+    var titulo = document.getElementById('titulo-demo');
+    var dica = document.getElementById('dica-demo');
+    var sobrou = document.getElementById('sobrou');
+    if (!caixa || !botao) return;
+
+    var spans = FRASE.split(' ').map(function (palavra) {
+      var s = document.createElement('span');
+      s.textContent = palavra;
+      caixa.appendChild(s);
+      return s;
+    });
+
+    var reps = 0;
+
+    function desenhar() {
+      var decay = Math.min(1, reps / ALVO);
+      spans.forEach(function (s, i) {
+        var atraso = i * (0.5 / Math.max(1, spans.length - 1));
+        var t = Math.max(0, Math.min(1, decay * 1.5 - atraso));
+        s.style.opacity = String(1 - 0.9 * t);
+        s.style.transform = 'translateY(' + t * 8 + 'px)';
+      });
+
+      contagem.textContent = '· ' + reps + ' de ' + ALVO;
+
+      if (reps >= ALVO) {
+        titulo.textContent = 'Virou só som';
+        dica.hidden = true;
+        sobrou.hidden = false;
+        botao.disabled = true;
+        botao.textContent = 'Pronto';
+      }
+    }
+
+    botao.addEventListener('click', function () {
+      if (reps >= ALVO) return;
+      reps += 1;
+      desenhar();
+    });
+
+    desenhar();
+  })();
+</script>
 </body>
 </html>

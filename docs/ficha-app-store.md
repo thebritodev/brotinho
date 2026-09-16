@@ -462,6 +462,48 @@ sem login — que é como a Apple e qualquer pessoa acessam:
 
 ---
 
+## 6.1 A página de marketing — refeita em 16/09/2026
+
+`https://thebritodev.github.io/brotinho/` é o **URL de marketing** da ficha, e
+é onde cai quem procura "Brotinho app" fora da loja. Até hoje ela era um
+índice: logo, a frase "Um lugar só seu para desabafar" e dois links, Suporte e
+Privacidade. Nenhuma linha dizia o que o app faz, e **não havia link para
+instalar** — uma página de marketing sem botão de baixar.
+
+Vale a pena mexer aqui porque é a única superfície do produto que não passa
+pela Apple: não tem revisão, não tem versão, não tem campo travado. Publica no
+push.
+
+### O que ela tem agora
+
+1. **O mecanismo como título**: "O pensamento que não sai da sua cabeça vira só
+   som." Não é categoria, é o que o app faz de diferente.
+2. **A Composta jogável na própria página.** A frase é do app, o toque conta as
+   repetições e as palavras desbotam da esquerda para a direita — a mesma conta
+   do `ExperimentoComposta` do onboarding. A pessoa faz a técnica **antes de
+   instalar**.
+3. O método em três blocos, o que mais há dentro, a privacidade com o custo
+   dela dito em voz alta, o botão da App Store e o preço.
+4. O aviso de que isto não é tratamento, com o CVV.
+5. `description` e Open Graph, que não existiam: link colado no WhatsApp ou no
+   Instagram agora abre um cartão em vez de uma URL crua.
+
+### As duas regras deste arquivo
+
+**A demonstração tem de ser tão privada quanto o app.** Não há campo de texto,
+não há armazenamento e não há envio — a frase é do app, nunca de quem visita.
+Anunciar privacidade numa página que coleta seria a pior propaganda possível.
+
+**Nada afirma que a pessoa falou em voz alta.** A página não tem como saber,
+exatamente como o app não tem. O convite é o mesmo do onboarding, com as
+mesmas palavras: *"Se estiver num lugar onde dá, diga em voz alta — funciona
+bem melhor. Se não der, leia devagar."*
+
+Os doze pares de cor da página foram medidos nos dois temas; o pior é 4,91
+contra o mínimo de 4,5 da WCAG AA.
+
+---
+
 ## O que já está escrito para a próxima versão
 
 <a id="o-que-ja-esta-escrito-para-a-proxima-versao"></a>
