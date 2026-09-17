@@ -21,6 +21,7 @@ export { AFraseVoltou } from './brand/AFraseVoltou';
 export { CartaoHeroi } from './brand/CartaoHeroi';
 export { SeletorDeTema } from './brand/SeletorDeTema';
 export { FundoDaTela } from './brand/FundoDaTela';
+export { FaixaDaComposta, alturaDaFaixa } from './brand/FaixaDaComposta';
 export {
   CenaDaComposta,
   CenaDaFrase,

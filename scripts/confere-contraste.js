@@ -72,6 +72,29 @@ function razao(frente, fundo) {
   fs.renameSync(alvo, comoModulo);
   const { TEMAS } = await import('file://' + comoModulo.split(path.sep).join('/'));
 
+  /*
+    A terra vem em separado, e numa pasta própria.
+
+    Ela não está em `tokens.ts` de propósito: `terraDoCanteiro` existe
+    justamente para o desenho **não** seguir o tema. Compilar os dois na
+    mesma chamada mudaria a raiz comum de `src/theme` para `src`, e o
+    `tokens.js` deixaria de estar onde as linhas acima o procuram.
+  */
+  const saidaDaTerra = pastaTemporaria('terra');
+  execFileSync(
+    process.execPath,
+    [
+      tsc, '--outDir', saidaDaTerra, '--module', 'esnext', '--target', 'es2020',
+      '--moduleResolution', 'bundler', '--strict', '--skipLibCheck',
+      path.join(RAIZ, 'src', 'components', 'brand', 'terraDoCanteiro.ts'),
+    ],
+    { stdio: 'inherit', cwd: RAIZ },
+  );
+  const terraJs = path.join(saidaDaTerra, 'terraDoCanteiro.js');
+  const terraMjs = terraJs.replace(/\.js$/, '.mjs');
+  fs.renameSync(terraJs, terraMjs);
+  const terra = await import('file://' + terraMjs.split(path.sep).join('/'));
+
   let falhas = 0;
   const linha = (nome, frente, fundo, piso) => {
     const r = razao(frente, fundo);
@@ -81,6 +104,44 @@ function razao(frente, fundo) {
       `  ${ok ? 'ok   ' : 'FALHA'} ${nome.padEnd(44)} ${r.toFixed(2)} (mínimo ${piso})`,
     );
   };
+
+  /*
+    O convite da `FaixaDaComposta`, que fica escrito **em cima da terra**.
+
+    Fora do laço dos temas de propósito: a terra é a mesma de dia e de
+    noite, então este par de cores não tem dois casos — tem um.
+
+    ## De onde saem os tons medidos
+
+    O degradê da terra tem paradas em 0 (`TERRA_CLARA`), 0,14 (`TERRA`),
+    0,46 (`TERRA_FUNDA`) e 1 (`TERRA_SOMBRA`), numa caixa de 226 pontos. O
+    título ocupa de 0,32 a 0,46 dessa caixa, e a linha de 0,46 para baixo —
+    ou seja, o pior tom sob o título é a mistura de `TERRA` com
+    `TERRA_FUNDA` em 56%, e o pior sob a linha é o próprio `TERRA_FUNDA`.
+
+    ## Por que a terceira linha existe
+
+    Ela mede a linha de apoio contra `TERRA` — o tom que ela encostaria se
+    o bloco de texto subisse. Dá 3,05, que **reprova** em texto normal. É
+    o alarme: a folga de hoje não vem da cor escolhida, vem de a parada
+    escura começar em 0,46. Quem mexer no degradê vai ver esta linha
+    reprovar antes de a tela ficar ilegível no aparelho de alguém.
+  */
+  console.log('\n— texto sobre a terra (sem tema) —');
+  const mistura = (a, b, q) =>
+    '#' +
+    canais(a)
+      .map((v, i) => Math.round(v + q * (canais(b)[i] - v)).toString(16).padStart(2, 0))
+      .join('');
+  const sobOTitulo = mistura(terra.TERRA, terra.TERRA_FUNDA, 0.56);
+  linha('título da Composta sobre a terra', terra.TEXTO_NA_TERRA, sobOTitulo, AA_TEXTO);
+  linha('linha da Composta sobre a terra', terra.TEXTO_NA_TERRA_FRACO, terra.TERRA_FUNDA, AA_TEXTO);
+  linha(
+    'linha da Composta se subir até TERRA',
+    terra.TEXTO_NA_TERRA_FRACO,
+    terra.TERRA,
+    AA_GRANDE,
+  );
 
   for (const [nomeDoTema, t] of Object.entries(TEMAS)) {
     console.log(`\n— tema ${nomeDoTema} —`);
@@ -120,6 +181,20 @@ function razao(frente, fundo) {
       linha(`verde de link sobre ${ondeNome}`, c.primaryStrong, onde, AA_TEXTO);
       linha(`vermelho de perigo sobre ${ondeNome}`, c.danger, onde, AA_TEXTO);
     }
+
+    /*
+      A faixa da Composta: o alto do céu, e o que passa por ele.
+
+      Fica fora do laço acima porque o céu **não é uma superfície de texto**.
+      A primeira versão o enfiou lá e reprovou duas cores — texto de apoio e
+      vermelho de perigo sobre `primarySoft` — que nunca são escritas ali. O
+      céu carrega duas coisas só: a saudação e a palavra que cai, e as duas
+      são `textPrimary`.
+
+      As outras duas paradas do degradê (`bg` e `surfaceSunken`) já estão
+      medidas logo acima, como fundo e cartão fundo.
+    */
+    linha('palavra caindo no alto do céu', c.textPrimary, c.primarySoft, AA_TEXTO);
 
     // O botão principal: é o que a pessoa precisa enxergar para fazer qualquer coisa.
     linha('texto do botão sobre o verde', c.textInverse, c.primary, AA_TEXTO);

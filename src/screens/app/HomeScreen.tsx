@@ -8,9 +8,10 @@ import {
   BoasVindas,
   Carrossel,
   CartaoHeroi,
+  FaixaDaComposta,
+  alturaDaFaixa,
   FundoDaTela,
   CartaoDoConselho,
-  CenaDaComposta,
   CenaDaPratica,
   OndeVoceParou,
   GrowthNotice,
@@ -204,6 +205,28 @@ export function HomeScreen({
   const alturaDoHeroi = Math.round(Math.min(largura * 0.84, 330));
 
   /**
+   * A faixa da Composta: o cabeçalho dentro do céu, e a terra embaixo.
+   *
+   * ## O céu aberto tem tamanho, e o tamanho é o recurso
+   *
+   * `quedaDaFaixa` é a distância que uma palavra percorre antes de entrar
+   * na terra, e é a única medida daqui que muda alguma coisa de verdade.
+   * No cartão que isto substitui a queda dava uns 114 pontos de tela, e
+   * ainda perdia o fim dela para o véu do cartão; aqui passa dos duzentos,
+   * inteiros. É o que faz caber ler cada palavra antes da seguinte — que
+   * era o pedido que eu tinha resolvido só com tempo, quando o que faltava
+   * era espaço.
+   *
+   * Sai da largura, como a altura dos cartões, para guardar a proporção em
+   * qualquer aparelho. E tem teto, pelo mesmo motivo de lá: numa tela muito
+   * alta, uma queda de trezentos pontos empurraria as práticas para fora da
+   * primeira dobra.
+   */
+  const CABECALHO_DA_FAIXA = 112;
+  const quedaDaFaixa = Math.round(Math.min(largura * 0.52, 210));
+  const faixa = alturaDaFaixa(insets.top + 20, CABECALHO_DA_FAIXA, quedaDaFaixa);
+
+  /**
    * A fileira do meio da tela: onde a pessoa parou, ou por onde começar.
    *
    * Ela existe sempre e no mesmo lugar. O que muda é a lista e o título — e o
@@ -293,6 +316,19 @@ export function HomeScreen({
    * está lendo. Congelada, ela é o que sempre foi para o React — a posição
    * *inicial*, e nada mais.
    */
+  /**
+   * A faixa está à vista? Fora dela, a queda para.
+   *
+   * O laço roda na tela que abre o app, então ele não pode rodar à toa
+   * enquanto a pessoa lê a grade de práticas oitocentos pontos abaixo.
+   *
+   * O `setState` só acontece quando a resposta **muda** — duas vezes por
+   * rolagem, e não a cada evento. Sem essa guarda, um `onScroll` a cada 64
+   * ms viraria quinze renders por segundo desta tela inteira, que é o
+   * oposto do que economizar quadro significa.
+   */
+  const [naVista, setNaVista] = useState(rolagemInicial < faixa);
+
   const alturaInicial = useRef(rolagemInicial).current;
   const rolagem = useRef<ScrollView>(null);
   const jaRestaurou = useRef(false);
@@ -364,7 +400,12 @@ export function HomeScreen({
         */
         contentOffset={{ x: 0, y: alturaInicial }}
         scrollEventThrottle={64}
-        onScroll={(e) => aoRolar?.(e.nativeEvent.contentOffset.y)}
+        onScroll={(e) => {
+          const y = e.nativeEvent.contentOffset.y;
+          aoRolar?.(y);
+          const vendo = y < faixa;
+          if (vendo !== naVista) setNaVista(vendo);
+        }}
         /*
           Rede para quem ignorar o `contentOffset` — o `react-native-web`, que é
           o que gera as capturas da loja, é um deles.
@@ -376,118 +417,109 @@ export function HomeScreen({
           rolagem.current?.scrollTo({ y: alturaInicial, animated: false });
         }}
         contentContainerStyle={{
-          paddingTop: insets.top + 20,
+          /*
+            Zero, e não `insets.top + 20`: a faixa é o primeiro filho, ela
+            sangra até a borda da tela e dá esse respiro **por dentro**, no
+            céu. Repetido aqui, ele apareceria como uma tira de creme acima
+            do céu — a moldura que a faixa existe para não ter.
+          */
+          paddingTop: 0,
           paddingHorizontal: 20,
           paddingBottom: 32,
           gap: 22,
         }}
         showsVerticalScrollIndicator={false}
       >
-        <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-          <View style={{ flex: 1 }}>
-            <Text
-              style={{ color: colors.textPrimary, fontFamily: fonts.display.bold, fontSize: 25 }}
-            >
-              Oi, {name}
-            </Text>
-          </View>
-          <View style={{ flexDirection: 'row', gap: 6 }}>
-            <IconButton
-              accessibilityLabel="Lembretes"
-              icon={<Icon name="bell" />}
-              onPress={onOpenReminders}
-              forma="vidro"
-            />
-            <IconButton
-              accessibilityLabel="Configurações"
-              icon={<Icon name="settings" />}
-              onPress={onOpenSettings}
-              forma="vidro"
-            />
-          </View>
-        </View>
-
         {/*
-          O broto falando, logo abaixo do nome.
+          A faixa da Composta: a tela começa sendo o lugar dela.
 
-          Aqui havia uma linha em versalete — "VAMOS CUIDAR DE VOCÊ HOJE?" —
-          que era moldura, não fala: ninguém a dizia e ela não sabia de nada.
-          Com o personagem e o balão, a primeira coisa da tela passa a ser
-          alguém falando, que é a diferença entre uma tela de ferramentas e um
-          app que tem alguém dentro.
+          O cabeçalho não está *acima* de um cartão — ele está **dentro do
+          céu** por onde as palavras caem, e o convite está pousado na terra
+          em que elas somem. A borda arredondada, a sombra e o fundo de
+          cartão sumiram porque eram justamente o que dizia "isto aqui é mais
+          um item da prateleira".
 
-          Ele é pequeno de propósito. O broto grande, com humor e conversa,
-          mora na aba dele; repetir aquele tamanho aqui devolveria a esta tela
-          o problema que a reorganização resolveu — o personagem ocupando a
-          primeira dobra e empurrando as práticas para fora dela.
+          Ela sangra até as bordas da tela (`recuo` negativo por dentro do
+          componente) e dá o respiro do alto por conta própria — por isso o
+          `paddingTop` da rolagem é zero.
 
-          O que ele diz vem de `falaDaHome`: fato do app quando há um, e a
-          saudação do dia quando não há.
+          Abaixo dela, a partir do carrossel, a tela volta a ser a prateleira
+          de sempre. A linha da terra é o que separa as duas coisas: em cima,
+          onde a pessoa está; embaixo, o que dá para fazer.
         */}
-        <View style={{ marginTop: -14, flexDirection: 'row', alignItems: 'center', gap: 10 }}>
-          <AnimatedSprout mood={humorMarcado ?? 'neutro'} stage={stage} size={76} swayOnMount />
-          <BalaoDoBroto lado="esquerda" tom="suave" style={{ flex: 1 }}>
-            <Text
-              style={{
-                fontFamily: fonts.body.regular,
-                fontSize: 14,
-                lineHeight: 14 * 1.4,
-                color: palette.brown700,
-              }}
-            >
-              {fala}
-            </Text>
-          </BalaoDoBroto>
-        </View>
-
-        {voltando && <VoltaCard dias={ausente} />}
-
-        {/*
-          As três coisas que se faz agora.
-
-          O Diário saiu daqui e foi para a aba do broto: dizer como se está e
-          escrever sobre isso são o mesmo gesto em dois tempos, e lá eles ficam
-          um embaixo do outro. Ver `BrotinhoScreen`.
-
-          No lugar dele entrou a prática de hoje, que era uma pílula pequena
-          acima da grade e quase nunca aparecia. O que fica aqui é ação de agora,
-          escolhida para hoje; o que olha para trás — jardim, valores, frases
-          guardadas — continua na aba do broto.
-        */}
-
-        {/*
-          A Composta sai do carrossel e passa a morar sozinha, acima dele.
-
-          Ela é a ferramenta que este app tem e os outros não — repetir a frase
-          em voz alta até ela virar só som —, e estava em segundo lugar dentro
-          de um carrossel: para chegar nela era preciso arrastar. O único jeito
-          de ela aparecer primeiro era num dia pesado, e mesmo assim como uma
-          de três, com os pontinhos embaixo dizendo que havia mais.
-
-          Quem abre o app pela primeira vez não arrasta nada. Via dois cartões
-          de conteúdo do dia e ia embora sem saber que o mecanismo existe.
-
-          Agora ela tem a largura inteira, está sempre à vista, e a queda das
-          palavras roda sem depender de a pessoa ter chegado até ela. O
-          carrossel continua, com as duas coisas que de fato rodam todo dia: a
-          prática escolhida para hoje e a frase do dia.
-
-          O custo é vertical: a tela ficou uns duzentos e trinta pontos mais
-          longa antes de "Para começar". É o preço de a ferramenta principal
-          não depender de um gesto para existir.
-        */}
-        <CartaoHeroi
-          altura={alturaDoHeroi}
-          fundo={palette.green100}
-          /* Sempre demonstrando: fora do carrossel, ela não tem vez de chegar. */
-          cena={() => <CenaDaComposta fundo={palette.green100} demonstrando />}
+        <FaixaDaComposta
+          largura={largura}
+          topo={insets.top + 20}
+          recuo={20}
+          cabecalho={CABECALHO_DA_FAIXA}
+          queda={quedaDaFaixa}
+          ativa={naVista}
           selo={seloDaComposta}
           titulo="Compostar pensamentos"
           linha="Repita em voz alta o pensamento que te incomoda até ele virar só som."
           acao="Compostar agora"
           onPress={onOpenComposta}
           label="Compostar pensamentos: repita em voz alta um pensamento que incomoda"
-        />
+        >
+          <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+            <View style={{ flex: 1 }}>
+              <Text
+                style={{ color: colors.textPrimary, fontFamily: fonts.display.bold, fontSize: 25 }}
+              >
+                Oi, {name}
+              </Text>
+            </View>
+            <View style={{ flexDirection: 'row', gap: 6 }}>
+              <IconButton
+                accessibilityLabel="Lembretes"
+                icon={<Icon name="bell" />}
+                onPress={onOpenReminders}
+                forma="vidro"
+              />
+              <IconButton
+                accessibilityLabel="Configurações"
+                icon={<Icon name="settings" />}
+                onPress={onOpenSettings}
+                forma="vidro"
+              />
+            </View>
+          </View>
+
+          {/*
+            O broto falando, logo abaixo do nome.
+
+            Aqui havia uma linha em versalete — "VAMOS CUIDAR DE VOCÊ HOJE?" —
+            que era moldura, não fala: ninguém a dizia e ela não sabia de nada.
+            Com o personagem e o balão, a primeira coisa da tela passa a ser
+            alguém falando, que é a diferença entre uma tela de ferramentas e um
+            app que tem alguém dentro.
+
+            Ele é pequeno de propósito. O broto grande, com humor e conversa,
+            mora na aba dele; repetir aquele tamanho aqui devolveria a esta tela
+            o problema que a reorganização resolveu — o personagem ocupando a
+            primeira dobra e empurrando as práticas para fora dela.
+
+            O que ele diz vem de `falaDaHome`: fato do app quando há um, e a
+            saudação do dia quando não há.
+          */}
+          <View style={{ marginTop: -14, flexDirection: 'row', alignItems: 'center', gap: 10 }}>
+            <AnimatedSprout mood={humorMarcado ?? 'neutro'} stage={stage} size={76} swayOnMount />
+            <BalaoDoBroto lado="esquerda" tom="suave" style={{ flex: 1 }}>
+              <Text
+                style={{
+                  fontFamily: fonts.body.regular,
+                  fontSize: 14,
+                  lineHeight: 14 * 1.4,
+                  color: palette.brown700,
+                }}
+              >
+                {fala}
+              </Text>
+            </BalaoDoBroto>
+          </View>
+        </FaixaDaComposta>
+
+        {voltando && <VoltaCard dias={ausente} />}
 
         {/*
           O carrossel do que muda todo dia.
