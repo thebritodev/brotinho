@@ -222,8 +222,32 @@ export function HomeScreen({
    * alta, uma queda de trezentos pontos empurraria as práticas para fora da
    * primeira dobra.
    */
-  const CABECALHO_DA_FAIXA = 112;
-  const quedaDaFaixa = Math.round(Math.min(largura * 0.52, 210));
+  /*
+    Cento e trinta e dois, e não cento e doze.
+
+    O broto e o balão subiam por cima da linha do nome — a fileira deles
+    tinha recuo negativo, herdado de quando isto era um cabeçalho de lista e
+    apertar era o objetivo. Dentro do céu, encostados nos botões de sino e
+    ajustes, eles liam como se estivessem espremidos no teto.
+
+    Agora a fileira desce, e a altura reservada acompanha: sem isso, o que
+    desceu invadiria os primeiros vinte pontos da queda.
+  */
+  const CABECALHO_DA_FAIXA = 132;
+  /*
+    A queda cede um pouco do que o cabeçalho tomou.
+
+    Era 0,52 da largura com teto de 210. Somando os vinte do cabeçalho e os
+    trinta e dois que a terra ganhou para poder sumir, a faixa passaria de
+    seiscentos e trinta pontos num celular comum — três quartos da primeira
+    dobra, e o carrossel deixaria de aparecer espiando embaixo, que é o que
+    convida a rolar.
+
+    Com 0,46 e teto de 190 a queda fica em cento e setenta e nove pontos num
+    aparelho de 390 — ainda uma vez e meia o que o cartão antigo dava, e sem
+    o véu comendo o fim dela.
+  */
+  const quedaDaFaixa = Math.round(Math.min(largura * 0.46, 190));
   const faixa = alturaDaFaixa(insets.top + 20, CABECALHO_DA_FAIXA, quedaDaFaixa);
 
   /**
@@ -502,8 +526,22 @@ export function HomeScreen({
             O que ele diz vem de `falaDaHome`: fato do app quando há um, e a
             saudação do dia quando não há.
           */}
-          <View style={{ marginTop: -14, flexDirection: 'row', alignItems: 'center', gap: 10 }}>
-            <AnimatedSprout mood={humorMarcado ?? 'neutro'} stage={stage} size={76} swayOnMount />
+          <View style={{ marginTop: 6, flexDirection: 'row', alignItems: 'center', gap: 10 }}>
+            {/*
+              A carinha daqui é sempre a feliz, e não a do humor marcado.
+
+              Ela seguia `humorMarcado`, o que sobrou de quando o humor era
+              perguntado nesta tela. Hoje ele mora na aba do broto, e é lá que o
+              personagem grande responde ao que a pessoa marcou — com a carinha,
+              a palavra e a conversa inteira. Aqui em cima ele não pergunta nada:
+              ele recebe.
+
+              O que a versão antiga produzia era um segundo termômetro de humor
+              sem nada ao redor que o explicasse. Em dia neutro — que é o padrão
+              de quem ainda não marcou — dava uma carinha sem expressão recebendo
+              a pessoa na tela que abre o app.
+            */}
+            <AnimatedSprout mood="feliz" stage={stage} size={76} swayOnMount />
             <BalaoDoBroto lado="esquerda" tom="suave" style={{ flex: 1 }}>
               <Text
                 style={{

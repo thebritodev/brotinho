@@ -89,7 +89,25 @@ import {
  * embaixo da terra do ponto de vista da palavra: quando ela chega ali já
  * está escondida.
  */
-const ALTURA_DA_TERRA = 200;
+const ALTURA_DA_TERRA = 232;
+
+/**
+ * Onde a terra começa a sumir, em fração da altura dela.
+ *
+ * A faixa acabava numa linha reta: terra cheia num pixel, fundo da tela no
+ * seguinte. Lido de cima para baixo isso não é uma paisagem terminando, é
+ * uma ferramenta acabando e outra começando — corte seco entre a Composta e
+ * a prateleira de práticas.
+ *
+ * Daqui para baixo a terra perde opacidade até zero. Ela não desbota para
+ * uma cor: ela some, e quem aparece embaixo é o `FundoDaTela`, que já estava
+ * lá o tempo todo. Por isso a emenda funciona nos dois temas sem nenhuma cor
+ * escrita à mão — o que reaparece é exatamente o fundo da tela em uso.
+ *
+ * O número é o que sobra abaixo do botão: o `paddingBottom` do convite é o
+ * mesmo tamanho, então a dissolução inteira acontece em terra vazia.
+ */
+const TERRA_COMECA_A_SUMIR = 0.81;
 
 /**
  * Quanto a faixa ocupa, ao todo.
@@ -410,7 +428,15 @@ export function FaixaDaComposta({
                 mais de seis.
               */}
               <Stop offset="0.46" stopColor={TERRA_FUNDA} />
-              <Stop offset="1" stopColor={TERRA_SOMBRA} />
+              {/*
+                A terra chega ao tom mais escuro e, daí para baixo, some.
+
+                As duas últimas paradas são a mesma cor: o que muda entre elas
+                é só a opacidade. Mudar a cor também faria a terra clarear
+                enquanto some, que é o que dá aquele aspecto de névoa.
+              */}
+              <Stop offset={TERRA_COMECA_A_SUMIR} stopColor={TERRA_SOMBRA} stopOpacity={1} />
+              <Stop offset="1" stopColor={TERRA_SOMBRA} stopOpacity={0} />
             </LinearGradient>
             <RadialGradient id={`brasa-${id}`} cx="50%" cy="50%" r="50%">
               <Stop offset="0" stopColor={BRASA} stopOpacity={0.4} />
@@ -500,7 +526,13 @@ export function FaixaDaComposta({
           bottom: 0,
           height: ALTURA_DA_TERRA,
           paddingHorizontal: recuo,
-          paddingBottom: 18,
+          /*
+            O respiro de baixo é do tamanho da dissolução da terra — ver
+            `TERRA_COMECA_A_SUMIR`. Menor que isso, o botão ficaria pousado
+            em cima da parte que está sumindo, e ele é a única coisa da faixa
+            que não pode parecer que vai embora.
+          */
+          paddingBottom: 50,
           justifyContent: 'flex-end',
           gap: 9,
           opacity: pressed ? 0.88 : 1,
