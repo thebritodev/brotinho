@@ -157,37 +157,36 @@ com este runtime, e trocar de SDK troca o que ela já revisou. Ver `AGENTS.md`.
 
 ---
 
-## Quando o APK baixa inteiro e não instala
+## Instalar o APK no aparelho: pelo cabo
 
-Acontece desde 07/09/2026 no aparelho de teste, e é o motivo de nenhuma
-build nova ter chegado nele desde então: o download vai até 100%, o arquivo
-está lá, e tocar nele não abre instalador nenhum. Sem erro, sem aviso.
+**Resolvido em 17/09/2026, pelo cabo.** De 07/09 a 17/09 nenhuma build nova
+chegou ao aparelho de teste: o download ia até 100%, o arquivo estava lá, e
+tocar nele não abria instalador nenhum — sem erro, sem aviso. O `adb install`
+passou de primeira.
 
-**O que está descartado.** Não é a build: os mesmos arquivos instalam em
-outros aparelhos, e o EAS marca `FINISHED` com o APK assinado. Não é espaço
-em disco nem download corrompido — o arquivo chega completo.
+**O que continua sem resposta.** A suspeita era o Auto Blocker do One UI, que
+bloqueia instalação vinda de fora da loja e, quando bloqueia, faz exatamente
+isto: nada. O cabo **passa por fora dele**, então instalar por cabo não
+confirma nem desmente a suspeita. O que se sabe é que o caminho do cabo
+funciona; por que o toque no arquivo não funcionava, não se sabe.
 
-**A suspeita, e ela é suspeita.** O Auto Blocker do One UI bloqueia
-instalação de app vindo de fora da loja, e quando bloqueia ele faz
-exatamente isto: nada. É o comportamento que bate com o sintoma, e ainda
-não foi confirmado no aparelho.
-
-### Os três caminhos, do mais provável para o mais trabalhoso
+Isso não é detalhe de curiosidade: se um dia for preciso instalar sem o cabo
+— no aparelho de outra pessoa, num teste com alguém de fora — o problema
+volta e ninguém sabe o que fazer. Quando houver chance, vale testar as duas
+saídas abaixo **antes** de ligar o cabo, só para saber qual delas era:
 
 1. **Desligar o Auto Blocker.** Ajustes → Segurança e privacidade → Auto
-   Blocker. Se estiver ligado, é quase certo que era ele.
-2. **Autorizar só o navegador.** Ajustes → Apps → o navegador usado →
-   Instalar apps desconhecidos → permitir. Mantém o Auto Blocker ligado para
-   o resto.
-3. **Instalar pelo cabo, com `adb install`.** É o caminho que não depende de
-   nenhum ajuste do aparelho, e o único que dá **mensagem de erro** quando
-   falha — que é o que falta hoje para sair do palpite.
+   Blocker.
+2. **Autorizar o app que abre o arquivo.** Ajustes → Apps → o app usado →
+   Instalar apps desconhecidos → permitir. A permissão é **por app**: liberar
+   o navegador não libera o Meus Arquivos, e é comum liberar um e abrir pelo
+   outro.
 
 ### O caminho do cabo, passo a passo
 
-O `adb` **não está nesta máquina** (conferido em 16/09/2026: não está no
-PATH nem nas pastas padrão do Android SDK). Ele vem no pacote
-`platform-tools`, que é um zip de uns 10 MB e não precisa instalar nada:
+O `adb` não estava nesta máquina em 16/09/2026 — nem no PATH, nem nas pastas
+padrão do Android SDK. Ele vem no pacote `platform-tools`, um zip de uns
+10 MB que não precisa instalar nada:
 
 1. Baixar o `platform-tools` para Windows, do site de desenvolvedores do
    Android, e descompactar numa pasta qualquer.
