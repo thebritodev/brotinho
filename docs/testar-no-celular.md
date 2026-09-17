@@ -120,6 +120,60 @@ essas portas continuam fechadas, que é o certo.
 
 ---
 
+## Os dois Brotinhos no aparelho
+
+Desde 17/09/2026 existem **dois apps**, e eles convivem:
+
+| Na tela inicial | Pacote | O que é |
+|---|---|---|
+| **Brotinho** | `com.brotinho.app` | o app de verdade, o mesmo que vai para a loja |
+| **Brotinho dev** | `com.brotinho.app.dev` | o development build, que carrega o JavaScript do Metro |
+
+Antes disso os dois nasciam com o mesmo pacote, e Android não instala dois
+apps com o mesmo pacote: o segundo substituía o primeiro. Havia um Brotinho
+só, e qual deles era dependia de qual tinha entrado por último pelo cabo —
+sem nada na tela dizendo qual. Quem separou foi o `app.config.js`; o
+`confere-identidade` garante que continuem separados.
+
+### Qual usar, e quando
+
+- **Brotinho dev** para acompanhar ajuste. Mudança de JavaScript — layout,
+  cor, texto, animação — chega em segundos pelo Metro, sem build e sem
+  baixar 100 MB.
+- **Brotinho** para ver o app como a pessoa vê, e sempre que entrar módulo
+  nativo. Ele roda o código congelado dentro do APK e não fala com o Metro.
+
+### Ligar o Brotinho dev ao Metro
+
+1. Subir o servidor aqui na máquina e anotar o endereço do túnel — ele fica
+   em `endereco-expo.txt` e **muda toda vez que o servidor sobe**.
+2. Abrir o **Brotinho dev** no celular. Ele abre numa tela de desenvolvedor,
+   com lista de servidores e um campo de URL — é assim que se sabe que é ele.
+3. Colar ali o endereço `https://…exp.direct`, ou escanear o QR **de dentro
+   do app**.
+
+Depois da primeira vez ele lembra do servidor, e voltar é um toque.
+
+### O Expo Go não entra nessa história
+
+Ele é SDK 57 na Play Store e o projeto é 54: recusa com "Project is
+incompatible with this version of Expo Go". Não é falta de atualização — ele
+**nunca** vai abrir este projeto.
+
+Pior que inútil, ele atrapalha: o esquema `exp://` pertence a ele, então um
+link ou QR nesse formato abre o Expo Go mesmo com o Brotinho dev instalado.
+Por isso o development build tem esquema próprio, `brotinho-dev://`, e o QR
+usa este formato:
+
+```
+brotinho-dev://expo-development-client/?url=<o endereço https, codificado>
+```
+
+O caminho que não depende de esquema nenhum é escanear de dentro do app.
+Desinstalar o Expo Go também resolve, e não custa nada.
+
+---
+
 ## O que não funciona no Expo Go, e por quê
 
 Dois módulos nativos não vêm no aplicativo da Expo, e nenhum dos dois pode ser
