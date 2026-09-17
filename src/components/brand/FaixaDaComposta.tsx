@@ -89,7 +89,7 @@ import {
  * embaixo da terra do ponto de vista da palavra: quando ela chega ali já
  * está escondida.
  */
-const ALTURA_DA_TERRA = 232;
+const ALTURA_DA_TERRA = 248;
 
 /**
  * Onde a terra começa a sumir, em fração da altura dela.
@@ -107,7 +107,7 @@ const ALTURA_DA_TERRA = 232;
  * O número é o que sobra abaixo do botão: o `paddingBottom` do convite é o
  * mesmo tamanho, então a dissolução inteira acontece em terra vazia.
  */
-const TERRA_COMECA_A_SUMIR = 0.81;
+const TERRA_COMECA_A_SUMIR = 0.76;
 
 /**
  * Quanto a faixa ocupa, ao todo.
@@ -427,7 +427,16 @@ export function FaixaDaComposta({
                 creme do texto dava 2,6 de contraste. Sobre `TERRA_FUNDA` dá
                 mais de seis.
               */}
-              <Stop offset="0.46" stopColor={TERRA_FUNDA} />
+              {/*
+                A parada escura sobe de 0,46 para 0,42.
+
+                Não é ajuste de gosto: o convite subiu junto com a terra que
+                cresceu, e sobre o tom mais claro o creme do título caía para
+                4,74 — abaixo do piso de 4,5 com folga nenhuma. Chegando mais
+                cedo ao tom escuro, ele volta aos 4,88 de antes sem mexer na
+                crista iluminada lá em cima, que é o que dá relevo à terra.
+              */}
+              <Stop offset="0.42" stopColor={TERRA_FUNDA} />
               {/*
                 A terra chega ao tom mais escuro e, daí para baixo, some.
 
@@ -532,7 +541,7 @@ export function FaixaDaComposta({
             em cima da parte que está sumindo, e ele é a única coisa da faixa
             que não pode parecer que vai embora.
           */
-          paddingBottom: 50,
+          paddingBottom: 66,
           justifyContent: 'flex-end',
           gap: 9,
           opacity: pressed ? 0.88 : 1,

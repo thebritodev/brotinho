@@ -115,14 +115,14 @@ function razao(frente, fundo) {
 
     O degradê da terra tem paradas em 0 (`TERRA_CLARA`), 0,14 (`TERRA`),
     0,46 (`TERRA_FUNDA`), 0,81 e 1 (`TERRA_SOMBRA`, a última já transparente),
-    numa caixa de 258 pontos. O bloco de texto subiu quando a terra ganhou
+    numa caixa de 274 pontos. O bloco de texto subiu quando a terra ganhou
     altura para poder sumir embaixo: hoje o título ocupa de 0,28 a 0,40 da
     caixa, e a linha de 0,44 a 0,59.
 
     O pior tom sob o título é, portanto, a mistura de `TERRA` com
-    `TERRA_FUNDA` em 42% — mais claro que antes, e por isso a razão caiu de
-    5,28 para 4,88. Ainda passa, com menos folga: se o convite subir mais, é
-    aqui que vai aparecer.
+    `TERRA_FUNDA` em 42,5% — a parada escura subiu de 0,46 para 0,42 junto
+    com o texto, o que devolveu a razão a 4,88. Sem isso ela cairia a 4,74: é
+    aqui que qualquer subida futura do convite vai aparecer primeiro.
 
     ## Por que a terceira linha existe
 
@@ -138,7 +138,7 @@ function razao(frente, fundo) {
     canais(a)
       .map((v, i) => Math.round(v + q * (canais(b)[i] - v)).toString(16).padStart(2, 0))
       .join('');
-  const sobOTitulo = mistura(terra.TERRA, terra.TERRA_FUNDA, 0.42);
+  const sobOTitulo = mistura(terra.TERRA, terra.TERRA_FUNDA, 0.425);
   linha('título da Composta sobre a terra', terra.TEXTO_NA_TERRA, sobOTitulo, AA_TEXTO);
   linha('linha da Composta sobre a terra', terra.TEXTO_NA_TERRA_FRACO, terra.TERRA_FUNDA, AA_TEXTO);
   linha(

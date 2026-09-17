@@ -233,7 +233,7 @@ export function HomeScreen({
     Agora a fileira desce, e a altura reservada acompanha: sem isso, o que
     desceu invadiria os primeiros vinte pontos da queda.
   */
-  const CABECALHO_DA_FAIXA = 132;
+  const CABECALHO_DA_FAIXA = 152;
   /*
     A queda cede um pouco do que o cabeçalho tomou.
 
@@ -247,7 +247,7 @@ export function HomeScreen({
     aparelho de 390 — ainda uma vez e meia o que o cartão antigo dava, e sem
     o véu comendo o fim dela.
   */
-  const quedaDaFaixa = Math.round(Math.min(largura * 0.46, 190));
+  const quedaDaFaixa = Math.round(Math.min(largura * 0.42, 172));
   const faixa = alturaDaFaixa(insets.top + 20, CABECALHO_DA_FAIXA, quedaDaFaixa);
 
   /**
@@ -526,7 +526,19 @@ export function HomeScreen({
             O que ele diz vem de `falaDaHome`: fato do app quando há um, e a
             saudação do dia quando não há.
           */}
-          <View style={{ marginTop: 6, flexDirection: 'row', alignItems: 'center', gap: 10 }}>
+          {/*
+            Vinte e seis de respiro, e o número foi medido, não escolhido.
+
+            Com seis sobravam **dez pontos** entre a base dos botões de sino
+            e ajustes e o topo do balão — e o balão termina na mesma borda
+            direita que eles. Dez pontos com as bordas alinhadas não leem
+            como duas fileiras: leem como o balão encostado por baixo dos
+            botões, que foi exatamente a queixa.
+
+            Com vinte e seis a folga vai a trinta, que é mais que a metade
+            da altura de um botão, e as duas fileiras se separam.
+          */}
+          <View style={{ marginTop: 26, flexDirection: 'row', alignItems: 'center', gap: 10 }}>
             {/*
               A carinha daqui é sempre a feliz, e não a do humor marcado.
 
