@@ -8,6 +8,7 @@ import Svg, {
   LinearGradient,
   Path,
   RadialGradient,
+  Rect,
   Stop,
 } from 'react-native-svg';
 
@@ -96,41 +97,56 @@ const PAPEL = { largura: 88, altura: 104 };
 const COLUNA_DO_PAPEL = 0.5;
 
 /**
- * A cova, vista em corte.
+ * O buraco por onde se vê a folha — menor que ela, dos quatro lados.
  *
- * ## Por que corte, e não um monte em cima do chão
+ * ## A folha é maior que o buraco, e isso é o desenho inteiro
  *
- * As duas versões anteriores punham a folha **espetada na superfície** —
- * primeiro atrás de uma faixa de terra, depois dentro de um montinho. Nas
- * duas a folha estava *sobre* a terra, e o que se lia era um papel largado
- * no chão, não uma coisa enterrada.
+ * A versão anterior era um bolsão grande com a folha inteira dentro, à
+ * vista. Lia como um objeto guardado numa caverna, não como coisa
+ * enterrada: dava para ver onde a folha terminava.
  *
- * O corte é a convenção que todo mundo reconhece para "enterrado": a terra
- * fatiada na horizontal, e dentro dela um bolsão com o objeto inteiro — o
- * baú do tesouro de desenho animado. Não precisa esconder nada para dizer
- * que está debaixo da terra; o bolsão já diz.
+ * Aqui o buraco tem uns dois terços da largura da folha e menos da metade
+ * da altura. A terra em volta é desenhada **por cima** dela, com o buraco
+ * recortado — então as bordas do buraco tampam as bordas da folha, e o que
+ * aparece é só o miolo, com a escrita. É o jeito de dizer que ela continua
+ * para dentro da terra sem precisar mostrar até onde.
  *
- * `cy` é o centro contando do topo da faixa, e as meias-medidas são do
- * contorno. A forma é mais larga que alta, como um bolsão cavado.
+ * `cy` é o centro contando do topo da faixa; as meias-medidas são do
+ * contorno, e a forma é um pouco mais larga que alta.
  */
-const COVA = { cy: 108, meiaLargura: 116, meiaAltura: 78 };
-
-/** Onde começa o chão da cova — a faixa mais escura em que a folha pousa. */
-const CHAO_DA_COVA = COVA.cy + COVA.meiaAltura * 0.44;
-
-/** A folha pousada no chão: o pé dela encosta nele, não flutua acima. */
-const TOPO_DO_PAPEL = CHAO_DA_COVA + 6 - PAPEL.altura;
+const COVA = { cy: 100, meiaLargura: 34, meiaAltura: 24 };
 
 /**
- * Quanto a folha sobe ao ser desenterrada.
+ * Onde a folha fica, atrás da terra.
  *
- * O bastante para ela atravessar o teto da cova e ficar metade para fora —
- * é o "já foi desenterrada hoje" dito pelo desenho, sem etiqueta.
+ * O buraco cai um pouco acima do meio dela, que é onde está a escrita: é
+ * ela que diz que aquilo é papel escrito, e não um retalho claro.
  */
-const SUBIDA = 62;
+const TOPO_DO_PAPEL = COVA.cy - 44;
 
-/** A altura do canteiro: a cova inteira, mais o respiro até o título. */
-const ALTURA_DO_CANTEIRO = COVA.cy + COVA.meiaAltura + 20;
+/**
+ * A tampa de terra: cobre a folha inteira, menos o buraco.
+ *
+ * Relativa ao centro da coluna. É mais larga que a folha para a folha
+ * poder tremer lá embaixo sem uma ponta escapar pela lateral.
+ */
+const TAMPA = {
+  meiaLargura: PAPEL.largura / 2 + 18,
+  topo: TOPO_DO_PAPEL - 14,
+  base: TOPO_DO_PAPEL + PAPEL.altura + 8,
+};
+
+/**
+ * Quanto a folha sobe quando é desenterrada.
+ *
+ * Ela sai pela boca do buraco e fica de pé, com o pé ainda lá dentro — o
+ * "já foi desenterrada hoje" dito pelo desenho. Não sobe mais que isto
+ * porque, acima, ela encostaria no botão da Composta.
+ */
+const SUBIDA = 44;
+
+/** A altura do canteiro: até onde a tampa precisa cobrir a folha. */
+const ALTURA_DO_CANTEIRO = TAMPA.base;
 
 export function alturaDaFaixaDaFrase(): number {
   return ALTURA_DO_CANTEIRO + ALTURA_DO_CONVITE + DISSOLUCAO;
@@ -260,16 +276,23 @@ export function FaixaDaFrase({
     outputRange: [0, -2, 2, -2, 1.2, 0, 0],
   });
 
-  /** O papel sobe da terra e passa um pouco do ponto antes de assentar. */
+  /*
+    O puxão: a folha dá um tranco para cima e volta, lá embaixo da terra.
+
+    Ela não sai durante a encenação. Com a terra por cima, subir de verdade
+    a esconderia atrás do chão; o que se vê pelo buraco é ela sendo puxada
+    e resistindo — e aí o cartão abre. Quando ele fecha, ela já está do lado
+    de fora. As amplitudes são pequenas de propósito: dez pontos de folga
+    entre a borda do buraco e a da folha, e nenhuma ponta pode aparecer.
+  */
   const subida = passo.interpolate({
-    inputRange: [0, fimDaCava, fimDaSubida * 0.82, fimDaSubida, 1],
-    outputRange: [0, 0, -SUBIDA * 1.24, -SUBIDA, -SUBIDA],
+    inputRange: [0, fimDaCava, fimDaCava + (fimDaSubida - fimDaCava) * 0.4, fimDaSubida, 1],
+    outputRange: [0, 0, -7, 2, 0],
   });
 
-  /** A mexida: ele sai torto e se endireita. */
   const balanco = passo.interpolate({
     inputRange: [0, fimDaCava, fimDaCava + (fimDaSubida - fimDaCava) * 0.45, fimDaSubida, 1],
-    outputRange: ['0deg', '0deg', '-7deg', '2deg', '2deg'],
+    outputRange: ['0deg', '0deg', '-4deg', '2deg', '0deg'],
   });
 
   /** Os torrões que saltam enquanto ele cava. */
@@ -340,12 +363,15 @@ export function FaixaDaFrase({
       </View>
 
       {/*
-        A cova e o que está nela. Tudo aqui treme junto quando ela é cavada.
+        O buraco, a folha e a terra que a tampa. Tudo treme junto na cavação.
 
-        Este SVG **não** estica: é desenho de verdade, com curvas, e esticar
-        entortaria a cova. Por isso ele fica numa caixa própria, do tamanho
-        exato do canteiro, e usa o `meet` padrão — e nada nele encosta nas
-        bordas, então não há tira para aparecer.
+        Três camadas, e a ordem é o desenho: o fundo do buraco, depois a
+        folha, depois a terra com o buraco recortado. A folha fica sempre no
+        meio — o que muda entre enterrada e desenterrada é só até onde a
+        terra de cima chega. Ver `Tampa`.
+
+        Nada aqui estica: são desenhos com curva. A caixa tem o tamanho
+        exato do canteiro, e nada encosta nas bordas da tela.
       */}
       <Animated.View
         pointerEvents="none"
@@ -358,8 +384,8 @@ export function FaixaDaFrase({
           transform: [{ translateX: tremor }],
         }}
       >
-        <Svg width="100%" height="100%" viewBox={`0 0 ${largura} ${ALTURA_DO_CANTEIRO}`}>
-          <Cova largura={largura} id={id} />
+        <Svg style={{ position: 'absolute' }} width="100%" height="100%" viewBox={`0 0 ${largura} ${ALTURA_DO_CANTEIRO}`}>
+          <FundoDoBuraco largura={largura} id={`${id}f`} />
         </Svg>
 
         <Animated.View
@@ -370,18 +396,23 @@ export function FaixaDaFrase({
             width: PAPEL.largura,
             height: PAPEL.altura,
             transform: fora
-              ? [{ translateY: -SUBIDA }, { rotate: '5deg' }]
+              ? [{ translateY: -SUBIDA }, { rotate: '4deg' }]
               : [{ translateY: subida }, { rotate: balanco }],
           }}
         >
           <Papel largura={PAPEL.largura} altura={PAPEL.altura} />
         </Animated.View>
 
-        {/*
-          Os torrões que caem do teto da cova enquanto ela é cavada.
+        <Svg style={{ position: 'absolute' }} width="100%" height="100%" viewBox={`0 0 ${largura} ${ALTURA_DO_CANTEIRO}`}>
+          <Tampa largura={largura} id={`${id}t`} desenterrada={fora} />
+        </Svg>
 
-          No corte eles caem, em vez de saltar: quem cava está lá em cima, e
-          o que se vê daqui de dentro é a terra do teto se soltando.
+        {/*
+          Os torrões que caem da boca do buraco enquanto ela é cavada.
+
+          Ficam por cima da tampa para serem vistos, e por isso nascem e
+          caem dentro da largura do buraco: fora dela eles pareceriam cair
+          por cima da terra, e não para dentro dela.
         */}
         {!fora &&
           TORROES.map((q, i) => (
@@ -389,8 +420,8 @@ export function FaixaDaFrase({
               key={i}
               style={{
                 position: 'absolute',
-                left: largura * COLUNA_DO_PAPEL + q.x,
-                top: COVA.cy - COVA.meiaAltura + 12,
+                left: largura * COLUNA_DO_PAPEL + q.x - q.r,
+                top: COVA.cy - COVA.meiaAltura - 4,
                 width: q.r * 2,
                 height: q.r * 1.7,
                 borderRadius: q.r,
@@ -500,135 +531,202 @@ export function FaixaDaFrase({
   );
 }
 
-/** Os torrões que caem do teto da cova: onde nascem, tamanho e para onde vão. */
+/** Os torrões que caem para dentro do buraco: onde nascem, tamanho e queda. */
 const TORROES = [
-  { x: -58, r: 4, cai: 46, anda: -4 },
-  { x: -24, r: 3, cai: 58, anda: 2 },
-  { x: 12, r: 3.6, cai: 40, anda: -2 },
-  { x: 40, r: 2.8, cai: 62, anda: 3 },
-  { x: 66, r: 3.4, cai: 50, anda: 1 },
+  { x: -20, r: 3.2, cai: 26, anda: -3 },
+  { x: -4, r: 2.6, cai: 34, anda: 1 },
+  { x: 10, r: 3, cai: 22, anda: 2 },
+  { x: 22, r: 2.4, cai: 30, anda: -1 },
 ] as const;
 
 /**
- * A cova em corte: o bolsão, o chão dele, as marcas na parede.
+ * O contorno do buraco, em volta do centro da coluna.
  *
- * Desenhada como o baú do tesouro de desenho animado, que é a referência:
- * contorno grosso e escuro, parede mais clara que a terra em volta — é a
- * face cortada do bolsão —, chão mais escuro onde o objeto pousa, e
- * risquinhos em "c" na parede para ela ter textura de terra batida.
- *
- * A borda é irregular de propósito. Uma elipse perfeita lê como buraco
- * de máquina; cavado à mão, o bolsão tem um lado mais cheio que o outro.
+ * Irregular de propósito: uma elipse perfeita lê como furo de máquina, e
+ * buraco cavado à mão tem um lado mais cheio que o outro. As duas camadas
+ * que usam o buraco — o fundo e a tampa — desenham **este** contorno, e é
+ * por isso que ele mora numa função: se cada uma tivesse o seu, a menor
+ * diferença abriria uma fresta entre o fundo e a terra.
  */
-function Cova({ largura, id }: { largura: number; id: string }) {
-  const cx = largura * COLUNA_DO_PAPEL;
+function contornoDoBuraco(cx: number): string {
   const { cy, meiaLargura: W, meiaAltura: H } = COVA;
-
-  const contorno = [
-    `M${cx - W + 6} ${cy - 10}`,
-    `C${cx - W} ${cy - H + 12} ${cx - W * 0.45} ${cy - H - 4} ${cx - 4} ${cy - H + 2}`,
-    `C${cx + W * 0.4} ${cy - H + 8} ${cx + W + 4} ${cy - H + 2} ${cx + W - 2} ${cy - 18}`,
-    `C${cx + W + 6} ${cy + 14} ${cx + W - 6} ${cy + H - 8} ${cx + W * 0.55} ${cy + H - 2}`,
-    `C${cx + W * 0.1} ${cy + H + 4} ${cx - W * 0.5} ${cy + H + 2} ${cx - W + 4} ${cy + H - 10}`,
-    `C${cx - W - 8} ${cy + H - 26} ${cx - W - 4} ${cy + 14} ${cx - W + 6} ${cy - 10}`,
+  return [
+    `M${cx - W} ${cy - 2}`,
+    `C${cx - W} ${cy - H + 4} ${cx - W * 0.5} ${cy - H - 2} ${cx - 2} ${cy - H}`,
+    `C${cx + W * 0.45} ${cy - H + 1} ${cx + W + 2} ${cy - H + 6} ${cx + W} ${cy - 4}`,
+    `C${cx + W - 1} ${cy + H * 0.6} ${cx + W * 0.5} ${cy + H + 1} ${cx + 2} ${cy + H}`,
+    `C${cx - W * 0.5} ${cy + H - 1} ${cx - W - 1} ${cy + H * 0.55} ${cx - W} ${cy - 2}`,
     'Z',
   ].join(' ');
+}
 
-  /* A linha de cima do chão: ondulada, como terra assentada. */
-  const chao = CHAO_DA_COVA;
-  const bordaDoChao = `M${cx - W - 10} ${chao + 2} Q${cx - W * 0.5} ${chao - 6} ${cx - W * 0.1} ${chao + 1} T${cx + W * 0.6} ${chao - 2} T${cx + W + 10} ${chao + 3}`;
-
+/**
+ * O fundo do buraco: o que aparece quando a folha não o ocupa.
+ *
+ * Enterrada, a folha cobre o buraco inteiro e isto não se vê. Desenterrada,
+ * ela sobe e deixa à mostra a parte de baixo — terra mais escura, que é o
+ * lugar de onde ela saiu.
+ */
+function FundoDoBuraco({ largura, id }: { largura: number; id: string }) {
+  const cx = largura * COLUNA_DO_PAPEL;
   return (
     <>
       <Defs>
-        <ClipPath id={`bolsao-${id}`}>
-          <Path d={contorno} />
-        </ClipPath>
-        <RadialGradient id={`sombra-${id}`} cx="50%" cy="50%" r="50%">
-          <Stop offset="0.62" stopColor="#2A241D" stopOpacity={0.55} />
-          <Stop offset="1" stopColor="#2A241D" stopOpacity={0} />
-        </RadialGradient>
-        <LinearGradient id={`parede-${id}`} x1="0" y1="0" x2="0" y2="1">
-          <Stop offset="0" stopColor={TERRA_CLARA} />
-          <Stop offset="1" stopColor={TERRA} />
+        <LinearGradient id={`fundo-${id}`} x1="0" y1="0" x2="0" y2="1">
+          <Stop offset="0" stopColor={TERRA_FUNDA} />
+          <Stop offset="1" stopColor="#2A241D" />
         </LinearGradient>
       </Defs>
-
-      {/* A sombra em volta: a terra escurece perto do bolsão. */}
-      <Ellipse cx={cx} cy={cy + 4} rx={W + 30} ry={H + 24} fill={`url(#sombra-${id})`} />
-
-      {/* O bolsão. */}
-      <Path d={contorno} fill={`url(#parede-${id})`} />
-
-      {/* O chão, recortado pelo bolsão para não vazar da borda. */}
-      <G clipPath={`url(#bolsao-${id})`}>
-        <Path
-          d={`${bordaDoChao} L${cx + W + 10} ${cy + H + 20} L${cx - W - 10} ${cy + H + 20} Z`}
-          fill={TERRA_FUNDA}
-        />
-        {/* Um pouco de luz na borda do chão, vinda do corte. */}
-        <Path d={bordaDoChao} stroke={TERRA} strokeWidth={4} fill="none" opacity={0.5} />
-      </G>
-      <Path d={bordaDoChao} stroke={tracos.contorno} strokeWidth={2.4} fill="none" opacity={0.7} />
-
-      {/* Os risquinhos na parede: terra batida, cavada à mão. */}
-      {MARCAS.map((m, i) => (
-        <Path
-          key={i}
-          d={`M${cx + m.x} ${cy + m.y} q${m.v * 5} -4 ${m.v * 3} -9`}
-          stroke={tracos.contorno}
-          strokeWidth={2.4}
-          strokeLinecap="round"
-          fill="none"
-          opacity={0.55}
-        />
-      ))}
-
-      {/* Duas pedrinhas no chão. */}
-      {[
-        { x: -W + 22, y: H - 22 },
-        { x: W - 30, y: H - 30 },
-      ].map((p, i) => (
-        <Ellipse
-          key={i}
-          cx={cx + p.x}
-          cy={cy + p.y}
-          rx={4.2}
-          ry={3.4}
-          fill={TERRA_CLARA}
-          stroke={tracos.contorno}
-          strokeWidth={1.8}
-        />
-      ))}
-
-      {/* O contorno por último, por cima de tudo: é ele que recorta o bolsão. */}
-      <Path
-        d={contorno}
-        fill="none"
-        stroke={tracos.contorno}
-        strokeWidth={3.2}
-        strokeLinejoin="round"
-      />
+      <Path d={contornoDoBuraco(cx)} fill={`url(#fundo-${id})`} />
     </>
   );
 }
 
-/** Os risquinhos da parede, relativos ao centro da cova. `v` vira o lado. */
-const MARCAS = [
-  { x: -92, y: -38, v: 1 },
-  { x: -100, y: 6, v: 1 },
-  { x: 88, y: -44, v: -1 },
-  { x: 98, y: -2, v: -1 },
-  { x: 60, y: -62, v: -1 },
+/**
+ * A terra por cima da folha, com o buraco recortado.
+ *
+ * ## Como o recorte é feito
+ *
+ * Um retângulo da cor da terra e o contorno do buraco no **mesmo** caminho,
+ * com `fillRule="evenodd"`: a regra pinta o que está dentro do retângulo e
+ * fora do buraco. Não há máscara nem imagem — é um caminho só, e a cor é a
+ * mesma da terra de baixo, então a tampa não tem borda visível: ela só
+ * existe onde tampa a folha.
+ *
+ * ## Enterrada e desenterrada
+ *
+ * Enterrada, a tampa cobre a folha de cima a baixo. Desenterrada, ela só
+ * vale **da boca do buraco para baixo**: acima dela a folha está do lado de
+ * fora, na frente da terra; abaixo, ela continua entrando no buraco, e só
+ * aparece pela abertura. É a mesma folha e a mesma tampa — muda só até
+ * onde a tampa chega.
+ *
+ * ## O que faz o buraco parecer fundo
+ *
+ * Três coisas, de fora para dentro: um lábio de terra mais clara em volta,
+ * que é a borda remexida; o contorno grosso; e uma sombra entrando pela
+ * parte de cima da abertura, por cima da folha — a terra da borda fazendo
+ * sombra no que está lá dentro. Sem a sombra, a folha lê como colada na
+ * frente da terra, e não afundada nela.
+ */
+function Tampa({
+  largura,
+  id,
+  desenterrada,
+}: {
+  largura: number;
+  id: string;
+  desenterrada: boolean;
+}) {
+  const cx = largura * COLUNA_DO_PAPEL;
+  const { cy, meiaLargura: W, meiaAltura: H } = COVA;
+  const buraco = contornoDoBuraco(cx);
+  const retangulo = `M${cx - TAMPA.meiaLargura} ${TAMPA.topo} H${cx + TAMPA.meiaLargura} V${TAMPA.base} H${cx - TAMPA.meiaLargura} Z`;
+  /*
+    Desenterrada, a tampa só existe da linha do meio do buraco para baixo.
+
+    É a linha do meio, e não um pouco acima, por um motivo de desenho: é ali
+    que o buraco é mais largo, e o lábio em volta dele cobre exatamente a
+    passagem entre a folha inteira, em cima, e a folha vista só pela
+    abertura, embaixo. Cortando mais alto, sobrava um degrau reto
+    atravessando a folha — lia como se ela tivesse sido cortada, e não
+    enfiada no buraco.
+  */
+  const deOnde = desenterrada ? cy : 0;
+
+  return (
+    <>
+      <Defs>
+        <ClipPath id={`ate-${id}`}>
+          <Rect x={0} y={deOnde} width={largura} height={ALTURA_DO_CANTEIRO} />
+        </ClipPath>
+        <ClipPath id={`dentro-${id}`}>
+          <Path d={buraco} />
+        </ClipPath>
+        <LinearGradient id={`sombra-${id}`} x1="0" y1="0" x2="0" y2="1">
+          <Stop offset="0" stopColor="#1F1A15" stopOpacity={0.7} />
+          <Stop offset="0.5" stopColor="#1F1A15" stopOpacity={0.12} />
+          <Stop offset="1" stopColor="#1F1A15" stopOpacity={0} />
+        </LinearGradient>
+      </Defs>
+
+      <G clipPath={`url(#ate-${id})`}>
+        {/* A terra, com o buraco recortado. */}
+        <Path d={`${retangulo} ${buraco}`} fill={TERRA_SOMBRA} fillRule="evenodd" />
+
+        {/* A sombra que a borda faz para dentro, por cima da folha. */}
+        <G clipPath={`url(#dentro-${id})`}>
+          <Rect
+            x={cx - W - 4}
+            y={cy - H - 4}
+            width={W * 2 + 8}
+            height={H * 2 + 8}
+            fill={`url(#sombra-${id})`}
+          />
+        </G>
+
+        {/* O lábio: terra remexida em volta da boca, mais clara e grossa. */}
+        <Path
+          d={buraco}
+          fill="none"
+          stroke={TERRA_FUNDA}
+          strokeWidth={15}
+          strokeLinejoin="round"
+        />
+        <Path
+          d={buraco}
+          fill="none"
+          stroke={TERRA}
+          strokeWidth={3}
+          strokeLinejoin="round"
+          opacity={0.45}
+          transform={`translate(0 -2)`}
+        />
+        <Path
+          d={buraco}
+          fill="none"
+          stroke={tracos.contorno}
+          strokeWidth={3}
+          strokeLinejoin="round"
+        />
+
+        {/*
+          Torrõezinhos redondos na borda: o que faz a terra em volta
+          parecer fofa, remexida, e não um recorte limpo de tesoura.
+        */}
+        {BORDA.map((b, i) => (
+          <Ellipse
+            key={i}
+            cx={cx + b.x}
+            cy={cy + b.y}
+            rx={b.r}
+            ry={b.r * 0.8}
+            fill={TERRA_FUNDA}
+            stroke={tracos.contorno}
+            strokeWidth={1.8}
+          />
+        ))}
+      </G>
+    </>
+  );
+}
+
+/** Os torrões da borda do buraco, relativos ao centro dele. */
+const BORDA = [
+  { x: -44, y: 10, r: 5 },
+  { x: -40, y: 22, r: 3.4 },
+  { x: 42, y: 14, r: 4.4 },
+  { x: 30, y: 28, r: 3.6 },
+  { x: -18, y: 30, r: 3 },
 ] as const;
 
 /**
- * A folha, de costas.
+ * A folha.
  *
- * Ela é um trapézio, e não um retângulo: papel enfiado na terra não está de
- * frente para ninguém. As duas dobras são o que diz que tem coisa escrita do
- * outro lado sem mostrar nada — e é a promessa da ferramenta, que a frase não
- * aparece sem ser buscada.
+ * Enterrada, só o miolo dela aparece, pelo buraco; desenterrada, ela fica
+ * de pé do lado de fora e aparece quase inteira, com a ponta dobrada. A
+ * escrita nunca se lê — são traços —, porque a frase não aparece sem ser
+ * buscada.
  */
 function Papel({ largura, altura }: { largura: number; altura: number }) {
   const id = useId().replace(/[^a-zA-Z0-9]/g, '');
@@ -667,27 +765,27 @@ function Papel({ largura, altura }: { largura: number; altura: number }) {
         strokeLinejoin="round"
       />
       {/*
-        Duas linhas escritas, fracas, perto do topo.
+        Três linhas escritas, no miolo da folha.
 
-        Elas não deixam ler nada — são dois traços — e são o que diferencia a
-        folha de um pedaço de papel em branco. Ficam só no alto porque é a
-        parte que sai da terra: o resto está enterrado, e papel enterrado não
-        mostra o que tem escrito.
+        Não deixam ler nada — são traços — e são o que faz o pedaço claro que
+        aparece no buraco ser **papel escrito**, e não um retalho qualquer.
+        Ficam no meio porque é por onde o buraco olha: as bordas da folha
+        estão todas debaixo da terra.
       */}
-      <Path
-        d={`M${largura * 0.24} ${altura * 0.36} L${largura * 0.74} ${altura * 0.33}`}
-        stroke={tracos.contorno}
-        strokeWidth={2.4}
-        strokeLinecap="round"
-        opacity={0.22}
-      />
-      <Path
-        d={`M${largura * 0.24} ${altura * 0.5} L${largura * 0.6} ${altura * 0.48}`}
-        stroke={tracos.contorno}
-        strokeWidth={2.4}
-        strokeLinecap="round"
-        opacity={0.16}
-      />
+      {[
+        { y: 0.32, fim: 0.78, op: 0.3 },
+        { y: 0.44, fim: 0.7, op: 0.26 },
+        { y: 0.56, fim: 0.62, op: 0.22 },
+      ].map((l) => (
+        <Path
+          key={l.y}
+          d={`M${largura * 0.2} ${altura * l.y} L${largura * l.fim} ${altura * (l.y - 0.02)}`}
+          stroke={tracos.contorno}
+          strokeWidth={2.6}
+          strokeLinecap="round"
+          opacity={l.op}
+        />
+      ))}
       <Path
         d={`M${largura * 0.88 - orelha} 4 L${largura * 0.88 - orelha * 0.18} ${4 + orelha * 0.72} L${largura * 0.88} ${4 + orelha * 0.82} Z`}
         fill={`url(#orelha-${id})`}
