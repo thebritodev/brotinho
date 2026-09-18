@@ -129,37 +129,45 @@ const AFUNDA = 18;
  * cada aparelho. Com duração fixa, a palavra cairia mais rápido num celular
  * grande — o contrário do que se quer de uma tela alta.
  *
- * O número vem do cartão antigo: 1800 ms para uns 114 pontos de queda real,
- * ou seja 63 pt/s. Aqui é um pouco mais que isso porque a queda quase dobrou,
- * e na altura nova a velocidade de antes ficava lenta a ponto de parecer
- * travada.
+ * Começou em 63 pt/s, herdados do cartão antigo (1800 ms para uns 114
+ * pontos). Foi a 78 quando a queda dobrou de tamanho, e voltou para baixo
+ * quando a faixa encolheu: a queda tem hoje uns 182 pontos, e a 78 a palavra
+ * atravessava tudo em dois segundos e três décimos — rápido demais para uma
+ * coisa que está ali para ser lida.
+ *
+ * A 57 ela leva três segundos e dois décimos. É o tempo de ler uma palavra
+ * sem pressa, que era a intenção desde o começo.
  */
-const VELOCIDADE = 78;
+const VELOCIDADE = 57;
 
 /**
  * Quanto da queda de uma palavra passa antes de a seguinte partir.
  *
- * ## O que mudou
+ * **Um** — ou seja, a seguinte só parte quando a anterior terminou. Uma
+ * palavra por vez na coluna, sempre.
  *
- * Cada palavra tinha o ciclo inteiro dividido por igual, e por isso nenhuma
- * podia começar antes de a anterior sumir. Com quatro palavras a frase
- * levava mais de nove segundos para se dizer uma vez — tempo demais para um
- * desenho que está ali para explicar a ferramenta de relance, e longo o
- * bastante para o céu ficar vazio entre uma palavra e outra.
+ * ## A tentativa de sobrepor, e por que ela saiu
  *
- * Agora as quedas se sobrepõem: a seguinte parte quando a anterior está em
- * 42% do caminho. A mesma frase leva menos da metade do tempo, e há quase
- * sempre duas palavras no ar — que é o que faz parecer uma frase se
- * desfazendo, e não palavras enfileiradas.
+ * Isto já foi 0,42: a palavra seguinte partia com a anterior em 42% do
+ * caminho, e a frase inteira levava menos da metade do tempo. No papel a
+ * conta fechava — setenta e seis pontos entre uma e outra contra trinta e
+ * oito de altura de linha, folga de sobra.
  *
- * ## Por que este número, e não menos
+ * No aparelho não fechou. Duas palavras na mesma coluna, ainda que
+ * separadas, leem como uma sobre a outra: o olho tenta ler as duas, não lê
+ * nenhuma, e o que era para ser uma frase se desfazendo virou movimento.
+ * Distância entre linhas de texto corrido não é a mesma coisa que distância
+ * entre duas coisas caindo — foi o que a conta não pegou.
  *
- * 42% da queda são uns setenta e seis pontos de distância entre uma palavra
- * e a seguinte, contra trinta e oito de altura de linha. Abaixo disso elas
- * começam a se encostar na mesma coluna, e duas palavras encavaladas não se
- * leem nem como uma nem como outra.
+ * ## O que isso custa, e por que ainda assim
+ *
+ * O ciclo volta a ser a soma das quedas: quatro palavras a 3,2 s dão uns
+ * treze segundos para a frase se dizer uma vez. É bastante, e é o preço de
+ * cada palavra ter a coluna só para ela pelo tempo de ser lida. A faixa não
+ * precisa ser vista inteira de uma vez — ela repete enquanto a pessoa
+ * estiver ali.
  */
-const ATRASO_ENTRE_PALAVRAS = 0.42;
+const ATRASO_ENTRE_PALAVRAS = 1;
 
 /**
  * O tempo parado antes da primeira queda.
@@ -274,6 +282,9 @@ export function FaixaDaComposta({
    *
    * Cada um vai de 0 a 1 e recomeça em 0, onde a opacidade também é 0 — por
    * isso a volta não aparece.
+   *
+   * Continua um por palavra mesmo agora que só uma cai por vez: é o que
+   * deixa a sobreposição ser uma constante a mudar, e não uma reescrita.
    */
   const valores = useMemo(
     () => palavras.map(() => new Animated.Value(0)),
