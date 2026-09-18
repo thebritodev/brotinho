@@ -63,10 +63,15 @@ import {
  */
 
 /** A altura do bloco onde o papel espia, acima do convite. */
-const ALTURA_DO_CANTEIRO = 134;
+const ALTURA_DO_CANTEIRO = 184;
 
-/** O convite: selo, título e botão. */
-const ALTURA_DO_CONVITE = 146;
+/**
+ * O convite: o título, a linha que diz o gesto, e a porta das guardadas.
+ *
+ * Encolheu de 146 para 96 quando o botão saiu. Ver o cabeçalho: aqui quem
+ * se toca é o papel.
+ */
+const ALTURA_DO_CONVITE = 96;
 
 /** A zona em que a terra se dissolve no fundo da tela. Ver `FaixaDaComposta`. */
 const DISSOLUCAO = 66;
@@ -80,10 +85,49 @@ const TERRA_COMECA_A_SUMIR = 0.74;
  * tamanho para ser papel — é pela proporção entre a folha e o chão que se
  * entende que tem alguma coisa enterrada ali, e não uma pedrinha.
  */
-const PAPEL = { largura: 104, altura: 124 };
+const PAPEL = { largura: 96, altura: 112 };
 
 /** Onde o papel fica, em fração da largura — à esquerda do broto da Composta. */
 const COLUNA_DO_PAPEL = 0.5;
+
+/**
+ * O montinho de terra que cerca a folha.
+ *
+ * Mais largo que o papel dos dois lados, e alto o bastante para esconder
+ * mais da metade dele: o pedido era terra **em volta**, e terra em volta quer
+ * dizer que a folha está num buraco, não encostada num muro.
+ */
+const MONTE = { largura: PAPEL.largura * 1.04, altura: 70 };
+
+/**
+ * Onde cada coisa fica dentro do canteiro, contando do topo da faixa.
+ *
+ * Estavam espalhadas em contas do tipo `ALTURA_DO_CANTEIRO - 22` e `84` solto
+ * dentro do desenho, e a primeira versão do montinho não encaixou por causa
+ * disso: a crista caía abaixo do pé da folha, e a terra que era para cercá-la
+ * passava atrás. Explícitas, a conta é conferível.
+ *
+ * `ESCONDIDO` é a fração da folha que fica enterrada — mais da metade, que é
+ * o que faz "aparecer apenas parte dele".
+ */
+const ESCONDIDO = 0.52;
+const TOPO_DO_PAPEL = 44;
+const CRISTA_DO_MONTE = TOPO_DO_PAPEL + PAPEL.altura * (1 - ESCONDIDO);
+const BASE_DO_MONTE = CRISTA_DO_MONTE + MONTE.altura;
+
+/** Quanto a folha sobe ao sair. Deixa só o pé dela coberto. */
+const SUBIDA = PAPEL.altura * (ESCONDIDO - 0.14);
+
+/**
+ * A caixa do desenho do montinho.
+ *
+ * Ela começa acima da crista para o halo caber, e vai além da base para os
+ * torrõezinhos da saia. `BASE_NA_CAIXA` é onde o pé do montinho fica dentro
+ * dela — e é o único número que o desenho inteiro usa como chão.
+ */
+const TOPO_DA_CAIXA_DO_MONTE = 22;
+const BASE_NA_CAIXA = TOPO_DA_CAIXA_DO_MONTE + MONTE.altura;
+const ALTURA_DA_CAIXA_DO_MONTE = BASE_NA_CAIXA + 24;
 
 export function alturaDaFaixaDaFrase(): number {
   return ALTURA_DO_CANTEIRO + ALTURA_DO_CONVITE + DISSOLUCAO;
@@ -206,7 +250,7 @@ export function FaixaDaFrase({
   /** O papel sobe da terra e passa um pouco do ponto antes de assentar. */
   const subida = passo.interpolate({
     inputRange: [0, fimDaCava, fimDaSubida * 0.82, fimDaSubida, 1],
-    outputRange: [0, 0, -PAPEL.altura * 0.58, -PAPEL.altura * 0.46, -PAPEL.altura * 0.46],
+    outputRange: [0, 0, -SUBIDA * 1.24, -SUBIDA, -SUBIDA],
   });
 
   /** A mexida: ele sai torto e se endireita. */
@@ -221,7 +265,7 @@ export function FaixaDaFrase({
     outputRange: [0, 1, 0, 0],
   });
 
-  const soloDoPapel = ALTURA_DO_CANTEIRO - 22;
+
 
   return (
     <View style={{ height: altura, marginHorizontal: -recuo }}>
@@ -253,7 +297,16 @@ export function FaixaDaFrase({
             </RadialGradient>
           </Defs>
 
-          <Path d={`M0 0 H${largura} V${altura} H0 Z`} fill={`url(#terra-${id})`} />
+          {/*
+            A terra sangra oito pontos para fora dos dois lados.
+
+            Ela começava exata em zero, e a de cima já sangrava. Numa largura
+            de tela fracionada — que é o comum no Android — meio ponto de
+            arredondamento entre a `View` e o desenho deixa uma fresta do
+            fundo aparecendo na borda: a risca branca vertical. Desenhando
+            para fora, não há o que sobrar.
+          */}
+          <Path d={`M-8 0 H${largura + 8} V${altura} H-8 Z`} fill={`url(#terra-${id})`} />
 
           {/* Torrõezinhos, para a terra não ser uma mancha lisa. */}
           {[0.08, 0.2, 0.36, 0.62, 0.78, 0.9].map((f, i) => (
@@ -271,9 +324,9 @@ export function FaixaDaFrase({
           {/* A cova de onde ele sai: uma sombra funda em volta do papel. */}
           <Ellipse
             cx={largura * COLUNA_DO_PAPEL}
-            cy={soloDoPapel}
-            rx={PAPEL.largura * 0.92}
-            ry={26}
+            cy={BASE_DO_MONTE - 6}
+            rx={PAPEL.largura * 1.5}
+            ry={30}
             fill={`url(#cova-${id})`}
           />
         </Svg>
@@ -301,11 +354,11 @@ export function FaixaDaFrase({
           style={{
             position: 'absolute',
             left: largura * COLUNA_DO_PAPEL - PAPEL.largura / 2,
-            top: soloDoPapel - PAPEL.altura + 26,
+            top: TOPO_DO_PAPEL,
             width: PAPEL.largura,
             height: PAPEL.altura,
             transform: fora
-              ? [{ translateY: -PAPEL.altura * 0.46 }, { rotate: '2deg' }]
+              ? [{ translateY: -SUBIDA }, { rotate: '3deg' }]
               : [{ translateY: subida }, { rotate: balanco }],
           }}
         >
@@ -328,8 +381,20 @@ export function FaixaDaFrase({
           O miolo é opaco de propósito — é ele que esconde o pé da folha e faz
           ela estar **enterrada** em vez de pousada.
         */}
-        <View style={{ position: 'absolute', left: 0, right: 0, top: soloDoPapel - 24, height: 84 }}>
-          <Svg width="100%" height="100%" viewBox={`0 0 ${largura} 84`}>
+        <View
+          style={{
+            position: 'absolute',
+            left: 0,
+            right: 0,
+            top: CRISTA_DO_MONTE - TOPO_DA_CAIXA_DO_MONTE,
+            height: ALTURA_DA_CAIXA_DO_MONTE,
+          }}
+        >
+          <Svg
+            width="100%"
+            height="100%"
+            viewBox={`0 0 ${largura} ${ALTURA_DA_CAIXA_DO_MONTE}`}
+          >
             <Defs>
               <RadialGradient id={`pilha-${id}`} cx="50%" cy="50%" r="50%">
                 <Stop offset="0" stopColor={TERRA_FUNDA} stopOpacity={1} />
@@ -337,22 +402,59 @@ export function FaixaDaFrase({
                 <Stop offset="1" stopColor={TERRA_FUNDA} stopOpacity={0} />
               </RadialGradient>
             </Defs>
+            {/* O halo: a terra em volta é mais funda, e some sem borda. */}
             <Ellipse
               cx={largura * COLUNA_DO_PAPEL}
-              cy={52}
-              rx={PAPEL.largura * 1.34}
-              ry={32}
+              cy={BASE_NA_CAIXA - 24}
+              rx={PAPEL.largura * 1.5}
+              ry={36}
               fill={`url(#pilha-${id})`}
             />
-            {/* A luz na crista da pilha, só no meio: ponta acesa vira aresta. */}
+
+            {/*
+              O montinho que cerca o papel.
+
+              É uma cúpula de ombros redondos, sem um ângulo em lugar nenhum:
+              a terra sobe dos dois lados e fecha em volta da folha, em vez de
+              ser uma linha horizontal que por acaso passa na frente dela.
+
+              As duas curvas de Bézier são simétricas e os pontos de controle
+              ficam bem para fora — é isso que dá a barriga. Puxados para
+              dentro, o desenho vira um triângulo arredondado, que lê como
+              pedra.
+            */}
             <Path
-              d={`M${largura * COLUNA_DO_PAPEL - PAPEL.largura * 0.86} 32 Q${largura * COLUNA_DO_PAPEL} 16 ${largura * COLUNA_DO_PAPEL + PAPEL.largura * 0.86} 32`}
+              d={`M${largura * COLUNA_DO_PAPEL - MONTE.largura} ${BASE_NA_CAIXA}
+                  C${largura * COLUNA_DO_PAPEL - MONTE.largura} ${BASE_NA_CAIXA - MONTE.altura * 0.72}
+                   ${largura * COLUNA_DO_PAPEL - MONTE.largura * 0.52} ${BASE_NA_CAIXA - MONTE.altura}
+                   ${largura * COLUNA_DO_PAPEL} ${BASE_NA_CAIXA - MONTE.altura}
+                  C${largura * COLUNA_DO_PAPEL + MONTE.largura * 0.52} ${BASE_NA_CAIXA - MONTE.altura}
+                   ${largura * COLUNA_DO_PAPEL + MONTE.largura} ${BASE_NA_CAIXA - MONTE.altura * 0.72}
+                   ${largura * COLUNA_DO_PAPEL + MONTE.largura} ${BASE_NA_CAIXA} Z`}
+              fill={TERRA_FUNDA}
+            />
+            {/* A luz na crista, e ela para antes das pontas. */}
+            <Path
+              d={`M${largura * COLUNA_DO_PAPEL - MONTE.largura * 0.62} ${BASE_NA_CAIXA - MONTE.altura * 0.74}
+                  Q${largura * COLUNA_DO_PAPEL} ${BASE_NA_CAIXA - MONTE.altura - 3}
+                   ${largura * COLUNA_DO_PAPEL + MONTE.largura * 0.62} ${BASE_NA_CAIXA - MONTE.altura * 0.74}`}
               stroke={TERRA}
-              strokeWidth={2.5}
+              strokeWidth={3}
               strokeLinecap="round"
               fill="none"
-              opacity={0.34}
+              opacity={0.42}
             />
+            {/* Torrõezinhos redondos na saia do montinho. */}
+            {[-1.18, -0.86, 0.9, 1.22].map((f, i) => (
+              <Ellipse
+                key={f}
+                cx={largura * COLUNA_DO_PAPEL + MONTE.largura * f}
+                cy={BASE_NA_CAIXA - 6 - (i % 2) * 7}
+                rx={5 - (i % 3)}
+                ry={4 - (i % 3) * 0.8}
+                fill={TERRA_FUNDA}
+              />
+            ))}
           </Svg>
         </View>
 
@@ -364,7 +466,7 @@ export function FaixaDaFrase({
               style={{
                 position: 'absolute',
                 left: largura * COLUNA_DO_PAPEL + t.x,
-                top: soloDoPapel - 6,
+                top: CRISTA_DO_MONTE + 4,
                 width: t.r * 2,
                 height: t.r * 1.6,
                 borderRadius: t.r,
@@ -383,7 +485,20 @@ export function FaixaDaFrase({
           ))}
       </Animated.View>
 
-      {/* O convite, pousado na terra. */}
+      {/*
+        O convite — e ele não tem botão.
+
+        Tinha: um botão cheio, de largura inteira, igualzinho ao "Compostar
+        agora" a cento e poucos pontos acima. Duas ferramentas diferentes com
+        o mesmo objeto verde na mesma tela leem como repetição, e a segunda
+        perde o que tem de próprio.
+
+        Aqui quem se toca é **o papel**. A coisa que está enterrada é a coisa
+        que se puxa — não há tradução melhor do gesto, e some um botão de uma
+        tela que já tinha vários. O alvo continua sendo a faixa inteira, então
+        ninguém precisa acertar a folha; a linha embaixo do título diz o que
+        fazer, em texto, que é peso visual de outra ordem.
+      */}
       <Pressable
         accessibilityRole="button"
         accessibilityLabel={aberto ? 'Ler a frase de hoje de novo' : 'Desenterrar a frase de hoje'}
@@ -392,47 +507,29 @@ export function FaixaDaFrase({
           position: 'absolute',
           left: 0,
           right: 0,
-          top: ALTURA_DO_CANTEIRO,
-          height: ALTURA_DO_CONVITE,
+          top: 0,
+          height: ALTURA_DO_CANTEIRO + ALTURA_DO_CONVITE,
           paddingHorizontal: recuo,
-          paddingBottom: 18,
+          paddingBottom: 16,
           justifyContent: 'flex-end',
-          gap: 9,
-          opacity: pressed ? 0.88 : 1,
+          gap: 6,
+          opacity: pressed ? 0.9 : 1,
         })}
       >
-        {/*
-          O selo e a porta das guardadas dividem a mesma fileira.
-
-          A porta era absoluta e caía por cima do título. Aqui ela tem lugar
-          próprio, e continua sendo um alvo de toque separado: guardar e
-          reler são coisas diferentes de desenterrar, e o leitor de tela
-          precisa dos dois anúncios.
-        */}
-        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
-          <View
-            style={{
-              backgroundColor: colors.surface,
-              borderRadius: radius.pill,
-              paddingVertical: 5,
-              paddingHorizontal: 11,
-            }}
+        <View style={{ flexDirection: 'row', alignItems: 'baseline', gap: 12 }}>
+          <Text
+            style={{ fontFamily: fonts.display.extraBold, fontSize: 25, color: TEXTO_NA_TERRA }}
           >
-            <Text
-              style={{
-                fontFamily: fonts.body.extraBold,
-                fontSize: 11,
-                letterSpacing: 0.8,
-                textTransform: 'uppercase',
-                color: colors.primaryStrong,
-              }}
-            >
-              {aberto ? 'lida hoje' : 'uma por dia'}
-            </Text>
-          </View>
+            A frase de hoje
+          </Text>
 
           <View style={{ flex: 1 }} />
 
+          {/*
+            A porta das guardadas é um alvo de toque separado, dentro do
+            outro: guardar e reler são coisas diferentes de desenterrar, e o
+            leitor de tela precisa dos dois anúncios.
+          */}
           <Pressable
             accessibilityRole="button"
             accessibilityLabel={
@@ -441,7 +538,7 @@ export function FaixaDaFrase({
                 : 'Ver as frases guardadas'
             }
             onPress={onVerGuardadas}
-            hitSlop={10}
+            hitSlop={12}
           >
             <Text
               style={{
@@ -456,28 +553,17 @@ export function FaixaDaFrase({
           </Pressable>
         </View>
 
-        <Text style={{ fontFamily: fonts.display.extraBold, fontSize: 25, color: TEXTO_NA_TERRA }}>
-          A frase de hoje
-        </Text>
-
-        <View
-          accessibilityElementsHidden
-          importantForAccessibility="no-hide-descendants"
+        <Text
           style={{
-            backgroundColor: colors.primary,
-            borderRadius: radius.botao,
-            paddingVertical: 15,
-            alignItems: 'center',
-            marginTop: 2,
+            fontFamily: fonts.body.regular,
+            fontSize: 14,
+            lineHeight: 14 * 1.4,
+            color: TEXTO_NA_TERRA_FRACO,
           }}
         >
-          <Text style={{ fontFamily: fonts.body.bold, fontSize: 16, color: colors.textInverse }}>
-            {aberto ? 'Ler de novo' : 'Desenterrar'}
-          </Text>
-        </View>
+          {aberto ? 'Toque no papel para ler de novo.' : 'Toque no papel para desenterrar.'}
+        </Text>
       </Pressable>
-
-
       <CartaoDePapel
         visivel={lendo}
         texto={texto}
