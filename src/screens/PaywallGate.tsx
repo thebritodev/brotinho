@@ -3,7 +3,7 @@ import { ActivityIndicator, Platform, Pressable, ScrollView, Text, View } from '
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Button, LinksDaAssinatura } from '../components';
-import { PLANS, PRODUTO_DO_PLANO, type PlanKey } from '../data/onboarding';
+import { PLANS, PRODUTO_DO_PLANO, chamadaDoPlano, type PlanKey } from '../data/onboarding';
 import { Paywall } from './onboarding/Paywall';
 import { PrivacyPolicyScreen } from './app/PrivacyPolicyScreen';
 import { useAssinatura } from '../state/SubscriptionProvider';
@@ -107,7 +107,7 @@ export function PaywallGate() {
           disabled={!!ocupado}
           onPress={assinar}
         >
-          {ocupado === 'comprando' ? 'Abrindo a loja…' : detalhes.cta}
+          {ocupado === 'comprando' ? 'Abrindo a loja…' : chamadaDoPlano(plano, daLoja)}
         </Button>
 
         <Text

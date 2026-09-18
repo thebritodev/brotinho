@@ -38,6 +38,7 @@ import {
   TENTOU,
   TOTAL,
   VALORES,
+  chamadaDoPlano,
   espelhoDoTentou,
   horaFalada,
   lembreteEnquantoDorme,
@@ -294,7 +295,7 @@ export function OnboardingScreen() {
           ? 'Continuar'
           : 'Manter Brotinho'
       : isPaywall
-        ? plan.cta
+        ? chamadaDoPlano(draft.plan, planos.find((p) => p.id === PRODUTO_DO_PLANO[draft.plan]))
         : step === PASSO.PLANO
           ? 'Ver meu plano'
           : isReminder

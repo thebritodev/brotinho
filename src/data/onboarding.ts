@@ -137,7 +137,6 @@ export const PLANS: Record<
      */
     precoMensal?: string;
     note: string;
-    cta: string;
     fine: string;
   }
 > = {
@@ -145,7 +144,6 @@ export const PLANS: Record<
     name: 'Mensal',
     price: 'R$ 29,90',
     note: 'por mês',
-    cta: 'Assinar por R$ 29,90/mês',
     fine: 'Cobrança mensal de R$ 29,90. Cancele quando quiser.',
   },
   anual: {
@@ -153,10 +151,49 @@ export const PLANS: Record<
     price: 'R$ 179,90',
     precoMensal: 'R$ 14,99',
     note: 'R$ 14,99 por mês · economize 50%',
-    cta: 'Assinar por R$ 179,90/ano',
     fine: 'Cobrança única de R$ 179,90 por 12 meses. Cancele quando quiser.',
   },
 };
+
+/**
+ * O que o botão de assinar diz.
+ *
+ * ## Sempre por mês, nos dois planos
+ *
+ * O anual dizia "Assinar por R$ 179,90/ano". O número está certo e é o
+ * pior jeito de contá-lo: cento e setenta e nove ao lado de vinte e nove
+ * faz o plano mais barato parecer seis vezes mais caro. Quem decide olhando
+ * o botão decide errado — e é o botão que fica embaixo do dedo.
+ *
+ * Dito por mês, os dois ficam comparáveis na mesma unidade: R$ 14,99
+ * contra R$ 29,90. É a mesma cobrança, contada do jeito que deixa a conta
+ * possível.
+ *
+ * ## O total continua à vista
+ *
+ * Isto não esconde o valor anual, e não poderia: Apple e Google exigem que
+ * o preço e o período apareçam antes da compra. O `fine` fica logo abaixo
+ * do botão dizendo "Cobrança única de R$ 179,90 por 12 meses", e o cartão
+ * do plano mostra o total. O que muda é qual dos dois números está no botão.
+ *
+ * ## O preço vem da loja quando ela responde
+ *
+ * O botão era a única parte do paywall que ignorava a loja: os cartões já
+ * usavam o valor de lá, convertido e com o imposto da região, e o botão
+ * seguia com o texto fixo em Reais. Em qualquer país que não o Brasil os
+ * dois se contradiziam na mesma tela.
+ */
+export function chamadaDoPlano(
+  plano: PlanKey,
+  daLoja?: { preco?: string | null; precoMensal?: string | null } | null,
+): string {
+  const reserva = PLANS[plano];
+  const porMes =
+    plano === 'anual'
+      ? (daLoja?.precoMensal ?? reserva.precoMensal ?? reserva.price)
+      : (daLoja?.preco ?? reserva.price);
+  return `Assinar por ${porMes}/mês`;
+}
 
 export const pad = (n: number) => String(n).padStart(2, '0');
 

@@ -1,4 +1,4 @@
-import React, { useEffect, useId, useMemo, useRef } from 'react';
+import React, { useEffect, useId, useMemo } from 'react';
 import { Animated, Easing, Pressable, Text, View } from 'react-native';
 import Svg, { Defs, Ellipse, LinearGradient, Path, RadialGradient, Rect, Stop } from 'react-native-svg';
 
@@ -137,6 +137,31 @@ const AFUNDA = 18;
 const VELOCIDADE = 78;
 
 /**
+ * Quanto da queda de uma palavra passa antes de a seguinte partir.
+ *
+ * ## O que mudou
+ *
+ * Cada palavra tinha o ciclo inteiro dividido por igual, e por isso nenhuma
+ * podia começar antes de a anterior sumir. Com quatro palavras a frase
+ * levava mais de nove segundos para se dizer uma vez — tempo demais para um
+ * desenho que está ali para explicar a ferramenta de relance, e longo o
+ * bastante para o céu ficar vazio entre uma palavra e outra.
+ *
+ * Agora as quedas se sobrepõem: a seguinte parte quando a anterior está em
+ * 42% do caminho. A mesma frase leva menos da metade do tempo, e há quase
+ * sempre duas palavras no ar — que é o que faz parecer uma frase se
+ * desfazendo, e não palavras enfileiradas.
+ *
+ * ## Por que este número, e não menos
+ *
+ * 42% da queda são uns setenta e seis pontos de distância entre uma palavra
+ * e a seguinte, contra trinta e oito de altura de linha. Abaixo disso elas
+ * começam a se encostar na mesma coluna, e duas palavras encavaladas não se
+ * leem nem como uma nem como outra.
+ */
+const ATRASO_ENTRE_PALAVRAS = 0.42;
+
+/**
  * O tempo parado antes da primeira queda.
  *
  * A tela entra com uma transição. Palavra caindo no meio dela é movimento
@@ -238,35 +263,74 @@ export function FaixaDaComposta({
   */
   const palavras = useMemo(() => fraseQueODiaDemonstra().split(/\s+/).filter(Boolean), []);
 
-  const valor = useRef(new Animated.Value(0)).current;
+  /**
+   * Um valor animado por palavra, e não um só fatiado entre elas.
+   *
+   * Com um valor só, a fatia de cada palavra tinha de ser exclusiva: a
+   * seguinte não podia começar antes de a anterior acabar, senão a volta do
+   * laço cortava quem ainda estivesse caindo. Um valor por palavra deixa
+   * cada uma ter o próprio começo e o próprio fim, e a sobreposição passa a
+   * ser só uma questão de quando cada laço parte.
+   *
+   * Cada um vai de 0 a 1 e recomeça em 0, onde a opacidade também é 0 — por
+   * isso a volta não aparece.
+   */
+  const valores = useMemo(
+    () => palavras.map(() => new Animated.Value(0)),
+    [palavras],
+  );
 
   useEffect(() => {
-    valor.setValue(0);
+    valores.forEach((v) => v.setValue(0));
     if (!ativa || menosMovimento) return;
+
+    /** O tempo de uma palavra cair inteira, na velocidade de sempre. */
+    const quedaMs = Math.round((distancia / VELOCIDADE) * 1000);
+    const intervalo = Math.round(quedaMs * ATRASO_ENTRE_PALAVRAS);
     /*
-      Linear, e não suavizado nas pontas.
+      De quanto em quanto tempo a **mesma** palavra volta.
 
-      Uma queda com `easing` desacelera no fim — o que descreve uma coisa
-      pousando, e não uma coisa se desfazendo. E, num laço, a emenda entre o
-      fim lento e o começo lento aparece como uma batida a cada volta.
+      É o intervalo vezes o número de palavras — assim a frase inteira se
+      diz uma vez por ciclo. O piso existe para frase curta: com duas
+      palavras o ciclo ficaria menor que a própria queda, e a palavra teria
+      de recomeçar antes de terminar de cair.
     */
-    const laco = Animated.loop(
-      Animated.timing(valor, {
-        toValue: 1,
-        duration: Math.round((distancia / VELOCIDADE) * 1000) * palavras.length,
-        easing: Easing.linear,
-        useNativeDriver: true,
-      }),
-    );
-    const espera = setTimeout(() => laco.start(), ESPERA_PARA_LER);
-    return () => {
-      clearTimeout(espera);
-      laco.stop();
-    };
-  }, [ativa, menosMovimento, valor, palavras.length, distancia]);
+    const ciclo = Math.max(intervalo * valores.length, quedaMs);
 
-  /** A fatia do ciclo que cabe a cada palavra: uma inteira, sem sobra. */
-  const fatia = 1 / palavras.length;
+    const lacos = valores.map((v) =>
+      /*
+        Linear, e não suavizado nas pontas.
+
+        Uma queda com `easing` desacelera no fim — o que descreve uma coisa
+        pousando, e não uma coisa se desfazendo. E, num laço, a emenda entre
+        o fim lento e o começo lento aparece como uma batida a cada volta.
+
+        A espera depois da queda é o que mantém o ciclo de todas igual: sem
+        ela cada palavra voltaria assim que caísse, e o escalonamento do
+        começo se perderia depois da primeira volta.
+      */
+      Animated.loop(
+        Animated.sequence([
+          Animated.timing(v, {
+            toValue: 1,
+            duration: quedaMs,
+            easing: Easing.linear,
+            useNativeDriver: true,
+          }),
+          Animated.delay(ciclo - quedaMs),
+        ]),
+      ),
+    );
+
+    const esperas = lacos.map((laco, i) =>
+      setTimeout(() => laco.start(), ESPERA_PARA_LER + i * intervalo),
+    );
+
+    return () => {
+      esperas.forEach(clearTimeout);
+      lacos.forEach((laco) => laco.stop());
+    };
+  }, [ativa, menosMovimento, valores, distancia]);
 
   return (
     <View style={{ height: altura, marginHorizontal: -recuo }}>
@@ -349,27 +413,23 @@ export function FaixaDaComposta({
         }}
       >
         {palavras.map((palavra, i) => {
-          const de = i * fatia;
-          const ate = (i + 1) * fatia;
-          const andar = valor.interpolate({
-            inputRange: [de, ate],
+          const v = valores[i];
+          const andar = v.interpolate({
+            inputRange: [0, 1],
             outputRange: [0, distancia],
-            extrapolate: 'clamp',
           });
-          const opacidade = valor.interpolate({
-            inputRange: [de, de + ENTRA * fatia, de + SAI * fatia, ate],
+          const opacidade = v.interpolate({
+            inputRange: [0, ENTRA, SAI, 1],
             outputRange: [0, 1, 1, 0],
-            extrapolate: 'clamp',
           });
           /*
             A palavra tomba um pouco enquanto desce, para um lado ou para o
             outro conforme a posição dela na frase. Caindo reta, parece objeto
             descendo de elevador; tombando, parece folha.
           */
-          const giro = valor.interpolate({
-            inputRange: [de, ate],
+          const giro = v.interpolate({
+            inputRange: [0, 1],
             outputRange: ['0deg', `${(i % 2 === 0 ? -1 : 1) * 9}deg`],
-            extrapolate: 'clamp',
           });
           return (
             <Animated.Text

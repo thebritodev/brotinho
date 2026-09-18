@@ -7,6 +7,7 @@ import {
 import { useCallback, useEffect, useRef, useState } from 'react';
 
 import { janelaDoSistema } from '../../services/janelaDoSistema';
+import { FALA_VAZIA, somarFala, textoDaFala } from '../../services/juntaFala';
 import {
   isNativeSpeechAvailable,
   requestSpeechPermissions,
@@ -42,6 +43,27 @@ export function useVoiceNote({ onText }: Options) {
 
   const partialRef = useRef('');
 
+  /**
+   * O ditado vem em pedaços, e eles precisam ser somados.
+   *
+   * Antes havia uma ref só, e cada evento **substituía** o texto. Em modo
+   * contínuo o Android fecha um trecho a cada pausa e recomeça do zero no
+   * seguinte — então falar, pausar e voltar a falar apagava tudo o que já
+   * tinha sido dito.
+   *
+   * A regra de somar mora em `somarFala`, fora daqui, porque é ela que
+   * estava errada e é ela que o `testa-junta-fala` percorre com a sequência
+   * real de uma fala com pausa no meio.
+   */
+  const falaRef = useRef(FALA_VAZIA);
+
+  /** Zera os dois de uma vez; esquecer um deixa fala velha na próxima gravação. */
+  const limparFala = useCallback(() => {
+    falaRef.current = FALA_VAZIA;
+    partialRef.current = '';
+    setPartial('');
+  }, []);
+
   // Guardado em ref para os listeners nativos não precisarem ser reassinados
   // toda vez que o callback do componente muda de identidade.
   const onTextRef = useRef(onText);
@@ -55,17 +77,26 @@ export function useVoiceNote({ onText }: Options) {
     if (!useNative) return;
 
     const off = [
-      subscribeSpeech('result', (event: { results?: { transcript?: string }[] }) => {
-        const transcript = event.results?.[0]?.transcript ?? '';
-        if (!transcript) return;
-        partialRef.current = transcript;
-        setPartial(transcript);
-      }),
+      subscribeSpeech(
+        'result',
+        (event: { isFinal?: boolean; results?: { transcript?: string }[] }) => {
+          const trecho = event.results?.[0]?.transcript ?? '';
+          if (!trecho) return;
+
+          falaRef.current = somarFala(falaRef.current, {
+            isFinal: event.isFinal,
+            trecho,
+          });
+
+          const tudo = textoDaFala(falaRef.current);
+          partialRef.current = tudo;
+          setPartial(tudo);
+        },
+      ),
 
       subscribeSpeech('end', () => {
         const finalText = partialRef.current.trim();
-        partialRef.current = '';
-        setPartial('');
+        limparFala();
         setState('idle');
         if (finalText) {
           setWasSimulated(false);
@@ -88,8 +119,7 @@ export function useVoiceNote({ onText }: Options) {
           o resto não foi ouvido.
         */
         const atePonto = partialRef.current.trim();
-        partialRef.current = '';
-        setPartial('');
+        limparFala();
         setState('idle');
         if (atePonto) {
           setWasSimulated(false);
@@ -120,7 +150,7 @@ export function useVoiceNote({ onText }: Options) {
     ];
 
     return () => off.forEach((cancel) => cancel());
-  }, [useNative]);
+  }, [useNative, limparFala]);
 
   // --- Caminho de nuvem (Expo Go) ---------------------------------------
 
@@ -169,8 +199,7 @@ export function useVoiceNote({ onText }: Options) {
           setError('Preciso da sua permissão para usar o microfone.');
           return;
         }
-        partialRef.current = '';
-        setPartial('');
+        limparFala();
         startNativeSpeech();
         setState('recording');
         return;
