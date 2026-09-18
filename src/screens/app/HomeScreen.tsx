@@ -7,6 +7,7 @@ import {
   BalaoDoBroto,
   BoasVindas,
   CartaoHeroi,
+  ChuvaDeFarelos,
   FaixaDaComposta,
   FaixaDaFrase,
   alturaDaFaixa,
@@ -21,6 +22,7 @@ import {
   PracticeTopicCard,
   VoltaCard,
   useCompartilharFrase,
+  type ChuvaDeFarelosRef,
 } from '../../components';
 import { toqueLeve } from '../../services/toque';
 import { conselhoDoDia } from '../../data/conselhos';
@@ -363,6 +365,8 @@ export function HomeScreen({
 
   const alturaInicial = useRef(rolagemInicial).current;
   const rolagem = useRef<ScrollView>(null);
+  /** A camada por onde a terra do buraco da Frase do dia cai. */
+  const chuva = useRef<ChuvaDeFarelosRef>(null);
   const jaRestaurou = useRef(false);
 
   const stage = sproutStage(data);
@@ -610,6 +614,11 @@ export function HomeScreen({
           onCompartilhar={() => story.compartilhar(conselho.texto)}
           compartilhando={story.compartilhando}
           aviso={story.aviso}
+          aoCeder={(origem) => {
+            /* Um toque leve a cada estágio: a terra cedendo na mão. */
+            toqueLeve(data.settings.vibracao);
+            chuva.current?.soltar(origem);
+          }}
         />
 
         {voltando && <VoltaCard dias={ausente} />}
@@ -808,6 +817,13 @@ export function HomeScreen({
           )
         )}
       </Modal>
+
+      {/*
+        Os farelos do buraco da Frase do dia. Por cima da rolagem, para caírem
+        a tela inteira, e por baixo da barra de navegação — que é desenhada
+        depois desta tela — para sumirem atrás dela. Ver `ChuvaDeFarelos`.
+      */}
+      <ChuvaDeFarelos ref={chuva} />
 
       {/* A chegada, uma vez só: a primeira Home depois do onboarding. */}
       <BoasVindas

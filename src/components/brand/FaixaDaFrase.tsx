@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useId, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useId, useMemo, useRef, useState } from 'react';
 import { Animated, Easing, Modal, Pressable, Text, View } from 'react-native';
 import Svg, {
   Defs,
@@ -14,6 +14,7 @@ import { useMenosMovimento } from '../../hooks/useMenosMovimento';
 import { fonts, radius, useTema } from '../../theme';
 import { tracos } from '../../theme/tokens';
 import { Icon } from '../core/Icon';
+import type { OrigemDosFarelos } from './ChuvaDeFarelos';
 import { GraoDePapel } from './GraoDePapel';
 import {
   TERRA,
@@ -148,16 +149,30 @@ export function alturaDaFaixaDaFrase(): number {
 /**
  * As fases da abertura, em milissegundos.
  *
- * A terra treme, a folha dá um tranco lá dentro, o buraco se abre, e uma
- * pausa curta para ver a folha inteira antes de o cartão abrir. Somadas
- * dão pouco menos de dois segundos: o bastante para ser um momento, pouco
- * o bastante para não virar espera — e é a mesma pessoa que vê isto todo
- * dia.
+ * A terra treme e a folha dá um tranco lá dentro; depois o buraco cede em
+ * **três estágios**, e não de uma vez. Cada um é um estalo curto — a boca
+ * alarga, passa um pouco do ponto, assenta — seguido de uma pausa, e cada
+ * um solta uma leva de farelos que cai pela tela. O último é o maior e é o
+ * que revela a folha inteira; a pausa depois dele é para vê-la antes de o
+ * cartão abrir.
+ *
+ * Somado, pouco menos de três segundos. É mais que a versão de um estalo
+ * só, de propósito: terra cedendo aos poucos é o que faz a abertura parecer
+ * física, e isto acontece uma vez por dia.
  */
 const CAVA = 620;
 const PUXA = 420;
-const ABRE = 520;
-const PAUSA = 260;
+
+/**
+ * Os três estágios: até quanto o buraco abre, em quanto tempo, e a pausa
+ * depois. O `passa` é quanto ele ultrapassa antes de assentar — a terra
+ * cedendo com um pouco de sobra, e não uma porta de correr.
+ */
+const ETAPAS = [
+  { ate: 0.34, dura: 400, pausa: 240, passa: 1.9 },
+  { ate: 0.68, dura: 400, pausa: 240, passa: 1.9 },
+  { ate: 1, dura: 540, pausa: 520, passa: 1.3 },
+] as const;
 
 /** De `a` a `b`, na fração `f`. */
 const entreDois = (a: number, b: number, f: number) => a + (b - a) * f;
@@ -187,6 +202,15 @@ type Props = {
   onCompartilhar: () => void;
   compartilhando?: boolean;
   aviso?: string | null;
+  /**
+   * Chamado a cada estágio em que o buraco cede, com onde ele está **na
+   * janela** e o tamanho dele naquele estágio.
+   *
+   * É o que a tela inicial usa para soltar os farelos — que caem numa
+   * camada dela, e não desta faixa, para poderem atravessar a tela inteira
+   * e sumir por trás da barra de navegação. Ver `ChuvaDeFarelos`.
+   */
+  aoCeder?: (origem: OrigemDosFarelos) => void;
 };
 
 export function FaixaDaFrase({
@@ -203,6 +227,7 @@ export function FaixaDaFrase({
   onCompartilhar,
   compartilhando = false,
   aviso = null,
+  aoCeder,
 }: Props) {
   const { colors } = useTema();
   const id = useId().replace(/[^a-zA-Z0-9]/g, '');
@@ -240,11 +265,34 @@ export function FaixaDaFrase({
     return () => abre.removeListener(ouvinte);
   }, [abre]);
 
+  /**
+   * A encenação está rodando?
+   *
+   * Ao tocar, a frase é marcada como desenterrada **na hora** — para contar
+   * mesmo se a pessoa sair no meio — e isso volta para cá como `aberto`. Sem
+   * esta guarda, o efeito logo abaixo abria o buraco inteiro no mesmo
+   * instante, e a animação de abertura rodava em cima de um buraco que já
+   * estava aberto: lia como "abre de uma vez só". Durante a encenação quem
+   * manda no buraco é ela.
+   */
+  const encenando = useRef(false);
+  /** A faixa saiu da tela no meio da encenação: não continua sozinha. */
+  const desmontou = useRef(false);
+  useEffect(() => () => {
+    desmontou.current = true;
+  }, []);
+
   useEffect(() => {
-    if (!aberto) return;
+    if (!aberto || encenando.current) return;
     setFora(true);
     abre.setValue(1);
   }, [aberto, abre]);
+
+  /** O solavanco de cada estágio — um tremor curto, no nativo. */
+  const solavanco = useRef(new Animated.Value(0)).current;
+
+  /** Um ponto no centro do buraco, só para medir onde ele está na janela. */
+  const ancora = useRef<View>(null);
 
   /*
     A abertura, do toque até o cartão legível.
@@ -265,34 +313,74 @@ export function FaixaDaFrase({
       setLendo(true);
       return;
     }
+
+    encenando.current = true;
     passo.setValue(0);
     abre.setValue(0);
-    Animated.sequence([
+
+    const rodar = (animacao: Animated.CompositeAnimation) =>
+      new Promise<boolean>((resolve) => animacao.start(({ finished }) => resolve(finished)));
+
+    /*
+      Onde o buraco está agora, na janela — medido na hora, porque a pessoa
+      pode ter rolado a tela desde o toque. O tamanho mandado é o do estágio
+      que está começando: os farelos se soltam da borda nova.
+    */
+    const soltar = (etapa: 1 | 2 | 3, fracao: number) => {
+      if (!aoCeder) return;
+      ancora.current?.measureInWindow((x, y) => {
+        aoCeder({
+          x,
+          y,
+          meiaLargura: entreDois(COVA.fechado.meiaLargura, COVA.aberto.meiaLargura, fracao),
+          meiaAltura: entreDois(COVA.fechado.meiaAltura, COVA.aberto.meiaAltura, fracao),
+          etapa,
+        });
+      });
+    };
+
+    void (async () => {
       /* A terra treme e a folha dá o tranco — transformação, no nativo. */
-      Animated.timing(passo, {
-        toValue: 1,
-        duration: CAVA + PUXA,
-        easing: Easing.out(Easing.cubic),
-        useNativeDriver: true,
-      }),
-      /*
-        O buraco se abre, e passa um pouco do ponto antes de assentar: terra
-        cedendo, e não uma porta de correr.
-      */
-      Animated.timing(abre, {
-        toValue: 1,
-        duration: ABRE,
-        easing: Easing.out(Easing.back(1.3)),
-        useNativeDriver: false,
-      }),
-      Animated.delay(PAUSA),
-    ]).start(({ finished }) => {
-      if (!finished) return;
+      const tremeu = await rodar(
+        Animated.timing(passo, {
+          toValue: 1,
+          duration: CAVA + PUXA,
+          easing: Easing.out(Easing.cubic),
+          useNativeDriver: true,
+        }),
+      );
+      if (!tremeu || desmontou.current) return;
+
+      for (let i = 0; i < ETAPAS.length; i++) {
+        const e = ETAPAS[i];
+        soltar((i + 1) as 1 | 2 | 3, e.ate);
+        solavanco.setValue(0);
+        Animated.timing(solavanco, {
+          toValue: 1,
+          duration: 260,
+          easing: Easing.linear,
+          useNativeDriver: true,
+        }).start();
+
+        const abriu = await rodar(
+          Animated.timing(abre, {
+            toValue: e.ate,
+            duration: e.dura,
+            easing: Easing.out(Easing.back(e.passa)),
+            useNativeDriver: false,
+          }),
+        );
+        if (!abriu || desmontou.current) return;
+        await rodar(Animated.delay(e.pausa));
+        if (desmontou.current) return;
+      }
+
+      encenando.current = false;
       setFora(true);
       setLendo(true);
       passo.setValue(0);
-    });
-  }, [fora, menosMovimento, onDesenterrar, passo, abre]);
+    })();
+  }, [fora, menosMovimento, onDesenterrar, passo, abre, solavanco, aoCeder]);
 
   /** Onde a terra para de tremer e a folha começa a dar o tranco. */
   const fimDaCava = CAVA / (CAVA + PUXA);
@@ -324,6 +412,26 @@ export function FaixaDaFrase({
     inputRange: [0, fimDaCava, entreDois(fimDaCava, 1, 0.45), 1],
     outputRange: ['0deg', '0deg', '-4deg', '0deg'],
   });
+
+  /*
+    O solavanco de um estágio: um vai-e-vem de pouco mais de um ponto, somado
+    ao tremor. Memorizado porque durante a abertura esta faixa redesenha a
+    cada quadro (o tamanho do buraco é estado), e trocar o nó nativo no meio
+    da animação dele faria o solavanco engasgar.
+  */
+  const deslocamento = useMemo(
+    () =>
+      Animated.add(
+        tremor,
+        solavanco.interpolate({
+          inputRange: [0, 0.2, 0.45, 0.7, 1],
+          outputRange: [0, -1.6, 1.4, -0.7, 0],
+        }),
+      ),
+    // O tremor é refeito a cada desenho, mas é sempre a mesma curva do mesmo valor.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [passo, solavanco],
+  );
 
   /** Os torrões que caem enquanto a terra treme. */
   const torroes = passo.interpolate({
@@ -397,6 +505,25 @@ export function FaixaDaFrase({
       </View>
 
       {/*
+        A âncora: um ponto invisível no centro do buraco, só para medir onde
+        ele está na janela quando os farelos se soltam. `collapsable` falso
+        porque o Android achata `View` sem conteúdo, e `View` achatada não
+        se deixa medir.
+      */}
+      <View
+        ref={ancora}
+        collapsable={false}
+        pointerEvents="none"
+        style={{
+          position: 'absolute',
+          left: largura * COLUNA_DO_PAPEL,
+          top: COVA.cy,
+          width: 1,
+          height: 1,
+        }}
+      />
+
+      {/*
         O buraco, a folha e a terra que a tampa. Tudo treme junto na cavação.
 
         Três camadas, e a ordem é o desenho: o fundo do buraco, depois a
@@ -415,7 +542,8 @@ export function FaixaDaFrase({
           right: 0,
           top: 0,
           height: ALTURA_DO_CANTEIRO,
-          transform: [{ translateX: tremor }],
+          /* O tremor da cavação e o solavanco de cada estágio, somados. */
+          transform: [{ translateX: deslocamento }],
         }}
       >
         <Svg style={{ position: 'absolute' }} width="100%" height="100%" viewBox={`0 0 ${largura} ${ALTURA_DO_CANTEIRO}`}>

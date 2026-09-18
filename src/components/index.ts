@@ -23,6 +23,8 @@ export { SeletorDeTema } from './brand/SeletorDeTema';
 export { FundoDaTela } from './brand/FundoDaTela';
 export { FaixaDaComposta, alturaDaFaixa } from './brand/FaixaDaComposta';
 export { FaixaDaFrase, alturaDaFaixaDaFrase } from './brand/FaixaDaFrase';
+export { ChuvaDeFarelos } from './brand/ChuvaDeFarelos';
+export type { ChuvaDeFarelosRef, OrigemDosFarelos } from './brand/ChuvaDeFarelos';
 export {
   CenaDaComposta,
   CenaDaFrase,
