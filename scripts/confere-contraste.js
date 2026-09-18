@@ -148,6 +148,20 @@ function razao(frente, fundo) {
     AA_GRANDE,
   );
 
+  /*
+    A faixa da Frase do dia é mais escura que a da Composta: ela é o fundo da
+    cova, chapada em `TERRA_SOMBRA` do começo ao fim. O texto é o mesmo par, e
+    por isso sobra folga — mas medir é o que garante que continue assim se
+    alguém clarear a terra de lá.
+  */
+  linha('título da Frase sobre a terra funda', terra.TEXTO_NA_TERRA, terra.TERRA_SOMBRA, AA_TEXTO);
+  linha(
+    'porta das guardadas sobre a terra funda',
+    terra.TEXTO_NA_TERRA_FRACO,
+    terra.TERRA_SOMBRA,
+    AA_TEXTO,
+  );
+
   for (const [nomeDoTema, t] of Object.entries(TEMAS)) {
     console.log(`\n— tema ${nomeDoTema} —`);
     const c = t.colors;

@@ -80,6 +80,15 @@ import {
  */
 
 /**
+ * Quanto a terra ocupa **abaixo do botão** quando a faixa termina ali.
+ *
+ * É a zona de dissolução: terra vazia que vai perdendo opacidade até o fundo
+ * da tela aparecer. Quando a faixa continua numa outra logo abaixo, esta
+ * sobra não existe — quem dissolve é a última da sequência.
+ */
+const DISSOLUCAO = 42;
+
+/**
  * A altura do bloco de terra.
  *
  * Começou em 176 e o conteúdo não coube: selo, título, linha, botão e o
@@ -90,6 +99,9 @@ import {
  * está escondida.
  */
 const ALTURA_DA_TERRA = 248;
+
+/** A mesma terra sem a sobra de baixo: é o que sobe quando ela continua. */
+const ALTURA_DA_TERRA_CONTINUA = ALTURA_DA_TERRA - DISSOLUCAO;
 
 /**
  * Onde a terra começa a sumir, em fração da altura dela.
@@ -115,8 +127,13 @@ const TERRA_COMECA_A_SUMIR = 0.76;
  * Existe para a `HomeScreen` saber, sem duplicar a conta, a partir de que
  * altura de rolagem a faixa saiu da vista — que é o que liga e desliga o laço.
  */
-export function alturaDaFaixa(topo: number, cabecalho: number, queda: number): number {
-  return topo + cabecalho + queda + ALTURA_DA_TERRA;
+export function alturaDaFaixa(
+  topo: number,
+  cabecalho: number,
+  queda: number,
+  continua = false,
+): number {
+  return topo + cabecalho + queda + (continua ? ALTURA_DA_TERRA_CONTINUA : ALTURA_DA_TERRA);
 }
 
 /** Quanto a palavra afunda para além da crista antes de sumir de vez. */
@@ -245,6 +262,15 @@ type Props = {
   children: React.ReactNode;
   /** A faixa está à vista? Fora dela o laço para — ver `HomeScreen`. */
   ativa: boolean;
+  /**
+   * A terra desta faixa emenda na de baixo, em vez de acabar aqui.
+   *
+   * Com isto ligado ela não se dissolve no fim: fica cheia até a última
+   * linha, e quem dissolve é a faixa seguinte. É o que faz a Composta e a
+   * Frase do dia parecerem duas ferramentas no **mesmo** terreno, em vez de
+   * duas faixas empilhadas que por acaso são marrons.
+   */
+  continua?: boolean;
   selo?: string | null;
   titulo: string;
   linha: string;
@@ -261,6 +287,7 @@ export function FaixaDaComposta({
   queda,
   children,
   ativa,
+  continua = false,
   selo,
   titulo,
   linha,
@@ -272,9 +299,10 @@ export function FaixaDaComposta({
   const id = useId().replace(/[^a-zA-Z0-9]/g, '');
   const menosMovimento = useMenosMovimento();
 
-  const altura = alturaDaFaixa(topo, cabecalho, queda);
+  const alturaDaTerra = continua ? ALTURA_DA_TERRA_CONTINUA : ALTURA_DA_TERRA;
+  const altura = alturaDaFaixa(topo, cabecalho, queda, continua);
   /** Onde a terra começa a subir. Tudo acima disto é céu. */
-  const crista = altura - ALTURA_DA_TERRA;
+  const crista = altura - alturaDaTerra;
   const inicioDaQueda = topo + cabecalho;
   const distancia = queda + AFUNDA;
 
@@ -514,7 +542,7 @@ export function FaixaDaComposta({
         <Svg
           width="100%"
           height="100%"
-          viewBox={`0 0 ${largura} ${ALTURA_DA_TERRA + 26}`}
+          viewBox={`0 0 ${largura} ${alturaDaTerra + 26}`}
         >
           <Defs>
             <LinearGradient id={`terra-${id}`} x1="0" y1="0" x2="0" y2="1">
@@ -543,8 +571,33 @@ export function FaixaDaComposta({
                 é só a opacidade. Mudar a cor também faria a terra clarear
                 enquanto some, que é o que dá aquele aspecto de névoa.
               */}
-              <Stop offset={TERRA_COMECA_A_SUMIR} stopColor={TERRA_SOMBRA} stopOpacity={1} />
-              <Stop offset="1" stopColor={TERRA_SOMBRA} stopOpacity={0} />
+              {/*
+                A dissolução só existe quando a faixa acaba aqui. Continuando,
+                a terra chega cheia à última linha e a emenda com a faixa de
+                baixo fica invisível — que é o ponto de elas serem o mesmo
+                terreno.
+              */}
+              {/*
+                Continuando, o tom mais escuro chega em 0,8 e não em 1.
+
+                Com a parada no fim, a terra ainda estava interpolando na
+                última linha e encontrava a faixa de baixo — que já começa
+                chapada — num tom mais claro. O resultado era uma risca
+                horizontal na emenda, e duas lajes onde deveria haver um
+                terreno. Chegando antes, os últimos vinte por cento são
+                iguais dos dois lados e a costura some.
+              */}
+              <Stop
+                offset={continua ? 0.8 : TERRA_COMECA_A_SUMIR}
+                stopColor={TERRA_SOMBRA}
+                stopOpacity={1}
+              />
+              {/*
+                Continuando, esta parada repete a de cima em vez de sumir: o
+                `react-native-svg` não aceita filho condicional aqui, e uma
+                parada duplicada no mesmo ponto não desenha nada.
+              */}
+              <Stop offset="1" stopColor={TERRA_SOMBRA} stopOpacity={continua ? 1 : 0} />
             </LinearGradient>
             <RadialGradient id={`brasa-${id}`} cx="50%" cy="50%" r="50%">
               <Stop offset="0" stopColor={BRASA} stopOpacity={0.4} />
@@ -557,7 +610,7 @@ export function FaixaDaComposta({
 
           {/* A terra sangra para fora dos dois lados: ela é o chão, não um objeto. */}
           <Path
-            d={`M-8 ${ALTURA_DA_TERRA + 26} L-8 34 C${largura * 0.24} 10 ${largura * 0.7} 8 ${largura + 8} 36 L${largura + 8} ${ALTURA_DA_TERRA + 26} Z`}
+            d={`M-8 ${alturaDaTerra + 26} L-8 34 C${largura * 0.24} 10 ${largura * 0.7} 8 ${largura + 8} 36 L${largura + 8} ${alturaDaTerra + 26} Z`}
             fill={`url(#terra-${id})`}
           />
           <Path
@@ -632,15 +685,15 @@ export function FaixaDaComposta({
           left: 0,
           right: 0,
           bottom: 0,
-          height: ALTURA_DA_TERRA,
+          height: alturaDaTerra,
           paddingHorizontal: recuo,
           /*
-            O respiro de baixo é do tamanho da dissolução da terra — ver
-            `TERRA_COMECA_A_SUMIR`. Menor que isso, o botão ficaria pousado
-            em cima da parte que está sumindo, e ele é a única coisa da faixa
-            que não pode parecer que vai embora.
+            Quando a faixa acaba aqui, o respiro é do tamanho da dissolução:
+            menor que isso, o botão ficaria pousado na parte que está sumindo,
+            e ele é a única coisa da faixa que não pode parecer que vai
+            embora. Continuando, não há o que evitar — sobra o respiro normal.
           */
-          paddingBottom: 66,
+          paddingBottom: continua ? 24 : 66,
           justifyContent: 'flex-end',
           gap: 9,
           opacity: pressed ? 0.88 : 1,

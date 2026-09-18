@@ -22,6 +22,7 @@ export { CartaoHeroi } from './brand/CartaoHeroi';
 export { SeletorDeTema } from './brand/SeletorDeTema';
 export { FundoDaTela } from './brand/FundoDaTela';
 export { FaixaDaComposta, alturaDaFaixa } from './brand/FaixaDaComposta';
+export { FaixaDaFrase, alturaDaFaixaDaFrase } from './brand/FaixaDaFrase';
 export {
   CenaDaComposta,
   CenaDaFrase,

@@ -6,12 +6,12 @@ import {
   AnimatedSprout,
   BalaoDoBroto,
   BoasVindas,
-  Carrossel,
   CartaoHeroi,
   FaixaDaComposta,
+  FaixaDaFrase,
   alturaDaFaixa,
+  alturaDaFaixaDaFrase,
   FundoDaTela,
-  CartaoDoConselho,
   CenaDaPratica,
   OndeVoceParou,
   GrowthNotice,
@@ -248,7 +248,15 @@ export function HomeScreen({
     o véu comendo o fim dela.
   */
   const quedaDaFaixa = Math.round(Math.min(largura * 0.42, 172));
-  const faixa = alturaDaFaixa(insets.top + 20, CABECALHO_DA_FAIXA, quedaDaFaixa);
+  /*
+    A faixa da Composta não termina mais nela: a terra emenda na da Frase.
+
+    O `true` é o que tira a dissolução do fim dela — quem dissolve agora é a
+    faixa de baixo. Ver `FaixaDaComposta` e `FaixaDaFrase`.
+  */
+  const faixa = alturaDaFaixa(insets.top + 20, CABECALHO_DA_FAIXA, quedaDaFaixa, true);
+  /** As duas faixas juntas: é a partir daqui que o laço da queda para. */
+  const terreno = faixa + alturaDaFaixaDaFrase();
 
   /**
    * A fileira do meio da tela: onde a pessoa parou, ou por onde começar.
@@ -351,7 +359,7 @@ export function HomeScreen({
    * ms viraria quinze renders por segundo desta tela inteira, que é o
    * oposto do que economizar quadro significa.
    */
-  const [naVista, setNaVista] = useState(rolagemInicial < faixa);
+  const [naVista, setNaVista] = useState(rolagemInicial < terreno);
 
   const alturaInicial = useRef(rolagemInicial).current;
   const rolagem = useRef<ScrollView>(null);
@@ -427,7 +435,7 @@ export function HomeScreen({
         onScroll={(e) => {
           const y = e.nativeEvent.contentOffset.y;
           aoRolar?.(y);
-          const vendo = y < faixa;
+          const vendo = y < terreno;
           if (vendo !== naVista) setNaVista(vendo);
         }}
         /*
@@ -478,6 +486,7 @@ export function HomeScreen({
           cabecalho={CABECALHO_DA_FAIXA}
           queda={quedaDaFaixa}
           ativa={naVista}
+          continua
           selo={seloDaComposta}
           titulo="Compostar pensamentos"
           linha="Repita em voz alta o pensamento que te incomoda até ele virar só som."
@@ -569,40 +578,22 @@ export function HomeScreen({
           </View>
         </FaixaDaComposta>
 
-        {voltando && <VoltaCard dias={ausente} />}
-
         {/*
-          O carrossel do que muda todo dia.
+          A Frase do dia, na mesma terra — e sem nada entre as duas.
 
-          Sobraram dois, e os dois são conteúdo do dia: a prática escolhida pelo
-          humor de hoje e a frase de hoje. A Composta não era isso — ela é uma
-          ferramenta, está sempre ali, e é por isso que ficava estranha numa
-          fileira de coisas que rodam.
-
-          Os rótulos voltaram a ser uma lista fixa. Eles precisavam ser montados
-          por chave enquanto a ordem mudava sozinha em dia pesado; sem a
-          Composta, a ordem não muda mais, e o leitor de tela pode ouvir
-          "Prática de hoje, 1 de 2" com a certeza de que é verdade.
+          O `marginTop` negativo come o `gap` de 22 da rolagem. Com ele, as
+          duas faixas ficariam separadas por uma tira do fundo da tela, que é
+          exatamente o que a emenda existe para não ter: o terreno tem de ser
+          contínuo, senão são duas faixas marrons empilhadas.
         */}
-        <Carrossel rotulos={['Prática de hoje', 'Frase do dia']}>
-          <CartaoHeroi
-            altura={alturaDoHeroi}
-            fundo={tomDaPratica}
-            cena={() => (
-              <CenaDaPratica fundo={tomDaPratica} tema={oferta.topico} altura={alturaDoHeroi} />
-            )}
-            selo={oferta.selo}
-            titulo={oferta.titulo}
-            linha={`${oferta.convite} ${oferta.duracao}, guiada pelo app.`}
-            acao="Fazer agora"
-            onPress={() => onOpenPractices({ topico: oferta.topico, pratica: oferta.pratica })}
-            label={`${oferta.titulo}: ${oferta.duracao}`}
-          />
-          <CartaoDoConselho
-            heroi={alturaDoHeroi}
+        <View style={{ marginTop: -22 }}>
+          <FaixaDaFrase
+            largura={largura}
+            recuo={20}
             texto={conselho.texto}
             aberto={conselhoAberto}
             guardada={data.conselhosGuardados.includes(conselho.id)}
+            totalGuardadas={data.conselhosGuardados.length}
             onDesenterrar={() => {
               toqueLeve(data.settings.vibracao);
               desenterrarConselho(conselho.id);
@@ -612,12 +603,35 @@ export function HomeScreen({
               guardarConselho(conselho.id);
             }}
             onVerGuardadas={onOpenConselhosGuardados}
-            totalGuardadas={data.conselhosGuardados.length}
             onCompartilhar={() => story.compartilhar(conselho.texto)}
             compartilhando={story.compartilhando}
             aviso={story.aviso}
           />
-        </Carrossel>
+        </View>
+
+        {voltando && <VoltaCard dias={ausente} />}
+
+        {/*
+          A prática de hoje: cartão de largura inteira, sem carrossel.
+
+          O carrossel tinha dois cartões e a Frase do dia saiu dele para virar
+          faixa. Com um item só, os pontinhos e a espia do vizinho passam a
+          mentir — dizem que há mais alguma coisa para o lado, e não há. O
+          componente continua existindo para quando voltar a haver.
+        */}
+        <CartaoHeroi
+          altura={alturaDoHeroi}
+          fundo={tomDaPratica}
+          cena={() => (
+            <CenaDaPratica fundo={tomDaPratica} tema={oferta.topico} altura={alturaDoHeroi} />
+          )}
+          selo={oferta.selo}
+          titulo={oferta.titulo}
+          linha={`${oferta.convite} ${oferta.duracao}, guiada pelo app.`}
+          acao="Fazer agora"
+          onPress={() => onOpenPractices({ topico: oferta.topico, pratica: oferta.pratica })}
+          label={`${oferta.titulo}: ${oferta.duracao}`}
+        />
 
         {/*
           A fileira de práticas.
