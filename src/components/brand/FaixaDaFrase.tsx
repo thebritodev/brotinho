@@ -1,6 +1,15 @@
 import React, { useCallback, useEffect, useId, useRef, useState } from 'react';
 import { Animated, Easing, Modal, Pressable, Text, View } from 'react-native';
-import Svg, { Defs, Ellipse, LinearGradient, Path, RadialGradient, Stop } from 'react-native-svg';
+import Svg, {
+  ClipPath,
+  Defs,
+  Ellipse,
+  G,
+  LinearGradient,
+  Path,
+  RadialGradient,
+  Stop,
+} from 'react-native-svg';
 
 import { entreAspas } from '../../data/conselhos';
 import { useMenosMovimento } from '../../hooks/useMenosMovimento';
@@ -62,8 +71,6 @@ import {
  * para ler.
  */
 
-/** A altura do bloco onde o papel espia, acima do convite. */
-const ALTURA_DO_CANTEIRO = 184;
 
 /**
  * O convite: o título, a linha que diz o gesto, e a porta das guardadas.
@@ -78,56 +85,52 @@ const DISSOLUCAO = 66;
 const TERRA_COMECA_A_SUMIR = 0.74;
 
 /**
- * O papel espiando, em pontos. Metade dele está enterrada.
+ * A folha, em pontos.
  *
- * Começou em 96 por 76 e sumia: do tamanho de um torrão, no meio de uma
- * terra de cem pontos de altura, ele lia como pedra. Papel precisa de
- * tamanho para ser papel — é pela proporção entre a folha e o chão que se
- * entende que tem alguma coisa enterrada ali, e não uma pedrinha.
+ * Em retrato, e inteira à vista: no corte não há o que esconder, a terra
+ * já foi fatiada e a gente vê o que está dentro dela.
  */
-const PAPEL = { largura: 96, altura: 112 };
+const PAPEL = { largura: 88, altura: 104 };
 
-/** Onde o papel fica, em fração da largura — à esquerda do broto da Composta. */
+/** Onde o papel fica, em fração da largura. */
 const COLUNA_DO_PAPEL = 0.5;
 
 /**
- * O montinho de terra que cerca a folha.
+ * A cova, vista em corte.
  *
- * Mais largo que o papel dos dois lados, e alto o bastante para esconder
- * mais da metade dele: o pedido era terra **em volta**, e terra em volta quer
- * dizer que a folha está num buraco, não encostada num muro.
+ * ## Por que corte, e não um monte em cima do chão
+ *
+ * As duas versões anteriores punham a folha **espetada na superfície** —
+ * primeiro atrás de uma faixa de terra, depois dentro de um montinho. Nas
+ * duas a folha estava *sobre* a terra, e o que se lia era um papel largado
+ * no chão, não uma coisa enterrada.
+ *
+ * O corte é a convenção que todo mundo reconhece para "enterrado": a terra
+ * fatiada na horizontal, e dentro dela um bolsão com o objeto inteiro — o
+ * baú do tesouro de desenho animado. Não precisa esconder nada para dizer
+ * que está debaixo da terra; o bolsão já diz.
+ *
+ * `cy` é o centro contando do topo da faixa, e as meias-medidas são do
+ * contorno. A forma é mais larga que alta, como um bolsão cavado.
  */
-const MONTE = { largura: PAPEL.largura * 1.04, altura: 70 };
+const COVA = { cy: 108, meiaLargura: 116, meiaAltura: 78 };
+
+/** Onde começa o chão da cova — a faixa mais escura em que a folha pousa. */
+const CHAO_DA_COVA = COVA.cy + COVA.meiaAltura * 0.44;
+
+/** A folha pousada no chão: o pé dela encosta nele, não flutua acima. */
+const TOPO_DO_PAPEL = CHAO_DA_COVA + 6 - PAPEL.altura;
 
 /**
- * Onde cada coisa fica dentro do canteiro, contando do topo da faixa.
+ * Quanto a folha sobe ao ser desenterrada.
  *
- * Estavam espalhadas em contas do tipo `ALTURA_DO_CANTEIRO - 22` e `84` solto
- * dentro do desenho, e a primeira versão do montinho não encaixou por causa
- * disso: a crista caía abaixo do pé da folha, e a terra que era para cercá-la
- * passava atrás. Explícitas, a conta é conferível.
- *
- * `ESCONDIDO` é a fração da folha que fica enterrada — mais da metade, que é
- * o que faz "aparecer apenas parte dele".
+ * O bastante para ela atravessar o teto da cova e ficar metade para fora —
+ * é o "já foi desenterrada hoje" dito pelo desenho, sem etiqueta.
  */
-const ESCONDIDO = 0.52;
-const TOPO_DO_PAPEL = 44;
-const CRISTA_DO_MONTE = TOPO_DO_PAPEL + PAPEL.altura * (1 - ESCONDIDO);
-const BASE_DO_MONTE = CRISTA_DO_MONTE + MONTE.altura;
+const SUBIDA = 62;
 
-/** Quanto a folha sobe ao sair. Deixa só o pé dela coberto. */
-const SUBIDA = PAPEL.altura * (ESCONDIDO - 0.14);
-
-/**
- * A caixa do desenho do montinho.
- *
- * Ela começa acima da crista para o halo caber, e vai além da base para os
- * torrõezinhos da saia. `BASE_NA_CAIXA` é onde o pé do montinho fica dentro
- * dela — e é o único número que o desenho inteiro usa como chão.
- */
-const TOPO_DA_CAIXA_DO_MONTE = 22;
-const BASE_NA_CAIXA = TOPO_DA_CAIXA_DO_MONTE + MONTE.altura;
-const ALTURA_DA_CAIXA_DO_MONTE = BASE_NA_CAIXA + 24;
+/** A altura do canteiro: a cova inteira, mais o respiro até o título. */
+const ALTURA_DO_CANTEIRO = COVA.cy + COVA.meiaAltura + 20;
 
 export function alturaDaFaixaDaFrase(): number {
   return ALTURA_DO_CANTEIRO + ALTURA_DO_CONVITE + DISSOLUCAO;
@@ -147,6 +150,15 @@ const ABRE = 420;
 type Props = {
   largura: number;
   recuo: number;
+  /**
+   * Quanto a faixa sobe por cima da de cima, para as duas terras emendarem.
+   *
+   * Existe para a emenda ser feita **aqui**, na raiz da faixa, e não por uma
+   * `View` a mais em volta dela na tela inicial. Aquele embrulho era a única
+   * diferença de estrutura entre esta faixa e a da Composta — e a risca na
+   * borda esquerda só aparecia nesta. Ver `HomeScreen`.
+   */
+  emenda?: number;
   /** A frase de hoje. Só é lida depois de desenterrada. */
   texto: string;
   /** A pessoa já desenterrou hoje. */
@@ -165,6 +177,7 @@ type Props = {
 export function FaixaDaFrase({
   largura,
   recuo,
+  emenda = 0,
   texto,
   aberto,
   guardada,
@@ -268,76 +281,71 @@ export function FaixaDaFrase({
 
 
   return (
-    <View style={{ height: altura, marginHorizontal: -recuo }}>
-      {/* A terra, de sangria a sangria, começando cheia onde a de cima acabou. */}
+    <View style={{ height: altura, marginHorizontal: -recuo, marginTop: -emenda }}>
+      {/*
+        A terra por baixo de tudo — e primeiro uma `View` chapada, não SVG.
+
+        A risca branca na borda esquerda sobreviveu à sangria no desenho. Ela
+        não aparece no navegador em nenhuma das sete combinações de largura e
+        densidade de Android que testei, então o que falha é o desenho nativo:
+        o `react-native-svg` no Android encaixa o `viewBox` na caixa com
+        `meet`, e quando a proporção não bate por fração de pixel ele deixa uma
+        tira vazia nas laterais — e recorta o que eu desenhei para fora.
+
+        Uma `View` com cor de fundo não passa por nada disso: o Android pinta a
+        caixa inteira, pixel por pixel. Ela vai de fora a fora e para onde a
+        terra começa a se dissolver; o SVG por cima cuida da dissolução, e
+        agora com `preserveAspectRatio="none"`, que estica em vez de encaixar.
+      */}
+      <View
+        pointerEvents="none"
+        style={{
+          position: 'absolute',
+          left: -4,
+          right: -4,
+          top: 0,
+          height: altura * TERRA_COMECA_A_SUMIR,
+          backgroundColor: TERRA_SOMBRA,
+        }}
+      />
       <View style={{ position: 'absolute', left: 0, right: 0, top: 0, bottom: 0 }} pointerEvents="none">
-        <Svg width="100%" height="100%" viewBox={`0 0 ${largura} ${altura}`}>
+        <Svg
+          width="100%"
+          height="100%"
+          viewBox={`0 0 ${largura} ${altura}`}
+          preserveAspectRatio="none"
+        >
           <Defs>
             <LinearGradient id={`terra-${id}`} x1="0" y1="0" x2="0" y2="1">
-              {/*
-                Uma cor só, do começo até a dissolução.
-
-                A primeira versão clareava para `TERRA_FUNDA` no primeiro sexto e
-                voltava a escurecer. A intenção era dar volume; o efeito foi o
-                contrário — o clarão desenhava uma faixa horizontal logo abaixo
-                da emenda, e as duas terras liam como duas lajes empilhadas em
-                vez de um terreno.
-
-                O relevo vem do monte em volta do papel, que é desenhado à parte
-                num tom mais claro. Aqui embaixo, chapado é o certo: é o fundo
-                da cova, e fundo de cova não pega luz.
-              */}
               <Stop offset="0" stopColor={TERRA_SOMBRA} />
               <Stop offset={TERRA_COMECA_A_SUMIR} stopColor={TERRA_SOMBRA} stopOpacity={1} />
               <Stop offset="1" stopColor={TERRA_SOMBRA} stopOpacity={0} />
             </LinearGradient>
-            <RadialGradient id={`cova-${id}`} cx="50%" cy="50%" r="50%">
-              <Stop offset="0" stopColor={TERRA_SOMBRA} stopOpacity={0.55} />
-              <Stop offset="1" stopColor={TERRA_SOMBRA} stopOpacity={0} />
-            </RadialGradient>
           </Defs>
-
-          {/*
-            A terra sangra oito pontos para fora dos dois lados.
-
-            Ela começava exata em zero, e a de cima já sangrava. Numa largura
-            de tela fracionada — que é o comum no Android — meio ponto de
-            arredondamento entre a `View` e o desenho deixa uma fresta do
-            fundo aparecendo na borda: a risca branca vertical. Desenhando
-            para fora, não há o que sobrar.
-          */}
           <Path d={`M-8 0 H${largura + 8} V${altura} H-8 Z`} fill={`url(#terra-${id})`} />
 
-          {/* Torrõezinhos, para a terra não ser uma mancha lisa. */}
-          {[0.08, 0.2, 0.36, 0.62, 0.78, 0.9].map((f, i) => (
+          {/* Torrõezinhos soltos na terra em volta, para ela não ser chapada. */}
+          {[0.07, 0.19, 0.83, 0.93, 0.12, 0.88].map((f, i) => (
             <Ellipse
               key={f}
               cx={largura * f}
-              cy={18 + (i % 3) * 22}
-              rx={3.6}
-              ry={2.8}
+              cy={30 + i * 26}
+              rx={3.4}
+              ry={2.6}
               fill={TERRA}
-              opacity={0.3}
+              opacity={0.34}
             />
           ))}
-
-          {/* A cova de onde ele sai: uma sombra funda em volta do papel. */}
-          <Ellipse
-            cx={largura * COLUNA_DO_PAPEL}
-            cy={BASE_DO_MONTE - 6}
-            rx={PAPEL.largura * 1.5}
-            ry={30}
-            fill={`url(#cova-${id})`}
-          />
         </Svg>
       </View>
 
       {/*
-        O papel, e a terra que o esconde pela metade.
+        A cova e o que está nela. Tudo aqui treme junto quando ela é cavada.
 
-        A ordem importa: papel primeiro, monte depois. É o monte por cima que
-        faz metade da folha estar **enterrada** em vez de pousada — e é ele que
-        continua escondendo o pé dela depois que ela sobe.
+        Este SVG **não** estica: é desenho de verdade, com curvas, e esticar
+        entortaria a cova. Por isso ele fica numa caixa própria, do tamanho
+        exato do canteiro, e usa o `meet` padrão — e nada nele encosta nas
+        bordas, então não há tira para aparecer.
       */}
       <Animated.View
         pointerEvents="none"
@@ -350,6 +358,10 @@ export function FaixaDaFrase({
           transform: [{ translateX: tremor }],
         }}
       >
+        <Svg width="100%" height="100%" viewBox={`0 0 ${largura} ${ALTURA_DO_CANTEIRO}`}>
+          <Cova largura={largura} id={id} />
+        </Svg>
+
         <Animated.View
           style={{
             position: 'absolute',
@@ -358,7 +370,7 @@ export function FaixaDaFrase({
             width: PAPEL.largura,
             height: PAPEL.altura,
             transform: fora
-              ? [{ translateY: -SUBIDA }, { rotate: '3deg' }]
+              ? [{ translateY: -SUBIDA }, { rotate: '5deg' }]
               : [{ translateY: subida }, { rotate: balanco }],
           }}
         >
@@ -366,119 +378,29 @@ export function FaixaDaFrase({
         </Animated.View>
 
         {/*
-          A pilha de terra em volta do papel, por cima dele.
+          Os torrões que caem do teto da cova enquanto ela é cavada.
 
-          Ela era uma faixa da largura inteira, com o topo em linha reta nas
-          duas pontas. Medindo os pixels, era **ela** o degrau que eu estava
-          lendo como emenda mal-feita entre as duas faixas: as terras batiam
-          exatamente, e o que cortava a tela era este topo achatado, que lia
-          como um segundo nível de chão.
-
-          Agora é uma pilha local, com as bordas dissolvendo no terreno. Além
-          de não ter aresta, é mais verdadeiro: quem cava um buraco empilha a
-          terra em volta do buraco, não de ponta a ponta da paisagem.
-
-          O miolo é opaco de propósito — é ele que esconde o pé da folha e faz
-          ela estar **enterrada** em vez de pousada.
+          No corte eles caem, em vez de saltar: quem cava está lá em cima, e
+          o que se vê daqui de dentro é a terra do teto se soltando.
         */}
-        <View
-          style={{
-            position: 'absolute',
-            left: 0,
-            right: 0,
-            top: CRISTA_DO_MONTE - TOPO_DA_CAIXA_DO_MONTE,
-            height: ALTURA_DA_CAIXA_DO_MONTE,
-          }}
-        >
-          <Svg
-            width="100%"
-            height="100%"
-            viewBox={`0 0 ${largura} ${ALTURA_DA_CAIXA_DO_MONTE}`}
-          >
-            <Defs>
-              <RadialGradient id={`pilha-${id}`} cx="50%" cy="50%" r="50%">
-                <Stop offset="0" stopColor={TERRA_FUNDA} stopOpacity={1} />
-                <Stop offset="0.52" stopColor={TERRA_FUNDA} stopOpacity={1} />
-                <Stop offset="1" stopColor={TERRA_FUNDA} stopOpacity={0} />
-              </RadialGradient>
-            </Defs>
-            {/* O halo: a terra em volta é mais funda, e some sem borda. */}
-            <Ellipse
-              cx={largura * COLUNA_DO_PAPEL}
-              cy={BASE_NA_CAIXA - 24}
-              rx={PAPEL.largura * 1.5}
-              ry={36}
-              fill={`url(#pilha-${id})`}
-            />
-
-            {/*
-              O montinho que cerca o papel.
-
-              É uma cúpula de ombros redondos, sem um ângulo em lugar nenhum:
-              a terra sobe dos dois lados e fecha em volta da folha, em vez de
-              ser uma linha horizontal que por acaso passa na frente dela.
-
-              As duas curvas de Bézier são simétricas e os pontos de controle
-              ficam bem para fora — é isso que dá a barriga. Puxados para
-              dentro, o desenho vira um triângulo arredondado, que lê como
-              pedra.
-            */}
-            <Path
-              d={`M${largura * COLUNA_DO_PAPEL - MONTE.largura} ${BASE_NA_CAIXA}
-                  C${largura * COLUNA_DO_PAPEL - MONTE.largura} ${BASE_NA_CAIXA - MONTE.altura * 0.72}
-                   ${largura * COLUNA_DO_PAPEL - MONTE.largura * 0.52} ${BASE_NA_CAIXA - MONTE.altura}
-                   ${largura * COLUNA_DO_PAPEL} ${BASE_NA_CAIXA - MONTE.altura}
-                  C${largura * COLUNA_DO_PAPEL + MONTE.largura * 0.52} ${BASE_NA_CAIXA - MONTE.altura}
-                   ${largura * COLUNA_DO_PAPEL + MONTE.largura} ${BASE_NA_CAIXA - MONTE.altura * 0.72}
-                   ${largura * COLUNA_DO_PAPEL + MONTE.largura} ${BASE_NA_CAIXA} Z`}
-              fill={TERRA_FUNDA}
-            />
-            {/* A luz na crista, e ela para antes das pontas. */}
-            <Path
-              d={`M${largura * COLUNA_DO_PAPEL - MONTE.largura * 0.62} ${BASE_NA_CAIXA - MONTE.altura * 0.74}
-                  Q${largura * COLUNA_DO_PAPEL} ${BASE_NA_CAIXA - MONTE.altura - 3}
-                   ${largura * COLUNA_DO_PAPEL + MONTE.largura * 0.62} ${BASE_NA_CAIXA - MONTE.altura * 0.74}`}
-              stroke={TERRA}
-              strokeWidth={3}
-              strokeLinecap="round"
-              fill="none"
-              opacity={0.42}
-            />
-            {/* Torrõezinhos redondos na saia do montinho. */}
-            {[-1.18, -0.86, 0.9, 1.22].map((f, i) => (
-              <Ellipse
-                key={f}
-                cx={largura * COLUNA_DO_PAPEL + MONTE.largura * f}
-                cy={BASE_NA_CAIXA - 6 - (i % 2) * 7}
-                rx={5 - (i % 3)}
-                ry={4 - (i % 3) * 0.8}
-                fill={TERRA_FUNDA}
-              />
-            ))}
-          </Svg>
-        </View>
-
-        {/* Os torrões que saltam da cova enquanto ele cava. */}
         {!fora &&
-          TORROES.map((t, i) => (
+          TORROES.map((q, i) => (
             <Animated.View
               key={i}
               style={{
                 position: 'absolute',
-                left: largura * COLUNA_DO_PAPEL + t.x,
-                top: CRISTA_DO_MONTE + 4,
-                width: t.r * 2,
-                height: t.r * 1.6,
-                borderRadius: t.r,
-                backgroundColor: TERRA_SOMBRA,
+                left: largura * COLUNA_DO_PAPEL + q.x,
+                top: COVA.cy - COVA.meiaAltura + 12,
+                width: q.r * 2,
+                height: q.r * 1.7,
+                borderRadius: q.r,
+                backgroundColor: TERRA_FUNDA,
+                borderWidth: 1.4,
+                borderColor: tracos.contorno,
                 opacity: torroes,
                 transform: [
-                  {
-                    translateY: torroes.interpolate({ inputRange: [0, 1], outputRange: [0, t.sobe] }),
-                  },
-                  {
-                    translateX: torroes.interpolate({ inputRange: [0, 1], outputRange: [0, t.anda] }),
-                  },
+                  { translateY: torroes.interpolate({ inputRange: [0, 1], outputRange: [0, q.cai] }) },
+                  { translateX: torroes.interpolate({ inputRange: [0, 1], outputRange: [0, q.anda] }) },
                 ],
               }}
             />
@@ -578,13 +500,126 @@ export function FaixaDaFrase({
   );
 }
 
-/** Os torrões que saltam da cova: posição, tamanho e para onde vão. */
+/** Os torrões que caem do teto da cova: onde nascem, tamanho e para onde vão. */
 const TORROES = [
-  { x: -46, r: 3.4, sobe: -26, anda: -14 },
-  { x: -22, r: 2.6, sobe: -34, anda: -6 },
-  { x: 10, r: 3, sobe: -38, anda: 6 },
-  { x: 34, r: 2.4, sobe: -28, anda: 16 },
-  { x: 52, r: 3.2, sobe: -22, anda: 22 },
+  { x: -58, r: 4, cai: 46, anda: -4 },
+  { x: -24, r: 3, cai: 58, anda: 2 },
+  { x: 12, r: 3.6, cai: 40, anda: -2 },
+  { x: 40, r: 2.8, cai: 62, anda: 3 },
+  { x: 66, r: 3.4, cai: 50, anda: 1 },
+] as const;
+
+/**
+ * A cova em corte: o bolsão, o chão dele, as marcas na parede.
+ *
+ * Desenhada como o baú do tesouro de desenho animado, que é a referência:
+ * contorno grosso e escuro, parede mais clara que a terra em volta — é a
+ * face cortada do bolsão —, chão mais escuro onde o objeto pousa, e
+ * risquinhos em "c" na parede para ela ter textura de terra batida.
+ *
+ * A borda é irregular de propósito. Uma elipse perfeita lê como buraco
+ * de máquina; cavado à mão, o bolsão tem um lado mais cheio que o outro.
+ */
+function Cova({ largura, id }: { largura: number; id: string }) {
+  const cx = largura * COLUNA_DO_PAPEL;
+  const { cy, meiaLargura: W, meiaAltura: H } = COVA;
+
+  const contorno = [
+    `M${cx - W + 6} ${cy - 10}`,
+    `C${cx - W} ${cy - H + 12} ${cx - W * 0.45} ${cy - H - 4} ${cx - 4} ${cy - H + 2}`,
+    `C${cx + W * 0.4} ${cy - H + 8} ${cx + W + 4} ${cy - H + 2} ${cx + W - 2} ${cy - 18}`,
+    `C${cx + W + 6} ${cy + 14} ${cx + W - 6} ${cy + H - 8} ${cx + W * 0.55} ${cy + H - 2}`,
+    `C${cx + W * 0.1} ${cy + H + 4} ${cx - W * 0.5} ${cy + H + 2} ${cx - W + 4} ${cy + H - 10}`,
+    `C${cx - W - 8} ${cy + H - 26} ${cx - W - 4} ${cy + 14} ${cx - W + 6} ${cy - 10}`,
+    'Z',
+  ].join(' ');
+
+  /* A linha de cima do chão: ondulada, como terra assentada. */
+  const chao = CHAO_DA_COVA;
+  const bordaDoChao = `M${cx - W - 10} ${chao + 2} Q${cx - W * 0.5} ${chao - 6} ${cx - W * 0.1} ${chao + 1} T${cx + W * 0.6} ${chao - 2} T${cx + W + 10} ${chao + 3}`;
+
+  return (
+    <>
+      <Defs>
+        <ClipPath id={`bolsao-${id}`}>
+          <Path d={contorno} />
+        </ClipPath>
+        <RadialGradient id={`sombra-${id}`} cx="50%" cy="50%" r="50%">
+          <Stop offset="0.62" stopColor="#2A241D" stopOpacity={0.55} />
+          <Stop offset="1" stopColor="#2A241D" stopOpacity={0} />
+        </RadialGradient>
+        <LinearGradient id={`parede-${id}`} x1="0" y1="0" x2="0" y2="1">
+          <Stop offset="0" stopColor={TERRA_CLARA} />
+          <Stop offset="1" stopColor={TERRA} />
+        </LinearGradient>
+      </Defs>
+
+      {/* A sombra em volta: a terra escurece perto do bolsão. */}
+      <Ellipse cx={cx} cy={cy + 4} rx={W + 30} ry={H + 24} fill={`url(#sombra-${id})`} />
+
+      {/* O bolsão. */}
+      <Path d={contorno} fill={`url(#parede-${id})`} />
+
+      {/* O chão, recortado pelo bolsão para não vazar da borda. */}
+      <G clipPath={`url(#bolsao-${id})`}>
+        <Path
+          d={`${bordaDoChao} L${cx + W + 10} ${cy + H + 20} L${cx - W - 10} ${cy + H + 20} Z`}
+          fill={TERRA_FUNDA}
+        />
+        {/* Um pouco de luz na borda do chão, vinda do corte. */}
+        <Path d={bordaDoChao} stroke={TERRA} strokeWidth={4} fill="none" opacity={0.5} />
+      </G>
+      <Path d={bordaDoChao} stroke={tracos.contorno} strokeWidth={2.4} fill="none" opacity={0.7} />
+
+      {/* Os risquinhos na parede: terra batida, cavada à mão. */}
+      {MARCAS.map((m, i) => (
+        <Path
+          key={i}
+          d={`M${cx + m.x} ${cy + m.y} q${m.v * 5} -4 ${m.v * 3} -9`}
+          stroke={tracos.contorno}
+          strokeWidth={2.4}
+          strokeLinecap="round"
+          fill="none"
+          opacity={0.55}
+        />
+      ))}
+
+      {/* Duas pedrinhas no chão. */}
+      {[
+        { x: -W + 22, y: H - 22 },
+        { x: W - 30, y: H - 30 },
+      ].map((p, i) => (
+        <Ellipse
+          key={i}
+          cx={cx + p.x}
+          cy={cy + p.y}
+          rx={4.2}
+          ry={3.4}
+          fill={TERRA_CLARA}
+          stroke={tracos.contorno}
+          strokeWidth={1.8}
+        />
+      ))}
+
+      {/* O contorno por último, por cima de tudo: é ele que recorta o bolsão. */}
+      <Path
+        d={contorno}
+        fill="none"
+        stroke={tracos.contorno}
+        strokeWidth={3.2}
+        strokeLinejoin="round"
+      />
+    </>
+  );
+}
+
+/** Os risquinhos da parede, relativos ao centro da cova. `v` vira o lado. */
+const MARCAS = [
+  { x: -92, y: -38, v: 1 },
+  { x: -100, y: 6, v: 1 },
+  { x: 88, y: -44, v: -1 },
+  { x: 98, y: -2, v: -1 },
+  { x: 60, y: -62, v: -1 },
 ] as const;
 
 /**

@@ -581,33 +581,36 @@ export function HomeScreen({
         {/*
           A Frase do dia, na mesma terra — e sem nada entre as duas.
 
-          O `marginTop` negativo come o `gap` de 22 da rolagem. Com ele, as
-          duas faixas ficariam separadas por uma tira do fundo da tela, que é
-          exatamente o que a emenda existe para não ter: o terreno tem de ser
+          A `emenda` come o `gap` de 22 da rolagem. Sem ela, as duas faixas
+          ficariam separadas por uma tira do fundo da tela — o terreno tem de ser
           contínuo, senão são duas faixas marrons empilhadas.
+
+          Ela é feita na raiz da faixa, e não por uma `View` com `marginTop`
+          em volta dela, que era como estava: aquele embrulho era a única
+          diferença de estrutura entre esta faixa e a da Composta, e a risca
+          branca na borda esquerda só aparecia nesta.
         */}
-        <View style={{ marginTop: -22 }}>
-          <FaixaDaFrase
-            largura={largura}
-            recuo={20}
-            texto={conselho.texto}
-            aberto={conselhoAberto}
-            guardada={data.conselhosGuardados.includes(conselho.id)}
-            totalGuardadas={data.conselhosGuardados.length}
-            onDesenterrar={() => {
-              toqueLeve(data.settings.vibracao);
-              desenterrarConselho(conselho.id);
-            }}
-            onGuardar={() => {
-              toqueLeve(data.settings.vibracao);
-              guardarConselho(conselho.id);
-            }}
-            onVerGuardadas={onOpenConselhosGuardados}
-            onCompartilhar={() => story.compartilhar(conselho.texto)}
-            compartilhando={story.compartilhando}
-            aviso={story.aviso}
-          />
-        </View>
+        <FaixaDaFrase
+          largura={largura}
+          recuo={20}
+          emenda={22}
+          texto={conselho.texto}
+          aberto={conselhoAberto}
+          guardada={data.conselhosGuardados.includes(conselho.id)}
+          totalGuardadas={data.conselhosGuardados.length}
+          onDesenterrar={() => {
+            toqueLeve(data.settings.vibracao);
+            desenterrarConselho(conselho.id);
+          }}
+          onGuardar={() => {
+            toqueLeve(data.settings.vibracao);
+            guardarConselho(conselho.id);
+          }}
+          onVerGuardadas={onOpenConselhosGuardados}
+          onCompartilhar={() => story.compartilhar(conselho.texto)}
+          compartilhando={story.compartilhando}
+          aviso={story.aviso}
+        />
 
         {voltando && <VoltaCard dias={ausente} />}
 
