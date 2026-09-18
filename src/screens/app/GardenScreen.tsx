@@ -8,6 +8,7 @@ import {
   MATURIDADE, dayKey, daysToNextStage, diasNoCiclo, sproutStage,
 } from '../../state/derived';
 import { fonts, type Mood, radius, useTema } from '../../theme';
+import { POR_TRAS_DA_BARRA } from '../../components/navigation/BottomNav';
 
 /**
  * O jardim: as plantas que já amadureceram, e o broto de agora.
@@ -55,7 +56,7 @@ export function GardenScreen({ onBack }: { onBack: () => void }) {
       <TopBar title="Meu jardim" onBack={onBack} />
 
       <ScrollView
-        contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 32, gap: 20 }}
+        contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 32 + POR_TRAS_DA_BARRA, gap: 20 }}
         showsVerticalScrollIndicator={false}
       >
         {/* O broto de agora */}

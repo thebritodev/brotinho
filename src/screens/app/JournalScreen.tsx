@@ -45,6 +45,7 @@ import { borderWidth, fonts, type Mood, radius, useTema } from '../../theme';
 import { PAUTA, PAUTA_EM_SP, RuledPaper } from './RuledPaper';
 import { SwipeableEntry } from './SwipeableEntry';
 import { useVoiceNote } from './useVoiceNote';
+import { POR_TRAS_DA_BARRA } from '../../components/navigation/BottomNav';
 
 /** Duração da virada de página, em ms. */
 const TURN_DURATION = 620;
@@ -542,7 +543,7 @@ export function JournalScreen({
       <TopBar title="Diário" onBack={onBack} />
 
       <ScrollView
-        contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 32, gap: 16 }}
+        contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 32 + POR_TRAS_DA_BARRA, gap: 16 }}
         showsVerticalScrollIndicator={false}
         keyboardShouldPersistTaps="handled"
       >

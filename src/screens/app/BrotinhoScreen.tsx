@@ -46,6 +46,7 @@ import {
 import type { Compost } from '../../state/types';
 import { ANCORA_RAPIDA } from '../../data/practices';
 import { fonts, useTema } from '../../theme';
+import { POR_TRAS_DA_BARRA } from '../../components/navigation/BottomNav';
 
 /**
  * A aba do broto: o personagem, o humor de hoje e a memória dela.
@@ -239,7 +240,7 @@ export function BrotinhoScreen({
           jaRestaurou.current = true;
           rolagem.current?.scrollTo({ y: alturaInicial, animated: false });
         }}
-        contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 32, gap: 22 }}
+        contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 32 + POR_TRAS_DA_BARRA, gap: 22 }}
         showsVerticalScrollIndicator={false}
       >
         {/* O bico do balão avança para dentro do desenho; o `zIndex` mantém a

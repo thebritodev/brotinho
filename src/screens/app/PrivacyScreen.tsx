@@ -18,6 +18,7 @@ import { useAppState } from '../../state/AppStateProvider';
 import { useBotaoVoltar } from '../../navigation/useBotaoVoltar';
 import { borderWidth, fonts, radius, useTema } from '../../theme';
 import { PrivacyPolicyScreen } from './PrivacyPolicyScreen';
+import { POR_TRAS_DA_BARRA } from '../../components/navigation/BottomNav';
 
 function PrivRow({
   icon,
@@ -114,7 +115,7 @@ export function PrivacyScreen({ onBack }: { onBack: () => void }) {
       <ScrollView
         contentContainerStyle={{
           paddingHorizontal: 20,
-          paddingBottom: 32,
+          paddingBottom: 32 + POR_TRAS_DA_BARRA,
           gap: 20,
         }}
         showsVerticalScrollIndicator={false}

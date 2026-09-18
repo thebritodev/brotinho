@@ -6,6 +6,7 @@ import { Sprout, TopBar, ValueBadge, ehEnfeite } from '../../components';
 import { useAppState } from '../../state/AppStateProvider';
 import { dayKey, livedValues, sproutStage } from '../../state/derived';
 import { fonts, useTema } from '../../theme';
+import { POR_TRAS_DA_BARRA } from '../../components/navigation/BottomNav';
 
 export function ValuesScreen({ onBack }: { onBack: () => void }) {
   const { colors } = useTema();
@@ -51,7 +52,7 @@ export function ValuesScreen({ onBack }: { onBack: () => void }) {
       <ScrollView
         contentContainerStyle={{
           paddingHorizontal: 20,
-          paddingBottom: 32,
+          paddingBottom: 32 + POR_TRAS_DA_BARRA,
           gap: 20,
           alignItems: 'center',
         }}

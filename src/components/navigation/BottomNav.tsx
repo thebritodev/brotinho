@@ -35,6 +35,20 @@ export const ALTURA_ERGUIDA = RAISE;
  */
 const RAIO_DO_TOPO = 28;
 
+/**
+ * Quanto da tela fica **por trás** da barra: a altura do canto arredondado.
+ *
+ * A tela termina esse tanto abaixo do topo da barra, e não exatamente nele.
+ * Sem isso não havia nada atrás das duas curvas do topo além do fundo liso
+ * do app, e quando o que estava rente à barra tinha outra cor — a terra da
+ * tela inicial, uma foto, um cartão — o canto recortava uma faixa do fundo
+ * que não pertencia a nada.
+ *
+ * Exportada porque quem rola precisa de folga no fim para o último item não
+ * parar escondido atrás da barra.
+ */
+export const POR_TRAS_DA_BARRA = RAIO_DO_TOPO;
+
 /** O fio do documento: recuado 40 de cada lado, e não uma borda de ponta a ponta. */
 const RECUO_DO_FIO = 40;
 const CENTER_SIZE = 64;
@@ -349,7 +363,7 @@ export function BottomNav({ active = 'home', onChange }: Props) {
         pagar caro por arrumação.
       */
       pointerEvents="box-none"
-      style={{ marginTop: -RAISE, paddingTop: RAISE, zIndex: 2 }}
+      style={{ marginTop: -(RAISE + POR_TRAS_DA_BARRA), paddingTop: RAISE, zIndex: 2 }}
     >
       <View
         style={{

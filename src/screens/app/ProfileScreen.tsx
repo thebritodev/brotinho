@@ -17,6 +17,7 @@ import { useAppState } from '../../state/AppStateProvider';
 import { caringSince, fazTerapia, sproutStage, stats } from '../../state/derived';
 import { fonts, useTema } from '../../theme';
 import type { SubScreen } from './types';
+import { POR_TRAS_DA_BARRA } from '../../components/navigation/BottomNav';
 
 type Props = {
   name: string;
@@ -86,7 +87,7 @@ export function ProfileScreen({ name, onNavigate }: Props) {
     <View style={{ flex: 1, paddingTop: insets.top }}>
       <TopBar title="Meu espaço" />
       <ScrollView
-        contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 32, gap: 20 }}
+        contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 32 + POR_TRAS_DA_BARRA, gap: 20 }}
         showsVerticalScrollIndicator={false}
       >
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 14 }}>

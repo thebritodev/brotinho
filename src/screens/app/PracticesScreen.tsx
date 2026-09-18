@@ -11,6 +11,7 @@ import { praticasMaisFeitas, ultimaPratica, vezesPorPratica } from '../../state/
 import { fonts, radius, useTema } from '../../theme';
 import { PracticeDetailScreen } from '../practices/PracticeDetailScreen';
 import { useBotaoVoltar } from '../../navigation/useBotaoVoltar';
+import { POR_TRAS_DA_BARRA } from '../../components/navigation/BottomNav';
 
 export function PracticesScreen({
   onBack,
@@ -134,7 +135,7 @@ export function PracticesScreen({
       <View style={{ flex: 1, paddingTop: insets.top }}>
         <TopBar title={topic.title} onBack={voltarDoTema} />
         <ScrollView
-          contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 32, gap: 12 }}
+          contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 32 + POR_TRAS_DA_BARRA, gap: 12 }}
           showsVerticalScrollIndicator={false}
         >
           <Text
@@ -259,7 +260,7 @@ export function PracticesScreen({
           paddingHorizontal: 20,
           // Igual às laterais: assim o respiro de baixo lê como margem, e não
           // como uma sobra de tela que ninguém preencheu.
-          paddingBottom: 20,
+          paddingBottom: 20 + POR_TRAS_DA_BARRA,
           gap: 10,
         }}
         showsVerticalScrollIndicator={false}

@@ -25,7 +25,7 @@ import { AduboAssentando } from './AduboAssentando';
 import { FallingWords } from './FallingWords';
 import { useCompostSession, type ModoDaComposta } from './useCompostSession';
 import { useBotaoVoltar } from '../../navigation/useBotaoVoltar';
-import { ALTURA_ERGUIDA } from '../../components/navigation/BottomNav';
+import { ALTURA_ERGUIDA, POR_TRAS_DA_BARRA } from '../../components/navigation/BottomNav';
 
 /** Segundos de voz necessários para completar uma compostagem. */
 const TARGET_SECONDS = 35;
@@ -274,7 +274,7 @@ export function CompostaScreen({
         */}
         {header('Compostar pensamentos', onClose)}
         <ScrollView
-          contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 28, gap: 20 }}
+          contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 28 + POR_TRAS_DA_BARRA, gap: 20 }}
           showsVerticalScrollIndicator={false}
         >
           <View style={{ alignItems: 'center', gap: 12 }}>
@@ -360,7 +360,7 @@ export function CompostaScreen({
             // O broto da barra de abas paira 22 pontos acima dela, e desde que
             // a barra deixou de reservar esse espaço ele cairia em cima deste
             // botão. O rodapé cresce o mesmo tanto, e o botão fica onde estava.
-            paddingBottom: 16 + ALTURA_ERGUIDA,
+            paddingBottom: 16 + ALTURA_ERGUIDA + POR_TRAS_DA_BARRA,
             backgroundColor: colors.bg,
             borderTopWidth: 1,
             borderTopColor: colors.border,
@@ -383,7 +383,7 @@ export function CompostaScreen({
       <View style={{ flex: 1, backgroundColor: colors.bg }}>
         {header('O pensamento', voltarDoPensamento)}
         <ScrollView
-          contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 28, gap: 18, flexGrow: 1 }}
+          contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 28 + POR_TRAS_DA_BARRA, gap: 18, flexGrow: 1 }}
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
         >

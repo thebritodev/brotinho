@@ -7,6 +7,7 @@ import { useAppState } from '../../state/AppStateProvider';
 import { fazTerapia, livedValues, patterns, ventThemes } from '../../state/derived';
 import { shareTherapyPdf } from '../../services/therapyReport';
 import { fonts, radius, useTema } from '../../theme';
+import { POR_TRAS_DA_BARRA } from '../../components/navigation/BottomNav';
 
 export function TherapySummaryScreen({ onBack }: { onBack: () => void }) {
   const { colors, palette } = useTema();
@@ -44,7 +45,7 @@ export function TherapySummaryScreen({ onBack }: { onBack: () => void }) {
     <View style={{ flex: 1, paddingTop: insets.top }}>
       <TopBar title="Para minha terapia" onBack={onBack} />
       <ScrollView
-        contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 32, gap: 20 }}
+        contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 32 + POR_TRAS_DA_BARRA, gap: 20 }}
         showsVerticalScrollIndicator={false}
       >
         <Text

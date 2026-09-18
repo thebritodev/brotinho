@@ -8,6 +8,7 @@ import { Card, Icon, TopBar, useCompartilharFrase } from '../../components';
 import { CONSELHOS, entreAspas } from '../../data/conselhos';
 import { useAppState } from '../../state/AppStateProvider';
 import { fonts, tracos, useTema } from '../../theme';
+import { POR_TRAS_DA_BARRA } from '../../components/navigation/BottomNav';
 
 /**
  * As frases que a pessoa guardou, para reler.
@@ -49,7 +50,7 @@ export function ConselhosGuardadosScreen({ onBack }: { onBack: () => void }) {
       <ScrollView
         contentContainerStyle={{
           paddingHorizontal: 20,
-          paddingBottom: 32 + insets.bottom,
+          paddingBottom: 32 + insets.bottom + POR_TRAS_DA_BARRA,
           gap: 14,
         }}
         showsVerticalScrollIndicator={false}

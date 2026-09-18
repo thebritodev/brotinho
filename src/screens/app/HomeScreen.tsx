@@ -26,6 +26,7 @@ import {
 } from '../../components';
 import { toqueLeve } from '../../services/toque';
 import { conselhoDoDia } from '../../data/conselhos';
+import { POR_TRAS_DA_BARRA } from '../../components/navigation/BottomNav';
 /* A lista mora em `data/humores` desde que a repesagem da Composta também
    precisou dela. Aqui ela responde a mesma pergunta de sempre: hoje está
    pesado? — e decide a comemoração, o selo e a ordem do carrossel. */
@@ -461,7 +462,7 @@ export function HomeScreen({
           */
           paddingTop: 0,
           paddingHorizontal: 20,
-          paddingBottom: 32,
+          paddingBottom: 32 + POR_TRAS_DA_BARRA,
           gap: 22,
         }}
         showsVerticalScrollIndicator={false}

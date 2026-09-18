@@ -8,6 +8,7 @@ import { notificacoesPermitidas } from '../../services/notifications';
 import { useAppState } from '../../state/AppStateProvider';
 import { fonts, useTema } from '../../theme';
 import { TimeWheel } from '../onboarding/TimeWheel';
+import { POR_TRAS_DA_BARRA } from '../../components/navigation/BottomNav';
 
 /**
  * Lembretes — o que o sino da Home abre.
@@ -50,7 +51,7 @@ export function RemindersScreen({ onBack }: { onBack: () => void }) {
       <TopBar title="Lembretes" onBack={onBack} />
 
       <ScrollView
-        contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 32, gap: 18 }}
+        contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 32 + POR_TRAS_DA_BARRA, gap: 18 }}
         showsVerticalScrollIndicator={false}
       >
         <Text
