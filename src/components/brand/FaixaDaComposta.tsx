@@ -143,31 +143,48 @@ const VELOCIDADE = 57;
 /**
  * Quanto da queda de uma palavra passa antes de a seguinte partir.
  *
- * **Um** — ou seja, a seguinte só parte quando a anterior terminou. Uma
- * palavra por vez na coluna, sempre.
+ * A palavra desce um terço do caminho e a seguinte já parte. Há quase
+ * sempre duas ou três no ar, o que faz a frase parecer se desfazendo em vez
+ * de palavras enfileiradas — e a frase inteira se diz em uns quatro
+ * segundos e meio, contra treze de uma por vez.
  *
- * ## A tentativa de sobrepor, e por que ela saiu
+ * ## Isto já foi 1, e o motivo de ter sido estava errado
  *
- * Isto já foi 0,42: a palavra seguinte partia com a anterior em 42% do
- * caminho, e a frase inteira levava menos da metade do tempo. No papel a
- * conta fechava — setenta e seis pontos entre uma e outra contra trinta e
- * oito de altura de linha, folga de sobra.
+ * A primeira sobreposição pôs todas as palavras na **mesma coluna**, e no
+ * aparelho elas liam como uma em cima da outra mesmo separadas por setenta
+ * e seis pontos. Concluí que o problema era sobrepor, e voltei para uma por
+ * vez — o que resolveu o sintoma custando o ritmo inteiro.
  *
- * No aparelho não fechou. Duas palavras na mesma coluna, ainda que
- * separadas, leem como uma sobre a outra: o olho tenta ler as duas, não lê
- * nenhuma, e o que era para ser uma frase se desfazendo virou movimento.
- * Distância entre linhas de texto corrido não é a mesma coisa que distância
- * entre duas coisas caindo — foi o que a conta não pegou.
- *
- * ## O que isso custa, e por que ainda assim
- *
- * O ciclo volta a ser a soma das quedas: quatro palavras a 3,2 s dão uns
- * treze segundos para a frase se dizer uma vez. É bastante, e é o preço de
- * cada palavra ter a coluna só para ela pelo tempo de ser lida. A faixa não
- * precisa ser vista inteira de uma vez — ela repete enquanto a pessoa
- * estiver ali.
+ * O problema não era sobrepor: era a coluna única. Duas palavras na mesma
+ * vertical se disputam por definição, por mais longe que estejam uma da
+ * outra. Em colunas diferentes elas convivem, porque o olho lê cada uma no
+ * lugar dela. Ver `COLUNAS`.
  */
-const ATRASO_ENTRE_PALAVRAS = 1;
+const ATRASO_ENTRE_PALAVRAS = 0.34;
+
+/**
+ * Onde cada palavra cai, em fração da largura da tela.
+ *
+ * ## Por que não uma coluna só
+ *
+ * Era uma coluna só, em 31% da largura, e era isso que fazia as palavras se
+ * atrapalharem quando mais de uma estava no ar. Espalhadas, elas podem cair
+ * juntas sem se disputar — e o céu deixa de ter uma fileira vertical no
+ * canto esquerdo com o resto vazio.
+ *
+ * ## Como as posições foram escolhidas
+ *
+ * Não são um varrimento da esquerda para a direita: isso leria como uma
+ * régua, e o que se quer é coisa caindo onde calha. A sequência alterna
+ * lados e nunca repete a mesma zona em palavras seguidas.
+ *
+ * Os limites são 0,30 e 0,68, e não 0 e 1, por duas razões. À esquerda, a
+ * palavra é centrada na posição: uma palavra longa em 0,15 sairia pela
+ * borda. À direita, o broto que nasce do adubo fica em 76% — passar por
+ * cima dele no fim da queda embaralharia as duas coisas justo onde a
+ * história se fecha.
+ */
+const COLUNAS = [0.32, 0.64, 0.42, 0.68, 0.36, 0.58] as const;
 
 /**
  * O tempo parado antes da primeira queda.
@@ -407,11 +424,13 @@ export function FaixaDaComposta({
       </View>
 
       {/*
-        2. As palavras.
+        2. As palavras, cada uma na coluna dela.
 
-        A coluna fica à esquerda: o broto que sai do adubo nasce à direita, em
-        76% da largura. As palavras descem de um lado e a planta sobe do outro,
-        que é a frase inteira da ferramenta numa imagem só.
+        O contentor ocupa a largura inteira e cada palavra é centrada nele;
+        quem a leva para a própria coluna é o `translateX`. Fazer assim, e não
+        com um contentor por palavra, é o que mantém a posição horizontal
+        dentro da mesma lista de transformações que já anima a queda e o
+        tombo — uma coisa só para o driver nativo mexer.
       */}
       <View
         pointerEvents="none"
@@ -419,7 +438,7 @@ export function FaixaDaComposta({
           position: 'absolute',
           top: inicioDaQueda,
           left: 0,
-          width: largura * 0.62,
+          width: largura,
           height: distancia + 40,
         }}
       >
@@ -442,6 +461,15 @@ export function FaixaDaComposta({
             inputRange: [0, 1],
             outputRange: ['0deg', `${(i % 2 === 0 ? -1 : 1) * 9}deg`],
           });
+          /*
+            A coluna desta palavra.
+
+            O texto é centrado num contentor da largura da tela, então ele
+            nasce no meio; o deslocamento é a distância daí até a coluna dela.
+            Fica fora do `interpolate` porque não muda durante a queda — a
+            palavra desce reta na coluna em que apareceu.
+          */
+          const coluna = (COLUNAS[i % COLUNAS.length] - 0.5) * largura;
           return (
             <Animated.Text
               key={`${i}-${palavra}`}
@@ -469,7 +497,7 @@ export function FaixaDaComposta({
                 */
                 color: colors.textPrimary,
                 opacity: opacidade,
-                transform: [{ translateY: andar }, { rotate: giro }],
+                transform: [{ translateX: coluna }, { translateY: andar }, { rotate: giro }],
               }}
             >
               {palavra}
