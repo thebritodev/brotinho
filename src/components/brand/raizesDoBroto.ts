@@ -24,12 +24,16 @@ import { sorteio } from './quedaDosFarelos';
 /**
  * Quanto a raiz mais funda desce abaixo do pé do broto.
  *
- * Rasa de propósito: mais fundo que isto e ela passa por trás do título e do
- * texto da ferramenta, e dois fios claros cruzando um parágrafo leem como
- * risco na tela, não como raiz. Ela se espalha para os lados, que é onde a
- * terra está limpa.
+ * Funda: ela atravessa o bloco de terra e passa por trás do título e do texto
+ * da ferramenta. Pode, porque o fio é claro, translúcido, e o texto é
+ * desenhado **depois**, por cima dele — o que aparece atrás das letras é
+ * terra com textura, e não um risco cortando a frase.
+ *
+ * O que ainda a segura é a névoa: quem chama passa o `fundo`, a linha onde a
+ * terra começa a sumir, e nenhuma raiz chega lá. Raiz desenhada dentro da
+ * névoa aparece boiando no nada.
  */
-export const PROFUNDIDADE = 58;
+export const PROFUNDIDADE = 132;
 
 /** O quanto ela fica longe da borda da tela, no mínimo. */
 export const MARGEM = 10;
