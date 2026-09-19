@@ -4,6 +4,8 @@ import Svg, { Defs, Ellipse, LinearGradient, Path, RadialGradient, Rect, Stop } 
 
 import { fraseQueODiaDemonstra } from '../../data/composta';
 import { useMenosMovimento } from '../../hooks/useMenosMovimento';
+import { BrotoNaTerra } from './BrotoAoVento';
+import { raizesDoBroto } from './raizesDoBroto';
 import { fonts, radius, useTema } from '../../theme';
 import { tracos } from '../../theme/tokens';
 import {
@@ -196,6 +198,38 @@ const MORROS = [
   /* A rasteira: o pé da paisagem, atravessando a tela inteira. */
   { x: 0.46, sobe: -4, alto: 44, largura: 0.9, op: 0.42 },
 ] as const;
+/**
+ * As nuvens paradas do fundo.
+ *
+ * Cenário, e só: elas ficam atrás dos morros, sem contorno e sem andar. O
+ * `x` e o `y` são frações do céu, para o tempo nublado ser o mesmo num
+ * celular estreito e num largo; `rx` também, e `ry` é em pontos porque
+ * nuvem que estica com a largura da tela vira tarja.
+ *
+ * São pintadas com `colors.surface` — a cor do que está por cima no tema,
+ * que é mais clara que o céu no claro e mais clara que o escuro no escuro.
+ * Branco fixo funcionaria de dia e, à noite, abriria dois buracos de luz.
+ */
+/*
+  No claro elas são branco sobre creme, e o creme já é claro: com a mesma
+  opacidade do escuro, o céu de dia ficava liso de novo. O reforço é só para
+  as duas coisas terem o mesmo peso nos dois temas.
+*/
+const NUVEM_NO_CLARO = 1.7;
+
+const NUVENS = [
+  { x: 0.2, y: 0.46, rx: 0.34, ry: 22, op: 0.5 },
+  { x: 0.34, y: 0.4, rx: 0.2, ry: 16, op: 0.42 },
+  { x: 0.78, y: 0.58, rx: 0.3, ry: 19, op: 0.46 },
+  { x: 0.63, y: 0.66, rx: 0.17, ry: 13, op: 0.36 },
+] as const;
+
+/** A coluna do broto do adubo, em fração da largura. */
+const COLUNA_DO_BROTO = 0.76;
+
+/** O y do pé do broto, na escala da terra: dentro do monte, não na crista. */
+const PE_DO_BROTO = 46;
+
 /* A opacidade ao longo da queda mora em `planoDaQueda`: ver `OPACIDADE_NA_QUEDA`. */
 
 type Props = {
@@ -252,7 +286,7 @@ export function FaixaDaComposta({
   onPress,
   label,
 }: Props) {
-  const { colors, palette } = useTema();
+  const { colors, palette, tema } = useTema();
   const id = useId().replace(/[^a-zA-Z0-9]/g, '');
   const menosMovimento = useMenosMovimento();
 
@@ -260,6 +294,29 @@ export function FaixaDaComposta({
   const altura = alturaDaFaixa(topo, cabecalho, queda, continua);
   /** Onde a terra começa a subir. Tudo acima disto é céu. */
   const crista = altura - alturaDaTerra;
+
+  /** O quanto as nuvens pesam neste tema. Ver `NUVEM_NO_CLARO`. */
+  const peso = tema === 'escuro' ? 1 : NUVEM_NO_CLARO;
+
+  /*
+    As raízes são sempre as mesmas para a mesma tela — a semente é fixa —,
+    mas a conta é de doze pontos por fio e não precisa refazer a cada quadro
+    da queda das palavras.
+
+    O fundo é onde a terra começa a sumir: raiz desenhada dentro da névoa
+    apareceria boiando. Emendando com a faixa de baixo não há névoa, e o
+    limite é quase o fim do bloco.
+  */
+  const raizes = useMemo(
+    () =>
+      raizesDoBroto({
+        x: largura * COLUNA_DO_BROTO,
+        y: PE_DO_BROTO,
+        largura,
+        fundo: (alturaDaTerra + 26) * (continua ? 0.95 : TERRA_COMECA_A_SUMIR),
+      }),
+    [largura, alturaDaTerra, continua],
+  );
   const inicioDaQueda = topo + cabecalho;
   const distancia = queda + AFUNDA;
 
@@ -360,6 +417,14 @@ export function FaixaDaComposta({
               o miolo, ela tem uma **copa** — e copa é o que diferencia um
               morro de uma mancha.
             */}
+            {/* A mesma queda a zero dos morros: nuvem também não tem aresta. */}
+            {NUVENS.map((n, i) => (
+              <RadialGradient key={`n${i}`} id={`nuvem${i}-${id}`} cx="50%" cy="50%" r="50%">
+                <Stop offset="0" stopColor={colors.surface} stopOpacity={n.op * peso} />
+                <Stop offset="0.5" stopColor={colors.surface} stopOpacity={n.op * peso * 0.8} />
+                <Stop offset="1" stopColor={colors.surface} stopOpacity={0} />
+              </RadialGradient>
+            ))}
             {MORROS.map((m, i) => (
               <RadialGradient key={i} id={`morro${i}-${id}`} cx="50%" cy="50%" r="50%">
                 <Stop offset="0" stopColor={palette.green300} stopOpacity={m.op} />
@@ -370,6 +435,18 @@ export function FaixaDaComposta({
           </Defs>
 
           <Rect x={0} y={0} width={largura} height={crista + 4} fill={`url(#ceu-${id})`} />
+
+          {/* O tempo nublado, atrás de tudo: os morros passam por cima delas. */}
+          {NUVENS.map((n, i) => (
+            <Ellipse
+              key={`n${i}`}
+              cx={largura * n.x}
+              cy={(crista + 4) * n.y}
+              rx={largura * n.rx}
+              ry={n.ry}
+              fill={`url(#nuvem${i}-${id})`}
+            />
+          ))}
 
           {/*
             A paisagem ao longe: três copas e uma crista rasteira.
@@ -575,34 +652,42 @@ export function FaixaDaComposta({
           ))}
 
           {/*
-            O broto que sai do adubo — o fim da história.
+            As raízes do broto, espalhadas por dentro da terra.
 
-            A haste começa **dentro** do monte, e não na crista: nascendo na
-            superfície, o broto ficava pousado ali como um objeto largado.
+            Elas saem do mesmo ponto onde a haste nasce e são desenhadas
+            **antes** dele, com fio fino e pouca opacidade: quem olha a faixa
+            vê textura do solo, e quem olha o broto vê que ele está preso
+            ali. Ver `raizesDoBroto`.
+
+            O broto em si não está mais neste `Svg`: ele balança, e giro de
+            SVG não roda no driver nativo. Ver `BrotoAoVento`.
           */}
-          <Path
-            d={`M${largura * 0.76} 46 L${largura * 0.76} 2`}
-            stroke={tracos.haste}
-            strokeWidth={5}
-            strokeLinecap="round"
-            fill="none"
-          />
-          <Path
-            d="M0 0 C -6 -14 -18 -26 -32 -24 C -42 -22 -44 -6 -34 4 C -22 16 -8 12 0 0 Z"
-            fill={tracos.folha}
-            stroke={tracos.contornoFolha}
-            strokeWidth={2.6}
-            transform={`translate(${largura * 0.76} 2) rotate(-52) scale(0.78)`}
-          />
-          <Path
-            d="M0 0 C -6 -14 -18 -26 -32 -24 C -42 -22 -44 -6 -34 4 C -22 16 -8 12 0 0 Z"
-            fill={tracos.folhaClara}
-            stroke={tracos.contornoFolha}
-            strokeWidth={2.6}
-            transform={`translate(${largura * 0.76} 8) rotate(232) scale(0.64)`}
-          />
+          {raizes.map((r, i) => (
+            <Path
+              key={i}
+              d={r.d}
+              stroke={TERRA_CLARA}
+              strokeWidth={r.espessura}
+              strokeLinecap="round"
+              fill="none"
+              opacity={r.opacidade}
+            />
+          ))}
         </Svg>
       </View>
+
+      {/*
+        4. O broto do adubo, balançando.
+
+        Por cima da terra e com o pé no mesmo ponto de sempre: a terra
+        começa 26 pontos acima da crista, e o pé está a 46 dali para baixo.
+        Fora da vista ele para de balançar, como as palavras param de cair.
+      */}
+      <BrotoNaTerra
+        pe={crista - 26 + PE_DO_BROTO}
+        coluna={largura * COLUNA_DO_BROTO}
+        ativa={ativa}
+      />
 
       {/* O cabeçalho, dentro do céu e com a altura que foi reservada a ele. */}
       <View style={{ height: topo + cabecalho, paddingTop: topo, paddingHorizontal: recuo }}>
