@@ -5,7 +5,9 @@ import Svg, { Defs, Ellipse, LinearGradient, Path, RadialGradient, Rect, Stop } 
 import { fraseQueODiaDemonstra } from '../../data/composta';
 import { useMenosMovimento } from '../../hooks/useMenosMovimento';
 import { useCoberta } from '../CamadaEmpilhada';
+import { AduboNaTerra } from './AduboNaTerra';
 import { BrotoNaTerra } from './BrotoAoVento';
+import { curvaDoEvento, planejarAdubo } from './aduboDaComposta';
 import { raizesDoBroto } from './raizesDoBroto';
 import { fonts, radius, useTema } from '../../theme';
 import { tracos } from '../../theme/tokens';
@@ -225,8 +227,14 @@ const NUVENS = [
   { x: 0.63, y: 0.66, rx: 0.17, ry: 13, op: 0.36 },
 ] as const;
 
-/** A coluna do broto do adubo, em fração da largura. */
-const COLUNA_DO_BROTO = 0.76;
+/**
+ * A coluna do broto do adubo, em fração da largura.
+ *
+ * Era 0,76. Com o broto maior, as folhas da esquerda passavam por cima da
+ * coluna da direita por onde as palavras caem; em 0,8 ele cede espaço a elas
+ * e ainda fica longe da borda.
+ */
+const COLUNA_DO_BROTO = 0.8;
 
 /** O y do pé do broto, na escala da terra: dentro do monte, não na crista. */
 const PE_DO_BROTO = 46;
@@ -400,6 +408,39 @@ export function FaixaDaComposta({
       animacao.stop();
     };
   }, [rodando, menosMovimento, tempo, plano.cicloMs]);
+
+  /*
+    O adubo de cada palavra: onde pousa, quando, e por qual raiz a seiva sobe.
+    Tudo em função do mesmo relógio da queda — ver `aduboDaComposta`.
+  */
+  const adubo = useMemo(
+    () => planejarAdubo({ plano, queda, distancia, largura, raizes }),
+    [plano, queda, distancia, largura, raizes],
+  );
+
+  /*
+    O estirão do broto: a soma das chegadas de seiva de todas as palavras, de
+    0 a 1. Duas chegando juntas não esticam o dobro — o teto é 1.
+  */
+  const alimento = useMemo(() => {
+    const chegadas = adubo.map((a) =>
+      tempo.interpolate(
+        curvaDoEvento(a.estirao.comeco, a.estirao.duracao, [
+          [0, 0],
+          [0.3, 1],
+          [1, 0],
+        ]),
+      ),
+    );
+    if (!chegadas.length) return null;
+    const soma = chegadas
+      .slice(1)
+      .reduce<Animated.AnimatedAddition<number> | Animated.AnimatedInterpolation<number>>(
+        (total, c) => Animated.add(total, c),
+        chegadas[0],
+      );
+    return soma.interpolate({ inputRange: [0, 1], outputRange: [0, 1], extrapolate: 'clamp' });
+  }, [adubo, tempo]);
 
   return (
     <View style={{ height: altura, marginHorizontal: -recuo }}>
@@ -686,17 +727,10 @@ export function FaixaDaComposta({
       </View>
 
       {/*
-        4. O broto do adubo, balançando.
-
-        Por cima da terra e com o pé no mesmo ponto de sempre: a terra
-        começa 26 pontos acima da crista, e o pé está a 46 dali para baixo.
-        Fora da vista ele para de balançar, como as palavras param de cair.
+        4. O adubo: os grãos de cada palavra que pousa, e a seiva subindo pela
+        raiz. Por cima da terra e por baixo do texto, que continua legível.
       */}
-      <BrotoNaTerra
-        pe={crista - 26 + PE_DO_BROTO}
-        coluna={largura * COLUNA_DO_BROTO}
-        ativa={rodando}
-      />
+      <AduboNaTerra tempo={tempo} adubo={adubo} topoDaTerra={crista - 26} />
 
       {/* O cabeçalho, dentro do céu e com a altura que foi reservada a ele. */}
       <View style={{ height: topo + cabecalho, paddingTop: topo, paddingHorizontal: recuo }}>
@@ -795,6 +829,21 @@ export function FaixaDaComposta({
           </Text>
         </View>
       </Pressable>
+
+      {/*
+        5. O broto do adubo — por último, por cima do botão da faixa.
+
+        O pé fica no mesmo ponto de sempre: a terra começa 26 pontos acima da
+        crista, e o pé está a 46 dali para baixo, dentro do monte. Ele vem
+        depois do botão para poder ser tocado: o botão é o bloco de terra
+        inteiro, e sem isto o toque no broto abriria a Composta.
+      */}
+      <BrotoNaTerra
+        pe={crista - 26 + PE_DO_BROTO}
+        coluna={largura * COLUNA_DO_BROTO}
+        ativa={rodando}
+        alimento={alimento}
+      />
     </View>
   );
 }

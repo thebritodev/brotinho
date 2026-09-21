@@ -27,8 +27,8 @@ const RAIZ = path.join(__dirname, '..');
 const LARGURAS = [320, 360, 390, 412, 430];
 /** Onde a terra começa a sumir, contado do pé do broto. Terra rasa e terra funda. */
 const FUNDOS = [60, 90, 130, 190];
-/** Onde o broto fica, em fração da largura — hoje 0,76; as outras são seguro. */
-const COLUNAS = [0.5, 0.76, 0.9];
+/** Onde o broto fica, em fração da largura — hoje 0,8; as outras são seguro. */
+const COLUNAS = [0.5, 0.76, 0.8, 0.9];
 
 let falhas = 0;
 let casos = 0;
