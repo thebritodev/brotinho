@@ -24,7 +24,18 @@
  * Ele **não** acessa a internet: se os endereços ainda respondem é outra
  * conferência, feita na hora do envio.
  *
- * Uso: node scripts/confere-ficha-da-play.js
+ * ## Por que as imagens ficam fora da bateria
+ *
+ * O ícone, o destaque e as capturas são **gerados** (`graficos-da-play.js`,
+ * `capturas.js`) e o Git os ignora. Num checkout limpo eles não existem — e
+ * a bateria, que roda em checkout limpo antes de cada commit, quebrava por
+ * causa de um arquivo que ninguém esqueceu de versionar: ele não é para ser
+ * versionado. Na bateria entram só os textos; as imagens são conferidas
+ * rodando este script sozinho, na hora de subir para o console.
+ *
+ * Uso:
+ *   node scripts/confere-ficha-da-play.js              textos e imagens
+ *   node scripts/confere-ficha-da-play.js --so-textos  só os textos e os links
  */
 
 const fs = require('fs');
@@ -32,6 +43,7 @@ const path = require('path');
 const { PNG } = require('pngjs');
 
 const RAIZ = path.join(__dirname, '..');
+const SO_TEXTOS = process.argv.includes('--so-textos');
 const FICHA = path.join(RAIZ, 'docs', 'ficha-google-play.md');
 
 /** Os limites do Play Console, em caracteres. */
@@ -119,38 +131,45 @@ for (const frase of EXIGIDAS) {
   else falhou(`a descrição não traz "${frase}" — a política de apps de saúde exige`);
 }
 
-const icone = imagem('loja/google-play/icone-512.png');
-if (icone.largura === 512 && icone.altura === 512) ok('o ícone tem 512 × 512');
-else falhou(`o ícone tem ${icone.largura} × ${icone.altura}, e o Google quer 512 × 512`);
+if (SO_TEXTOS) {
+  console.log('  —     imagens fora desta conferência: rode sem --so-textos antes de subir');
+} else {
+  const icone = imagem('loja/google-play/icone-512.png');
+  if (icone.largura === 512 && icone.altura === 512) ok('o ícone tem 512 × 512');
+  else falhou(`o ícone tem ${icone.largura} × ${icone.altura}, e o Google quer 512 × 512`);
 
-const destaque = imagem('loja/google-play/destaque-1024x500.png');
-if (destaque.largura === 1024 && destaque.altura === 500) ok('o destaque tem 1024 × 500');
-else falhou(`o destaque tem ${destaque.largura} × ${destaque.altura}, e o Google quer 1024 × 500`);
-if (destaque.transparente) falhou('o destaque tem transparência, e o Google recusa alfa nesse campo');
-else ok('o destaque não tem transparência');
+  const destaque = imagem('loja/google-play/destaque-1024x500.png');
+  if (destaque.largura === 1024 && destaque.altura === 500) ok('o destaque tem 1024 × 500');
+  else falhou(`o destaque tem ${destaque.largura} × ${destaque.altura}, e o Google quer 1024 × 500`);
+  if (destaque.transparente) falhou('o destaque tem transparência, e o Google recusa alfa nesse campo');
+  else ok('o destaque não tem transparência');
 
-const capturas = fs
-  .readdirSync(path.join(RAIZ, 'capturas'))
-  .filter((n) => /^\d/.test(n) && n.endsWith('.png'))
-  .sort();
-if (capturas.length < 2) falhou(`${capturas.length} captura(s): o Google exige pelo menos 2`);
-else if (capturas.length > 8) falhou(`${capturas.length} capturas: o Google aceita no máximo 8`);
-else ok(`${capturas.length} capturas, entre 2 e 8`);
+  const capturas = fs
+    .readdirSync(path.join(RAIZ, 'capturas'))
+    .filter((n) => /^\d/.test(n) && n.endsWith('.png'))
+    .sort();
+  if (capturas.length < 2) falhou(`${capturas.length} captura(s): o Google exige pelo menos 2`);
+  else if (capturas.length > 8) falhou(`${capturas.length} capturas: o Google aceita no máximo 8`);
+  else ok(`${capturas.length} capturas, entre 2 e 8`);
 
-for (const nome of capturas) {
-  const c = imagem(path.join('capturas', nome));
-  const menor = Math.min(c.largura, c.altura);
-  const maior = Math.max(c.largura, c.altura);
-  if (menor < 320 || maior > 3840) {
-    falhou(`${nome}: ${c.largura} × ${c.altura}, fora da faixa de 320 a 3840`);
+  for (const nome of capturas) {
+    const c = imagem(path.join('capturas', nome));
+    const menor = Math.min(c.largura, c.altura);
+    const maior = Math.max(c.largura, c.altura);
+    if (menor < 320 || maior > 3840) {
+      falhou(`${nome}: ${c.largura} × ${c.altura}, fora da faixa de 320 a 3840`);
+    }
   }
+  if (capturas.length) ok('todas as capturas cabem na faixa de 320 a 3840 pixels');
 }
-if (capturas.length) ok('todas as capturas cabem na faixa de 320 a 3840 pixels');
 
 for (const link of LINKS) {
   if (texto.includes(link)) ok(`a ficha aponta para ${link}`);
   else falhou(`a ficha não aponta para ${link}`);
 }
 
-console.log(`\n${falhas === 0 ? 'A ficha está pronta para colar no console.' : `${falhas} falha(s).`}\n`);
+const pronta = SO_TEXTOS
+  ? 'Os textos estão prontos. As imagens não foram conferidas aqui.'
+  : 'A ficha está pronta para colar no console.';
+console.log(`\n${falhas === 0 ? pronta : `${falhas} falha(s).`}\n`);
 process.exit(falhas === 0 ? 0 : 1);
