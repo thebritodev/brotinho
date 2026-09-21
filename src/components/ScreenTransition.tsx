@@ -29,57 +29,24 @@ type Props = {
   mode?: TransitionMode;
   /** Substitui o `flex: 1` padrão — telas dentro de ScrollView precisam disso. */
   style?: StyleProp<ViewStyle>;
+  /**
+   * Não anima a primeira tela, só as trocas depois dela.
+   *
+   * Para quando quem está em volta já anima a chegada — a `CamadaEmpilhada`
+   * desliza a tela para dentro, e esta, animando junto, somava um segundo
+   * esmaecer por cima do primeiro.
+   */
+  semEntrada?: boolean;
   children: React.ReactNode;
 };
 
-/**
- * O modo da transicao, deduzido de quao fundo a pessoa esta.
- *
- * ## O que ele conserta
- *
- * `mode="back"` existia neste arquivo desde o comeco e **nunca foi usado em
- * lugar nenhum do app**. Todo lugar passava `forward` ou `fade`, entao voltar
- * ou nao tinha movimento nenhum, ou -- pior -- deslizava da direita de novo,
- * como se estivesse entrando mais fundo. Medido no navegador: as cinco
- * transicoes principais apareciam com `scale(0.985)` e nenhum `translateX`.
- *
- * ## Por que profundidade, e nao um booleano de "estou voltando"
- *
- * Porque cada tela ja sabe quao fundo esta -- a lista e 0, um tema e 1, uma
- * pratica aberta e 2 -- e comparar o numero de agora com o de antes responde
- * a pergunta sozinho. Um booleano teria de ser mantido a mao em cada um dos
- * seis lugares que empilham tela, e e exatamente o tipo de coisa que alguem
- * esquece de virar ao acrescentar a setima.
- *
- * ## Por que o modo fica preso a chave
- *
- * A tela re-renderiza por muitos motivos enquanto a animacao roda. Se o modo
- * fosse recalculado a cada render, ele viraria `fade` no meio do caminho e o
- * `transform` trocaria de `translateX` para `scale` com a animacao andando --
- * um tranco no meio do movimento. Preso a chave, ele so muda quando a tela
- * muda, que e quando ele significa alguma coisa.
- */
-export function useModoDaTransicao(
-  chave: string | number,
-  profundidade: number,
-): TransitionMode {
-  const visto = useRef({ chave, profundidade, modo: "fade" as TransitionMode });
-  if (chave !== visto.current.chave) {
-    visto.current = {
-      chave,
-      profundidade,
-      modo:
-        profundidade > visto.current.profundidade
-          ? "forward"
-          : profundidade < visto.current.profundidade
-            ? "back"
-            : "fade",
-    };
-  }
-  return visto.current.modo;
-}
-
-export function ScreenTransition({ transitionKey, mode = 'fade', style, children }: Props) {
+export function ScreenTransition({
+  transitionKey,
+  mode = 'fade',
+  style,
+  semEntrada = false,
+  children,
+}: Props) {
   const { colors } = useTema();
   const t = useRef(new Animated.Value(1)).current;
   const [reduceMotion, setReduceMotion] = useState(false);
@@ -107,8 +74,13 @@ export function ScreenTransition({ transitionKey, mode = 'fade', style, children
     Num aparelho rapido isso e um piscar; num lento e a tela nova piscando
     antes de entrar.
   */
+  /** A primeira chave já passou por aqui? Ver `semEntrada`. */
+  const primeira = useRef(true);
+
   useLayoutEffect(() => {
-    if (reduceMotion) {
+    const estreia = primeira.current;
+    primeira.current = false;
+    if (reduceMotion || (semEntrada && estreia)) {
       t.setValue(1);
       return;
     }

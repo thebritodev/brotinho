@@ -15,6 +15,7 @@ import {
   FundoDaTela,
   CenaDaPratica,
   OndeVoceParou,
+  QuandoDescoberta,
   GrowthNotice,
   HarvestNotice,
   Icon,
@@ -803,21 +804,28 @@ export function HomeScreen({
         absoluta preenche só a Home, e a barra de baixo continuava acesa e
         tocável embaixo do aviso.
       */}
-      <Modal
-        visible={!!colhendo || (celebrando && stage !== 1)}
-        transparent
-        animationType="none"
-        onRequestClose={colhendo ? guardarNoJardim : fecharCelebracao}
-      >
-        {colhendo ? (
-          <HarvestNotice planta={colhendo} onClose={guardarNoJardim} />
-        ) : (
-          celebrando &&
-          stage !== 1 && (
-            <GrowthNotice stage={stage} days={daysCaredFor(data)} onClose={fecharCelebracao} />
-          )
-        )}
-      </Modal>
+      {/*
+        Só com a Home à vista: ela fica montada por baixo das telas
+        empilhadas, e este aviso abriria no meio de uma prática. Ver
+        `QuandoDescoberta`.
+      */}
+      <QuandoDescoberta>
+        <Modal
+          visible={!!colhendo || (celebrando && stage !== 1)}
+          transparent
+          animationType="none"
+          onRequestClose={colhendo ? guardarNoJardim : fecharCelebracao}
+        >
+          {colhendo ? (
+            <HarvestNotice planta={colhendo} onClose={guardarNoJardim} />
+          ) : (
+            celebrando &&
+            stage !== 1 && (
+              <GrowthNotice stage={stage} days={daysCaredFor(data)} onClose={fecharCelebracao} />
+            )
+          )}
+        </Modal>
+      </QuandoDescoberta>
 
       {/*
         Os farelos do buraco da Frase do dia. Por cima da rolagem, para caírem
@@ -827,11 +835,13 @@ export function HomeScreen({
       <ChuvaDeFarelos ref={chuva} />
 
       {/* A chegada, uma vez só: a primeira Home depois do onboarding. */}
-      <BoasVindas
-        visivel={!data.boasVindasVistas}
-        nome={name}
-        aoFechar={() => marcarVisto('boasVindas')}
-      />
+      <QuandoDescoberta>
+        <BoasVindas
+          visivel={!data.boasVindasVistas}
+          nome={name}
+          aoFechar={() => marcarVisto('boasVindas')}
+        />
+      </QuandoDescoberta>
 
       {/* O card do story, montado fora da tela só enquanto está sendo fotografado. */}
       {story.palco}

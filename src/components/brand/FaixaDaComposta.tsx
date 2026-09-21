@@ -4,6 +4,7 @@ import Svg, { Defs, Ellipse, LinearGradient, Path, RadialGradient, Rect, Stop } 
 
 import { fraseQueODiaDemonstra } from '../../data/composta';
 import { useMenosMovimento } from '../../hooks/useMenosMovimento';
+import { useCoberta } from '../CamadaEmpilhada';
 import { BrotoNaTerra } from './BrotoAoVento';
 import { raizesDoBroto } from './raizesDoBroto';
 import { fonts, radius, useTema } from '../../theme';
@@ -289,6 +290,14 @@ export function FaixaDaComposta({
   const { colors, palette, tema } = useTema();
   const id = useId().replace(/[^a-zA-Z0-9]/g, '');
   const menosMovimento = useMenosMovimento();
+  /*
+    À vista **e** descoberta. Com uma prática aberta por cima, a Home fica
+    montada embaixo — ver `CamadaEmpilhada` — e esta faixa seguiria
+    derrubando palavras e balançando o broto para ninguém, redesenhando a tela
+    de baixo a cada quadro enquanto a prática roda.
+  */
+  const coberta = useCoberta();
+  const rodando = ativa && !coberta;
 
   const alturaDaTerra = continua ? ALTURA_DA_TERRA_CONTINUA : ALTURA_DA_TERRA;
   const altura = alturaDaFaixa(topo, cabecalho, queda, continua);
@@ -362,7 +371,7 @@ export function FaixaDaComposta({
 
   useEffect(() => {
     tempo.setValue(0);
-    if (!ativa || menosMovimento) return;
+    if (!rodando || menosMovimento) return;
 
     /*
       Linear, e não suavizado nas pontas.
@@ -390,7 +399,7 @@ export function FaixaDaComposta({
       clearTimeout(espera);
       animacao.stop();
     };
-  }, [ativa, menosMovimento, tempo, plano.cicloMs]);
+  }, [rodando, menosMovimento, tempo, plano.cicloMs]);
 
   return (
     <View style={{ height: altura, marginHorizontal: -recuo }}>
@@ -686,7 +695,7 @@ export function FaixaDaComposta({
       <BrotoNaTerra
         pe={crista - 26 + PE_DO_BROTO}
         coluna={largura * COLUNA_DO_BROTO}
-        ativa={ativa}
+        ativa={rodando}
       />
 
       {/* O cabeçalho, dentro do céu e com a altura que foi reservada a ele. */}

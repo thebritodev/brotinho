@@ -1,7 +1,13 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { View } from 'react-native';
 
-import { BottomNav, ScreenTransition, useModoDaTransicao, type TabKey } from '../components';
+import {
+  BottomNav,
+  CamadaEmpilhada,
+  ProvedorDeCobertura,
+  ScreenTransition,
+  type TabKey,
+} from '../components';
 import { BrotinhoScreen } from '../screens/app/BrotinhoScreen';
 import { HomeScreen } from '../screens/app/HomeScreen';
 import { GardenScreen } from '../screens/app/GardenScreen';
@@ -150,8 +156,13 @@ export function MainTabs() {
     [],
   );
 
-  const renderSub = () => {
-    switch (sub) {
+  /*
+    Recebe a tela como argumento, e não lê o `sub`: a `CamadaEmpilhada`
+    continua desenhando a tela que está **saindo** depois de o `sub` já ter
+    virado `null`. Lendo o estado, a saída seria uma camada vazia.
+  */
+  const renderSub = (qual: SubScreen) => {
+    switch (qual) {
       case 'terapia':
         return <TherapySummaryScreen onBack={closeSub} />;
       case 'config':
@@ -250,29 +261,54 @@ export function MainTabs() {
     }
   };
 
-  /** 0 é uma aba; 1 é qualquer tela empilhada por cima dela. */
-  const modoDaTela = useModoDaTransicao(sub ?? tab, sub ? 1 : 0);
+  /*
+    O elemento da aba, congelado: só é refeito quando a aba ou o nome mudam.
+
+    Sem isto, abrir e fechar uma tela empilhada — que muda o `sub` daqui —
+    redesenhava a aba inteira por baixo, porque cada render cria funções novas
+    para as props dela. Com o mesmo elemento, o React nem entra na Home.
+    Quem precisa saber que ela está coberta pergunta ao contexto; ver
+    `useCoberta`.
+
+    O `rolagemInicial` lido aqui é a altura no momento em que a aba é
+    montada, que é exatamente o que ele significa.
+  */
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const aba = useMemo(() => renderTab(), [tab, name]);
 
   return (
     <View style={{ flex: 1, backgroundColor: colors.bg }}>
       {/*
-        Abrir uma tela empilhada desliza da direita, fechar desliza de volta,
-        e trocar de aba só aparece.
+        A aba por baixo, e a tela empilhada por cima dela.
 
-        O `fechar` é o que faltava. A condição aqui era `sub ? forward :
-        fade`: com `sub` em branco — que é exatamente o caso de estar
-        voltando — sobrava o `fade`, e voltar de uma prática ficava
-        indistinguível de trocar de aba. Quem reclamou disse "travada seca",
-        e a parte "seca" era isto.
+        As duas ocupavam o mesmo lugar: abrir uma prática desmontava a Home, e
+        voltar a montava do zero — 440 ms de linha de JavaScript travada,
+        medidos, com a prática congelada na tela e a Home surgindo de uma vez.
+        Agora a aba fica montada, parada, e a tela empilhada entra e **sai**
+        deslizando por cima dela. Ver `CamadaEmpilhada`.
 
-        Aba com aba continua sendo `fade` de propósito: abas são vizinhas,
-        não uma mais funda que a outra, e deslizar entre elas inventaria uma
-        hierarquia que não existe. `useModoDaTransicao` devolve `fade`
-        sozinho quando a profundidade não muda.
+        Trocar de aba continua só aparecendo: abas são vizinhas, não uma mais
+        funda que a outra, e deslizar entre elas inventaria uma hierarquia que
+        não existe.
       */}
-      <ScreenTransition transitionKey={sub ?? tab} mode={modoDaTela}>
-        {sub ? renderSub() : renderTab()}
-      </ScreenTransition>
+      <View style={{ flex: 1 }}>
+        <View
+          style={{ flex: 1 }}
+          /*
+            Coberta, a aba some para o leitor de tela: sem isto o TalkBack
+            navegaria pelos cartões da Home por baixo da prática aberta.
+          */
+          importantForAccessibility={sub ? 'no-hide-descendants' : 'auto'}
+          accessibilityElementsHidden={sub !== null}
+        >
+          <ProvedorDeCobertura value={sub !== null}>
+            <ScreenTransition transitionKey={tab} mode="fade">
+              {aba}
+            </ScreenTransition>
+          </ProvedorDeCobertura>
+        </View>
+        <CamadaEmpilhada aberta={sub} render={renderSub} />
+      </View>
       <BottomNav
         active={tab}
         onChange={(next) => {
