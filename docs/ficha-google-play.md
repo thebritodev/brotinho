@@ -400,7 +400,9 @@ abaixo é seu, e o primeiro item destrava todos os outros.
 2. Perfil de pagamentos — sem ele o Google não repassa dinheiro nenhum
 3. Gerar a chave JSON da conta de serviço e deixá-la na raiz do projeto
 4. Responder os dois questionários acima — são declarações suas
-5. Juntar 12 testadores que **aceitem o convite e instalem**
+5. Juntar 12 testadores que **aceitem o convite e instalem** — o convite, a lista
+   e o jeito de testarem a assinatura sem pagar estão em
+   [`teste-fechado-android.md`](teste-fechado-android.md)
 
 ### A ordem, do jeito que ela trava
 
