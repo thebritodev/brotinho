@@ -12,7 +12,18 @@
  * Este script confere as três coisas que precisam ser verdade ao mesmo tempo, e
  * fala em português o que fazer quando alguma não é.
  *
- * Uso: node scripts/confere-cobranca.js [ambiente]     (padrão: production)
+ * Uso: node scripts/confere-cobranca.js [ambiente] [plataforma]
+ *
+ * - `ambiente`: padrão `production`
+ * - `plataforma`: `android` torna a chave do Google Play obrigatória. Sem ela,
+ *   é só aviso — o iOS não precisa dela, e um guarda que grita por algo que
+ *   não vai ser usado é um guarda que se aprende a ignorar. Na build Android
+ *   que vai para a loja, rode com `android`.
+ *
+ * Ele também confere que a build **não** vai mandar áudio para fora: a
+ * declaração de privacidade das duas lojas diz que nada sai do aparelho, e
+ * isso só é verdade enquanto `EXPO_PUBLIC_TRANSCRIPTION_URL` não chega à
+ * build de produção.
  */
 
 const { execFileSync } = require('child_process');
@@ -21,18 +32,28 @@ const fs = require('fs');
 
 const RAIZ = path.join(__dirname, '..');
 const AMBIENTE = process.argv[2] || 'production';
+const PLATAFORMA = process.argv[3] || '';
 
 /**
  * As chaves, e se a falta de cada uma trava a build.
  *
- * O lançamento é iOS primeiro. Exigir a chave do Android faria este guarda
- * gritar todo dia por algo que ainda não existe — e guarda que sempre grita é
- * guarda que se aprende a ignorar. Ela vira aviso até o Google Play entrar.
+ * A do iOS trava sempre. A do Android trava quando a build é Android — que é
+ * quando a falta dela entrega o app de graça. Ver o `Uso` lá em cima.
  */
 const CHAVES = [
   { nome: 'EXPO_PUBLIC_REVENUECAT_IOS', trava: true, loja: 'App Store' },
-  { nome: 'EXPO_PUBLIC_REVENUECAT_ANDROID', trava: false, loja: 'Google Play' },
+  { nome: 'EXPO_PUBLIC_REVENUECAT_ANDROID', trava: PLATAFORMA === 'android', loja: 'Google Play' },
 ];
+
+/**
+ * O endereço do servidor de transcrição.
+ *
+ * Existe no `.env` desta máquina, apontando para o servidor de teste na rede
+ * de casa. Se ele chegasse à build de produção, o app passaria a mandar o
+ * áudio do diário para fora — e as duas lojas receberam a declaração de que
+ * nada sai do aparelho.
+ */
+const PROIBIDA_NA_LOJA = 'EXPO_PUBLIC_TRANSCRIPTION_URL';
 /* Semanal e vitalicio sairam da venda; os produtos seguem nas lojas, mas o app nao os oferece. */
 const PRODUTOS = ['brotinho_mensal', 'brotinho_anual'];
 
@@ -96,13 +117,43 @@ if (listagem !== null) {
   }
 }
 
+// 2b. Nada pode mandar o diário para fora. A variável não pode estar no EAS, e o
+//     `.env` — onde ela mora nesta máquina — não pode subir para a compilação.
+//     Sem `.easignore`, o EAS sobe o que o Git não ignora; com ele, só o que
+//     ele não ignora. As duas regras precisam deixar o `.env` de fora.
+if (listagem !== null) {
+  if (listagem.includes(PROIBIDA_NA_LOJA)) {
+    falha(
+      `${PROIBIDA_NA_LOJA} existe no ambiente ${AMBIENTE} — a build mandaria áudio para fora`,
+      `npx eas-cli env:delete --environment ${AMBIENTE} --variable-name ${PROIBIDA_NA_LOJA}`,
+    );
+  } else {
+    ok(`${PROIBIDA_NA_LOJA} não existe no ambiente ${AMBIENTE}`);
+  }
+}
+const ignorados = (arquivo) => {
+  const caminho = path.join(RAIZ, arquivo);
+  if (!fs.existsSync(caminho)) return null;
+  return fs
+    .readFileSync(caminho, 'utf8')
+    .split(/\r?\n/)
+    .map((l) => l.trim());
+};
+const regra = ignorados('.easignore') ?? ignorados('.gitignore') ?? [];
+const qual = fs.existsSync(path.join(RAIZ, '.easignore')) ? '.easignore' : '.gitignore';
+if (regra.some((l) => l === '.env' || l === '.env*' || l === '/.env')) {
+  ok(`o .env fica fora da compilação (${qual})`);
+} else {
+  falha(`o ${qual} não deixa o .env de fora — ele subiria para a compilação`, `acrescente ".env" ao ${qual}`);
+}
+
 // 3. Os identificadores do código precisam ser os mesmos cadastrados nas lojas.
 //    Na Apple um identificador não pode ser reaproveitado, então errar aqui
 //    custa um produto novo.
 const onboarding = fs.readFileSync(path.join(RAIZ, 'src', 'data', 'onboarding.ts'), 'utf8');
 const faltando = PRODUTOS.filter((p) => !onboarding.includes(`'${p}'`));
 if (faltando.length) falha(`identificador fora do código: ${faltando.join(', ')}`, 'confira PRODUTO_DO_PLANO');
-else ok('os 4 identificadores de produto seguem no código');
+else ok(`os ${PRODUTOS.length} identificadores de produto seguem no código`);
 
 const assinatura = fs.readFileSync(path.join(RAIZ, 'src', 'services', 'subscription.ts'), 'utf8');
 if (/ENTITLEMENT = 'premium'/.test(assinatura)) ok("o direito continua se chamando 'premium'");

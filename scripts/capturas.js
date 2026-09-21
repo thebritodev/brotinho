@@ -116,6 +116,32 @@ async function tocar(page, alvos) {
   await page.waitForTimeout(900);
 }
 
+/**
+ * Espera o instante em que só as duas primeiras palavras da frase estão no ar.
+ *
+ * As palavras são os textos do céu que se mexem: um `div` sem filhos, com
+ * uma palavra só e uma transformação. A ordem delas no documento é a ordem da
+ * frase, porque a faixa as desenha assim.
+ */
+async function esperarAsDuasPrimeiras(page) {
+  const inicio = Date.now();
+  while (Date.now() - inicio < 12000) {
+    const pronto = await page.evaluate(() => {
+      const palavras = [...document.querySelectorAll('div')].filter((d) => {
+        if (d.children.length || !d.textContent || /\s/.test(d.textContent.trim())) return false;
+        const estilo = getComputedStyle(d);
+        return estilo.transform !== 'none' && parseFloat(estilo.fontSize) >= 20;
+      });
+      if (palavras.length < 3) return false;
+      const op = palavras.map((p) => parseFloat(getComputedStyle(p).opacity));
+      return op[0] > 0.9 && op[1] > 0.9 && op.slice(2).every((o) => o < 0.05);
+    });
+    if (pronto) return;
+    await page.waitForTimeout(40);
+  }
+  throw new Error('a frase da Composta não chegou ao instante das duas primeiras palavras');
+}
+
 async function capturar(page, nome) {
   fs.mkdirSync(SAIDA, { recursive: true });
   const arquivo = path.join(SAIDA, `${nome}.png`);
@@ -138,11 +164,24 @@ async function capturar(page, nome) {
     localStorage.setItem('@brotinho/app-state-v1', JSON.stringify(estado));
   }, estadoDeExemplo());
   await page.reload({ waitUntil: 'networkidle', timeout: 180000 });
-  await page.waitForTimeout(2500);
 
   console.log('capturando:');
 
-  // 1. Home
+  /*
+    1. Home, no instante em que a frase começa a se ler.
+
+    A faixa da Composta derruba a frase do dia uma palavra por vez, em colunas
+    diferentes. Fotografada num instante qualquer, ela mostrava "em" e
+    "confia" soltos no céu — a terceira e a quarta palavras, que sozinhas não
+    querem dizer nada. Numa loja isso lê como texto quebrado.
+
+    Aqui a foto espera a hora em que só as **duas primeiras** estão no ar, e
+    as duas já inteiras: é o começo da frase, na ordem, e o resto ainda por
+    cair. Se esse instante não vier, o script para em vez de fotografar
+    qualquer coisa — foi assim que a captura das práticas passou uma semana
+    sendo a tela inicial repetida.
+  */
+  await esperarAsDuasPrimeiras(page);
   await capturar(page, '1-home');
 
   /*
@@ -172,10 +211,19 @@ async function capturar(page, nome) {
     treze temas na própria Home, a captura que mostra o tamanho do acervo é a
     Home rolada até ela — e de quebra mostra onde ela mora.
   */
-  await page.evaluate(() => {
-    const alvo = [...document.querySelectorAll('div')].find((d) => d.innerText?.trim() === 'Práticas');
+  /*
+    O título era "Práticas" e virou "Práticas guiadas" quando a tela inicial
+    foi reorganizada. Como a busca não achava nada e seguia em frente, a
+    captura saía igual à da tela inicial, sem erro. Agora, não achar para.
+  */
+  const rolou = await page.evaluate(() => {
+    const alvo = [...document.querySelectorAll('div')].find(
+      (d) => d.innerText?.trim() === 'Práticas guiadas',
+    );
     alvo?.scrollIntoView({ block: 'start' });
+    return Boolean(alvo);
   });
+  if (!rolou) throw new Error('não achei o título "Práticas guiadas" na tela inicial');
   await page.waitForTimeout(900);
   await capturar(page, '5-praticas');
 
