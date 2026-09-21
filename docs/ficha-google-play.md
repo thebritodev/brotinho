@@ -175,22 +175,22 @@ cinco minutos") sem transformar a descrição em lista de termos.*
 
 ### Novidades desta versão (máx. 500 caracteres)
 
-```
-Primeira versão do Brotinho no Android.
-```
-
-*39 de 500, e é o texto certo para a estreia: não há versão anterior no
-Android, então listar mudanças seria falar de um app que ninguém daqui viu.*
-
-> **Na próxima atualização** este campo volta a ser a lista de mudanças. O
-> texto da 1.1.0, que na Apple foi assim, fica aqui para reaproveitar:
->
-> ```
-> • Tela inicial nova: cada ferramenta ganhou um cartão grande, com ilustração e um botão que diz o que acontece ao tocar.
-> • Uma prática escolhida para o seu dia, logo na abertura — e a fileira de práticas recentes, para voltar de onde você parou num toque.
-> • O diário mudou para a aba do Brotinho, logo depois de você dizer como está.
-> • As 41 práticas agora aparecem inteiras na tela inicial, com uma ilustração para cada tema.
-> • Tema claro/escuro direto no seu perfil.
+```
+Primeira versão do Brotinho no Android.
+```
+
+*39 de 500, e é o texto certo para a estreia: não há versão anterior no
+Android, então listar mudanças seria falar de um app que ninguém daqui viu.*
+
+> **Na próxima atualização** este campo volta a ser a lista de mudanças. O
+> texto da 1.1.0, que na Apple foi assim, fica aqui para reaproveitar:
+>
+> ```
+> • Tela inicial nova: cada ferramenta ganhou um cartão grande, com ilustração e um botão que diz o que acontece ao tocar.
+> • Uma prática escolhida para o seu dia, logo na abertura — e a fileira de práticas recentes, para voltar de onde você parou num toque.
+> • O diário mudou para a aba do Brotinho, logo depois de você dizer como está.
+> • As 41 práticas agora aparecem inteiras na tela inicial, com uma ilustração para cada tema.
+> • Tema claro/escuro direto no seu perfil.
 > ```
 
 ---
@@ -392,41 +392,61 @@ acesso ao Play Console em **Usuários e permissões**.
 
 ## Resumo do que depende de você
 
-**Estado em 20/09/2026: a conta ainda não existe, e vai ser pessoal.** Tudo
-abaixo é seu, e o primeiro item destrava todos os outros.
-
-1. **Criar a conta do Play Console** (US$ 25) — eu não crio contas, e a
-   verificação de identidade pede documento seu
-2. Perfil de pagamentos — sem ele o Google não repassa dinheiro nenhum
-3. Gerar a chave JSON da conta de serviço e deixá-la na raiz do projeto
-4. Responder os dois questionários acima — são declarações suas
-5. Juntar 12 testadores que **aceitem o convite e instalem**
-
-### A ordem, do jeito que ela trava
-
-Decidido em 20/09/2026: **o Android estreia cobrando**, e a build sai quando
-a cota do EAS voltar. Essas duas escolhas amarram a ordem abaixo — cada
-passo só existe depois do anterior, e nenhum deles pode ser invertido.
-
-| # | Passo | De quem | Trava o quê |
-|---|---|---|---|
-| 1 | Conta do Play Console criada e verificada | você | tudo |
-| 2 | App criado no console, com a ficha colada | você, com os textos daqui | o envio do `.aab` |
-| 3 | `.aab` de produção e envio para o teste fechado | eu, a partir de 01/10 | os produtos de assinatura |
-| 4 | Produtos `brotinho_mensal` e `brotinho_anual` criados e ativos | você, no console | o RevenueCat enxergar |
-| 5 | App Android no RevenueCat e chave `goog_…` guardada no EAS | você gera, eu guardo | **a build que cobra** |
-| 6 | Build nova com a chave, e o teste fechado de 14 dias | eu | o pedido de produção |
-| 7 | Pedido de acesso à produção e revisão | você | a loja |
-
-O passo 5 é o que mais custa se for esquecido: a chave é **embutida na hora
-de compilar**, e guardá-la depois não alcança um binário já pronto. Sem ela,
-`cobrancaDisponivel()` devolve `false` e o app libera tudo de graça — foi o
-que aconteceu na build 3 do iOS. Por isso a build do passo 3 vale para o
-teste fechado, mas **não** é a que vai para a loja.
-
-`npm run confere-cobranca` responde, a qualquer momento, se a chave já está
-no lugar; e `npm run confere-ficha-da-play` mede os textos e as imagens
-contra os limites do console antes de você colar qualquer coisa lá.
+**Estado em 20/09/2026: a conta ainda não existe, e vai ser pessoal.** Tudo
+abaixo é seu, e o primeiro item destrava todos os outros.
+
+1. **Criar a conta do Play Console** (US$ 25) — eu não crio contas, e a
+   verificação de identidade pede documento seu
+2. Perfil de pagamentos — sem ele o Google não repassa dinheiro nenhum
+3. Gerar a chave JSON da conta de serviço e deixá-la na raiz do projeto
+4. Responder os dois questionários acima — são declarações suas
+5. Juntar 12 testadores que **aceitem o convite e instalem**
+
+### A ordem, do jeito que ela trava
+
+Decidido em 20/09/2026: **o Android estreia cobrando**, e a build sai quando
+a cota do EAS voltar. Essas duas escolhas amarram a ordem abaixo — cada
+passo só existe depois do anterior, e nenhum deles pode ser invertido.
+
+| # | Passo | De quem | Trava o quê |
+|---|---|---|---|
+| 1 | Conta do Play Console criada e verificada | você | tudo |
+| 2 | App criado no console, com a ficha colada | você, com os textos daqui | o envio do `.aab` |
+| 3 | `.aab` de produção e envio para o teste fechado | eu, a partir de 01/10 | os produtos de assinatura |
+| 4 | Produtos `brotinho_mensal` e `brotinho_anual` criados e ativos | você, no console | o RevenueCat enxergar |
+| 5 | App Android no RevenueCat e chave `goog_…` guardada no EAS | você gera, eu guardo | **a build que cobra** |
+| 6 | Build nova com a chave, e o teste fechado de 14 dias | eu | o pedido de produção |
+| 7 | Pedido de acesso à produção e revisão | você | a loja |
+
+O passo 5 é o que mais custa se for esquecido: a chave é **embutida na hora
+de compilar**, e guardá-la depois não alcança um binário já pronto. Sem ela,
+`cobrancaDisponivel()` devolve `false` e o app libera tudo de graça — foi o
+que aconteceu na build 3 do iOS. Por isso a build do passo 3 vale para o
+teste fechado, mas **não** é a que vai para a loja.
+
+`npm run confere-cobranca -- production android` responde, a qualquer
+momento, se a chave já está no lugar — e **falha** enquanto não estiver, que é
+o que impede o passo 6 de sair de graça. Sem o `android` no fim, a falta dela
+é só aviso, porque a build do iOS não precisa dela.
+
+`npm run confere-ficha-da-play` mede os textos e as imagens contra os limites
+do console antes de você colar qualquer coisa lá.
+
+### O que o Google recusa no envio, e já foi conferido
+
+Conferido em 21/09/2026, para não descobrir no console:
+
+| Exigência | Estado |
+|---|---|
+| App novo precisa mirar o Android 16 (API 36) desde 31/08/2026 | **ok** — o SDK 54 compila com `targetSdk` 36 |
+| Bibliotecas nativas de 64 bits alinhadas em páginas de 16 KB | **ok** — as 36 do APK de 16/09 passam; nada nativo entrou depois |
+| O áudio do diário não sai do aparelho (é o que a seção 3 declara) | **ok**, e agora travado: `confere-cobranca` falha se `EXPO_PUBLIC_TRANSCRIPTION_URL` aparecer no ambiente de produção ou se o `.env` desta máquina puder subir para a compilação |
+| `expo-doctor` | **ok** — 18 de 18 |
+
+A do áudio merece a explicação: o `.env` desta máquina **tem** esse
+endereço, apontando para o servidor de teste na rede de casa. Ele não chega à
+loja porque o Git o ignora e a compilação sai de um checkout limpo — mas isso
+era costume, não regra. Uma declaração legal não pode depender de costume.
 
 ### Por que não foi organização
 
@@ -440,4 +460,5 @@ configuração.
 
 - Build de produção do Android (`.aab`) e envio para a trilha de teste interno
 - Conferir a ficha inteira contra os limites de campo do Google
-- Rodar `npm run confere-cobranca` antes do build que vai para produção
+- Rodar `npm run confere-cobranca -- production android` antes do build que vai
+  para produção — ele falha enquanto a chave `goog_…` não estiver no EAS
