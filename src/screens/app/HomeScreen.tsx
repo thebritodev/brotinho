@@ -485,11 +485,35 @@ export function HomeScreen({
           queda={quedaDaFaixa}
           ativa={naVista}
           continua
-          titulo="Compostar pensamentos"
-          linha="Repita em voz alta o pensamento que te incomoda até ele virar só som."
-          acao="Compostar agora"
+          /*
+            O título é o sintoma, e não o nome da ferramenta.
+
+            Dizia "Compostar pensamentos", e o botão logo abaixo dizia
+            "Compostar agora": o botão repetia o título e não acrescentava
+            nada. Pior, os dois falavam do **procedimento** — e ninguém rola a
+            tela procurando um procedimento. Procura-se o próprio problema, e
+            é ele que está escrito aqui agora.
+
+            O nome da ferramenta não se perdeu: ele está no botão, que é onde
+            a pessoa decide entrar, e é o mesmo nome do cabeçalho da tela que
+            abre em seguida.
+
+            O "30 segundos" voltou para dentro da linha. Ele era uma etiqueta
+            acima do título, e saiu junto com ela; mas era a única coisa que
+            respondia "quanto isso vai me custar?", que é a pergunta que
+            decide entrar ou não num dia ruim.
+
+            O título cabe numa linha **na tela mais estreita** que o app
+            atende. "O pensamento que não sai da cabeça" ficava em duas, e a
+            segunda empurrava o bloco para cima da crista: a primeira linha
+            atravessava o broto. Quem diz "pensamento" agora é a linha de
+            baixo, que tem espaço para duas.
+          */
+          titulo="Não sai da cabeça?"
+          linha="Repita esse pensamento em voz alta por 30 segundos, até ele virar só som."
+          acao="Compostar esse pensamento"
           onPress={onOpenComposta}
-          label="Compostar pensamentos: repita em voz alta um pensamento que incomoda"
+          label="Compostar esse pensamento: repita em voz alta por 30 segundos, até virar só som"
         >
           <View style={{ flexDirection: 'row', alignItems: 'center' }}>
             <View style={{ flex: 1 }}>
