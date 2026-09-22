@@ -5,17 +5,25 @@ import { sorteio } from './quedaDosFarelos';
  *
  * ## O que elas são
  *
- * Fios finos, num tom de terra mais claro e com pouca opacidade: quem olha a
- * faixa vê textura do solo, e quem olha o broto vê que ele está preso ali. É
- * de propósito que não tenham contorno — contorno as faria lerem como galhos
- * desenhados por cima da terra, e não como coisa **dentro** dela.
+ * Uma rede em três níveis, como a de uma planta de verdade: algumas raízes
+ * principais saindo do pé, ramos saindo delas, e pelinhos nas pontas. Fio
+ * fino, num tom de terra mais claro e com pouca opacidade — quem olha a faixa
+ * vê textura do solo, e quem olha o broto vê que ele está preso ali.
+ *
+ * Três níveis, e não um leque de fios soltos: fio que sai do pé e termina sem
+ * se dividir não lê como raiz, lê como risco. A divisão é o que dá o nome à
+ * coisa.
+ *
+ * É de propósito que não tenham contorno — contorno as faria lerem como
+ * galhos desenhados por cima da terra, e não como coisa **dentro** dela.
  *
  * ## Por que a forma mora fora do desenho
  *
- * Raiz que sai da tela, que sobe acima da superfície ou que afunda até onde a
- * terra já está sumindo não parece raiz, parece risco. São três contas de
- * limite, e é mais barato conferi-las num teste do que olhar quadro a quadro
- * em cinco larguras de tela. Ver `scripts/testa-raizes-do-broto.js`.
+ * Raiz que sai da tela, que sobe acima da superfície, que afunda até onde a
+ * terra já está sumindo, ou ramo que nasce longe da raiz de onde deveria sair
+ * não parece raiz, parece risco. São contas de limite, e é mais barato
+ * conferi-las num teste do que olhar quadro a quadro em cinco larguras de
+ * tela. Ver `scripts/testa-raizes-do-broto.js`.
  *
  * A forma é sorteada, mas com semente: a mesma tela desenha sempre a mesma
  * raiz, e o teste confere exatamente o que o app mostra.
@@ -38,11 +46,26 @@ export const PROFUNDIDADE = 132;
 /** O quanto ela fica longe da borda da tela, no mínimo. */
 export const MARGEM = 10;
 
+/**
+ * Para onde apontam as principais, em graus, com 90 sendo a prumo.
+ *
+ * Ímpar de propósito: com um número par elas ficam simétricas em volta do pé,
+ * e simetria ali lê como desenho técnico.
+ */
+const PRINCIPAIS = [141, 115, 92, 68, 43] as const;
+
+/** Onde os ramos nascem ao longo da principal, em fração do comprimento. */
+const RAMOS_EM = [0.34, 0.6, 0.82] as const;
+
 export type Raiz = {
   /** O caminho em SVG, na mesma escala da terra. */
   d: string;
   espessura: number;
   opacidade: number;
+  /** 0 é principal, 1 é ramo, 2 é pelinho de ponta. */
+  nivel: 0 | 1 | 2;
+  /** De qual raiz esta nasce — `null` só nas principais, que nascem do pé. */
+  pai: number | null;
   /** Os pontos da curva, para o teste medir sem reabrir o caminho. */
   pontos: { x: number; y: number }[];
 };
@@ -71,6 +94,33 @@ function desenho(c: Curva): { d: string; pontos: P[] } {
   };
 }
 
+/**
+ * Um fio que sai de `de`, na direção `angulo`, com um arco de lado `curva`.
+ *
+ * O arco existe porque raiz não é reta: ela contorna o que encontra pela
+ * frente.
+ */
+function fio(de: P, angulo: number, comprimento: number, curva: number): Curva {
+  const rad = (angulo * Math.PI) / 180;
+  const lado = rad + Math.PI / 2;
+  const ponta = {
+    x: de.x + Math.cos(rad) * comprimento,
+    y: de.y + Math.sin(rad) * comprimento,
+  };
+  return {
+    p0: de,
+    c1: {
+      x: de.x + Math.cos(rad) * comprimento * 0.35 + Math.cos(lado) * curva,
+      y: de.y + Math.sin(rad) * comprimento * 0.35 + Math.sin(lado) * curva,
+    },
+    c2: {
+      x: de.x + Math.cos(rad) * comprimento * 0.72 - Math.cos(lado) * curva * 0.6,
+      y: de.y + Math.sin(rad) * comprimento * 0.72 - Math.sin(lado) * curva * 0.6,
+    },
+    p1: ponta,
+  };
+}
+
 export function raizesDoBroto({
   x,
   y,
@@ -95,59 +145,60 @@ export function raizesDoBroto({
   const desce = Math.max(24, chao - y);
 
   /*
-    Três raízes principais: uma para cada lado e uma quase a prumo. Os
-    comprimentos são diferentes porque três fios do mesmo tamanho leem como
-    um tridente, e não como raiz.
+    Prender os quatro pontos basta para prender a curva inteira: uma cúbica
+    nunca sai do fecho convexo dos pontos que a definem.
   */
-  const principais: Curva[] = [-1, 1, 0].map((lado, i) => {
-    const alcance = largura * entre(0.16, 0.3) * (lado === 0 ? 0.25 : 1);
-    const alvoX = x + lado * alcance;
-    const alvoY = y + desce * entre(i === 2 ? 0.86 : 0.5, i === 2 ? 1 : 0.78);
-    return {
-      p0: { x, y },
-      c1: { x: x + lado * alcance * 0.16, y: y + desce * 0.34 },
-      c2: { x: alvoX - lado * alcance * 0.3, y: alvoY - desce * 0.1 },
-      p1: { x: alvoX, y: alvoY },
-    };
-  });
-
   const prender = (c: Curva): Curva => {
     const dentro = (p: P): P => ({
       x: Math.min(Math.max(p.x, MARGEM), largura - MARGEM),
       /* Nunca acima do pé do broto: raiz que sobe vira galho. */
       y: Math.min(Math.max(p.y, y), chao),
     });
-    /*
-      Prender os quatro pontos basta para prender a curva inteira: uma cúbica
-      nunca sai do fecho convexo dos pontos que a definem.
-    */
     return { p0: dentro(c.p0), c1: dentro(c.c1), c2: dentro(c.c2), p1: dentro(c.p1) };
   };
 
-  const presas = principais.map(prender);
+  const raizes: Raiz[] = [];
+  const guardar = (c: Curva, nivel: 0 | 1 | 2, pai: number | null): number => {
+    const presa = prender(c);
+    const espessura = [2.2, 1.3, 0.8][nivel];
+    const opacidade = [0.3, 0.22, 0.16][nivel];
+    raizes.push({ ...desenho(presa), espessura, opacidade, nivel, pai });
+    return raizes.length - 1;
+  };
 
-  /*
-    De cada principal sai um fio menor, do meio dela para fora e para baixo.
+  const pe = { x, y };
 
-    Ele nasce da curva **já presa**, e não da de antes: com o broto perto da
-    borda, o meio da curva solta cai fora da tela, e o fio saía de um ponto
-    onde não há raiz nenhuma desenhada.
-  */
-  const ramos: Curva[] = presas.map((raiz, i) => {
-    const meio = cubica(raiz, entre(0.45, 0.62));
-    const lado = raiz.p1.x >= x ? 1 : -1;
-    const alcance = largura * entre(0.06, 0.12);
-    const cai = desce * entre(0.16, 0.3);
-    return {
-      p0: meio,
-      c1: { x: meio.x + lado * alcance * 0.4, y: meio.y + cai * 0.3 },
-      c2: { x: meio.x + lado * alcance * 0.8, y: meio.y + cai * 0.7 },
-      p1: { x: meio.x + lado * alcance * (i === 2 ? 1.4 : 1), y: meio.y + cai },
-    };
-  });
+  for (const angulo of PRINCIPAIS) {
+    /* A do meio desce mais; as de fora abrem mais e descem menos. */
+    const aprumo = 1 - Math.abs(angulo - 90) / 90;
+    const comprimento = desce * entre(0.62, 0.78) + desce * aprumo * 0.3;
+    const principal = fio(pe, angulo + entre(-5, 5), comprimento, entre(-10, 10));
+    const iPrincipal = guardar(principal, 0, null);
+    const presa = raizes[iPrincipal];
 
-  return [
-    ...presas.map((c) => ({ ...desenho(c), espessura: 2, opacidade: 0.3 })),
-    ...ramos.map((c) => ({ ...desenho(prender(c)), espessura: 1.2, opacidade: 0.22 })),
-  ];
+    for (const onde of RAMOS_EM) {
+      /* O ramo nasce **num ponto desenhado** da principal, não perto dela. */
+      const nasce = presa.pontos[Math.round(onde * 12)];
+      const paraFora = angulo > 90 ? 1 : -1;
+      const abre = entre(24, 46) * paraFora;
+      const ramo = fio(nasce, angulo + abre, comprimento * entre(0.24, 0.42), entre(-5, 5));
+      const iRamo = guardar(ramo, 1, iPrincipal);
+      const ponta = raizes[iRamo].pontos[12];
+
+      /* Os pelinhos: dois na ponta de cada ramo, abrindo em leque. */
+      for (const lado of [-1, 1]) {
+        const pelo = fio(ponta, angulo + abre + lado * entre(22, 38), entre(8, 14), entre(-2, 2));
+        guardar(pelo, 2, iRamo);
+      }
+    }
+
+    /* E dois na ponta da principal, que é onde ela ainda está crescendo. */
+    const pontaDaPrincipal = presa.pontos[12];
+    for (const lado of [-1, 1]) {
+      const pelo = fio(pontaDaPrincipal, angulo + lado * entre(18, 32), entre(9, 15), entre(-2, 2));
+      guardar(pelo, 2, iPrincipal);
+    }
+  }
+
+  return raizes;
 }

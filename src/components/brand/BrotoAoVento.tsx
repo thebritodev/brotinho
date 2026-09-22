@@ -1,6 +1,6 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useId, useMemo, useRef } from 'react';
 import { Animated, Easing, View } from 'react-native';
-import Svg, { Path } from 'react-native-svg';
+import Svg, { Defs, G, LinearGradient, Path, Stop } from 'react-native-svg';
 
 import { useMenosMovimento } from '../../hooks/useMenosMovimento';
 import { tracos } from '../../theme/tokens';
@@ -8,39 +8,239 @@ import { tracos } from '../../theme/tokens';
 /**
  * O broto que sai do monte de adubo, balançando ao vento.
  *
- * ## Por que ele saiu do desenho grande
+ * ## Por que ele não é um desenho só
  *
- * Ele era dois caminhos dentro do `Svg` da terra. Para balançar, o giro teria
- * de ser uma propriedade animada de SVG — e propriedade de SVG **não roda no
- * driver nativo**: cada quadro seria uma conta em JavaScript, na mesma linha
- * que já cuida da contagem da Composta e da ditadura de voz. Numa travada, o
- * broto congelaria torto.
+ * Ele era dois caminhos dentro do `Svg` da terra, e balançava inteiro, como
+ * uma peça de madeira girando no pé. Planta não faz isso: o caule cede no
+ * vento e **cada folha** responde no tempo dela, porque cada uma tem um
+ * tamanho e um cabo diferentes.
  *
- * Aqui ele é um desenho próprio dentro de uma `View` que gira. Giro de `View`
- * o driver nativo anda sozinho: o balanço continua liso mesmo com o
- * JavaScript ocupado, que é a mesma razão de as palavras da Composta terem um
- * relógio só. O desenho é o mesmo de antes, ponto por ponto.
+ * Então o broto é montado em peças: o caule numa `View` que gira pelo pé, e
+ * cada folha numa `View` que gira pelo ponto onde ela nasce, dentro da do
+ * caule. O movimento de uma folha é o do caule **mais** o dela — que é como
+ * funciona na planta.
  *
- * ## O pé é o eixo
+ * Giro de propriedade de SVG não roda no driver nativo: cada quadro seria uma
+ * conta em JavaScript, na mesma linha que já cuida da contagem da Composta e
+ * da ditadura de voz. Giro de `View` o nativo anda sozinho, e o balanço
+ * continua liso mesmo com o JavaScript ocupado — a mesma razão de as palavras
+ * da Composta terem um relógio só.
  *
- * `View` gira pelo meio. Uma planta gira pelo **pé** — é ali que ela está
- * presa na terra. As duas translações em volta do giro trocam o eixo: sobem o
- * desenho até o meio cair sobre o pé, giram, e descem de volta.
+ * ## O pivô no centro da caixa
+ *
+ * `View` gira pelo meio. Em vez de somar translações em volta de cada giro,
+ * cada peça mora numa caixa **com o pivô no centro**: o caule numa caixa cujo
+ * meio é o pé, cada folha numa cujo meio é o nascimento dela. O desenho ocupa
+ * só parte da caixa, e a caixa tem folga para a folha girar sem ser cortada.
+ *
+ * ## Um relógio só, com rajadas
+ *
+ * Todas as peças leem o mesmo valor animado. O que as faz parecerem
+ * independentes são as curvas: cada uma tem a própria amplitude, o próprio
+ * número de batidas por volta e a própria defasagem. Uma volta leva nove
+ * segundos e tem duas rajadas — o vento acelera, a planta cede e volta devagar
+ * —, e é isso que tira o aspecto de metrônomo.
  */
 
-/** A caixa do desenho. O pé do broto fica no meio de baixo. */
-export const CAIXA = { largura: 160, altura: 116 };
-
-/** Quanto a haste sobe do pé. O mesmo 46 → 2 do desenho antigo. */
-const HASTE = 44;
-
-/** O quanto ele se inclina, em graus. Vento de brisa, não de tempestade. */
-const VENTO = [0, -1.1, -2.4, -1.3, -2.1, -0.5, 0.5, -0.7, 0] as const;
-
 /** Uma volta inteira da brisa. Longa de propósito: vento não tem compasso. */
-const CICLO_MS = 5400;
+const CICLO_MS = 9000;
 
-export function BrotoAoVento({ ativa = true }: { ativa?: boolean }) {
+/**
+ * O caule, em graus, ao longo da volta.
+ *
+ * Duas rajadas: cai depressa para o lado e volta devagar, como galho cedendo.
+ * O primeiro e o último valor são iguais, senão a volta dá um tranco.
+ */
+const CAULE = [0, -1.4, -4.2, -3.1, -1.6, -0.4, -3.6, -2.4, -1, 0.5, 0];
+
+/** Uma onda de `batidas` por volta, para o tremular de cada folha. */
+function onda(amplitude: number, batidas: number, fase: number, pontos = 17): number[] {
+  const valores = Array.from({ length: pontos }, (_, i) =>
+    amplitude * Math.sin(((i / (pontos - 1)) * Math.PI * 2 * batidas) + fase),
+  );
+  /* A volta tem de fechar onde começou. */
+  valores[pontos - 1] = valores[0];
+  return valores;
+}
+
+const entradaDe = (pontos: number) => Array.from({ length: pontos }, (_, i) => i / (pontos - 1));
+
+/**
+ * Uma folha: onde nasce, para onde aponta, o tamanho, e como ela responde ao
+ * vento.
+ *
+ * `batidas` e `fase` são o que fazem cada uma ter o tempo dela. A folha grande
+ * balança devagar e pouco, porque é pesada; a folhinha da base, depressa.
+ */
+type Folha = {
+  x: number;
+  y: number;
+  angulo: number;
+  comprimento: number;
+  largura: number;
+  clara?: boolean;
+  /** Quantas nervuras laterais de cada lado. */
+  nervuras: number;
+  vento: { amplitude: number; batidas: number; fase: number };
+  respira: { amplitude: number; fase: number };
+};
+
+const FOLHAS: Folha[] = [
+  {
+    x: 1,
+    y: -44,
+    angulo: -150,
+    comprimento: 40,
+    largura: 14,
+    nervuras: 2,
+    vento: { amplitude: 3.4, batidas: 2, fase: 0 },
+    respira: { amplitude: 0.03, fase: 0.4 },
+  },
+  {
+    x: -1,
+    y: -50,
+    angulo: -22,
+    comprimento: 34,
+    largura: 12,
+    clara: true,
+    nervuras: 2,
+    vento: { amplitude: 4.6, batidas: 3, fase: 2.1 },
+    respira: { amplitude: 0.035, fase: 2.4 },
+  },
+  {
+    x: 2,
+    y: -12,
+    angulo: -18,
+    comprimento: 15,
+    largura: 6,
+    clara: true,
+    nervuras: 1,
+    vento: { amplitude: 6.5, batidas: 4, fase: 4.3 },
+    respira: { amplitude: 0.05, fase: 5.1 },
+  },
+];
+
+/** Quanto o caule sobe do pé. */
+const CAULE_ALTURA = 50;
+
+/** A caixa do caule: o pé fica no centro dela. */
+const CORPO = { largura: 200, altura: 240 };
+
+/** O contorno de uma folha em amêndoa, nascendo na origem e deitada para +x. */
+function contornoDaFolha(c: number, l: number): string {
+  return `M0 0 C${c * 0.22} ${-l} ${c * 0.72} ${-l * 0.94} ${c} 0 C${c * 0.72} ${l * 0.94} ${c * 0.22} ${l} 0 0 Z`;
+}
+
+/** Uma folha na caixa dela, girando pelo ponto onde nasce. */
+function FolhaViva({
+  folha,
+  origem,
+  brisa,
+  gradiente,
+}: {
+  folha: Folha;
+  /** Onde, na caixa do caule, fica o pé — de onde a folha é medida. */
+  origem: { x: number; y: number };
+  brisa: Animated.Value;
+  gradiente: string;
+}) {
+  /* A caixa é quadrada e do tamanho da folha inteira, para ela girar solta. */
+  const lado = folha.comprimento * 2 + 14;
+
+  const giro = useMemo(() => {
+    const valores = onda(folha.vento.amplitude, folha.vento.batidas, folha.vento.fase);
+    return brisa.interpolate({
+      inputRange: entradaDe(valores.length),
+      outputRange: valores.map((g) => `${g}deg`),
+    });
+  }, [brisa, folha.vento]);
+
+  const escala = useMemo(() => {
+    const valores = onda(folha.respira.amplitude, 1, folha.respira.fase, 9).map((v) => 1 + v);
+    return brisa.interpolate({ inputRange: entradaDe(valores.length), outputRange: valores });
+  }, [brisa, folha.respira]);
+
+  const c = folha.comprimento;
+  const l = folha.largura;
+  const nervuras = Array.from({ length: folha.nervuras }, (_, i) => {
+    const p = 0.26 + ((i + 1) / (folha.nervuras + 1)) * 0.5;
+    return p;
+  });
+
+  return (
+    <Animated.View
+      pointerEvents="none"
+      style={{
+        position: 'absolute',
+        left: origem.x + folha.x - lado / 2,
+        top: origem.y + folha.y - lado / 2,
+        width: lado,
+        height: lado,
+        transform: [{ rotate: giro }, { scale: escala }],
+      }}
+    >
+      <Svg width={lado} height={lado} viewBox={`${-lado / 2} ${-lado / 2} ${lado} ${lado}`}>
+        <G transform={`rotate(${folha.angulo})`}>
+          <Path
+            d={contornoDaFolha(c, l)}
+            fill={`url(#${gradiente})`}
+            stroke={tracos.contornoFolha}
+            strokeWidth={2.4}
+            strokeLinejoin="round"
+          />
+          {/* A nervura do meio, um pouco curvada, como toda folha tem. */}
+          <Path
+            d={`M2 0 Q${c * 0.5} ${-l * 0.12} ${c * 0.9} 0`}
+            stroke={tracos.contornoFolha}
+            strokeWidth={1.2}
+            strokeLinecap="round"
+            fill="none"
+            opacity={0.45}
+          />
+          {nervuras.map((p) =>
+            [-1, 1].map((s) => (
+              <Path
+                key={`${p}-${s}`}
+                d={`M${c * p} ${s * l * 0.06} Q${c * (p + 0.1)} ${s * l * 0.4} ${c * (p + 0.2)} ${s * l * 0.52}`}
+                stroke={tracos.contornoFolha}
+                strokeWidth={0.9}
+                strokeLinecap="round"
+                fill="none"
+                opacity={0.3}
+              />
+            )),
+          )}
+          {/* O brilho: a luz batendo na metade de cima da folha. */}
+          <Path
+            d={`M${c * 0.2} ${-l * 0.5} Q${c * 0.46} ${-l * 0.76} ${c * 0.72} ${-l * 0.44}`}
+            stroke="#FFFFFF"
+            strokeWidth={1.5}
+            strokeLinecap="round"
+            fill="none"
+            opacity={0.35}
+          />
+        </G>
+      </Svg>
+    </Animated.View>
+  );
+}
+
+/**
+ * O broto posto na terra: o pé dele cai em `pe` e `coluna`, coordenadas da
+ * faixa. Quem chama não precisa saber o tamanho das caixas.
+ */
+export function BrotoNaTerra({
+  pe,
+  coluna,
+  ativa = true,
+}: {
+  /** O y do pé do broto, na faixa. */
+  pe: number;
+  /** O x do pé do broto, na faixa. */
+  coluna: number;
+  ativa?: boolean;
+}) {
+  const id = useId().replace(/:/g, '');
   const menosMovimento = useMenosMovimento();
   const brisa = useRef(new Animated.Value(0)).current;
 
@@ -63,78 +263,85 @@ export function BrotoAoVento({ ativa = true }: { ativa?: boolean }) {
     return () => volta.stop();
   }, [ativa, menosMovimento, brisa]);
 
-  const giro = brisa.interpolate({
-    inputRange: VENTO.map((_, i) => i / (VENTO.length - 1)),
-    outputRange: VENTO.map((g) => `${g}deg`),
-  });
+  const giroDoCaule = useMemo(
+    () =>
+      brisa.interpolate({
+        inputRange: entradaDe(CAULE.length),
+        outputRange: CAULE.map((g) => `${g}deg`),
+      }),
+    [brisa],
+  );
 
-  const meio = CAIXA.altura / 2;
-  const x = CAIXA.largura / 2;
+  const meio = { x: CORPO.largura / 2, y: CORPO.altura / 2 };
+  const gradiente = { folha: `folha-${id}`, clara: `folha-clara-${id}` };
 
   return (
     <Animated.View
       pointerEvents="none"
+      collapsable={false}
       style={{
-        width: CAIXA.largura,
-        height: CAIXA.altura,
-        transform: [{ translateY: meio }, { rotate: giro }, { translateY: -meio }],
+        position: 'absolute',
+        left: coluna - meio.x,
+        top: pe - meio.y,
+        width: CORPO.largura,
+        height: CORPO.altura,
+        transform: [{ rotate: giroDoCaule }],
       }}
     >
-      <Svg width="100%" height="100%" viewBox={`0 0 ${CAIXA.largura} ${CAIXA.altura}`}>
+      <Svg
+        style={{ position: 'absolute' }}
+        width={CORPO.largura}
+        height={CORPO.altura}
+        viewBox={`${-meio.x} ${-meio.y} ${CORPO.largura} ${CORPO.altura}`}
+      >
+        <Defs>
+          <LinearGradient id={gradiente.folha} x1="0" y1="0" x2="0.6" y2="1">
+            <Stop offset="0" stopColor={tracos.folhaLuz} />
+            <Stop offset="1" stopColor={tracos.folhaSombra} />
+          </LinearGradient>
+          <LinearGradient id={gradiente.clara} x1="0" y1="0" x2="0.6" y2="1">
+            <Stop offset="0" stopColor={tracos.folhaClara} />
+            <Stop offset="1" stopColor={tracos.folhaLuz} />
+          </LinearGradient>
+        </Defs>
+        {/* O caule, com uma curva leve — planta não cresce em linha reta. */}
         <Path
-          d={`M${x} ${CAIXA.altura} L${x} ${CAIXA.altura - HASTE}`}
+          d={`M0 0 C3 ${-CAULE_ALTURA * 0.36} -2 ${-CAULE_ALTURA * 0.68} 0 ${-CAULE_ALTURA}`}
           stroke={tracos.haste}
           strokeWidth={5}
           strokeLinecap="round"
           fill="none"
         />
+        {/* O fio de luz do lado de onde vem a claridade da faixa. */}
         <Path
-          d="M0 0 C -6 -14 -18 -26 -32 -24 C -42 -22 -44 -6 -34 4 C -22 16 -8 12 0 0 Z"
-          fill={tracos.folha}
-          stroke={tracos.contornoFolha}
-          strokeWidth={2.6}
-          transform={`translate(${x} ${CAIXA.altura - HASTE}) rotate(-52) scale(0.78)`}
-        />
-        <Path
-          d="M0 0 C -6 -14 -18 -26 -32 -24 C -42 -22 -44 -6 -34 4 C -22 16 -8 12 0 0 Z"
-          fill={tracos.folhaClara}
-          stroke={tracos.contornoFolha}
-          strokeWidth={2.6}
-          transform={`translate(${x} ${CAIXA.altura - HASTE + 6}) rotate(232) scale(0.64)`}
+          d={`M-1.2 -6 C1.8 ${-CAULE_ALTURA * 0.36} -3.2 ${-CAULE_ALTURA * 0.68} -1.2 ${-CAULE_ALTURA + 5}`}
+          stroke="#FFFFFF"
+          strokeWidth={1.2}
+          strokeLinecap="round"
+          fill="none"
+          opacity={0.26}
         />
       </Svg>
-    </Animated.View>
-  );
-}
 
-/**
- * O broto posto na terra: o pé dele cai exatamente onde a haste antiga nascia.
- *
- * `esquerda` e `pe` são coordenadas da faixa; quem chama não precisa saber o
- * tamanho da caixa nem que o desenho tem folga em volta.
- */
-export function BrotoNaTerra({
-  pe,
-  coluna,
-  ativa,
-}: {
-  /** O y do pé do broto, na faixa. */
-  pe: number;
-  /** O x do pé do broto, na faixa. */
-  coluna: number;
-  ativa?: boolean;
-}) {
-  return (
-    <View
-      pointerEvents="none"
-      style={{
-        position: 'absolute',
-        left: coluna - CAIXA.largura / 2,
-        top: pe - CAIXA.altura,
-      }}
-      collapsable={false}
-    >
-      <BrotoAoVento ativa={ativa} />
-    </View>
+      {/*
+        As folhas ficam numa âncora do tamanho da caixa, e não numa `View`
+        vazia: no Android, filho fora dos limites de uma `View` sem tamanho
+        pode ser recortado.
+      */}
+      <View
+        pointerEvents="none"
+        style={{ position: 'absolute', left: 0, top: 0, width: CORPO.largura, height: CORPO.altura }}
+      >
+        {FOLHAS.map((folha, i) => (
+          <FolhaViva
+            key={i}
+            folha={folha}
+            origem={meio}
+            brisa={brisa}
+            gradiente={folha.clara ? gradiente.clara : gradiente.folha}
+          />
+        ))}
+      </View>
+    </Animated.View>
   );
 }
