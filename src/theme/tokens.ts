@@ -639,38 +639,65 @@ export type PreferenciaDeTema = 'sistema' | 'claro' | 'escuro';
  *
  * Quem diferencia um tema do outro é o **ícone**. O tom é apoio.
  */
+/**
+ * Um tom por **grupo** da grade, e não um por tema.
+ *
+ * Eram treze, um para cada tema, e a grade lia como mostruário: treze cores
+ * que não diziam nada, porque variavam sem critério visível. A grade já vem
+ * dividida em quatro blocos com título — "Para o corpo acelerado", "Para o
+ * que dói", "Para voltar a fazer as coisas", "Para se tratar melhor" (ver
+ * `GRUPOS_DE_PRATICAS`) —, e agora a cor repete essa divisão: quem rola
+ * enxerga o agrupamento sem ler os títulos.
+ *
+ * Os quatro tons são quatro dos treze antigos, escolhidos um por bloco. Isso
+ * não é preguiça: os treze foram construídos com a mesma luminância, para
+ * terem o mesmo contraste contra o cartão e contra o ícone (a conta está
+ * logo acima, e `confere-contraste` a mantém). Pegar quatro deles preserva
+ * esse trabalho inteiro.
+ *
+ * Quem diferencia um tema do outro dentro do bloco continua sendo o **ícone**.
+ * O tom é apoio, e agora apoia a arrumação da prateleira.
+ */
 export const tintsDosTemas = {
-  raiva: '#F3E2DF',
-  procrastinacao: '#EEE4D4',
-  autoestima: '#E6E8C3',
-  gratidao: '#DAEACA',
-  foco: '#D0ECCF',
-  comparacao: '#CFECDB',
-  estresse: '#CDEBE8',
+  /* Para o corpo acelerado. */
   ansiedade: '#D9E7F0',
-  solidao: '#E1E4F3',
+  estresse: '#D9E7F0',
+  raiva: '#D9E7F0',
+  insonia: '#D9E7F0',
+  /* Para o que dói. */
   tristeza: '#E7E3F4',
-  insonia: '#EEE0F3',
-  luto: '#F3E0EF',
-  culpa: '#F3E0E7',
+  luto: '#E7E3F4',
+  solidao: '#E7E3F4',
+  /* Para voltar a fazer as coisas. */
+  procrastinacao: '#D0ECCF',
+  foco: '#D0ECCF',
+  /* Para se tratar melhor. */
+  autoestima: '#EEE4D4',
+  culpa: '#EEE4D4',
+  comparacao: '#EEE4D4',
+  gratidao: '#EEE4D4',
 } as const;
 
 export type TintDoTema = keyof typeof tintsDosTemas;
 
 const tintsDosTemasEscuros: Record<TintDoTema, string> = {
-  raiva: '#633F3A',
-  procrastinacao: '#544732',
-  autoestima: '#494A2C',
-  gratidao: '#3D4E2E',
-  foco: '#30512F',
-  comparacao: '#2F4F3D',
-  estresse: '#2E4F4B',
+  /* Para o corpo acelerado. */
   ansiedade: '#344C59',
-  solidao: '#3F476A',
+  estresse: '#344C59',
+  raiva: '#344C59',
+  insonia: '#344C59',
+  /* Para o que dói. */
   tristeza: '#4F4170',
-  insonia: '#5D3D67',
-  luto: '#653B5C',
-  culpa: '#673C4B',
+  luto: '#4F4170',
+  solidao: '#4F4170',
+  /* Para voltar a fazer as coisas. */
+  procrastinacao: '#30512F',
+  foco: '#30512F',
+  /* Para se tratar melhor. */
+  autoestima: '#544732',
+  culpa: '#544732',
+  comparacao: '#544732',
+  gratidao: '#544732',
 };
 
 /** Os dois temas, para o provedor escolher e para o teste de contraste medir. */

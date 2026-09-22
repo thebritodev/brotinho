@@ -22,6 +22,25 @@ const path = require('path');
 const fs = require('fs');
 const { pastaTemporaria } = require('./pasta-temporaria');
 
+/**
+ * Os grupos da grade de praticas, lidos do arquivo de dados.
+ *
+ * Lidos, e nao repetidos aqui: grupo novo entra na conferencia sozinho. Ver
+ * `GRUPOS_DE_PRATICAS` em `src/data/practices.ts`.
+ */
+function gruposDePraticas() {
+  const arquivo = path.join(__dirname, '..', 'src', 'data', 'practices.ts');
+  const texto = fs.readFileSync(arquivo, 'utf8');
+  const bloco = texto.match(/GRUPOS_DE_PRATICAS[^=]*=\s*\[([\s\S]*?)\n\];/);
+  if (!bloco) throw new Error('nao achei GRUPOS_DE_PRATICAS em data/practices.ts');
+  return [...bloco[1].matchAll(/titulo:\s*'([^']+)',\s*temas:\s*\[([^\]]+)\]/g)].map((m) => ({
+    titulo: m[1],
+    temas: [...m[2].matchAll(/'([^']+)'/g)].map((x) => x[1]),
+  }));
+}
+
+const GRUPOS = gruposDePraticas();
+
 const RAIZ = path.join(__dirname, '..');
 
 const AA_TEXTO = 4.5;
@@ -348,18 +367,30 @@ function razao(frente, fundo) {
     }
 
     /*
-      E que dois temas nao tenham o mesmo quadrado.
+      E que dois **grupos** nao tenham o mesmo quadrado.
 
-      O piso e baixo de proposito: nao estou exigindo que os treze sejam bem
+      Dentro de um grupo os temas compartilham o tom de proposito: a cor diz
+      o bloco da grade, e nao o tema (ver `tintsDosTemas`). Entre grupos ela
+      tem de separar, senao a divisao que ela existe para mostrar some.
+
+      O piso e baixo de proposito: nao estou exigindo que os quatro sejam bem
       distintos -- essa briga foi perdida na hora de escolher tons discretos
-      em vez de neon, e quem diferencia e o icone. O que nao pode e colidir.
+      em vez de neon, e quem diferencia um tema do outro e o icone. O que nao
+      pode e colidir.
     */
+    const porGrupo = new Map();
+    for (const [tema, tom] of tons) {
+      const grupo = GRUPOS.find((g) => g.temas.includes(tema));
+      const chave = grupo ? grupo.titulo : tema;
+      if (!porGrupo.has(chave)) porGrupo.set(chave, tom);
+    }
+    const doGrupo = [...porGrupo.entries()];
     let perto = { a: '', b: '', d: Infinity };
-    for (let i = 0; i < tons.length; i += 1) {
-      for (let j = i + 1; j < tons.length; j += 1) {
-        const [x, y] = [canais(tons[i][1]), canais(tons[j][1])];
+    for (let i = 0; i < doGrupo.length; i += 1) {
+      for (let j = i + 1; j < doGrupo.length; j += 1) {
+        const [x, y] = [canais(doGrupo[i][1]), canais(doGrupo[j][1])];
         const d = Math.hypot(x[0] - y[0], x[1] - y[1], x[2] - y[2]);
-        if (d < perto.d) perto = { a: tons[i][0], b: tons[j][0], d };
+        if (d < perto.d) perto = { a: doGrupo[i][0], b: doGrupo[j][0], d };
       }
     }
     const distinto = perto.d >= 4;
