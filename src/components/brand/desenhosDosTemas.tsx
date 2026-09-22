@@ -110,7 +110,7 @@ function Ansiedade({ p }: CenaProps) {
   return (
     <>
       {/*
-        Água parada e uma folha pousada nela.
+        Água parada, dois juncos e uma folha pousada nela.
 
         Era o oposto: três rajadas varrendo a cena e uma folha sendo levada,
         girando. Aquilo desenhava a ansiedade — e o cartão hoje diz "Acalmar a
@@ -121,6 +121,38 @@ function Ansiedade({ p }: CenaProps) {
         nenhuma das outras doze cenas. As práticas deste tema começam pelo
         corpo — é isso que está desenhado: o corpo depois que desacelerou.
       */}
+
+      {/*
+        Os juncos ficam **atrás** da água, e é o que dá profundidade à cena:
+        eles entram nela em vez de pousarem por cima. Balançam um fio de
+        ponto no toque, cada um no seu tempo, como o broto da Composta.
+      */}
+      <G transform={gira(curva(p, [0, -1.4, -2.2, -1.2, 0]), 14, 36)}>
+        <Path
+          d="M14 36 C12.6 30 13 25 14.6 19.5"
+          stroke={tracos.haste}
+          strokeWidth={1.7}
+          strokeLinecap="round"
+          fill="none"
+        />
+        <Path
+          d={FOLHA}
+          fill={tracos.folhaClara}
+          stroke={tracos.contornoFolha}
+          strokeWidth={3.4}
+          transform="translate(14.8 20.4) rotate(-122) scale(0.12)"
+        />
+      </G>
+      <G transform={gira(curva(p, [0, 1, 2.1, 1.6, 0]), 18.5, 36)}>
+        <Path
+          d="M18.5 36 C17.9 32 18.3 27.6 19.6 24"
+          stroke={tracos.haste}
+          strokeWidth={1.4}
+          strokeLinecap="round"
+          fill="none"
+        />
+      </G>
+
       {/*
         A água tem contorno, e o tom dela é o médio, não o claro.
 
@@ -141,6 +173,47 @@ function Ansiedade({ p }: CenaProps) {
         strokeWidth={TRACO}
       />
       <Ellipse cx={30} cy={33.4} rx={14} ry={4} fill={palette.blue100} opacity={0.75} />
+      {/* Dois riscos de luz deitados na água: é o que faz ela parecer lisa. */}
+      <Path
+        d="M20 32.4 C23 31.6 26 31.5 29 32"
+        stroke={palette.cream100}
+        strokeWidth={1.3}
+        strokeLinecap="round"
+        fill="none"
+        opacity={0.8}
+      />
+      <Path
+        d="M33 36.4 C35.5 36 38 35.9 40 36.2"
+        stroke={palette.cream100}
+        strokeWidth={1.1}
+        strokeLinecap="round"
+        fill="none"
+        opacity={0.55}
+      />
+
+      {/*
+        A pedra meio submersa, encostada na borda de trás.
+
+        Ela é o que estava faltando para a água ter margem: sem nada dentro
+        dela, a elipse lia como um prato. A parte de baixo fica escondida pela
+        própria água, que é desenhada antes dela.
+      */}
+      <Path
+        d="M41 33.6 C41.6 30.6 44.4 29.4 46.4 30.6 C48.2 31.7 48.4 33.4 47.8 34.4 Z"
+        fill={TERRA_CLARA}
+        stroke={CONTORNO}
+        strokeWidth={1.4}
+        strokeLinejoin="round"
+      />
+      <Path
+        d="M43 32.6 C43.6 31.4 45 31 45.8 31.5"
+        stroke={palette.cream100}
+        strokeWidth={0.9}
+        strokeLinecap="round"
+        fill="none"
+        opacity={0.6}
+      />
+
       {/*
         Um anel só, abrindo devagar até sumir na borda.
 
@@ -154,14 +227,26 @@ function Ansiedade({ p }: CenaProps) {
       >
         <Ellipse cx={30} cy={35} rx={16} ry={6} fill="none" stroke={palette.cream100} strokeWidth={1.8} />
       </G>
+
       {/* A folha sobe e desce um fio de ponto, como quem boia. */}
       <G transform={desloca(0, curva(p, [0, -0.7, -1, -0.5, 0]))}>
+        {/* A sombra dela na água, que é o que a pousa de verdade. */}
+        <Ellipse cx={31.4} cy={35.8} rx={5.4} ry={1.7} fill={palette.blue300} opacity={0.55} />
         <Path
           d={FOLHA}
           fill={tracos.folha}
           stroke={tracos.contornoFolha}
           strokeWidth={2.4}
           transform="translate(37 33) rotate(-14) scale(0.3)"
+        />
+        {/* A nervura, o mesmo detalhe que as folhas do broto ganharam. */}
+        <Path
+          d="M35.8 33.4 C33.6 32.6 31.6 31.6 30.2 30.4"
+          stroke={tracos.contornoFolha}
+          strokeWidth={0.9}
+          strokeLinecap="round"
+          fill="none"
+          opacity={0.5}
         />
       </G>
     </>
@@ -178,7 +263,50 @@ function Tristeza({ p }: CenaProps) {
         "Atravessar a tristeza", e atravessar tem um outro lado; a cena não
         mostrava nenhum.
       */}
+
+      {/*
+        Os raios aparecem conforme a nuvem sai, e não antes.
+
+        Eles são a recompensa do movimento: parados, a cena já entregaria o
+        outro lado de graça. A opacidade deles é a mesma conta do passo.
+      */}
+      <G opacity={curva(p, [0, 0.15, 0.45, 0.75, 1])}>
+        {[
+          'M54.5 21 L58 21',
+          'M52.6 13.6 L55 11',
+          'M52.6 28.4 L55 31',
+          'M47.5 9 L49 6',
+          'M47.5 33 L49 36',
+        ].map((d) => (
+          <Path key={d} d={d} stroke={palette.yellow300} strokeWidth={2} strokeLinecap="round" />
+        ))}
+      </G>
       <Circle cx={43} cy={21} r={11} fill={palette.yellow300} stroke={CONTORNO} strokeWidth={TRACO} />
+      {/* A luz bate no alto à esquerda, como em todo desenho do app. */}
+      <Path
+        d="M37.5 16.6 C39 14 42 12.6 45 13"
+        stroke={palette.cream100}
+        strokeWidth={2}
+        strokeLinecap="round"
+        fill="none"
+        opacity={0.75}
+      />
+
+      {/*
+        Uma segunda nuvem, menor e atrás, andando menos.
+
+        Ela é profundidade barata e honesta: duas camadas a velocidades
+        diferentes leem como céu, e não como adesivo colado no fundo. Sem
+        contorno, de propósito — contorno a traria para a frente.
+      */}
+      <G transform={desloca(curva(p, [0, -0.8, -1.8, -2.6, -3.4]), 0)}>
+        <Path
+          d="M13 22.5 C9.6 22.5 7.6 20.6 7.6 18.2 C7.6 15.8 9.8 14 12.4 14.4 C13.4 11.4 16.4 9.8 19.4 10.6 C22.4 11.4 24 13.6 24 16"
+          fill={palette.cream200}
+          opacity={0.9}
+        />
+      </G>
+
       {/*
         A nuvem continua na cena, e continua inteira.
 
@@ -195,7 +323,28 @@ function Tristeza({ p }: CenaProps) {
           strokeWidth={TRACO}
           strokeLinejoin="round"
         />
+        {/*
+          A barriga da nuvem, um tom abaixo: é o que dá volume a ela.
+
+          Fica **dentro** do contorno, encostada na base, e não é uma segunda
+          forma por cima — nuvem com dois contornos vira duas nuvens.
+        */}
+        <Path
+          d="M16 27.6 C19.4 29.2 24 29.6 29 29.6 C33 29.6 36.6 29.2 40 28.2 C39.4 29.4 38 29.9 36 29.9 L19.6 29.9 C18 29.9 16.8 29.2 16 27.6 Z"
+          fill={palette.cream200}
+          opacity={0.75}
+        />
+        {/* E um risco de luz na borda de cima, do lado onde o sol bate. */}
+        <Path
+          d="M22.6 13.6 C25.6 12 29.6 12.2 32.4 14.4"
+          stroke="#FFFFFF"
+          strokeWidth={1.6}
+          strokeLinecap="round"
+          fill="none"
+          opacity={0.85}
+        />
       </G>
+
       {/*
         A poça do que já choveu saiu daqui.
 
