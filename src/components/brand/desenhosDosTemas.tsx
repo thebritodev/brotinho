@@ -390,7 +390,35 @@ function Luto({ p }: CenaProps) {
         fill="none"
         opacity={0.75}
       />
+      {/*
+        Dois galhinhos saindo do galho: é o que o faz ler como galho, e não
+        como um cabo. Nenhum deles tem folha — é esse o assunto.
+      */}
+      <Path
+        d="M15 21.2 C16.4 18.6 17.6 17.4 19.6 16.4"
+        stroke={tracos.haste}
+        strokeWidth={1.5}
+        strokeLinecap="round"
+        fill="none"
+        opacity={0.7}
+      />
+      <Path
+        d="M22 23.4 C23.6 21.6 25.4 20.8 27.4 20.6"
+        stroke={tracos.haste}
+        strokeWidth={1.3}
+        strokeLinecap="round"
+        fill="none"
+        opacity={0.6}
+      />
       <Path d="M9 45 C9 42 17 40 30 40 C43 40 51 42 51 45 Z" fill={`url(#terra-${id})`} opacity={0.9} />
+      {/* Torrõezinhos na terra, para ela não ser uma faixa chapada. */}
+      {[
+        { x: 14, y: 43, r: 1.5 },
+        { x: 24, y: 44, r: 1.1 },
+        { x: 39, y: 43.4, r: 1.3 },
+      ].map((t) => (
+        <Ellipse key={t.x} cx={t.x} cy={t.y} rx={t.r} ry={t.r * 0.72} fill={TERRA_CLARA} opacity={0.5} />
+      ))}
       {/*
         A folha caída se ajeita: gira pouco e assenta. É o movimento mais
         contido dos treze, e tem de ser — luto não pede animação animada.
@@ -407,6 +435,15 @@ function Luto({ p }: CenaProps) {
           stroke={tracos.contornoFolha}
           strokeWidth={2}
           transform="translate(45 33) rotate(163) scale(0.45)"
+        />
+        {/* A nervura da folha caída, o mesmo detalhe das folhas do broto. */}
+        <Path
+          d="M43.6 34.6 C40.2 36.2 36.4 37.4 33 37.6"
+          stroke={tracos.contornoFolha}
+          strokeWidth={0.9}
+          strokeLinecap="round"
+          fill="none"
+          opacity={0.5}
         />
       </G>
       {/* O broto novo sobe um fio, devagar, e para. */}
@@ -457,6 +494,24 @@ function Insonia({ p }: CenaProps) {
           strokeWidth={TRACO}
           strokeLinejoin="round"
         />
+        {/*
+          Três crateras, do lado de dentro da foice.
+
+          É o detalhe que faz a lua parar de ser uma fatia de melão: sem elas,
+          a forma sozinha não diz que aquilo é pedra iluminada.
+        */}
+        <Ellipse cx={27.5} cy={19} rx={2.4} ry={2} fill={palette.amber100} opacity={0.85} />
+        <Ellipse cx={24.2} cy={29} rx={1.7} ry={1.4} fill={palette.amber100} opacity={0.7} />
+        <Ellipse cx={28.6} cy={37} rx={1.3} ry={1.1} fill={palette.amber100} opacity={0.6} />
+        {/* A borda iluminada, do lado de fora. */}
+        <Path
+          d="M32.6 11 C26.4 14.6 22.6 20.8 22.6 27.6"
+          stroke="#FFFFFF"
+          strokeWidth={1.4}
+          strokeLinecap="round"
+          fill="none"
+          opacity={0.6}
+        />
       </G>
       <G opacity={curva(p, [1, 0.86, 0.7, 0.56, 0.45])}>
         {estrelas.map((e) => (
@@ -480,6 +535,21 @@ function Insonia({ p }: CenaProps) {
           stroke={CONTORNO}
           strokeWidth={1.6}
           strokeLinejoin="round"
+        />
+        {/* A barriga da nuvem, um tom abaixo: peso recebido tem sombra. */}
+        <Path
+          d="M11.4 46.4 C15 48.4 20 49 25 49 C28.6 49 32 48.6 35 47.8 C34.6 49 33.4 49.6 31.6 49.6 L15.6 49.6 C13.6 49.6 12.2 48.4 11.4 46.4 Z"
+          fill={palette.lavender300}
+          opacity={0.45}
+        />
+        {/* E a luz da lua batendo no alto dela. */}
+        <Path
+          d="M16.6 38.6 C19 37 22.4 37.2 24.6 39"
+          stroke="#FFFFFF"
+          strokeWidth={1.4}
+          strokeLinecap="round"
+          fill="none"
+          opacity={0.8}
         />
       </G>
     </>
@@ -509,7 +579,29 @@ function Estresse({ p }: CenaProps) {
           strokeLinejoin="round"
         />
         <Path d="M11 38 L17 33 L21 39 L14 42 Z" fill={palette.slate100} opacity={0.85} />
+        {/*
+          A rachadura e a segunda quina escura: pedra tem face, e face tem
+          aresta. Sem elas o bloco lê como uma mancha cinza com um brilho.
+        */}
+        <Path
+          d="M21 39 L24 43.6 L23 47"
+          stroke={CONTORNO}
+          strokeWidth={1.2}
+          strokeLinecap="round"
+          fill="none"
+          opacity={0.45}
+        />
+        <Path d="M26 35 L31 42 L24 43.6 Z" fill={palette.slate300} opacity={0.6} />
       </G>
+      {/* Uma lasca menor, caída ao lado: o que saiu de cima não foi só uma peça. */}
+      <Path
+        d="M33 47 C33.4 44.6 35.6 43.6 37.2 44.4 C38.6 45.2 38.8 46.2 38.4 47 Z"
+        fill={palette.slate300}
+        stroke={CONTORNO}
+        strokeWidth={1.2}
+        strokeLinejoin="round"
+        opacity={0.9}
+      />
       {/* O broto estica, sem pressa, como talo que perdeu o que o dobrava. */}
       <G transform={cresce(curva(p, [1, 1.05, 1.09, 1.12, 1.13]), 41, 48)}>
         <Path d="M41 48 L41 26" stroke={tracos.haste} strokeWidth={2.6} strokeLinecap="round" />
@@ -557,6 +649,15 @@ function Solidao({ p }: CenaProps) {
           strokeWidth={TRACO}
           strokeLinejoin="round"
         />
+        {/* A terra na boca do vaso, e a listra de luz no barro. */}
+        <Ellipse cx={19} cy={35.4} rx={7.4} ry={2} fill={tracos.terra} opacity={0.85} />
+        <Path
+          d="M15 38 L14.4 46"
+          stroke={tracos.vasoLuz}
+          strokeWidth={1.6}
+          strokeLinecap="round"
+          opacity={0.7}
+        />
         <Path d="M19 35 L19 27" stroke={tracos.haste} strokeWidth={2.4} strokeLinecap="round" />
         <Path d={FOLHA} fill={tracos.folha} stroke={tracos.contornoFolha} strokeWidth={2.8} transform="translate(19 27) rotate(-50) scale(0.2)" />
         <Path d={FOLHA} fill={tracos.folhaClara} stroke={tracos.contornoFolha} strokeWidth={2.8} transform="translate(19 27) rotate(230) scale(0.17)" />
@@ -574,6 +675,14 @@ function Solidao({ p }: CenaProps) {
           stroke={CONTORNO}
           strokeWidth={TRACO}
           strokeLinejoin="round"
+        />
+        <Ellipse cx={42} cy={35.4} rx={7.4} ry={2} fill={tracos.terra} opacity={0.85} />
+        <Path
+          d="M38 38 L37.4 46"
+          stroke={tracos.vasoLuz}
+          strokeWidth={1.6}
+          strokeLinecap="round"
+          opacity={0.7}
         />
         <Path d="M42 35 L42 28" stroke={tracos.haste} strokeWidth={2.4} strokeLinecap="round" />
         <Path d={FOLHA} fill={tracos.folhaClara} stroke={tracos.contornoFolha} strokeWidth={2.8} transform="translate(42 28) rotate(130) scale(0.18)" />
@@ -639,6 +748,44 @@ function Raiva({ p }: CenaProps) {
         {/* As fendas: é por elas que a brasa mostra que ainda está quente. */}
         <Path d="M25 41 L26.5 36.5" stroke={CONTORNO} strokeWidth={1.4} strokeLinecap="round" opacity={0.3} />
         <Path d="M35 41 L33.5 36.5" stroke={CONTORNO} strokeWidth={1.4} strokeLinecap="round" opacity={0.3} />
+        {/* O miolo mais quente, bem no meio do monte. */}
+        <Path d="M27.6 41 C28.4 38.6 30 37.6 32.4 38 C33.4 39 33.6 40 33.4 41 Z" fill={palette.yellow300} opacity={0.9} />
+        {/* Dois torrões de carvão apagado, na frente: o que já queimou. */}
+        <Path
+          d="M14 41 C14.4 38.8 16.4 37.8 18 38.6 C19.2 39.2 19.4 40.2 19.2 41 Z"
+          fill={palette.brown700}
+          stroke={CONTORNO}
+          strokeWidth={1.2}
+          strokeLinejoin="round"
+          opacity={0.85}
+        />
+        <Path
+          d="M44 41 C44.4 39.4 46 38.6 47.4 39.2 C48.4 39.8 48.6 40.4 48.4 41 Z"
+          fill={palette.brown700}
+          stroke={CONTORNO}
+          strokeWidth={1.2}
+          strokeLinejoin="round"
+          opacity={0.7}
+        />
+      </G>
+      {/*
+        Duas faíscas subindo com a fumaça, uma atrás da outra.
+
+        Elas sobem mais rápido que o fio de fumaça e apagam antes — brasa
+        solta esfria no caminho. É o único movimento rápido da cena, e dura
+        pouco de propósito: a raiva aqui já está baixando.
+      */}
+      <G
+        transform={desloca(curva(p, [0, 1, 1.6, 2, 2.2]), curva(p, [0, -5, -10, -15, -19]))}
+        opacity={curva(p, [0, 0.9, 0.7, 0.3, 0])}
+      >
+        <Circle cx={27} cy={30} r={1.3} fill={palette.amber400} />
+      </G>
+      <G
+        transform={desloca(curva(p, [0, -0.8, -1.4, -1.8, -2]), curva(p, [0, -3, -7, -11, -15]))}
+        opacity={curva(p, [0, 0.6, 0.8, 0.4, 0])}
+      >
+        <Circle cx={34} cy={32} r={1} fill={palette.yellow300} />
       </G>
     </>
   );
@@ -687,8 +834,42 @@ function Procrastinacao({ p }: CenaProps) {
       <G opacity={curva(p, [0.9, 1, 1, 0.95, 0.85])}>
         <Path d="M30 30 L30 36" stroke={palette.amber400} strokeWidth={1.6} strokeLinecap="round" />
       </G>
+      {/*
+        Dois grãos soltos no fio, caindo em tempos diferentes.
+
+        Um fio contínuo é um traço; grão que desce é areia. Eles voltam ao
+        alto quando chegam embaixo, dentro do mesmo passo — como todo grão
+        que cai numa ampulheta enquanto se olha.
+      */}
+      <Circle cx={30.6} cy={31} r={0.9} fill={palette.amber700} opacity={0.8} transform={desloca(0, curva(p, [0, 2, 4, 1, 3]))} />
+      <Circle cx={29.4} cy={34} r={0.7} fill={palette.amber700} opacity={0.7} transform={desloca(0, curva(p, [0, 1.4, 2.8, 4, 1.4]))} />
+      {/*
+        O brilho do vidro: uma diagonal no bojo de cima.
+
+        Sem ele o vidro é um contorno vazio; com ele, é vidro. Fica do mesmo
+        lado de onde a luz vem em todo desenho do app.
+      */}
+      <Path
+        d="M23.4 17.6 C24.6 20.4 26.4 23.4 28.4 26"
+        stroke="#FFFFFF"
+        strokeWidth={1.8}
+        strokeLinecap="round"
+        fill="none"
+        opacity={0.75}
+      />
       {[13, 47].map((y) => (
         <Path key={y} d={`M15 ${y} L45 ${y}`} stroke={palette.brown700} strokeWidth={3.4} strokeLinecap="round" />
+      ))}
+      {/* Um fio claro em cada tampa de madeira: elas ganham espessura. */}
+      {[11.8, 45.8].map((y) => (
+        <Path
+          key={y}
+          d={`M17 ${y} L43 ${y}`}
+          stroke={palette.brown400}
+          strokeWidth={1.2}
+          strokeLinecap="round"
+          opacity={0.75}
+        />
       ))}
     </G>
   );
@@ -710,7 +891,25 @@ function Autoestima({ p }: CenaProps) {
         reconhece nele porque já o viu crescer.
       */}
       <Path d="M27 44 L33 44 L34 50 L26 50 Z" fill={palette.brown700} stroke={CONTORNO} strokeWidth={1.4} strokeLinejoin="round" />
+      {/* O lado iluminado do pé, para ele ter volume como o vaso tem. */}
+      <Path d="M28 44.6 L27.4 49.4" stroke={palette.brown400} strokeWidth={1.2} strokeLinecap="round" opacity={0.8} />
       <Ellipse cx={30} cy={26} rx={14} ry={17} fill={palette.amber100} stroke={palette.brown700} strokeWidth={3.4} />
+      {/*
+        O aro de dentro, um fio mais claro por dentro da moldura.
+
+        É o que separa moldura de vidro. Sem ele, a elipse grossa lê como um
+        ovo, e não como um espelho.
+      */}
+      <Ellipse
+        cx={30}
+        cy={26}
+        rx={11.6}
+        ry={14.6}
+        fill="none"
+        stroke={palette.amber400}
+        strokeWidth={1.2}
+        opacity={0.55}
+      />
       {/* O reflexo cresce um fio no toque: reparar em si mesmo por um segundo a
           mais já muda o tamanho do que se vê. */}
       <G transform={cresce(curva(p, [1, 1.03, 1.06, 1.08, 1.09]), 30, 37)}>
@@ -761,6 +960,27 @@ function Culpa({ p }: CenaProps) {
         strokeWidth={TRACO}
         strokeLinejoin="round"
       />
+      {/*
+        Dois vincos no pano, descendo da boca.
+
+        Pano aberto cai em prega; sem elas a forma é uma tigela. Ficam curtos
+        e desencontrados — vinco simétrico vira costura.
+      */}
+      <Path
+        d="M18.6 35 C19.6 39 21 41.8 22.6 43.6"
+        stroke={palette.cream300}
+        strokeWidth={1.6}
+        strokeLinecap="round"
+        fill="none"
+      />
+      <Path
+        d="M40 34.6 C39.4 38.6 38.4 41.4 37 43.4"
+        stroke={palette.cream300}
+        strokeWidth={1.4}
+        strokeLinecap="round"
+        fill="none"
+        opacity={0.85}
+      />
       {/* A boca do pano. No toque ela abre um fio, só na largura: pano cede
           para os lados, não para cima. */}
       <G transform={estica(curva(p, [1, 1.02, 1.04, 1.06, 1.07]), 1, 30, 32)}>
@@ -789,6 +1009,8 @@ function Culpa({ p }: CenaProps) {
         />
         <Path d="M26.5 30 L33.5 30" stroke={palette.brown400} strokeWidth={1.3} strokeLinecap="round" />
         <Path d="M26.5 32.5 L31.5 32.5" stroke={palette.brown400} strokeWidth={1.3} strokeLinecap="round" />
+        {/* A dobra do canto: papel guardado no escuro volta amassado. */}
+        <Path d="M36 27 L32.6 27 L36 30.4 Z" fill={palette.cream300} stroke={CONTORNO} strokeWidth={1.2} strokeLinejoin="round" />
       </G>
       {/* O cordão que amarrava, largado ao lado e no chão. Ele não se mexe: já
           fez o que tinha de fazer. */}
@@ -822,8 +1044,28 @@ function Comparacao({ p }: CenaProps) {
         muda um ponto. O que muda é que ela deixou de ser o assunto.
       */}
       <Path d="M8 46 C8 42 15 40 30 40 C45 40 52 42 52 46 Z" fill={TERRA} />
+      {/* Torrões na terra, os mesmos da cena do luto: é o mesmo canteiro. */}
+      {[
+        { x: 13, y: 43.6, r: 1.4 },
+        { x: 30, y: 44.4, r: 1.1 },
+        { x: 47, y: 43.8, r: 1.2 },
+      ].map((t) => (
+        <Ellipse key={t.x} cx={t.x} cy={t.y} rx={t.r} ry={t.r * 0.72} fill={TERRA_CLARA} opacity={0.5} />
+      ))}
       <G transform={cresce(curva(p, [1, 1.04, 1.08, 1.12, 1.14]), 10, 25)} opacity={curva(p, [0.85, 0.9, 0.95, 1, 1])}>
+        {/* Os raios curtos, do lado de quem olha para ele. */}
+        {['M19.4 25 L22 25', 'M17.4 19.6 L19.2 17.8', 'M17.4 30.4 L19.2 32.2'].map((d) => (
+          <Path key={d} d={d} stroke={palette.yellow300} strokeWidth={1.8} strokeLinecap="round" />
+        ))}
         <Circle cx={10} cy={25} r={7.5} fill={palette.yellow300} stroke={palette.amber400} strokeWidth={1.4} />
+        <Path
+          d="M5.6 21.6 C6.6 19.6 8.6 18.4 10.8 18.4"
+          stroke="#FFFFFF"
+          strokeWidth={1.6}
+          strokeLinecap="round"
+          fill="none"
+          opacity={0.7}
+        />
       </G>
       {/* O pequeno se vira para o sol dele. Gira a partir da terra, que é de
           onde um caule verga. */}
@@ -835,6 +1077,8 @@ function Comparacao({ p }: CenaProps) {
       {/* O grande não se mexe, e não é castigo: ele nunca esteve fazendo nada. */}
       <G>
         <Path d="M41 41 L41 19" stroke={tracos.haste} strokeWidth={2.6} strokeLinecap="round" />
+        {/* Uma terceira folha, mais baixa: é o que faz ele ler como o maior. */}
+        <Path d={FOLHA} fill={tracos.folhaClara} stroke={tracos.contornoFolha} strokeWidth={2.8} transform="translate(41 28) rotate(206) scale(0.19)" />
         <Path d={FOLHA} fill={tracos.folha} stroke={tracos.contornoFolha} strokeWidth={2.4} transform="translate(41 19) rotate(-52) scale(0.3)" />
         <Path d={FOLHA} fill={tracos.folhaClara} stroke={tracos.contornoFolha} strokeWidth={2.4} transform="translate(41 19) rotate(232) scale(0.26)" />
       </G>
@@ -863,7 +1107,32 @@ function Foco({ p }: CenaProps) {
       */}
       <G transform={cresce(curva(p, [1, 1.05, 1.1, 1.13, 1.12]), 47, 47)}>
         <Path d="M35 35 L47 47" stroke={palette.brown700} strokeWidth={5} strokeLinecap="round" />
+        {/* A empunhadura: dois anéis no cabo, onde a mão segura. */}
+        <Path d="M41.4 41.4 L44 44" stroke={palette.brown400} strokeWidth={5} strokeLinecap="round" opacity={0.7} />
         <Circle cx={26} cy={26} r={13} fill={palette.blue100} stroke={CONTORNO} strokeWidth={2.4} />
+        {/*
+          O que a lupa mostra: um pedaço de folha, grande.
+
+          É o assunto do tema — uma coisa por vez, de perto. A folha de fora
+          continua pequena; dentro do vidro ela aparece no tamanho de quem
+          está prestando atenção nela.
+        */}
+        <Path
+          d={FOLHA}
+          fill={tracos.folha}
+          stroke={tracos.contornoFolha}
+          strokeWidth={2.2}
+          transform="translate(34 30) rotate(-24) scale(0.42)"
+          opacity={0.95}
+        />
+        <Path
+          d="M32.4 28.6 C28.6 27 24.6 25.4 21.6 23.4"
+          stroke={tracos.contornoFolha}
+          strokeWidth={1}
+          strokeLinecap="round"
+          fill="none"
+          opacity={0.5}
+        />
         <Path d="M19 22 C20 18 23 15 27 14" stroke="#FFFFFF" strokeWidth={2.6} strokeLinecap="round" fill="none" opacity={0.8} />
       </G>
     </>
@@ -894,6 +1163,16 @@ function Gratidao({ p }: CenaProps) {
       ].map((f, i) => (
         <G key={f.x} transform={desloca(0, curva(p, quique[i]))}>
           <Circle cx={f.x} cy={f.y} r={4.6} fill={f.c} stroke={CONTORNO} strokeWidth={1.5} />
+          {/* Um brilho em cada uma, no alto à esquerda, como em tudo no app. */}
+          <Ellipse cx={f.x - 1.6} cy={f.y - 1.8} rx={1.3} ry={1} fill="#FFFFFF" opacity={0.55} />
+          {/* E um cabinho, que é o que separa fruta de bolinha. */}
+          <Path
+            d={`M${f.x + 0.6} ${f.y - 4.4} C${f.x + 1.6} ${f.y - 6.4} ${f.x + 2.6} ${f.y - 6.8} ${f.x + 3.4} ${f.y - 6.6}`}
+            stroke={tracos.haste}
+            strokeWidth={1.2}
+            strokeLinecap="round"
+            fill="none"
+          />
         </G>
       ))}
       <Path
@@ -905,6 +1184,26 @@ function Gratidao({ p }: CenaProps) {
       />
       {[22, 30, 38].map((x) => (
         <Path key={x} d={`M${x} 34 L${x - 1} 46`} stroke={tracos.vasoSombra} strokeWidth={1.6} strokeLinecap="round" opacity={0.55} />
+      ))}
+      {/*
+        A trama: duas voltas cruzando as varas verticais.
+
+        Com só as verticais, a cesta lia como um vaso listrado. Duas
+        horizontais e ela vira cesta — é o cruzamento que diz trançado.
+      */}
+      {[
+        { y: 37, r: 16.6 },
+        { y: 42, r: 14.6 },
+      ].map((v) => (
+        <Path
+          key={v.y}
+          d={`M${30 - v.r} ${v.y} C${30 - v.r * 0.4} ${v.y + 1.6} ${30 + v.r * 0.4} ${v.y + 1.6} ${30 + v.r} ${v.y}`}
+          stroke={tracos.vasoSombra}
+          strokeWidth={1.3}
+          strokeLinecap="round"
+          fill="none"
+          opacity={0.45}
+        />
       ))}
     </>
   );
