@@ -69,8 +69,13 @@ const entradaDe = (pontos: number) => Array.from({ length: pontos }, (_, i) => i
  * Uma folha: onde nasce, para onde aponta, o tamanho, e como ela responde ao
  * vento.
  *
- * `batidas` e `fase` são o que fazem cada uma ter o tempo dela. A folha grande
- * balança devagar e pouco, porque é pesada; a folhinha da base, depressa.
+ * `batidas` e `fase` são o que fazem cada uma ter o tempo dela: a folha
+ * grande balança devagar e pouco, porque é pesada, e a menor responde mais
+ * depressa.
+ *
+ * São **duas**, e é a silhueta de sempre. Uma terceira folhinha na base já
+ * esteve aqui e saiu: de longe ela lia como uma folha a mais, e o broto de
+ * duas folhas é o que o app é.
  */
 type Folha = {
   x: number;
@@ -107,17 +112,6 @@ const FOLHAS: Folha[] = [
     vento: { amplitude: 4.6, batidas: 3, fase: 2.1 },
     respira: { amplitude: 0.035, fase: 2.4 },
   },
-  {
-    x: 2,
-    y: -12,
-    angulo: -18,
-    comprimento: 15,
-    largura: 6,
-    clara: true,
-    nervuras: 1,
-    vento: { amplitude: 6.5, batidas: 4, fase: 4.3 },
-    respira: { amplitude: 0.05, fase: 5.1 },
-  },
 ];
 
 /** Quanto o caule sobe do pé. */
@@ -136,13 +130,14 @@ function FolhaViva({
   folha,
   origem,
   brisa,
-  gradiente,
+  id,
 }: {
   folha: Folha;
   /** Onde, na caixa do caule, fica o pé — de onde a folha é medida. */
   origem: { x: number; y: number };
   brisa: Animated.Value;
-  gradiente: string;
+  /** Um nome único para o gradiente desta folha. */
+  id: string;
 }) {
   /* A caixa é quadrada e do tamanho da folha inteira, para ela girar solta. */
   const lado = folha.comprimento * 2 + 14;
@@ -180,10 +175,25 @@ function FolhaViva({
       }}
     >
       <Svg width={lado} height={lado} viewBox={`${-lado / 2} ${-lado / 2} ${lado} ${lado}`}>
+        {/*
+          O gradiente mora **aqui dentro**, e não no `Svg` do caule.
+
+          No Android, um `Svg` não enxerga a definição que está noutro: o
+          `fill` não encontra o nome, e o que não encontra é desenhado
+          **preto**. No navegador funciona, porque lá o nome vale para a
+          página inteira — foi assim que isto passou batido daqui e só
+          apareceu no celular, com o broto todo preto.
+        */}
+        <Defs>
+          <LinearGradient id={id} x1="0" y1="0" x2="0.6" y2="1">
+            <Stop offset="0" stopColor={folha.clara ? tracos.folhaClara : tracos.folhaLuz} />
+            <Stop offset="1" stopColor={folha.clara ? tracos.folhaLuz : tracos.folhaSombra} />
+          </LinearGradient>
+        </Defs>
         <G transform={`rotate(${folha.angulo})`}>
           <Path
             d={contornoDaFolha(c, l)}
-            fill={`url(#${gradiente})`}
+            fill={`url(#${id})`}
             stroke={tracos.contornoFolha}
             strokeWidth={2.4}
             strokeLinejoin="round"
@@ -273,7 +283,6 @@ export function BrotoNaTerra({
   );
 
   const meio = { x: CORPO.largura / 2, y: CORPO.altura / 2 };
-  const gradiente = { folha: `folha-${id}`, clara: `folha-clara-${id}` };
 
   return (
     <Animated.View
@@ -294,16 +303,6 @@ export function BrotoNaTerra({
         height={CORPO.altura}
         viewBox={`${-meio.x} ${-meio.y} ${CORPO.largura} ${CORPO.altura}`}
       >
-        <Defs>
-          <LinearGradient id={gradiente.folha} x1="0" y1="0" x2="0.6" y2="1">
-            <Stop offset="0" stopColor={tracos.folhaLuz} />
-            <Stop offset="1" stopColor={tracos.folhaSombra} />
-          </LinearGradient>
-          <LinearGradient id={gradiente.clara} x1="0" y1="0" x2="0.6" y2="1">
-            <Stop offset="0" stopColor={tracos.folhaClara} />
-            <Stop offset="1" stopColor={tracos.folhaLuz} />
-          </LinearGradient>
-        </Defs>
         {/* O caule, com uma curva leve — planta não cresce em linha reta. */}
         <Path
           d={`M0 0 C3 ${-CAULE_ALTURA * 0.36} -2 ${-CAULE_ALTURA * 0.68} 0 ${-CAULE_ALTURA}`}
@@ -333,13 +332,7 @@ export function BrotoNaTerra({
         style={{ position: 'absolute', left: 0, top: 0, width: CORPO.largura, height: CORPO.altura }}
       >
         {FOLHAS.map((folha, i) => (
-          <FolhaViva
-            key={i}
-            folha={folha}
-            origem={meio}
-            brisa={brisa}
-            gradiente={folha.clara ? gradiente.clara : gradiente.folha}
-          />
+          <FolhaViva key={i} folha={folha} origem={meio} brisa={brisa} id={`folha-${id}-${i}`} />
         ))}
       </View>
     </Animated.View>
