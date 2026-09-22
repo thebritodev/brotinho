@@ -297,23 +297,17 @@ export function HomeScreen({
     onOpenPractices({ topico: item.topico, pratica: item.pratica });
 
   /**
-   * Os selos do carrossel: sempre um por cartão, e nunca o mesmo o dia inteiro.
-   *
-   * A primeira versão só mostrava selo quando havia um motivo forte — e o
-   * resultado foi uma Home que na maioria dos dias não tinha selo nenhum, que é
-   * o contrário do que o selo existe para fazer.
-   *
-   * O caminho do meio é este: o selo é fixo, mas o **texto** é o que for
-   * verdade agora. Nenhum deles é um "Recomendado" que não recomenda nada:
+   * Os selos dos cartões: o texto é sempre o que for verdade agora.
    *
    * - **Prática de hoje** — "para hoje" quando a escolha veio do humor de
    *   hoje, "continuar" quando é a última que ela fez, "para começar" em quem
    *   nunca fez nenhuma. Ver `praticaDeHoje`.
-   * - **Composta** — "para agora" em dia de humor pesado, que é o dia em que
-   *   ela serve; "30 segundos" no resto, que é o custo dela e é o que costuma
-   *   decidir se alguém entra.
    * - **Frase do dia** — "uma por dia" enquanto está enterrada, "lida hoje"
    *   depois. O cartão dela carrega o próprio selo; ver `CartaoDoConselho`.
+   *
+   * A faixa da Composta tinha um — "30 segundos", ou "para agora" em dia
+   * pesado — e saiu: numa faixa que ocupa a tela inteira, com título, frase e
+   * botão, ele era mais uma coisa para ler antes da que importa.
    */
   /** O que o broto fala no alto da tela — ver `falaDaHome`. */
   const fala = useMemo(
@@ -327,8 +321,6 @@ export function HomeScreen({
     [data, today],
   );
 
-  const diaPesado = !!humorMarcado && DIA_PESADO.includes(humorMarcado);
-  const seloDaComposta = diaPesado ? 'para agora' : '30 segundos';
 
 
   /*
@@ -493,7 +485,6 @@ export function HomeScreen({
           queda={quedaDaFaixa}
           ativa={naVista}
           continua
-          selo={seloDaComposta}
           titulo="Compostar pensamentos"
           linha="Repita em voz alta o pensamento que te incomoda até ele virar só som."
           acao="Compostar agora"

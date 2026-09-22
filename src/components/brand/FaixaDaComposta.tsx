@@ -100,12 +100,14 @@ const DISSOLUCAO = 42;
 /**
  * A altura do bloco de terra.
  *
- * Começou em 176 e o conteúdo não coube: selo, título, linha, botão e o
- * respiro de baixo somam 187, e o que sobra transborda **para cima** — o
- * selo ia parar acima da crista, boiando no céu bem na coluna por onde as
- * palavras caem. Com 200, ele fica nove pontos abaixo da crista, que é
+ * Começou em 176 e o conteúdo não coube: o que sobra transborda **para
+ * cima**, e ia parar acima da crista, boiando no céu bem na coluna por onde
+ * as palavras caem. Com folga, o conteúdo fica abaixo da crista, que é
  * embaixo da terra do ponto de vista da palavra: quando ela chega ali já
  * está escondida.
+ *
+ * A altura não encolheu quando a etiqueta saiu: o conteúdo é encostado
+ * embaixo, e o que a etiqueta deixou foi respiro — que é o que faltava.
  */
 const ALTURA_DA_TERRA = 248;
 
@@ -263,7 +265,6 @@ type Props = {
    * duas faixas empilhadas que por acaso são marrons.
    */
   continua?: boolean;
-  selo?: string | null;
   titulo: string;
   linha: string;
   acao: string;
@@ -280,7 +281,6 @@ export function FaixaDaComposta({
   children,
   ativa,
   continua = false,
-  selo,
   titulo,
   linha,
   acao,
@@ -734,30 +734,6 @@ export function FaixaDaComposta({
           opacity: pressed ? 0.88 : 1,
         })}
       >
-        {!!selo && (
-          <View
-            style={{
-              alignSelf: 'flex-start',
-              backgroundColor: colors.surface,
-              borderRadius: radius.pill,
-              paddingVertical: 5,
-              paddingHorizontal: 11,
-            }}
-          >
-            <Text
-              style={{
-                fontFamily: fonts.body.extraBold,
-                fontSize: 11,
-                letterSpacing: 0.8,
-                textTransform: 'uppercase',
-                color: colors.primaryStrong,
-              }}
-            >
-              {selo}
-            </Text>
-          </View>
-        )}
-
         {/*
           Creme sobre terra, nos dois temas — e por isso vindo de
           `terraDoCanteiro`, não da paleta.
