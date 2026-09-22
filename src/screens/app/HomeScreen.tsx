@@ -4,7 +4,6 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import {
   AnimatedSprout,
-  BalaoDoBroto,
   BoasVindas,
   CartaoHeroi,
   ChuvaDeFarelos,
@@ -38,7 +37,6 @@ import {
   GRUPOS_DE_PRATICAS,
   PRACTICE_TOPICS,
 } from '../../data/practices';
-import { falaDaHome } from '../../data/falaDaHome';
 import { praticaDeHoje } from '../../data/praticaDeHoje';
 import { useAppState } from '../../state/AppStateProvider';
 import type { Plant } from '../../state/types';
@@ -47,7 +45,6 @@ import {
   colheita,
   dayKey,
   daysCaredFor,
-  daysToNextStage,
   diasSemAparecer,
   praticasRecentes,
   type PraticaVisitada,
@@ -237,7 +234,14 @@ export function HomeScreen({
     Agora a fileira desce, e a altura reservada acompanha: sem isso, o que
     desceu invadiria os primeiros vinte pontos da queda.
   */
-  const CABECALHO_DA_FAIXA = 152;
+  /*
+    O céu reservado ao cabeçalho: a saudação e os dois botões, e nada mais.
+
+    Eram 152, e os 100 a mais eram o broto e o balão de fala, que saíram. O
+    que sobra é a fileira de cima; deixar a reserva antiga abriria um vão de
+    céu vazio entre a saudação e a primeira palavra caindo.
+  */
+  const CABECALHO_DA_FAIXA = 52;
   /*
     A queda cede um pouco do que o cabeçalho tomou.
 
@@ -309,17 +313,6 @@ export function HomeScreen({
    * pesado — e saiu: numa faixa que ocupa a tela inteira, com título, frase e
    * botão, ele era mais uma coisa para ler antes da que importa.
    */
-  /** O que o broto fala no alto da tela — ver `falaDaHome`. */
-  const fala = useMemo(
-    () =>
-      falaDaHome({
-        agora: new Date(),
-        diasCuidados: daysCaredFor(data),
-        diasParaCrescer: daysToNextStage(data),
-        fraseAberta: data.conselhos.some((c) => c.date === today),
-      }),
-    [data, today],
-  );
 
 
 
@@ -539,64 +532,6 @@ export function HomeScreen({
             </View>
           </View>
 
-          {/*
-            O broto falando, logo abaixo do nome.
-
-            Aqui havia uma linha em versalete — "VAMOS CUIDAR DE VOCÊ HOJE?" —
-            que era moldura, não fala: ninguém a dizia e ela não sabia de nada.
-            Com o personagem e o balão, a primeira coisa da tela passa a ser
-            alguém falando, que é a diferença entre uma tela de ferramentas e um
-            app que tem alguém dentro.
-
-            Ele é pequeno de propósito. O broto grande, com humor e conversa,
-            mora na aba dele; repetir aquele tamanho aqui devolveria a esta tela
-            o problema que a reorganização resolveu — o personagem ocupando a
-            primeira dobra e empurrando as práticas para fora dela.
-
-            O que ele diz vem de `falaDaHome`: fato do app quando há um, e a
-            saudação do dia quando não há.
-          */}
-          {/*
-            Vinte e seis de respiro, e o número foi medido, não escolhido.
-
-            Com seis sobravam **dez pontos** entre a base dos botões de sino
-            e ajustes e o topo do balão — e o balão termina na mesma borda
-            direita que eles. Dez pontos com as bordas alinhadas não leem
-            como duas fileiras: leem como o balão encostado por baixo dos
-            botões, que foi exatamente a queixa.
-
-            Com vinte e seis a folga vai a trinta, que é mais que a metade
-            da altura de um botão, e as duas fileiras se separam.
-          */}
-          <View style={{ marginTop: 26, flexDirection: 'row', alignItems: 'center', gap: 10 }}>
-            {/*
-              A carinha daqui é sempre a feliz, e não a do humor marcado.
-
-              Ela seguia `humorMarcado`, o que sobrou de quando o humor era
-              perguntado nesta tela. Hoje ele mora na aba do broto, e é lá que o
-              personagem grande responde ao que a pessoa marcou — com a carinha,
-              a palavra e a conversa inteira. Aqui em cima ele não pergunta nada:
-              ele recebe.
-
-              O que a versão antiga produzia era um segundo termômetro de humor
-              sem nada ao redor que o explicasse. Em dia neutro — que é o padrão
-              de quem ainda não marcou — dava uma carinha sem expressão recebendo
-              a pessoa na tela que abre o app.
-            */}
-            <AnimatedSprout mood="feliz" stage={stage} size={76} swayOnMount />
-            <BalaoDoBroto lado="esquerda" tom="suave" style={{ flex: 1 }}>
-              <Text
-                style={{
-                  fontFamily: fonts.body.regular,
-                  fontSize: 14,
-                  lineHeight: 14 * 1.4,
-                  color: palette.brown700,
-                }}
-              >
-                {fala}
-              </Text>
-            </BalaoDoBroto>
-          </View>
         </FaixaDaComposta>
 
         {/*
