@@ -46,6 +46,17 @@ import { ScreenTransition } from './ScreenTransition';
  * O `MainTabs` congela o elemento da aba, e quem precisa saber se ela está
  * coberta pergunta aqui. Só esses redesenham: a faixa da Composta, que para
  * de animar o que ninguém vê, e os avisos que abrem sozinhos.
+ *
+ * ## E a resposta muda tarde de propósito
+ *
+ * Ela vira no **fim** da animação, e não no toque. Redesenhar a faixa custa
+ * caro: medido no navegador com a CPU desacelerada quatro vezes, tocar em
+ * Voltar travava a linha por **225 ms** — dentro dos 220 ms do deslize de
+ * saída, ou seja, em cima da animação inteira. Virando no fim, o deslize não
+ * tem nenhum trabalho de JavaScript pela frente, e o que a faixa perde é
+ * continuar se mexendo por um quinto de segundo atrás de uma tela opaca.
+ *
+ * É a mesma regra do `seMexendo` das `AbasVivas`, pelo mesmo motivo.
  */
 const Coberta = createContext(false);
 export const ProvedorDeCobertura = Coberta.Provider;
@@ -74,9 +85,16 @@ type Props<Chave extends string> = {
   aberta: Chave | null;
   /** Desenha a tela de uma chave — também a que está saindo, já fechada. */
   render: (chave: Chave) => React.ReactNode;
+  /**
+   * Avisa que a aba de baixo passou a estar coberta, ou deixou de estar.
+   *
+   * Chamado no **fim** da animação, dos dois lados — ver o comentário do
+   * contexto acima. É daqui que sai o valor do `ProvedorDeCobertura`.
+   */
+  aoCobrir: (coberta: boolean) => void;
 };
 
-export function CamadaEmpilhada<Chave extends string>({ aberta, render }: Props<Chave>) {
+export function CamadaEmpilhada<Chave extends string>({ aberta, render, aoCobrir }: Props<Chave>) {
   const menosMovimento = useMenosMovimento();
   /** A tela desenhada: a aberta, ou a que está saindo. */
   const [mostrada, setMostrada] = useState<Chave | null>(aberta);
@@ -95,6 +113,7 @@ export function CamadaEmpilhada<Chave extends string>({ aberta, render }: Props<
       setSaindo(false);
       if (menosMovimento) {
         t.setValue(1);
+        aoCobrir(true);
         return;
       }
       setAnimando(true);
@@ -104,13 +123,22 @@ export function CamadaEmpilhada<Chave extends string>({ aberta, render }: Props<
         easing: Easing.out(Easing.cubic),
         useNativeDriver: true,
       });
-      entrada.start(() => setAnimando(false));
-      return () => entrada.stop();
+      entrada.start(() => {
+        setAnimando(false);
+        aoCobrir(true);
+      });
+      /* Rede: sem o fim da animação, a aba de baixo ficaria se mexendo para sempre. */
+      const seguranca = setTimeout(() => aoCobrir(true), ENTRADA_MS + 250);
+      return () => {
+        entrada.stop();
+        clearTimeout(seguranca);
+      };
     }
 
     if (menosMovimento) {
       t.setValue(0);
       setMostrada(null);
+      aoCobrir(false);
       return;
     }
     setSaindo(true);
@@ -127,9 +155,31 @@ export function CamadaEmpilhada<Chave extends string>({ aberta, render }: Props<
       if (!finished) return;
       setSaindo(false);
       setMostrada(null);
+      aoCobrir(false);
     });
-    return () => saida.stop();
-  }, [aberta, menosMovimento, t]);
+    const seguranca = setTimeout(() => aoCobrir(false), SAIDA_MS + 250);
+    return () => {
+      saida.stop();
+      clearTimeout(seguranca);
+    };
+  }, [aberta, menosMovimento, t, aoCobrir]);
+
+  /*
+    A tela empilhada, desenhada uma vez só por abertura.
+
+    `render` devolve um elemento novo a cada chamada, e esta camada renderiza
+    a cada toque que mexe no `MainTabs` e a cada passo do próprio estado
+    (`saindo`, `animando`). O resultado era a tela de dentro sendo redesenhada
+    inteira no instante do Voltar: medido, **215 ms** de linha travada em cima
+    dos 220 ms do deslize de saída. Congelada, o React nem entra nela, e o
+    deslize corre sozinho.
+
+    Refaz quando a chave muda — que é quando a tela realmente é outra.
+  */
+  const desenhada = useRef<{ chave: Chave; no: React.ReactNode } | null>(null);
+  if (mostrada !== null && desenhada.current?.chave !== mostrada) {
+    desenhada.current = { chave: mostrada, no: render(mostrada) };
+  }
 
   if (!mostrada) return null;
 
@@ -153,7 +203,7 @@ export function CamadaEmpilhada<Chave extends string>({ aberta, render }: Props<
         aparecer em câmera lenta.
       */}
       <ScreenTransition transitionKey={mostrada} mode="fade" semEntrada>
-        {render(mostrada)}
+        {desenhada.current?.no}
       </ScreenTransition>
     </Animated.View>
   );

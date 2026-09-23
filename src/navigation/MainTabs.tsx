@@ -2,10 +2,10 @@ import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { View } from 'react-native';
 
 import {
+  AbasVivas,
   BottomNav,
   CamadaEmpilhada,
   ProvedorDeCobertura,
-  ScreenTransition,
   type TabKey,
 } from '../components';
 import { BrotinhoScreen } from '../screens/app/BrotinhoScreen';
@@ -29,11 +29,28 @@ import { ANCORA_RAPIDA } from '../data/practices';
 import { useAppState } from '../state/AppStateProvider';
 import { useTema } from '../theme';
 
+/**
+ * As abas, na ordem em que vale a pena montá-las.
+ *
+ * A Início é onde o app abre. Depois o Brotinho, que é a aba mais cara de
+ * montar e a mais procurada; o Perfil monta por último, porque é o mais barato
+ * e o menos visitado. Fora da função para a lista não mudar de identidade a
+ * cada render — o aquecimento se reagendaria para sempre.
+ */
+const ABAS: readonly TabKey[] = ['home', 'broto', 'perfil'];
+
 export function MainTabs() {
   const { colors } = useTema();
   const { data } = useAppState();
   const [tab, setTab] = useState<TabKey>('home');
   const [sub, setSub] = useState<SubScreen | null>(null);
+  /**
+   * A aba de baixo está coberta por uma tela empilhada?
+   *
+   * Não é `sub !== null`: esta resposta vira no fim da animação, e quem a
+   * manda é a própria `CamadaEmpilhada` — ver o `aoCobrir` de lá.
+   */
+  const [coberta, setCoberta] = useState(false);
   /**
    * A pergunta que uma prática mandou para o diário.
    *
@@ -57,10 +74,12 @@ export function MainTabs() {
   /**
    * A altura em que a Home estava, guardada **fora** dela.
    *
-   * Abrir uma subtela desmonta a Home — `renderSub()` e `renderTab()` ocupam a
-   * mesma posição na árvore e são componentes diferentes. Voltar monta uma Home
-   * nova, com uma `ScrollView` nova, que nasce no zero: a pessoa tocava num
-   * cartão no meio da tela e voltava para o começo dela, perdendo o lugar.
+   * Abrir uma subtela desmontava a Home: a tela empilhada e a aba ocupavam a
+   * mesma posição na árvore, e voltar montava uma Home nova, com uma
+   * `ScrollView` nova, que nasce no zero — a pessoa tocava num cartão no meio
+   * da tela e voltava para o começo dela, perdendo o lugar. Hoje a
+   * `CamadaEmpilhada` e a `AbasVivas` mantêm a aba montada, e isto virou o
+   * cinto de segurança da primeira montagem.
    *
    * Uma `ref`, e não `useState`, porque isto muda a cada quadro de rolagem e
    * não deve provocar renderização nenhuma. E aqui em cima, e não na Home,
@@ -216,76 +235,76 @@ export function MainTabs() {
     }
   };
 
-  const renderTab = () => {
-    switch (tab) {
-      case 'broto':
-        return (
-          <BrotinhoScreen
-            onOpenGarden={() => setSub('jardim')}
-            onOpenDiario={() => setSub('diario')}
-            onOpenComposta={() => setSub('composta')}
-            onOpenConselhosGuardados={() => setSub('conselhos')}
-            onOpenValues={() => setSub('valores')}
-            onOpenPractices={(alvo) => {
-              setPraticaAlvo(alvo ?? null);
-              setSub('praticas');
-            }}
-            rolagemInicial={rolagemDoBroto.current}
-            aoRolar={(y) => {
-              rolagemDoBroto.current = y;
-            }}
-          />
-        );
-      case 'perfil':
-        return <ProfileScreen name={name} onNavigate={setSub} />;
-      case 'home':
-      default:
-        return (
-          <HomeScreen
-            name={name}
-            onOpenComposta={() => setSub('composta')}
-            onOpenSettings={() => setSub('config')}
-            onOpenPractices={(alvo) => {
-              setPraticaAlvo(alvo ?? null);
-              setSub('praticas');
-            }}
-            onOpenConselhosGuardados={() => setSub('conselhos')}
-            rolagemInicial={rolagemDaHome.current}
-            aoRolar={(y) => {
-              rolagemDaHome.current = y;
-            }}
-            onOpenReminders={() => setSub('lembretes')}
-            onOpenGarden={() => setSub('jardim')}
-          />
-        );
-    }
-  };
-
   /*
-    O elemento da aba, congelado: só é refeito quando a aba ou o nome mudam.
+    Um elemento por aba, feito uma vez só.
 
-    Sem isto, abrir e fechar uma tela empilhada — que muda o `sub` daqui —
-    redesenhava a aba inteira por baixo, porque cada render cria funções novas
-    para as props dela. Com o mesmo elemento, o React nem entra na Home.
-    Quem precisa saber que ela está coberta pergunta ao contexto; ver
-    `useCoberta`.
+    As abas ficam todas montadas — ver `AbasVivas` — e a `AbasVivas` pede o
+    elemento de cada uma a cada render. Se ele fosse novo a cada vez, abrir uma
+    prática (que muda o `sub` daqui) redesenharia as três abas por baixo, e a
+    travada voltaria pela porta dos fundos. Congelados, o React nem entra
+    nelas.
 
-    O `rolagemInicial` lido aqui é a altura no momento em que a aba é
-    montada, que é exatamente o que ele significa.
+    O `name` é a única coisa daqui que elas leem e que muda.
   */
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  const aba = useMemo(() => renderTab(), [tab, name]);
+  const abas = useMemo(
+    () => ({
+      home: (
+        <HomeScreen
+          name={name}
+          onOpenComposta={() => setSub('composta')}
+          onOpenSettings={() => setSub('config')}
+          onOpenPractices={(alvo) => {
+            setPraticaAlvo(alvo ?? null);
+            setSub('praticas');
+          }}
+          onOpenConselhosGuardados={() => setSub('conselhos')}
+          rolagemInicial={rolagemDaHome.current}
+          aoRolar={(y) => {
+            rolagemDaHome.current = y;
+          }}
+          onOpenReminders={() => setSub('lembretes')}
+          onOpenGarden={() => setSub('jardim')}
+        />
+      ),
+      broto: (
+        <BrotinhoScreen
+          onOpenGarden={() => setSub('jardim')}
+          onOpenDiario={() => setSub('diario')}
+          onOpenComposta={() => setSub('composta')}
+          onOpenConselhosGuardados={() => setSub('conselhos')}
+          onOpenValues={() => setSub('valores')}
+          onOpenPractices={(alvo) => {
+            setPraticaAlvo(alvo ?? null);
+            setSub('praticas');
+          }}
+          rolagemInicial={rolagemDoBroto.current}
+          aoRolar={(y) => {
+            rolagemDoBroto.current = y;
+          }}
+        />
+      ),
+      perfil: <ProfileScreen name={name} onNavigate={setSub} />,
+    }),
+    [name],
+  );
 
   return (
     <View style={{ flex: 1, backgroundColor: colors.bg }}>
       {/*
-        A aba por baixo, e a tela empilhada por cima dela.
+        As abas por baixo, e a tela empilhada por cima delas.
 
-        As duas ocupavam o mesmo lugar: abrir uma prática desmontava a Home, e
-        voltar a montava do zero — 440 ms de linha de JavaScript travada,
-        medidos, com a prática congelada na tela e a Home surgindo de uma vez.
-        Agora a aba fica montada, parada, e a tela empilhada entra e **sai**
-        deslizando por cima dela. Ver `CamadaEmpilhada`.
+        Tela empilhada e aba ocupavam o mesmo lugar: abrir uma prática
+        desmontava a Home, e voltar a montava do zero — 440 ms de linha de
+        JavaScript travada, medidos, com a prática congelada na tela e a Home
+        surgindo de uma vez. Agora a aba fica montada, parada, e a tela
+        empilhada entra e **sai** deslizando por cima dela. Ver
+        `CamadaEmpilhada`.
+
+        As abas entre si tinham o mesmo problema, e ele sobreviveu àquele
+        conserto: trocar de aba montava a de destino inteira dentro do toque —
+        899 ms para chegar à Início. Agora as três ficam de pé, e a troca é um
+        esmaecer. Ver `AbasVivas`.
 
         Trocar de aba continua só aparecendo: abas são vizinhas, não uma mais
         funda que a outra, e deslizar entre elas inventaria uma hierarquia que
@@ -301,13 +320,11 @@ export function MainTabs() {
           importantForAccessibility={sub ? 'no-hide-descendants' : 'auto'}
           accessibilityElementsHidden={sub !== null}
         >
-          <ProvedorDeCobertura value={sub !== null}>
-            <ScreenTransition transitionKey={tab} mode="fade">
-              {aba}
-            </ScreenTransition>
+          <ProvedorDeCobertura value={coberta}>
+            <AbasVivas ativa={tab} todas={ABAS} render={(chave) => abas[chave]} />
           </ProvedorDeCobertura>
         </View>
-        <CamadaEmpilhada aberta={sub} render={renderSub} />
+        <CamadaEmpilhada aberta={sub} render={renderSub} aoCobrir={setCoberta} />
       </View>
       <BottomNav
         active={tab}

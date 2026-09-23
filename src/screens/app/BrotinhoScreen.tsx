@@ -29,6 +29,8 @@ import {
   MoodSelector,
   PalavraDoHumor,
   TopBar,
+  useAbaAVista,
+  useCoberta,
   type IconName,
   type OrigemDoBroto,
 } from '../../components';
@@ -94,6 +96,57 @@ type Props = {
   aoRolar?: (y: number) => void;
 };
 
+/**
+ * O gatilho da comemoração de crescimento: não desenha nada, só espera a hora.
+ *
+ * ## Por que é um componente, e não um efeito lá dentro
+ *
+ * Ele precisa saber duas coisas que vêm de contexto — se esta aba é a que a
+ * pessoa está vendo (`useAbaAVista`) e se há uma tela empilhada por cima
+ * (`useCoberta`). Quem lê um contexto é redesenhado quando ele muda, e os
+ * dois mudam no instante de um toque na barra de baixo ou num cartão. Lidos no
+ * alto da `BrotinhoScreen`, redesenhariam a aba inteira dentro desse toque —
+ * que é a travada que a `AbasVivas` veio tirar. Aqui o redesenho é de um
+ * componente que devolve `null`.
+ *
+ * ## Por que as duas perguntas
+ *
+ * Esta aba monta sozinha, em silêncio, logo depois de o app abrir — ver o
+ * aquecimento da `AbasVivas`. Sem `aVista`, a comemoração abriria por cima
+ * da tela inicial, num aparelho em que ninguém pediu para ver o broto; e
+ * `measureInWindow` de uma aba escondida devolveria uma posição que não é a
+ * que a pessoa vai ver, então a cena começaria vindo do lugar errado.
+ *
+ * Sem `coberta`, ela abriria por cima do diário aberto, no meio de uma frase.
+ */
+function GatilhoDaCelebracao({ pronto, aoComecar }: { pronto: boolean; aoComecar: () => void }) {
+  const aVista = useAbaAVista();
+  const coberta = useCoberta();
+  /* Guardado numa `ref` porque a função é nova a cada render de quem chama. */
+  const comecar = useRef(aoComecar);
+  comecar.current = aoComecar;
+
+  useEffect(() => {
+    if (!pronto || !aVista || coberta) return;
+    comecar.current();
+  }, [pronto, aVista, coberta]);
+
+  return null;
+}
+
+/**
+ * O broto desta aba — parado enquanto a aba não é a que está à vista.
+ *
+ * Um componente só para isto pelo mesmo motivo do `GatilhoDaCelebracao`: ler
+ * a resposta aqui redesenha o broto, e não a aba inteira.
+ */
+type BrotoDaAbaProps = Pick<React.ComponentProps<typeof AnimatedSprout>, 'mood' | 'stage' | 'size'>;
+
+function BrotoDaAba({ mood, stage, size }: BrotoDaAbaProps) {
+  const aVista = useAbaAVista();
+  return <AnimatedSprout mood={mood} stage={stage} size={size} bamboleia={aVista} />;
+}
+
 export function BrotinhoScreen({
   onOpenGarden,
   onOpenDiario,
@@ -136,27 +189,29 @@ export function BrotinhoScreen({
       Quem já usava o app antes disto existir adota o estágio atual calado:
       comemorar de uma vez um crescimento de semanas atrás seria um susto.
     */
-    if (data.stageSeen === null) {
-      markStageSeen(stage);
-      return;
-    }
-    if (stage <= data.stageSeen || celebrando) return;
+    if (data.stageSeen === null) markStageSeen(stage);
+  }, [data.stageSeen, stage, markStageSeen]);
 
-    /*
-      A comemoração espera o dia melhorar.
+  /**
+   * Cresceu, e a pessoa ainda não viu?
+   *
+   * A comemoração espera o dia melhorar. O crescimento depende só de dias de
+   * presença, e não olha o humor: quem marcasse "Triste" no décimo dia levava
+   * uma festa na cara. Nada se perde — `stageSeen` não avança, e a cena
+   * aparece inteira no primeiro dia que não for de humor pesado.
+   */
+  const temCrescimento =
+    data.stageSeen !== null &&
+    stage > data.stageSeen &&
+    !celebrando &&
+    !(humorMarcado && DIA_PESADO.includes(humorMarcado));
 
-      O crescimento depende só de dias de presença, e não olha o humor: quem
-      marcasse "Triste" no décimo dia levava uma festa na cara. Nada se perde
-      — `stageSeen` não avança, e ela aparece inteira no primeiro dia que não
-      for de humor pesado.
-    */
-    if (humorMarcado && DIA_PESADO.includes(humorMarcado)) return;
-
+  const comecarCelebracao = () => {
     molduraDoBroto.current?.measureInWindow((x, y, largura, altura) => {
       setOrigemDoBroto(largura > 0 ? { x, y, largura, altura } : null);
       setCelebrando(true);
     });
-  }, [stage, data.stageSeen, humorMarcado, celebrando, markStageSeen]);
+  };
 
   const fecharCelebracao = () => {
     setCelebrando(false);
@@ -344,7 +399,7 @@ export function BrotinhoScreen({
               style={{ marginHorizontal: -20 }}
             >
               <LuzDeEstufa diametro={diametroDaLuz}>
-                <AnimatedSprout mood={mood} stage={stage} size={sproutSize} bamboleia />
+                <BrotoDaAba mood={mood} stage={stage} size={sproutSize} />
               </LuzDeEstufa>
             </Pressable>
           </View>
@@ -557,6 +612,9 @@ export function BrotinhoScreen({
           </View>
         </View>
       </Modal>
+
+      {/* Ver `GatilhoDaCelebracao`: ele não desenha nada, só espera a hora. */}
+      <GatilhoDaCelebracao pronto={temCrescimento} aoComecar={comecarCelebracao} />
 
       {/*
         A cena de crescimento, por cima de tudo — inclusive da barra de baixo,

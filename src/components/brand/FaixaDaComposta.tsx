@@ -4,6 +4,7 @@ import Svg, { Defs, Ellipse, LinearGradient, Path, RadialGradient, Rect, Stop } 
 
 import { fraseQueODiaDemonstra } from '../../data/composta';
 import { useMenosMovimento } from '../../hooks/useMenosMovimento';
+import { useAbaAVista } from '../AbasVivas';
 import { useCoberta } from '../CamadaEmpilhada';
 import { BrotoNaTerra } from './BrotoAoVento';
 import { raizesDoBroto } from './raizesDoBroto';
@@ -254,7 +255,7 @@ type Props = {
   queda: number;
   /** A saudação, os botões, o broto e o balão. Desenhados dentro do céu. */
   children: React.ReactNode;
-  /** A faixa está à vista? Fora dela o laço para — ver `HomeScreen`. */
+  /** A faixa está à vista **na rolagem**? Fora dela o laço para — ver `HomeScreen`. */
   ativa: boolean;
   /**
    * A terra desta faixa emenda na de baixo, em vez de acabar aqui.
@@ -291,13 +292,21 @@ export function FaixaDaComposta({
   const id = useId().replace(/[^a-zA-Z0-9]/g, '');
   const menosMovimento = useMenosMovimento();
   /*
-    À vista **e** descoberta. Com uma prática aberta por cima, a Home fica
-    montada embaixo — ver `CamadaEmpilhada` — e esta faixa seguiria
-    derrubando palavras e balançando o broto para ninguém, redesenhando a tela
-    de baixo a cada quadro enquanto a prática roda.
+    À vista na rolagem, com a aba aberta, e descoberta — as três.
+
+    Com uma prática aberta por cima, a Home fica montada embaixo — ver
+    `CamadaEmpilhada`; e com o Perfil aberto ela também continua montada —
+    ver `AbasVivas`. Sem as duas perguntas esta faixa seguiria derrubando
+    palavras e balançando o broto para ninguém, redesenhando a tela de baixo a
+    cada quadro.
+
+    As perguntas são feitas **aqui**, e não na `HomeScreen`: quem lê um
+    contexto é redesenhado quando ele muda, e o corpo da Home é caro demais
+    para ser redesenhado dentro de um toque.
   */
   const coberta = useCoberta();
-  const rodando = ativa && !coberta;
+  const abaAVista = useAbaAVista();
+  const rodando = ativa && abaAVista && !coberta;
 
   const alturaDaTerra = continua ? ALTURA_DA_TERRA_CONTINUA : ALTURA_DA_TERRA;
   const altura = alturaDaFaixa(topo, cabecalho, queda, continua);
