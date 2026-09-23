@@ -15,7 +15,7 @@ import {
   CenaDaPratica,
   OndeVoceParou,
   QuandoDescoberta,
-  GrowthNotice,
+  CenaDeCrescimento,
   HarvestNotice,
   Icon,
   IconButton,
@@ -476,7 +476,15 @@ export function HomeScreen({
           recuo={20}
           cabecalho={CABECALHO_DA_FAIXA}
           queda={quedaDaFaixa}
-          ativa={naVista}
+          /*
+            Durante a comemoração a faixa para.
+
+            A cena de crescimento é um véu por cima desta tela, e a Home
+            continua montada embaixo — ver `CenaDeCrescimento`. Sem isto, as
+            palavras seguiam caindo atrás do véu, e o que a cena pede é o
+            contrário: tudo o mais sai de vista.
+          */
+          ativa={naVista && !celebrando && !colhendo}
           continua
           /*
             O título é o sintoma, e não o nome da ferramenta.
@@ -771,7 +779,11 @@ export function HomeScreen({
           ) : (
             celebrando &&
             stage !== 1 && (
-              <GrowthNotice stage={stage} days={daysCaredFor(data)} onClose={fecharCelebracao} />
+              <CenaDeCrescimento
+                estagio={stage}
+                dias={daysCaredFor(data)}
+                aoFechar={fecharCelebracao}
+              />
             )
           )}
         </Modal>
