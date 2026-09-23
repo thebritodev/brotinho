@@ -15,7 +15,6 @@ import {
   CenaDaPratica,
   OndeVoceParou,
   QuandoDescoberta,
-  CenaDeCrescimento,
   HarvestNotice,
   Icon,
   IconButton,
@@ -30,7 +29,6 @@ import { POR_TRAS_DA_BARRA } from '../../components/navigation/BottomNav';
 /* A lista mora em `data/humores` desde que a repesagem da Composta também
    precisou dela. Aqui ela responde a mesma pergunta de sempre: hoje está
    pesado? — e decide a comemoração, o selo e a ordem do carrossel. */
-import { DIA_PESADO } from '../../data/humores';
 import {
   ANCORA_RAPIDA,
   findTopic,
@@ -44,7 +42,6 @@ import {
   AUSENCIA_LONGA,
   colheita,
   dayKey,
-  daysCaredFor,
   diasSemAparecer,
   praticasRecentes,
   type PraticaVisitada,
@@ -160,7 +157,6 @@ export function HomeScreen({
   const largura = Math.max(320, width);
   const {
     data,
-    markStageSeen,
     marcarVisto,
     colherPlanta,
     desenterrarConselho,
@@ -357,33 +353,19 @@ export function HomeScreen({
   const jaRestaurou = useRef(false);
 
   const stage = sproutStage(data);
-  const [celebrando, setCelebrando] = useState(false);
 
-  useEffect(() => {
-    // Quem já usava o app antes disso existir adota o estágio atual calado:
-    // comemorar de uma vez um crescimento que aconteceu semanas atrás seria
-    // um susto, não uma comemoração.
-    if (data.stageSeen === null) {
-      markStageSeen(stage);
-      return;
-    }
-    if (stage <= data.stageSeen) return;
+  /*
+    A comemoração de crescimento saiu daqui.
 
-    /*
-      A comemoração espera o dia melhorar.
+    Ela disparava no instante em que o app abria, porque esta é a tela de
+    entrada — e comemoração na cara de quem chegou para usar o app é pedágio.
+    Agora ela espera a pessoa ir ver o broto, e mora na aba dele. Ver
+    `BrotinhoScreen` e `CenaDeCrescimento`.
 
-      O crescimento do broto depende só de dias de presença, e não olhava o
-      humor: quem marcasse "Triste" no décimo dia levava uma festa na cara.
-      Tela de comemoração logo depois de registrar um momento difícil é
-      descompasso emocional, e é dos que mais afastam.
-
-      Nada se perde: `stageSeen` não avança, então a comemoração aparece
-      inteira no primeiro dia em que ela não estiver marcando um humor pesado.
-    */
-    if (humorMarcado && DIA_PESADO.includes(humorMarcado)) return;
-
-    setCelebrando(true);
-  }, [stage, data.stageSeen, humorMarcado]);
+    O que ficou aqui é a **colheita**, que é outra coisa: a planta madura
+    precisa ser vista antes de ir para o jardim, e isso acontece na tela em
+    que ela está.
+  */
 
   /**
    * Planta madura: mostra o momento ANTES de guardar.
@@ -401,11 +383,6 @@ export function HomeScreen({
     if (colhendo) colherPlanta(colhendo);
     setColhendo(null);
     onOpenGarden();
-  };
-
-  const fecharCelebracao = () => {
-    setCelebrando(false);
-    markStageSeen(stage);
   };
 
   return (
@@ -484,7 +461,7 @@ export function HomeScreen({
             palavras seguiam caindo atrás do véu, e o que a cena pede é o
             contrário: tudo o mais sai de vista.
           */
-          ativa={naVista && !celebrando && !colhendo}
+          ativa={naVista && !colhendo}
           continua
           /*
             O título é o sintoma, e não o nome da ferramenta.
@@ -769,23 +746,12 @@ export function HomeScreen({
       */}
       <QuandoDescoberta>
         <Modal
-          visible={!!colhendo || (celebrando && stage !== 1)}
+          visible={!!colhendo}
           transparent
           animationType="none"
-          onRequestClose={colhendo ? guardarNoJardim : fecharCelebracao}
+          onRequestClose={guardarNoJardim}
         >
-          {colhendo ? (
-            <HarvestNotice planta={colhendo} onClose={guardarNoJardim} />
-          ) : (
-            celebrando &&
-            stage !== 1 && (
-              <CenaDeCrescimento
-                estagio={stage}
-                dias={daysCaredFor(data)}
-                aoFechar={fecharCelebracao}
-              />
-            )
-          )}
+          {colhendo ? <HarvestNotice planta={colhendo} onClose={guardarNoJardim} /> : null}
         </Modal>
       </QuandoDescoberta>
 

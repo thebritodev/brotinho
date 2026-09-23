@@ -1,4 +1,4 @@
-import React, { useMemo, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import {
   Modal,
   Pressable,
@@ -18,6 +18,7 @@ import {
   Button,
   Card,
   CartaoHeroi,
+  CenaDeCrescimento,
   CenaDoDiario,
   CrossedCard,
   HumorNoTempo,
@@ -29,7 +30,9 @@ import {
   PalavraDoHumor,
   TopBar,
   type IconName,
+  type OrigemDoBroto,
 } from '../../components';
+import { DIA_PESADO } from '../../data/humores';
 import { proximoPasso } from '../../data/primeiraSemana';
 import { saudacaoDoDia } from '../../data/saudacao';
 import { toqueLeve } from '../../services/toque';
@@ -104,13 +107,61 @@ export function BrotinhoScreen({
   const { colors, palette } = useTema();
   const insets = useSafeAreaInsets();
   const { width, height } = useWindowDimensions();
-  const { data, setTodayMood, setTodayPalavra, repesarComposta } = useAppState();
+  const { data, setTodayMood, setTodayPalavra, repesarComposta, markStageSeen } = useAppState();
 
   const today = dayKey();
   const registroDeHoje = data.moodHistory.find((m) => m.date === today);
   const humorMarcado = registroDeHoje?.mood ?? null;
   const mood = humorMarcado ?? 'neutro';
   const stage = sproutStage(data);
+
+  /**
+   * A comemoração de crescimento mora **aqui**, e não na tela inicial.
+   *
+   * Ela ficava na Home, e disparava no instante em que o app abria: quem
+   * chega na tela inicial chega para usar o app, e uma comemoração na cara de
+   * entrada é um pedágio. Aqui ela espera a pessoa vir ver o broto — que é o
+   * assunto dela. Ver `CenaDeCrescimento`.
+   *
+   * `origem` é onde o desenho está na tela no instante em que a cena começa:
+   * é de lá que ele viaja até o meio. Medido na hora, porque depende da
+   * rolagem.
+   */
+  const [celebrando, setCelebrando] = useState(false);
+  const [origemDoBroto, setOrigemDoBroto] = useState<OrigemDoBroto | null>(null);
+  const molduraDoBroto = useRef<View>(null);
+
+  useEffect(() => {
+    /*
+      Quem já usava o app antes disto existir adota o estágio atual calado:
+      comemorar de uma vez um crescimento de semanas atrás seria um susto.
+    */
+    if (data.stageSeen === null) {
+      markStageSeen(stage);
+      return;
+    }
+    if (stage <= data.stageSeen || celebrando) return;
+
+    /*
+      A comemoração espera o dia melhorar.
+
+      O crescimento depende só de dias de presença, e não olha o humor: quem
+      marcasse "Triste" no décimo dia levava uma festa na cara. Nada se perde
+      — `stageSeen` não avança, e ela aparece inteira no primeiro dia que não
+      for de humor pesado.
+    */
+    if (humorMarcado && DIA_PESADO.includes(humorMarcado)) return;
+
+    molduraDoBroto.current?.measureInWindow((x, y, largura, altura) => {
+      setOrigemDoBroto(largura > 0 ? { x, y, largura, altura } : null);
+      setCelebrando(true);
+    });
+  }, [stage, data.stageSeen, humorMarcado, celebrando, markStageSeen]);
+
+  const fecharCelebracao = () => {
+    setCelebrando(false);
+    markStageSeen(stage);
+  };
 
   /**
    * A altura em que esta tela abre — congelada no instante da montagem.
@@ -261,16 +312,42 @@ export function BrotinhoScreen({
 
         <View style={{ alignItems: 'center', gap: 12 }}>
           {/* O broto é a porta do próprio histórico: tocar nele abre o jardim. */}
-          <Pressable
-            accessibilityRole="button"
-            accessibilityLabel="Ver meu jardim"
-            onPress={onOpenGarden}
-            style={{ marginHorizontal: -20 }}
-          >
-            <LuzDeEstufa diametro={diametroDaLuz}>
-              <AnimatedSprout mood={mood} stage={stage} size={sproutSize} bamboleia />
-            </LuzDeEstufa>
-          </Pressable>
+          {/*
+            A moldura existe para ser medida: é dela que sai a `origem` da
+            cena de crescimento. `collapsable` falso porque o Android achata
+            `View` que só embrulha, e `View` achatada não se deixa medir.
+          */}
+          <View ref={molduraDoBroto} collapsable={false}>
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel="Ver meu jardim"
+              onPress={onOpenGarden}
+              /*
+                Atalho **só na build de desenvolvimento**: segurar o broto roda
+                a cena de crescimento na hora.
+
+                Ela depende de dias de uso de verdade, e esperar três dias para
+                conferir um ajuste de animação não é conferir. `__DEV__` é
+                falso em qualquer build que vá para loja, então isto não existe
+                para quem instala o app.
+              */
+              onLongPress={
+                __DEV__
+                  ? () => {
+                      molduraDoBroto.current?.measureInWindow((x, y, largura, altura) => {
+                        setOrigemDoBroto(largura > 0 ? { x, y, largura, altura } : null);
+                        setCelebrando(true);
+                      });
+                    }
+                  : undefined
+              }
+              style={{ marginHorizontal: -20 }}
+            >
+              <LuzDeEstufa diametro={diametroDaLuz}>
+                <AnimatedSprout mood={mood} stage={stage} size={sproutSize} bamboleia />
+              </LuzDeEstufa>
+            </Pressable>
+          </View>
 
           {/* Nada no desenho diz que ele é um botão. A dica fica até a primeira
               visita ao jardim e depois some. */}
@@ -479,6 +556,24 @@ export function BrotinhoScreen({
             </Button>
           </View>
         </View>
+      </Modal>
+
+      {/*
+        A cena de crescimento, por cima de tudo — inclusive da barra de baixo,
+        que é o que um `Modal` alcança e uma camada desta tela não.
+      */}
+      <Modal
+        visible={celebrando}
+        transparent
+        animationType="none"
+        onRequestClose={fecharCelebracao}
+      >
+        <CenaDeCrescimento
+          estagio={stage}
+          dias={diasCuidados}
+          origem={origemDoBroto}
+          aoFechar={fecharCelebracao}
+        />
       </Modal>
     </View>
   );

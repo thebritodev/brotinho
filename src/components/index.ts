@@ -11,7 +11,7 @@ export { AnimatedSprout } from './brand/AnimatedSprout';
 export { AskingSprout } from './brand/AskingSprout';
 export { BrotinhoMark, MARK_DISCO, MARK_TRACO } from './brand/BrotinhoMark';
 export { GrowingSprout } from './brand/GrowingSprout';
-export { CenaDeCrescimento } from './brand/CenaDeCrescimento';
+export { CenaDeCrescimento, type OrigemDoBroto } from './brand/CenaDeCrescimento';
 export { HarvestNotice } from './brand/HarvestNotice';
 export { ProgressStem } from './brand/ProgressStem';
 export { BalaoDoBroto } from './brand/BalaoDoBroto';
