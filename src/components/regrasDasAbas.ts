@@ -13,8 +13,30 @@
  * exatamente isso.
  *
  * Aqui a regra é uma só: **aba montada não desmonta**. Trocar de aba passa a
- * ser mudar quem está por cima e esmaecer — trabalho de compositor, não de
+ * ser mudar quem está na frente e deslizar — trabalho de compositor, não de
  * JavaScript.
+ *
+ * ## E por que ninguém esmaece
+ *
+ * A primeira versão trocava as abas com uma dissolução: a que chega aparecendo
+ * por cima da que sai. Tirou a travada e trouxe **o piscar** — e não era
+ * defeito de Android nenhum, era o desenho da transição. A Início tem uma
+ * faixa de terra escura no alto; o Brotinho e o Perfil são claros. No meio de
+ * uma dissolução entre elas aparecem, por 220 ms, **duas telas inteiras uma
+ * dentro da outra**: dois cabeçalhos, dois textos, a terra escura lavando por
+ * cima do claro. Conferido no navegador, congelando a dissolução na metade.
+ *
+ * Então nenhuma camada fica translúcida. As duas que participam da troca são
+ * **opacas** e andam: a que chega entra inteira pelo lado em que ela está na
+ * barra de baixo, e a que sai recua um quarto de tela para o lado oposto, por
+ * baixo. O movimento na tela é o mesmo movimento que o dedo fez na barra.
+ *
+ * O recuo mais curto não é enfeite: é ele que faz as duas se **cruzarem** em
+ * vez de se encostarem. Andando as duas a mesma tela inteira, a que sai deixa
+ * o lugar no exato ponto em que a que chega o ocupa — e "exato", com
+ * arredondamento de pixel, é onde nasce um fio de fundo entre as duas, que
+ * atravessa a tela e pisca igual. Cruzadas, não existe ponto sem cobertura:
+ * ver a conferência de cobertura em `testa-abas-vivas`.
  */
 
 /**
@@ -45,12 +67,33 @@ export function proximaAAquecer<Chave extends string>(
   return todas.find((chave) => !montadas.includes(chave)) ?? null;
 }
 
+/**
+ * Quanto a aba que sai recua, em larguras de tela.
+ *
+ * Um quarto: o suficiente para acompanhar o movimento e para as duas se
+ * cruzarem sempre, e pouco o bastante para a atenção ficar com a que chega.
+ */
+export const RECUO_DE_QUEM_SAI = 0.25;
+
 /** Como uma aba montada é desenhada no instante da troca. */
 export type CamadaDaAba = {
-  /** Quem fica por cima de quem. */
+  /**
+   * De onde para onde esta aba anda, em larguras de tela, ou `null` se ela
+   * fica parada.
+   *
+   * `[1, 0]` é "entra inteira pela direita"; `[0, -0.25]` é "recua um quarto
+   * de tela para a esquerda".
+   */
+  desliza: readonly [number, number] | null;
+  /** Quem fica por cima de quem: a que chega cobre a que sai. */
   altura: number;
-  /** A opacidade fixa, ou `null` quando ela é a da animação de entrada. */
-  opacidade: number | null;
+  /**
+   * Cheia ou invisível — **nunca um valor no meio**.
+   *
+   * Camada translúcida é o piscar: duas telas aparecendo uma dentro da outra.
+   * Ver o cabeçalho deste arquivo.
+   */
+  opacidade: 0 | 1;
   /** Recebe toque e é lida pelo leitor de tela. */
   recebeToque: boolean;
   /**
@@ -67,7 +110,7 @@ export type CamadaDaAba = {
 export type CenaDasAbas<Chave extends string> = {
   /** A aba em que a pessoa está. */
   ativa: Chave;
-  /** A que está saindo, ainda desenhada por baixo. `null` fora da troca. */
+  /** A que está saindo, ainda andando para fora. `null` fora da troca. */
   anterior: Chave | null;
   /**
    * A única aba com permissão de se mexer.
@@ -76,28 +119,72 @@ export type CenaDasAbas<Chave extends string> = {
    *
    * Esta resposta chega às folhas animadas por contexto, e quem lê um contexto
    * é redesenhado quando ele muda. Passando a valer para a aba nova no começo
-   * da troca, o redesenho cairia dentro dos 220 ms do esmaecer: medido, 140 ms
-   * de linha travada bem no meio da animação, que é justamente o defeito que
-   * as abas montadas vieram tirar. Virando só no fim, o esmaecer não tem
-   * nenhum trabalho de JavaScript pela frente, e a aba que chega começa a se
-   * mexer quando já está inteira na tela.
+   * da troca, o redesenho cairia dentro dos 220 ms da animação: medido, 140 ms
+   * de linha travada bem no meio dela, que é justamente o defeito que as abas
+   * montadas vieram tirar. Virando só no fim, a animação não tem nenhum
+   * trabalho de JavaScript pela frente, e a aba que chega começa a se mexer
+   * quando já está inteira na tela.
    */
   seMexendo: Chave;
+  /**
+   * A ordem das abas **na barra de baixo**, da esquerda para a direita.
+   *
+   * É ela que decide de que lado a aba nova entra. Ir para a direita na barra
+   * traz a tela da direita; voltar traz a da esquerda. O movimento na tela é o
+   * mesmo movimento que o dedo fez na barra.
+   */
+  ordem: readonly Chave[];
 };
 
 /**
- * A aba que chega entra por cima, esmaecendo; a que sai fica inteira embaixo
- * até a de cima cobri-la.
+ * De que lado a aba que chega entra: `1` pela direita, `-1` pela esquerda.
  *
- * O contrário — a de baixo esmaecendo junto — deixa o fundo do app aparecer no
- * meio da troca, e o que era corte seco vira piscada.
+ * Fora da barra — uma aba que não está na ordem — vale a direita, que é o
+ * sentido de "avançar" e nunca deixa a tela sem cobertura.
+ */
+export function sentidoDaTroca<Chave extends string>(
+  ativa: Chave,
+  anterior: Chave,
+  ordem: readonly Chave[],
+): 1 | -1 {
+  const daAtiva = ordem.indexOf(ativa);
+  const daAnterior = ordem.indexOf(anterior);
+  if (daAtiva < 0 || daAnterior < 0) return 1;
+  return daAtiva >= daAnterior ? 1 : -1;
+}
+
+/**
+ * A que chega entra inteira por um lado, por cima; a que sai recua um quarto
+ * de tela para o outro, por baixo. As duas opacas.
+ *
+ * Todo o resto fica invisível e parado. Em qualquer instante há no máximo duas
+ * camadas visíveis, elas se cruzam, e juntas cobrem a tela inteira.
  */
 export function camadaDaAba<Chave extends string>(
   chave: Chave,
-  { ativa, anterior, seMexendo }: CenaDasAbas<Chave>,
+  { ativa, anterior, seMexendo, ordem }: CenaDasAbas<Chave>,
 ): CamadaDaAba {
   const aVista = chave === seMexendo;
-  if (chave === ativa) return { altura: 2, opacidade: null, recebeToque: true, aVista };
-  if (chave === anterior) return { altura: 1, opacidade: 1, recebeToque: false, aVista };
-  return { altura: 0, opacidade: 0, recebeToque: false, aVista };
+  const parada = { desliza: null, altura: 0, opacidade: 0, recebeToque: false, aVista } as const;
+
+  if (anterior === null) {
+    return chave === ativa
+      ? { desliza: null, altura: 2, opacidade: 1, recebeToque: true, aVista }
+      : parada;
+  }
+
+  const sentido = sentidoDaTroca(ativa, anterior, ordem);
+  if (chave === ativa) {
+    return { desliza: [sentido, 0], altura: 2, opacidade: 1, recebeToque: true, aVista };
+  }
+  if (chave === anterior) {
+    return {
+      desliza: [0, -sentido * RECUO_DE_QUEM_SAI],
+      altura: 1,
+      opacidade: 1,
+      recebeToque: false,
+      aVista,
+    };
+  }
+  return parada;
 }

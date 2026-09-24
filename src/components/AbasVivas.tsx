@@ -6,7 +6,7 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import { Animated, Easing, StyleSheet, View } from 'react-native';
+import { Animated, Easing, StyleSheet, useWindowDimensions, View } from 'react-native';
 
 import { useMenosMovimento } from '../hooks/useMenosMovimento';
 import { useTema } from '../theme';
@@ -35,8 +35,16 @@ import { camadaDaAba, proximaAAquecer, proximasMontadas } from './regrasDasAbas'
  * `ScreenTransition` — que existe para a tela nunca ficar invisível — chegava
  * antes dela. Travada e corte seco, nessa ordem, toda vez.
  *
- * Aqui nenhuma aba desmonta. A troca é quem está por cima, e um esmaecer de
- * {@link TROCA_MS} que o compositor desenha sozinho.
+ * Aqui nenhuma aba desmonta. A troca são duas telas opacas andando de lado
+ * durante {@link TROCA_MS}, que o compositor desenha sozinho.
+ *
+ * ## E nenhuma delas esmaece
+ *
+ * A primeira versão disto trocava as abas com uma dissolução, e ela trouxe **o
+ * piscar**: por 220 ms apareciam duas telas inteiras uma dentro da outra — a
+ * terra escura da Início lavando por cima do claro do Brotinho, dois
+ * cabeçalhos, dois textos. O porquê, e por que deslizar não inventa
+ * hierarquia, estão no cabeçalho de `regrasDasAbas`.
  *
  * ## Isto é o quarto conserto da mesma queixa
  *
@@ -48,7 +56,7 @@ import { camadaDaAba, proximaAAquecer, proximasMontadas } from './regrasDasAbas'
  * `scripts/testa-abas-vivas.js`, que guarda as regras de `regrasDasAbas.ts`.
  */
 
-/** Quanto dura o esmaecer entre uma aba e a próxima. */
+/** Quanto dura a passagem de uma aba para a próxima. */
 const TROCA_MS = 220;
 
 /**
@@ -91,7 +99,13 @@ export const useAbaAVista = () => useContext(AbaAVista);
 type Props<Chave extends string> = {
   /** A aba em que a pessoa está. */
   ativa: Chave;
-  /** Todas as abas, na ordem em que vale a pena montá-las em silêncio. */
+  /**
+   * Todas as abas, **na ordem da barra de baixo**, da esquerda para a direita.
+   *
+   * A ordem decide de que lado a aba nova entra — ver `CenaDasAbas`. E serve
+   * de brinde para o aquecimento: a primeira que falta é a primeira a montar
+   * em silêncio.
+   */
   todas: readonly Chave[];
   /** Desenha uma aba. Deve devolver sempre o **mesmo** elemento para a mesma
    *  chave, senão a aba é refeita e a travada volta por outro caminho. */
@@ -101,6 +115,8 @@ type Props<Chave extends string> = {
 export function AbasVivas<Chave extends string>({ ativa, todas, render }: Props<Chave>) {
   const { colors } = useTema();
   const menosMovimento = useMenosMovimento();
+  /** Quanto cada aba anda: uma tela inteira, para as duas juntas cobrirem tudo. */
+  const { width: largura } = useWindowDimensions();
 
   /*
     Calculado no próprio render, e não num efeito: num efeito, existiria um
@@ -111,9 +127,9 @@ export function AbasVivas<Chave extends string>({ ativa, todas, render }: Props<
   const noAr = proximasMontadas(montadas, ativa);
   if (noAr !== montadas) setMontadas(noAr);
 
-  /** A aba que está saindo, ainda desenhada por baixo da que chega. */
+  /** A aba que está saindo, ainda desenhada ao lado da que chega. */
   const [anterior, setAnterior] = useState<Chave | null>(null);
-  /** A que pode se mexer. Só vira a nova quando o esmaecer acaba — ver `CenaDasAbas`. */
+  /** A que pode se mexer. Só vira a nova quando a troca acaba — ver `CenaDasAbas`. */
   const [seMexendo, setSeMexendo] = useState<Chave>(ativa);
   const [animando, setAnimando] = useState(false);
   const t = useRef(new Animated.Value(1)).current;
@@ -121,10 +137,10 @@ export function AbasVivas<Chave extends string>({ ativa, todas, render }: Props<
 
   /*
     `useLayoutEffect`, e não `useEffect`: o efeito comum roda depois da
-    pintura, e existe um quadro em que a aba nova já foi desenhada inteira,
+    pintura, e existe um quadro em que a aba nova já foi desenhada no lugar,
     com o `t` que sobrou da troca anterior, antes de saltar para zero e
-    começar a aparecer. Num aparelho lento isso é a tela nova piscando antes
-    de entrar.
+    começar a entrar. Num aparelho lento isso é a tela nova piscando antes de
+    entrar.
   */
   useLayoutEffect(() => {
     if (queEstava.current === ativa) return;
@@ -157,7 +173,7 @@ export function AbasVivas<Chave extends string>({ ativa, todas, render }: Props<
       if (finished) assentou();
     });
 
-    /* Rede de segurança: a aba ativa não pode ficar invisível por nada. */
+    /* Rede de segurança: a aba ativa não pode ficar fora da tela por nada. */
     const seguranca = setTimeout(() => {
       t.setValue(1);
       assentou();
@@ -202,7 +218,7 @@ export function AbasVivas<Chave extends string>({ ativa, todas, render }: Props<
   return (
     <View style={{ flex: 1, backgroundColor: colors.bg }}>
       {noAr.map((chave) => {
-        const camada = camadaDaAba(chave, { ativa, anterior, seMexendo });
+        const camada = camadaDaAba(chave, { ativa, anterior, seMexendo, ordem: todas });
         return (
           <Animated.View
             key={chave}
@@ -219,9 +235,24 @@ export function AbasVivas<Chave extends string>({ ativa, todas, render }: Props<
             style={[
               StyleSheet.absoluteFill,
               {
+                /*
+                  Fundo próprio, porque a camada é **opaca**: é o que garante
+                  que a aba de trás não apareça por dentro da da frente em
+                  nenhum quadro. Ver o cabeçalho de `regrasDasAbas`.
+                */
                 backgroundColor: colors.bg,
                 zIndex: camada.altura,
-                opacity: camada.opacidade ?? t,
+                opacity: camada.opacidade,
+                transform: camada.desliza
+                  ? [
+                      {
+                        translateX: t.interpolate({
+                          inputRange: [0, 1],
+                          outputRange: [camada.desliza[0] * largura, camada.desliza[1] * largura],
+                        }),
+                      },
+                    ]
+                  : [],
               },
             ]}
           >

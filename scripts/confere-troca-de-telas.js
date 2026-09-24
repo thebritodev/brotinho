@@ -16,10 +16,15 @@
  *
  * | o que fazia | linha travada |
  * | ----------- | ------------- |
- * | montar a aba de destino no toque | 899 ms, e zero quadros de esmaecer |
+ * | montar a aba de destino no toque | 899 ms, e zero quadros de animação |
  * | ler o contexto no alto de uma tela | 140 ms, dentro da animação |
  * | virar o "quem se mexe" no começo da troca | 140 ms, dentro da animação |
  * | redesenhar a tela empilhada que está saindo | 215 ms, em cima do deslize |
+ *
+ * E uma que não é travada, é **o piscar**: trocar as abas com uma dissolução
+ * mostra, por 220 ms, duas telas inteiras uma dentro da outra — a terra escura
+ * da Início lavando por cima do claro do Brotinho. Por isso nenhuma camada
+ * pode ser translúcida.
  *
  * ## O que ele confere
  *
@@ -115,6 +120,22 @@ confere(
   'AbasVivas',
   /proximasMontadas\(/.test(abasVivas) && /proximaAAquecer\(/.test(abasVivas),
   'a `AbasVivas` deixou de usar as regras de `regrasDasAbas` — elas são o que o `testa-abas-vivas` guarda',
+);
+/*
+  Nenhuma camada pode esmaecer. Foi assim que a troca de aba comecou: uma
+  dissolução, que tirou a travada e trouxe o piscar — duas telas inteiras uma
+  dentro da outra por 220 ms. A opacidade de uma camada vem da regra, que só
+  devolve 0 ou 1; ligá-la ao relógio da animação traz o piscar de volta.
+*/
+confere(
+  'AbasVivas',
+  /opacity: camada\.opacidade,/.test(abasVivas),
+  'a opacidade da camada não vem mais da regra — só a regra garante que ela seja sempre 0 ou 1',
+);
+confere(
+  'AbasVivas',
+  !/opacity:[^,\n]*\bt\b/.test(abasVivas),
+  'a camada voltou a esmaecer com o relógio da animação: duas telas translúcidas aparecem uma dentro da outra, que é o piscar',
 );
 /*
   O "quem se mexe" não pode virar no mesmo instante que o `anterior`.

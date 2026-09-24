@@ -30,14 +30,20 @@ import { useAppState } from '../state/AppStateProvider';
 import { useTema } from '../theme';
 
 /**
- * As abas, na ordem em que vale a pena montá-las.
+ * As abas **na ordem da barra de baixo**, da esquerda para a direita.
  *
- * A Início é onde o app abre. Depois o Brotinho, que é a aba mais cara de
- * montar e a mais procurada; o Perfil monta por último, porque é o mais barato
- * e o menos visitado. Fora da função para a lista não mudar de identidade a
- * cada render — o aquecimento se reagendaria para sempre.
+ * É esta ordem que decide de que lado a aba nova entra na troca: o movimento na
+ * tela é o mesmo movimento que o dedo fez na barra. Ver `AbasVivas`.
+ *
+ * Ela também serve para o aquecimento, e por sorte na ordem certa: o app abre
+ * na Início, e o primeiro que falta é o Brotinho — que é a aba mais cara de
+ * montar e a mais procurada. O Perfil vem por último, porque é o mais barato e
+ * o menos visitado.
+ *
+ * Fora da função para a lista não mudar de identidade a cada render — o
+ * aquecimento se reagendaria para sempre.
  */
-const ABAS: readonly TabKey[] = ['home', 'broto', 'perfil'];
+const ABAS: readonly TabKey[] = ['broto', 'home', 'perfil'];
 
 export function MainTabs() {
   const { colors } = useTema();

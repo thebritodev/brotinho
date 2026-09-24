@@ -16,8 +16,11 @@
  * 1. **aba montada não desmonta.** Se alguém devolver uma lista sem uma aba
  *    que já estava de pé, ela é montada de novo no toque seguinte e a travada
  *    volta inteira, sem nenhum erro na tela;
- * 2. **a que chega entra por cima, e a que sai fica opaca por baixo.** Se as
- *    duas esmaecerem juntas, o fundo do app aparece no meio da troca;
+ * 2. **ninguém esmaece.** As duas que participam da troca são opacas e andam
+ *    lado a lado, e somadas cobrem a tela em todo instante. Camada translúcida
+ *    é o piscar: a Início tem terra escura no alto e as outras duas são
+ *    claras, e numa dissolução entre elas aparecem, por 220 ms, duas telas
+ *    inteiras uma dentro da outra;
  * 3. **só uma aba se mexe, e a troca muda de dona no fim.** Se `seMexendo`
  *    virar no começo, o redesenho das folhas animadas cai dentro dos 220 ms
  *    da animação — 140 ms medidos — e a travada volta por dentro.
@@ -59,7 +62,8 @@ function confere(onde, condicao, mensagem) {
   fs.renameSync(path.join(saida, 'regrasDasAbas.js'), mjs);
   const R = await import('file://' + mjs.split(path.sep).join('/'));
 
-  const ABAS = ['home', 'broto', 'perfil'];
+  /** A ordem da barra de baixo, que é a que decide de que lado a aba entra. */
+  const ABAS = ['broto', 'home', 'perfil'];
 
   console.log('— as abas vivas —\n');
 
@@ -97,38 +101,99 @@ function confere(onde, condicao, mensagem) {
     'devolveu uma lista nova para uma aba que já estava montada',
   );
 
-  /* ---------- 2. Quem aparece, quem recebe toque ---------- */
+  /* ---------- 2. Ninguém esmaece, e a tela nunca fica descoberta ---------- */
+
+  /** Onde a camada está, em larguras de tela, num instante `t` da troca. */
+  const faixa = (camada, t) => {
+    const x = camada.desliza ? camada.desliza[0] + (camada.desliza[1] - camada.desliza[0]) * t : 0;
+    return [x, x + 1];
+  };
 
   for (const ativa of ABAS) {
     for (const anterior of [null, ...ABAS.filter((c) => c !== ativa)]) {
-      const cena = { ativa, anterior, seMexendo: anterior ?? ativa };
+      const cena = { ativa, anterior, seMexendo: anterior ?? ativa, ordem: ABAS };
       const onde = `${ativa} <- ${anterior}`;
       const camadas = new Map(ABAS.map((c) => [c, R.camadaDaAba(c, cena)]));
 
-      confere(onde, camadas.get(ativa).opacidade === null, 'a aba ativa não está na opacidade animada');
+      confere(onde, camadas.get(ativa).opacidade === 1, 'a aba ativa não está inteira');
       confere(
         onde,
         ABAS.filter((c) => camadas.get(c).recebeToque).length === 1 && camadas.get(ativa).recebeToque,
         'toque em mais de uma aba, ou na aba errada',
       );
-      /* A que sai fica **inteira** por baixo: esmaecendo junto, o fundo aparece. */
-      if (anterior) {
-        confere(
-          onde,
-          camadas.get(anterior).opacidade === 1,
-          `a aba que sai está em ${camadas.get(anterior).opacidade}, e não inteira`,
-        );
-        confere(
-          onde,
-          camadas.get(anterior).altura < camadas.get(ativa).altura,
-          'a aba que sai está por cima da que chega',
-        );
+
+      /*
+        A regra que tira o piscar: nenhuma camada translúcida, nunca. Zero ou
+        um, e mais nada — duas telas com opacidade no meio aparecem uma dentro
+        da outra.
+      */
+      for (const c of ABAS) {
+        const o = camadas.get(c).opacidade;
+        confere(onde, o === 0 || o === 1, `${c} está translúcida (${o}) — é assim que o piscar volta`);
       }
       for (const c of ABAS) {
         if (c === ativa || c === anterior) continue;
         confere(onde, camadas.get(c).opacidade === 0, `${c} aparece sem precisar`);
-        confere(onde, camadas.get(c).altura < camadas.get(ativa).altura, `${c} está por cima da ativa`);
+        confere(onde, camadas.get(c).desliza === null, `${c} anda sem participar da troca`);
       }
+
+      if (!anterior) {
+        confere(onde, camadas.get(ativa).desliza === null, 'a aba parada está andando');
+        continue;
+      }
+
+      /*
+        As duas que andam cobrem a tela em qualquer instante.
+
+        A tela é o intervalo [0, 1]. Se em algum momento sobrar um pedaço sem
+        nenhuma das duas por cima, ali aparece o fundo — e um rasgo de fundo
+        atravessando a tela é piscar igual.
+      */
+      const folga = 1e-9;
+      for (const t of [0, 0.02, 0.1, 0.25, 0.5, 0.75, 0.9, 0.98, 1]) {
+        const [aI, aF] = faixa(camadas.get(ativa), t);
+        const [pI, pF] = faixa(camadas.get(anterior), t);
+        const cobre =
+          Math.min(aI, pI) <= folga &&
+          Math.max(aF, pF) >= 1 - folga &&
+          Math.max(aI, pI) <= Math.min(aF, pF) + folga;
+        confere(onde, cobre, `em t=${t} a tela fica descoberta: ativa [${aI}, ${aF}], saindo [${pI}, ${pF}]`);
+      }
+
+      /* Elas andam para lados opostos, e a que chega acaba no lugar. */
+      const daAtiva = camadas.get(ativa).desliza;
+      const daAnterior = camadas.get(anterior).desliza;
+      confere(onde, daAtiva[1] === 0, 'a aba que chega não termina no lugar');
+      confere(onde, daAnterior[0] === 0, 'a aba que sai não começa no lugar');
+      confere(onde, Math.abs(daAtiva[0]) === 1, 'a aba que chega não entra de uma tela inteira');
+      confere(
+        onde,
+        Math.sign(daAtiva[0]) === -Math.sign(daAnterior[1]),
+        'as duas não andam para o mesmo lado',
+      );
+      /*
+        E a que sai anda **menos**. É o que faz as duas se cruzarem em vez de
+        se encostarem, e é o que não deixa aparecer um fio de fundo entre elas.
+      */
+      confere(
+        onde,
+        Math.abs(daAnterior[1]) > 0 && Math.abs(daAnterior[1]) < 1,
+        `a que sai anda ${Math.abs(daAnterior[1])} tela: andando a tela inteira, as duas se encostam e abre um fio de fundo`,
+      );
+      /* A que chega cobre a que sai — senão o cruzamento aparece como remendo. */
+      confere(
+        onde,
+        camadas.get(ativa).altura > camadas.get(anterior).altura,
+        'a aba que sai está por cima da que chega',
+      );
+
+      /* O movimento na tela é o movimento do dedo na barra. */
+      const paraADireita = ABAS.indexOf(ativa) > ABAS.indexOf(anterior);
+      confere(
+        onde,
+        daAtiva[0] === (paraADireita ? 1 : -1),
+        `a aba ${ativa} entra pelo lado errado da barra`,
+      );
     }
   }
 
@@ -136,7 +201,9 @@ function confere(onde, condicao, mensagem) {
 
   for (const ativa of ABAS) {
     for (const seMexendo of ABAS) {
-      const mexendo = ABAS.filter((c) => R.camadaDaAba(c, { ativa, anterior: null, seMexendo }).aVista);
+      const mexendo = ABAS.filter(
+        (c) => R.camadaDaAba(c, { ativa, anterior: null, seMexendo, ordem: ABAS }).aVista,
+      );
       confere(
         `mexendo ${ativa}/${seMexendo}`,
         mexendo.length === 1 && mexendo[0] === seMexendo,
@@ -152,11 +219,11 @@ function confere(onde, condicao, mensagem) {
     dentro da animação. É a diferença entre 140 ms de linha travada no meio do
     esmaecer e zero.
   */
-  const naTroca = { ativa: 'broto', anterior: 'home', seMexendo: 'home' };
+  const naTroca = { ativa: 'broto', anterior: 'home', seMexendo: 'home', ordem: ABAS };
   confere('troca', R.camadaDaAba('broto', naTroca).aVista === false, 'a aba que chega já se mexe durante a troca');
   confere('troca', R.camadaDaAba('home', naTroca).aVista === true, 'a aba que sai parou de se mexer durante a troca');
   /* Assentada, quem se mexe é a ativa e mais ninguém. */
-  const assentada = { ativa: 'broto', anterior: null, seMexendo: 'broto' };
+  const assentada = { ativa: 'broto', anterior: null, seMexendo: 'broto', ordem: ABAS };
   confere('assentada', R.camadaDaAba('broto', assentada).aVista === true, 'a aba ativa não se mexe depois da troca');
 
   /* ---------- 4. O aquecimento ---------- */
@@ -176,10 +243,16 @@ function confere(onde, condicao, mensagem) {
     R.proximaAAquecer(ABAS, ABAS) === null,
     'com tudo montado ele ainda pede mais uma — o efeito nunca pararia',
   );
+  /* Quem abre fora da Início aquece as outras duas do mesmo jeito. */
   confere(
     'aquecimento',
-    R.proximaAAquecer(['perfil'], ABAS) === 'home',
-    'quem abre fora da Início não aquece a Início',
+    R.proximaAAquecer(['perfil'], ABAS) === 'broto',
+    'quem abre no Perfil não aquece mais nada',
+  );
+  confere(
+    'aquecimento',
+    R.proximaAAquecer(['perfil', 'broto'], ABAS) === 'home',
+    'a Início fica de fora do aquecimento de quem abre no Perfil',
   );
 
   console.log(`${casos} conferências, ${falhas} falha(s)`);
