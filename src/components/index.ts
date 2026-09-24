@@ -63,6 +63,11 @@ export { StatRow, type Stat } from './feedback/StatRow';
 export { ScreenTransition, type TransitionMode } from './ScreenTransition';
 export { AbasVivas, useAbaAVista } from './AbasVivas';
 export {
+  CarrosselDeTemas,
+  alturaDoCartaoDoTema,
+  larguraDoCartaoDoTema,
+} from './brand/CarrosselDeTemas';
+export {
   CamadaEmpilhada,
   ProvedorDeCobertura,
   QuandoDescoberta,

@@ -4,6 +4,7 @@ import { Pressable, StyleProp, Text, View, ViewStyle } from 'react-native';
 import { useToqueAnimado } from '../../hooks/useToqueAnimado';
 import { fonts, radius, useTema } from '../../theme';
 import { Icon, type IconName } from '../core/Icon';
+import { CenarioDoTema, ehTemaComCenario } from './cenariosDosTemas';
 import { DesenhoDoTema, ehTemaDesenhado } from './desenhosDosTemas';
 
 type Props = {
@@ -34,6 +35,23 @@ type Props = {
    * palavras. Ela continua inteira dentro do tema.
    */
   grade?: boolean;
+  /**
+   * A largura do cartão, em pontos — quem a decide é a grade da tela inicial.
+   *
+   * O cenário é desenhado 1:1, sem escala, então ele precisa do número. Medir
+   * com `onLayout` custaria um quadro com o cartão vazio, que é justamente o
+   * corte seco que a tela inicial passou o dia tirando.
+   */
+  largura?: number;
+  /**
+   * A altura do cartão com cenário, em pontos.
+   *
+   * Ela deixou de ser constante quando os temas viraram carrossel: a fileira
+   * que anda não empilha, então o cartão pode crescer sem esticar a tela
+   * inicial, e quem decide o tamanho é quem monta a fileira. Sem ela, vale
+   * `ALTURA_COM_CENARIO`.
+   */
+  altura?: number;
 };
 
 /**
@@ -79,6 +97,30 @@ const ALTURA_NA_GRADE = 124;
 export const SOBRA_DO_DESENHO = 40;
 
 /**
+ * A altura do cartão que já virou cenário, e o respiro embaixo dele.
+ *
+ * O cartão cresce de 124 para 150 porque o cenário precisa de chão: o título de
+ * duas linhas acaba em 50, o horizonte fica em 88, e sobram 62 pontos de lugar.
+ * Com 124 sobravam 48, e 48 pontos não seguram uma cena com três planos.
+ *
+ * ## O que era sobra virou respiro
+ *
+ * No cartão com objeto, a faixa de baixo existe porque **o desenho passa da
+ * borda** — ver `SOBRA_DO_DESENHO`. No cartão com cenário nada atravessa a
+ * borda: o cartão é uma janela, e o que se vê por ela acaba nela. A faixa
+ * continua existindo, agora vazia, e faz duas coisas: separa uma fileira da
+ * seguinte (a grade tem `rowGap` zero, e quem sempre deu esse respiro foi esta
+ * faixa) e mantém a caixa do cartão do mesmo tamanho nos dois formatos.
+ *
+ * Os dois números somam **exatamente** o mesmo que `ALTURA_NA_GRADE +
+ * SOBRA_DO_DESENHO`: 164. É isso que deixa as treze cenas serem refeitas uma
+ * por vez sem a grade mudar de ritmo no meio da travessia. `confere-cenas`
+ * guarda a soma.
+ */
+export const ALTURA_COM_CENARIO = 150;
+export const RESPIRO_DO_CENARIO = 14;
+
+/**
  * O lado do desenho nos cartões pequenos.
  *
  * Ele e a sobra andam juntos: a borda do cartão corta o desenho na altura
@@ -100,6 +142,8 @@ export function PracticeTopicCard({
   onPress,
   style,
   grade = false,
+  largura,
+  altura,
 }: Props) {
   const { colors, palette, shadows } = useTema();
   /*
@@ -120,8 +164,23 @@ export function PracticeTopicCard({
     acabar dentro dele, que é o que o faz parecer ilustração e não ícone.
   */
   if (grade) {
+    /*
+      As treze cenas estão sendo refeitas uma por vez, de objeto para lugar.
+      Quem já virou cenário ganha um cartão mais alto; quem ainda não continua
+      exatamente como estava, com o objeto atravessando a borda de baixo.
+
+      A caixa é alta o bastante para os dois: na fileira que anda, todos os
+      cartões nascem do mesmo topo, e o mais alto decide a altura dela.
+    */
+    const comCenario = ehTemaComCenario(chave ?? '') && !!largura;
+    const alturaDoCartao = comCenario ? altura ?? ALTURA_COM_CENARIO : ALTURA_NA_GRADE;
+    const alturaDaCaixa = Math.max(
+      ALTURA_NA_GRADE + SOBRA_DO_DESENHO,
+      alturaDoCartao + (comCenario ? RESPIRO_DO_CENARIO : SOBRA_DO_DESENHO),
+    );
+
     return (
-      <View style={[{ height: ALTURA_NA_GRADE + SOBRA_DO_DESENHO }, style]}>
+      <View style={[{ height: alturaDaCaixa }, style]}>
         <Pressable
           accessibilityRole="button"
           accessibilityLabel={title}
@@ -131,7 +190,7 @@ export function PracticeTopicCard({
             top: 0,
             left: 0,
             right: 0,
-            height: ALTURA_NA_GRADE,
+            height: alturaDoCartao,
             backgroundColor: tint,
             borderRadius: radius.lg,
             padding: 13,
@@ -139,6 +198,23 @@ export function PracticeTopicCard({
             ...shadows.sm,
           })}
         >
+          {/*
+            O cenário vem **antes** do título, e é o que o põe por baixo dele.
+            O alto do cartão é o tom do grupo quase chapado, então o texto pousa
+            nele sem disputar com a paisagem. Ver `cenariosDosTemas`.
+          */}
+          {comCenario ? (
+            <View style={{ position: 'absolute', left: 0, top: 0 }} pointerEvents="none">
+              <CenarioDoTema
+                tema={chave ?? ''}
+                largura={largura ?? 0}
+                altura={alturaDoCartao}
+                tom={tint}
+                passo={passo}
+              />
+            </View>
+          ) : null}
+
           <Text
             numberOfLines={2}
             style={{
@@ -169,21 +245,30 @@ export function PracticeTopicCard({
           chão da caixa: é o canto que o título deixou livre, e é o que faz a
           cena parecer apoiada no cartão em vez de impressa nele.
         */}
-        <View
-          accessibilityElementsHidden
-          importantForAccessibility="no-hide-descendants"
-          pointerEvents="none"
-          style={{ position: 'absolute', right: 0, bottom: 0 }}
-        >
-          {ehTemaDesenhado(chave ?? '') ? (
-            <DesenhoDoTema tema={chave ?? ''} size={TAMANHO_DO_DESENHO} passo={passo} />
-          ) : (
-            /* Tema novo, ainda sem cena: o ícone de traço segura o lugar. */
-            <View style={{ padding: 26 }}>
-              <Icon name={icon} size={58} color={palette.brown900} />
-            </View>
-          )}
-        </View>
+        {/*
+          O objeto dos temas que ainda não viraram cenário, passando da borda.
+
+          Quem já virou não desenha nada aqui: a cena inteira mora dentro da
+          janela, e a faixa de baixo fica vazia de propósito — ver
+          `RESPIRO_DO_CENARIO`.
+        */}
+        {comCenario ? null : (
+          <View
+            accessibilityElementsHidden
+            importantForAccessibility="no-hide-descendants"
+            pointerEvents="none"
+            style={{ position: 'absolute', right: 0, bottom: 0 }}
+          >
+            {ehTemaDesenhado(chave ?? '') ? (
+              <DesenhoDoTema tema={chave ?? ''} size={TAMANHO_DO_DESENHO} passo={passo} />
+            ) : (
+              /* Tema novo, ainda sem cena: o ícone de traço segura o lugar. */
+              <View style={{ padding: 26 }}>
+                <Icon name={icon} size={58} color={palette.brown900} />
+              </View>
+            )}
+          </View>
+        )}
       </View>
     );
   }

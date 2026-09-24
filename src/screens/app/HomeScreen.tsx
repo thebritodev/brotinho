@@ -14,6 +14,9 @@ import {
   FundoDaTela,
   CenaDaPratica,
   OndeVoceParou,
+  alturaDoCartaoDoTema,
+  CarrosselDeTemas,
+  larguraDoCartaoDoTema,
   QuandoDescoberta,
   HarvestNotice,
   Icon,
@@ -392,6 +395,10 @@ export function HomeScreen({
 
   const stage = sproutStage(data);
 
+  /** O tamanho do cartão de tema, que a fileira que anda decide. Ver `CarrosselDeTemas`. */
+  const larguraDoCartao = larguraDoCartaoDoTema(largura);
+  const alturaDoCartao = alturaDoCartaoDoTema(larguraDoCartao);
+
   /*
     A comemoração de crescimento saiu daqui.
 
@@ -727,11 +734,17 @@ export function HomeScreen({
                 {grupo.titulo}
               </Text>
 
-              {/* O vão entre fileiras é menor que o das colunas porque cada
-                  célula já carrega embaixo a faixa em que o desenho passa da
-                  borda do cartão — ver `SOBRA_DO_DESENHO`. Com 12 nos dois, as
-                  fileiras ficariam com o dobro do respiro das colunas. */}
-              <View style={{ flexDirection: 'row', flexWrap: 'wrap', columnGap: 12, rowGap: 0 }}>
+              {/*
+                Cada grupo é uma fileira que anda, e não uma grade.
+
+                Em grade os treze temas apareciam de uma vez, em sete fileiras
+                de cartões de 124 pontos: descoberta máxima, presença mínima —
+                e nenhum deles com área para a cena caber. Na fileira que anda o
+                cartão cresce, a cena cabe, e a tela inicial encurta quatrocentos
+                pontos. Ver `CarrosselDeTemas` para o preço disso, e para o que
+                o paga.
+              */}
+              <CarrosselDeTemas largura={larguraDoCartao}>
                 {grupo.temas.map((chave) => {
                   const tema = findTopic(chave);
                   if (!tema) return null;
@@ -746,12 +759,14 @@ export function HomeScreen({
                          `practices` é dado, e guardaria a cor do tema claro
                          para sempre. */
                       tint={tintsDosTemas[tema.key]}
-                      style={{ width: (largura - 40 - 12) / 2 }}
+                      largura={larguraDoCartao}
+                      altura={alturaDoCartao}
+                      style={{ width: larguraDoCartao }}
                       onPress={() => onOpenPractices({ topico: tema.key, pratica: '' })}
                     />
                   );
                 })}
-              </View>
+              </CarrosselDeTemas>
             </View>
           ))}
 
