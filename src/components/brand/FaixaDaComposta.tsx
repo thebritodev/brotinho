@@ -7,6 +7,15 @@ import { useMenosMovimento } from '../../hooks/useMenosMovimento';
 import { useAbaAVista } from '../AbasVivas';
 import { useCoberta } from '../CamadaEmpilhada';
 import { BrotoNaTerra } from './BrotoAoVento';
+import {
+  CEU_ALTO,
+  CEU_BAIXO,
+  CEU_MEIO,
+  MORRO,
+  NUVEM,
+  PESO_DA_NUVEM,
+  TEXTO_NO_CEU,
+} from './ceuDaComposta';
 import { raizesDoBroto } from './raizesDoBroto';
 import { fonts, radius, useTema } from '../../theme';
 import { tracos } from '../../theme/tokens';
@@ -71,12 +80,13 @@ import {
  *
  * ## Nada aqui é cor escrita à mão
  *
- * O céu vem de `useTema`: o verde de estufa em cima, o fundo no meio, o tom
- * afundado embaixo. No escuro essas mesmas três viram um anoitecer sem eu
- * precisar de um caso especial — é a mesma conta que o `FundoDaTela` faz.
+ * Nem o céu nem a terra seguem o tema, e é de propósito: os dois são
+ * paisagem, e paisagem tem luz própria. A terra vem de `terraDoCanteiro`; o
+ * céu, de `ceuDaComposta`, que conta lá por que ele deixou de anoitecer junto
+ * com o app — e o que isso obriga em tudo o que fica em cima dele.
  *
- * A terra é a exceção, e é de propósito: ela vem de `terraDoCanteiro`, que não
- * segue o tema. Terra é a mesma de dia e de noite.
+ * O que segue o tema aqui é só o que está **abaixo da crista**: o título, a
+ * linha e o botão moram na terra, e a terra é escura nos dois temas.
  *
  * ## A animação não passa pelo JavaScript
  *
@@ -210,16 +220,10 @@ const MORROS = [
  * celular estreito e num largo; `rx` também, e `ry` é em pontos porque
  * nuvem que estica com a largura da tela vira tarja.
  *
- * São pintadas com `colors.surface` — a cor do que está por cima no tema,
- * que é mais clara que o céu no claro e mais clara que o escuro no escuro.
- * Branco fixo funcionaria de dia e, à noite, abriria dois buracos de luz.
+ * São brancas, e o reforço de opacidade está em `PESO_DA_NUVEM`: branco
+ * sobre creme, com a opacidade que bastava num céu escuro, deixava o céu liso
+ * de novo.
  */
-/*
-  No claro elas são branco sobre creme, e o creme já é claro: com a mesma
-  opacidade do escuro, o céu de dia ficava liso de novo. O reforço é só para
-  as duas coisas terem o mesmo peso nos dois temas.
-*/
-const NUVEM_NO_CLARO = 1.7;
 
 const NUVENS = [
   { x: 0.2, y: 0.46, rx: 0.34, ry: 22, op: 0.5 },
@@ -288,7 +292,8 @@ export function FaixaDaComposta({
   onPress,
   label,
 }: Props) {
-  const { colors, palette, tema } = useTema();
+  /* Só o que está abaixo da crista segue o tema: ver o cabeçalho. */
+  const { colors } = useTema();
   const id = useId().replace(/[^a-zA-Z0-9]/g, '');
   const menosMovimento = useMenosMovimento();
   /*
@@ -312,9 +317,6 @@ export function FaixaDaComposta({
   const altura = alturaDaFaixa(topo, cabecalho, queda, continua);
   /** Onde a terra começa a subir. Tudo acima disto é céu. */
   const crista = altura - alturaDaTerra;
-
-  /** O quanto as nuvens pesam neste tema. Ver `NUVEM_NO_CLARO`. */
-  const peso = tema === 'escuro' ? 1 : NUVEM_NO_CLARO;
 
   /*
     As raízes são sempre as mesmas para a mesma tela — a semente é fixa —,
@@ -417,9 +419,9 @@ export function FaixaDaComposta({
         <Svg width="100%" height="100%" viewBox={`0 0 ${largura} ${crista + 4}`}>
           <Defs>
             <LinearGradient id={`ceu-${id}`} x1="0" y1="0" x2="0" y2="1">
-              <Stop offset="0" stopColor={colors.primarySoft} stopOpacity={1} />
-              <Stop offset="0.3" stopColor={colors.bg} stopOpacity={1} />
-              <Stop offset="1" stopColor={colors.surfaceSunken} stopOpacity={1} />
+              <Stop offset="0" stopColor={CEU_ALTO} stopOpacity={1} />
+              <Stop offset="0.3" stopColor={CEU_MEIO} stopOpacity={1} />
+              <Stop offset="1" stopColor={CEU_BAIXO} stopOpacity={1} />
             </LinearGradient>
             {/*
               Um gradiente por morro, e todos terminando em zero.
@@ -438,16 +440,16 @@ export function FaixaDaComposta({
             {/* A mesma queda a zero dos morros: nuvem também não tem aresta. */}
             {NUVENS.map((n, i) => (
               <RadialGradient key={`n${i}`} id={`nuvem${i}-${id}`} cx="50%" cy="50%" r="50%">
-                <Stop offset="0" stopColor={colors.surface} stopOpacity={n.op * peso} />
-                <Stop offset="0.5" stopColor={colors.surface} stopOpacity={n.op * peso * 0.8} />
-                <Stop offset="1" stopColor={colors.surface} stopOpacity={0} />
+                <Stop offset="0" stopColor={NUVEM} stopOpacity={n.op * PESO_DA_NUVEM} />
+                <Stop offset="0.5" stopColor={NUVEM} stopOpacity={n.op * PESO_DA_NUVEM * 0.8} />
+                <Stop offset="1" stopColor={NUVEM} stopOpacity={0} />
               </RadialGradient>
             ))}
             {MORROS.map((m, i) => (
               <RadialGradient key={i} id={`morro${i}-${id}`} cx="50%" cy="50%" r="50%">
-                <Stop offset="0" stopColor={palette.green300} stopOpacity={m.op} />
-                <Stop offset="0.58" stopColor={palette.green300} stopOpacity={m.op * 0.88} />
-                <Stop offset="1" stopColor={palette.green300} stopOpacity={0} />
+                <Stop offset="0" stopColor={MORRO} stopOpacity={m.op} />
+                <Stop offset="0.58" stopColor={MORRO} stopOpacity={m.op * 0.88} />
+                <Stop offset="1" stopColor={MORRO} stopOpacity={0} />
               </RadialGradient>
             ))}
           </Defs>
@@ -547,19 +549,14 @@ export function FaixaDaComposta({
                 fontSize: p.fonte,
                 lineHeight: p.linha,
                 /*
-                  Segue o tema — e é a única coisa desta faixa que segue.
+                  Não segue o tema, porque o céu por onde elas caem também não.
 
-                  A cena antiga pintava as palavras com `tracos.contorno`, que
-                  é fixo (`tracos` existe para o desenho não seguir o tema).
-                  Lá isso funcionava porque elas caíam sobre a superfície clara
-                  de um cartão. Aqui elas caem sobre o **céu**, que escurece à
-                  noite — e `tracos.contorno` é #3A3630 nos dois temas, ou seja
-                  1,1 de contraste contra o céu escuro.
-
-                  Elas são texto, não desenho: `colors.textPrimary` inverte
-                  junto com o céu e resolve os dois casos de uma vez.
+                  Por um tempo elas foram `colors.textPrimary`, e era o certo:
+                  o céu escurecia à noite, e o texto clareava junto. Com o céu
+                  fixo em claro, esse mesmo acerto passaria a escrever creme
+                  sobre creme. Ver `TEXTO_NO_CEU`.
                 */
-                color: colors.textPrimary,
+                color: TEXTO_NO_CEU,
                 opacity: opacidade,
                 transform: [{ translateX: coluna }, { translateY: andar }, { rotate: giro }],
               }}

@@ -114,6 +114,22 @@ function razao(frente, fundo) {
   fs.renameSync(terraJs, terraMjs);
   const terra = await import('file://' + terraMjs.split(path.sep).join('/'));
 
+  /* O céu da mesma faixa, que também não segue o tema. Ver `ceuDaComposta`. */
+  const saidaDoCeu = pastaTemporaria('ceu');
+  execFileSync(
+    process.execPath,
+    [
+      tsc, '--outDir', saidaDoCeu, '--module', 'esnext', '--target', 'es2020',
+      '--moduleResolution', 'bundler', '--strict', '--skipLibCheck',
+      path.join(RAIZ, 'src', 'components', 'brand', 'ceuDaComposta.ts'),
+    ],
+    { stdio: 'inherit', cwd: RAIZ },
+  );
+  const ceuJs = path.join(saidaDoCeu, 'ceuDaComposta.js');
+  const ceuMjs = ceuJs.replace(/\.js$/, '.mjs');
+  fs.renameSync(ceuJs, ceuMjs);
+  const ceu = await import('file://' + ceuMjs.split(path.sep).join('/'));
+
   let falhas = 0;
   const linha = (nome, frente, fundo, piso) => {
     const r = razao(frente, fundo);
@@ -179,6 +195,36 @@ function razao(frente, fundo) {
     terra.TEXTO_NA_TERRA_FRACO,
     terra.TERRA_SOMBRA,
     AA_TEXTO,
+  );
+
+  /*
+    O que fica em cima do **céu** da Composta — e também sem tema.
+
+    O céu deixou de anoitecer junto com o app: ver `ceuDaComposta`. A partir
+    daí, quem escreve sobre ele tem o mesmo problema que quem escreve sobre a
+    terra, ao contrário — se alguém devolver `colors.textPrimary` à saudação
+    ou às palavras que caem, no escuro elas viram creme sobre creme, e ninguém
+    repara até abrir o app à noite.
+
+    O pior tom sob elas é `CEU_MEIO`, o creme do meio do degradê; as pontas
+    são mais escuras, e portanto mais fáceis. As palavras ainda caem com
+    opacidade abaixo de 1 no começo e no fim da queda — o que se mede aqui é o
+    tom cheio, que é o do meio do caminho, onde elas são para ser lidas.
+  */
+  console.log('\n— texto sobre o céu (sem tema) —');
+  linha('saudação e palavras sobre o céu', ceu.TEXTO_NO_CEU, ceu.CEU_MEIO, AA_TEXTO);
+  linha('as mesmas sobre o alto do céu', ceu.TEXTO_NO_CEU, ceu.CEU_ALTO, AA_TEXTO);
+  linha('as mesmas sobre o pé do céu', ceu.TEXTO_NO_CEU, ceu.CEU_BAIXO, AA_TEXTO);
+  linha('texto fraco sobre o céu', ceu.TEXTO_NO_CEU_FRACO, ceu.CEU_MEIO, AA_TEXTO);
+  /*
+    O ícone dentro da pastilha do cabeçalho. O vidro é branco a 75% sobre o
+    céu, então o fundo real do ícone é essa mistura, e não o céu puro.
+  */
+  linha(
+    'ícone do cabeçalho na pastilha',
+    ceu.TEXTO_NO_CEU,
+    mistura(ceu.CEU_MEIO, '#FFFFFF', 0.75),
+    AA_GRANDE,
   );
 
   for (const [nomeDoTema, t] of Object.entries(TEMAS)) {

@@ -20,9 +20,12 @@ import {
   IconButton,
   PracticeTopicCard,
   VoltaCard,
+  useAbaAVista,
+  useCoberta,
   useCompartilharFrase,
   type ChuvaDeFarelosRef,
 } from '../../components';
+import { setStatusBarStyle } from 'expo-status-bar';
 import { toqueLeve } from '../../services/toque';
 import { conselhoDoDia } from '../../data/conselhos';
 import { POR_TRAS_DA_BARRA } from '../../components/navigation/BottomNav';
@@ -49,6 +52,7 @@ import {
   sproutStage,
 } from '../../state/derived';
 import { fonts, useTema } from '../../theme';
+import { TEXTO_NO_CEU, VIDRO_NO_CEU } from '../../components/brand/ceuDaComposta';
 
 /**
  * A tela inicial: o lugar de **fazer**.
@@ -138,6 +142,40 @@ type Props = {
   onOpenReminders: () => void;
   onOpenGarden: () => void;
 };
+
+/**
+ * Pede ícones escuros na barra de status enquanto esta tela está à vista.
+ *
+ * O céu da Composta é claro nos dois temas — ver `ceuDaComposta` —, e ele
+ * encosta no alto da tela. No escuro, a barra de status é de ícones brancos:
+ * relógio e bateria sumiriam dentro do céu, e só aqui.
+ *
+ * ## Por que um componente, e por que estas duas perguntas
+ *
+ * As três abas ficam montadas ao mesmo tempo — ver `AbasVivas` —, então "esta
+ * tela existe" não quer dizer "esta tela está aparecendo". E com uma prática
+ * aberta por cima, a tela inicial continua montada embaixo: ali o alto da tela
+ * é a prática, que é escura, e os ícones têm de voltar a ser brancos.
+ *
+ * Ler os dois contextos aqui, e não no corpo da `HomeScreen`, é a regra de
+ * sempre: quem lê contexto é redesenhado quando ele muda, e os dois mudam no
+ * instante de um toque. Este devolve `null`.
+ *
+ * Ele desfaz o que fez, em vez de confiar no desmonte: `expo-status-bar` não
+ * restaura nada sozinho quando o componente sai.
+ */
+function BarraSobreOCeu() {
+  const aVista = useAbaAVista();
+  const coberta = useCoberta();
+  const { tema } = useTema();
+  const sobreOCeu = aVista && !coberta;
+
+  useEffect(() => {
+    setStatusBarStyle(sobreOCeu ? 'dark' : tema === 'escuro' ? 'light' : 'dark');
+  }, [sobreOCeu, tema]);
+
+  return null;
+}
 
 export function HomeScreen({
   name,
@@ -388,6 +426,9 @@ export function HomeScreen({
   return (
     <View style={{ flex: 1 }}>
       {/* A luz e a descida ficam atrás de tudo, inclusive da rolagem. */}
+      {/* Não desenha nada: acerta a barra de status. Ver `BarraSobreOCeu`. */}
+      <BarraSobreOCeu />
+
       <FundoDaTela />
 
       <ScrollView
@@ -493,10 +534,16 @@ export function HomeScreen({
           onPress={onOpenComposta}
           label="Compostar esse pensamento: repita em voz alta por 30 segundos, até virar só som"
         >
+          {/*
+            O cabeçalho mora **dentro do céu**, e o céu não segue o tema — ver
+            `ceuDaComposta`. Então nada aqui pode seguir: no escuro, a
+            saudação seria creme sobre creme e as pastilhas de vidro seriam
+            branco a 6% sobre branco, ou seja, dois botões invisíveis.
+          */}
           <View style={{ flexDirection: 'row', alignItems: 'center' }}>
             <View style={{ flex: 1 }}>
               <Text
-                style={{ color: colors.textPrimary, fontFamily: fonts.display.bold, fontSize: 25 }}
+                style={{ color: TEXTO_NO_CEU, fontFamily: fonts.display.bold, fontSize: 25 }}
               >
                 Oi, {name}
               </Text>
@@ -504,15 +551,17 @@ export function HomeScreen({
             <View style={{ flexDirection: 'row', gap: 6 }}>
               <IconButton
                 accessibilityLabel="Lembretes"
-                icon={<Icon name="bell" />}
+                icon={<Icon name="bell" color={TEXTO_NO_CEU} />}
                 onPress={onOpenReminders}
                 forma="vidro"
+                background={VIDRO_NO_CEU}
               />
               <IconButton
                 accessibilityLabel="Configurações"
-                icon={<Icon name="settings" />}
+                icon={<Icon name="settings" color={TEXTO_NO_CEU} />}
                 onPress={onOpenSettings}
                 forma="vidro"
+                background={VIDRO_NO_CEU}
               />
             </View>
           </View>
