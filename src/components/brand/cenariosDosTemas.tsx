@@ -13,7 +13,7 @@ import Svg, {
 
 import { palette, tracos } from '../../theme/tokens';
 import { cresce, curva, gira } from './movimentoDaCena';
-import { BRASA, TERRA, TERRA_CLARA, TERRA_FUNDA } from './terraDoCanteiro';
+import { BRASA, TERRA, TERRA_CLARA, TERRA_FUNDA, TERRA_SOMBRA } from './terraDoCanteiro';
 
 /**
  * O tema de prática como **lugar**, ocupando o cartão inteiro.
@@ -88,6 +88,13 @@ const PEDRA_CLARA = palette.slate100;
 const CARVAO = palette.terracotta400;
 const BRASA_VIVA = palette.amber400;
 const FUMACA = palette.brown400;
+
+/** O acento da insônia: a última luz do dia, e a lua. */
+const LUA = palette.yellow100;
+const CRATERA = palette.amber100;
+const ESTRELA = palette.amber400;
+const NUVEM = palette.lavender100;
+const NUVEM_SOMBRA = palette.lavender300;
 
 /** A haste do broto, para as cenas que têm planta de pé. */
 const HASTE = tracos.haste;
@@ -915,12 +922,207 @@ function Raiva({ l, a, p, id }: CenarioProps) {
   );
 }
 
+/* ---------- Insônia: o campo no fim da luz ---------- */
+
+/**
+ * A lua baixa, duas estrelas quietas e uma nuvem assentando embaixo dela.
+ *
+ * ## A metáfora, herdada e intacta
+ *
+ * As estrelas já piscaram fora de compasso, de propósito, para dar "a noite
+ * acordada" — e noite acordada era o tema quando o cartão se chamava "Insônia".
+ * Hoje ele diz "Preparar o sono", e a cena precisa mostrar o contrário: **nada
+ * se mexendo quando você quer que tudo pare**. Então elas baixam juntas até um
+ * brilho fraco, e a nuvem desce e se acomoda embaixo da lua, como travesseiro
+ * recebendo peso.
+ *
+ * ## Por que é o fim da tarde, e não a noite fechada
+ *
+ * O céu de toda cena começa no tom do grupo e assenta no creme do app — é o que
+ * emenda a paisagem com o cartão, e o que faz o escuro virar amanhecer sozinho.
+ * Uma noite fechada precisaria romper com isso, e romperia por um cartão só.
+ *
+ * O fim da luz resolve igual e é mais fiel ao que a prática faz: ela não é
+ * dormir, é **preparar** o sono. A lua já subiu, as estrelas já apareceram, e o
+ * horizonte ainda tem a última claridade do dia. É a hora em que se começa a
+ * desacelerar, não a hora em que já se está dormindo.
+ *
+ * ## Onde a lua cabe
+ *
+ * Abaixo do pé do título e acima do horizonte: é a única faixa de céu que não é
+ * do texto. Por isso ela é baixa — e lua baixa é lua que acabou de subir, que é
+ * exatamente a hora da cena.
+ */
+function Insonia({ l, a, p, id }: CenarioProps) {
+  const h = horizonteDaCena(a);
+  /** A faixa de céu livre: entre o pé do título e a linha do horizonte. */
+  const ceuLivre = h - peDoTituloNaCena(a);
+  const luaX = l * 0.78;
+  const luaY = peDoTituloNaCena(a) + ceuLivre * 0.5;
+  const luaR = Math.min(20, ceuLivre * 0.47);
+  /** A nuvem fica deitada no horizonte, à esquerda da lua. */
+  const nuvemX = l * 0.42;
+  const nuvemAlto = Math.min(15, ceuLivre * 0.4);
+
+  return (
+    <>
+      <Defs>
+        <LinearGradient id={`noite-${id}`} x1="0" y1="0" x2="0" y2="1">
+          <Stop offset="0" stopColor={TERRA} />
+          <Stop offset="0.35" stopColor={TERRA_FUNDA} />
+          <Stop offset="1" stopColor={TERRA_SOMBRA} />
+        </LinearGradient>
+        <RadialGradient id={`mataI-${id}`} cx="50%" cy="50%" r="50%">
+          <Stop offset="0" stopColor={FOLHA} stopOpacity={0.95} />
+          <Stop offset="0.58" stopColor={FOLHA} stopOpacity={0.8} />
+          <Stop offset="1" stopColor={FOLHA} stopOpacity={0} />
+        </RadialGradient>
+        {/*
+          A claridade no chão cai a zero na borda, como o halo de calor da
+          raiva. Com opacidade chapada ela vira uma poça: aparece a aresta da
+          elipse, e luz não tem aresta.
+        */}
+        <RadialGradient id={`luar-${id}`} cx="50%" cy="50%" r="50%">
+          <Stop offset="0" stopColor={CREME} stopOpacity={0.22} />
+          <Stop offset="0.5" stopColor={CREME} stopOpacity={0.11} />
+          <Stop offset="1" stopColor={CREME} stopOpacity={0} />
+        </RadialGradient>
+      </Defs>
+
+      {/*
+        A mata ao longe é a mais fechada das quatro cenas, e é o que diz a hora.
+
+        No fim da luz, o que está entre você e o horizonte perde a cor antes de
+        perder a forma. Nas outras cenas a mata é um verde apagado; aqui ela é
+        quase opaca, e o que sobra de claro fica por conta da faixa de última
+        claridade logo abaixo dela.
+      */}
+      <Ellipse cx={l * 0.26} cy={h - 1} rx={l * 0.4} ry={a * 0.055} fill={`url(#mataI-${id})`} />
+      <Ellipse cx={l * 0.86} cy={h + 2} rx={l * 0.3} ry={a * 0.045} fill={`url(#mataI-${id})`} />
+
+      {/* A última claridade do dia, deitada na linha do horizonte. */}
+      <Path
+        d={`M0 ${h + 2} C${l * 0.3} ${h - 3} ${l * 0.7} ${h - 3} ${l} ${h + 2} L${l} ${h + 6} L0 ${h + 6} Z`}
+        fill={CREME}
+        opacity={0.55}
+      />
+
+      <Path
+        d={`M0 ${h + 4} C${l * 0.3} ${h - 1} ${l * 0.7} ${h - 1} ${l} ${h + 4} L${l} ${a + 20} L0 ${a + 20} Z`}
+        fill={`url(#noite-${id})`}
+      />
+
+      {/*
+        A luz da lua deitada no chão, embaixo dela.
+
+        O chão desta cena é o mais escuro das quatro — é noite — e sem nada
+        acontecendo nele o cartão virava uma faixa preta com dois tufos. A
+        claridade no chão resolve os dois: dá o que olhar, e diz que a lua está
+        acesa. É a mesma peça que o halo de calor é na cova da raiva.
+      */}
+      <Ellipse cx={luaX - l * 0.04} cy={a * 0.88} rx={l * 0.34} ry={a * 0.12} fill={`url(#luar-${id})`} />
+
+      {/* O chão indo embora, como na cova da raiva: é o que dá distância. */}
+      {[
+        { x: 0.16, y: 0.76, r: 1.5, op: 0.22 },
+        { x: 0.5, y: 0.8, r: 1.9, op: 0.2 },
+        { x: 0.9, y: 0.85, r: 2.3, op: 0.18 },
+      ].map((m, i) => (
+        <Ellipse key={i} cx={l * m.x} cy={a * m.y} rx={m.r} ry={m.r * 0.8} fill={CREME} opacity={m.op} />
+      ))}
+
+      {/*
+        As duas estrelas, baixando **juntas**. Fora de compasso elas dizem
+        "ainda acordado", que é o tema anterior deste cartão.
+      */}
+      <G opacity={curva(p, [1, 0.86, 0.7, 0.56, 0.45])}>
+        {[
+          { x: 0.09, y: 0.28, r: 3.2 },
+          { x: 0.2, y: 0.62, r: 2.2 },
+          { x: 0.62, y: 0.2, r: 2 },
+        ].map((e, i) => {
+          const ex = l * e.x;
+          const ey = peDoTituloNaCena(a) + ceuLivre * e.y;
+          return (
+            <Path
+              key={i}
+              d={`M${ex} ${ey - e.r} L${ex + e.r * 0.34} ${ey - e.r * 0.34} L${ex + e.r} ${ey} L${ex + e.r * 0.34} ${ey + e.r * 0.34} L${ex} ${ey + e.r} L${ex - e.r * 0.34} ${ey + e.r * 0.34} L${ex - e.r} ${ey} L${ex - e.r * 0.34} ${ey - e.r * 0.34} Z`}
+              fill={ESTRELA}
+            />
+          );
+        })}
+      </G>
+
+      {/*
+        A nuvem, deitada no horizonte e à esquerda da lua.
+
+        Ela já esteve **embaixo** da lua, como travesseiro recebendo o peso
+        dela. Num cartão de 130 a faixa de céu livre tem trinta e dois pontos, e
+        as duas empilhadas ali viravam uma coisa só: a nuvem cobria a lua e
+        sobrava uma foice espiando por cima. Lado a lado, a nuvem continua
+        cedendo — ela desce e alarga um fio, do jeito que travesseiro cede — e a
+        lua continua inteira.
+      */}
+      <G
+        transform={[
+          `translate(0 ${curva(p, [0, 0.7, 1.3, 1.7, 2])})`,
+          cresce(curva(p, [1, 1.01, 1.02, 1.03, 1.04]), nuvemX, h - 1),
+        ].join(' ')}
+      >
+        <Path
+          d={`M${nuvemX - 27} ${h - 1} C${nuvemX - 33} ${h - 1} ${nuvemX - 36} ${h - nuvemAlto * 0.4} ${nuvemX - 36} ${h - nuvemAlto * 0.64} C${nuvemX - 36} ${h - nuvemAlto * 0.92} ${nuvemX - 31} ${h - nuvemAlto * 1.05} ${nuvemX - 26} ${h - nuvemAlto} C${nuvemX - 23} ${h - nuvemAlto * 1.5} ${nuvemX - 13} ${h - nuvemAlto * 1.62} ${nuvemX - 6} ${h - nuvemAlto * 1.32} C${nuvemX + 1} ${h - nuvemAlto * 1.16} ${nuvemX + 6} ${h - nuvemAlto * 0.85} ${nuvemX + 7} ${h - nuvemAlto * 0.6} C${nuvemX + 16} ${h - nuvemAlto * 0.84} ${nuvemX + 25} ${h - nuvemAlto * 0.5} ${nuvemX + 25} ${h - nuvemAlto * 0.2} C${nuvemX + 25} ${h - 1.6} ${nuvemX + 22} ${h - 1} ${nuvemX + 18} ${h - 1} Z`}
+          fill={NUVEM}
+          stroke={CONTORNO}
+          strokeWidth={1.5}
+          strokeLinejoin="round"
+        />
+        {/* A barriga da nuvem, um tom abaixo: peso recebido tem sombra. */}
+        <Path
+          d={`M${nuvemX - 32} ${h - nuvemAlto * 0.42} C${nuvemX - 23} ${h - 2.6} ${nuvemX - 8} ${h - 2} ${nuvemX + 6} ${h - 2} C${nuvemX + 13} ${h - 2} ${nuvemX + 20} ${h - 2.4} ${nuvemX + 23} ${h - 3.4} C${nuvemX + 22.5} ${h - 1.8} ${nuvemX + 21} ${h - 1.3} ${nuvemX + 18} ${h - 1.3} L${nuvemX - 27} ${h - 1.3} C${nuvemX - 30} ${h - 1.3} ${nuvemX - 31.4} ${h - nuvemAlto * 0.28} ${nuvemX - 32} ${h - nuvemAlto * 0.42} Z`}
+          fill={NUVEM_SOMBRA}
+          opacity={0.45}
+        />
+      </G>
+
+      {/* A lua, pendendo um fio de grau — o único movimento dela. */}
+      <G transform={gira(curva(p, [0, -1, -2, -2.6, -3]), luaX, luaY)}>
+        <Path
+          d={`M${luaX + luaR * 0.32} ${luaY - luaR} C${luaX - luaR * 0.16} ${luaY - luaR * 0.9} ${luaX - luaR * 0.53} ${luaY - luaR * 0.47} ${luaX - luaR * 0.53} ${luaY} C${luaX - luaR * 0.53} ${luaY + luaR * 0.47} ${luaX - luaR * 0.16} ${luaY + luaR * 0.9} ${luaX + luaR * 0.32} ${luaY + luaR} C${luaX - luaR * 0.05} ${luaY + luaR * 0.63} ${luaX - luaR * 0.21} ${luaY + luaR * 0.32} ${luaX - luaR * 0.21} ${luaY} C${luaX - luaR * 0.21} ${luaY - luaR * 0.32} ${luaX - luaR * 0.05} ${luaY - luaR * 0.63} ${luaX + luaR * 0.32} ${luaY - luaR} Z`}
+          fill={LUA}
+          stroke={CONTORNO}
+          strokeWidth={1.7}
+          strokeLinejoin="round"
+        />
+        {/*
+          Três crateras, do lado de dentro da foice: é o detalhe que faz a lua
+          parar de ser uma fatia de melão.
+        */}
+        <Ellipse cx={luaX - luaR * 0.12} cy={luaY - luaR * 0.45} rx={luaR * 0.14} ry={luaR * 0.12} fill={CRATERA} opacity={0.85} />
+        <Ellipse cx={luaX - luaR * 0.3} cy={luaY + luaR * 0.06} rx={luaR * 0.1} ry={luaR * 0.085} fill={CRATERA} opacity={0.7} />
+        <Ellipse cx={luaX - luaR * 0.06} cy={luaY + luaR * 0.48} rx={luaR * 0.075} ry={luaR * 0.065} fill={CRATERA} opacity={0.6} />
+        <Path
+          d={`M${luaX + luaR * 0.1} ${luaY - luaR * 0.88} C${luaX - luaR * 0.24} ${luaY - luaR * 0.68} ${luaX - luaR * 0.44} ${luaY - luaR * 0.36} ${luaX - luaR * 0.44} ${luaY}`}
+          stroke="#FFFFFF"
+          strokeWidth={1.3}
+          strokeLinecap="round"
+          fill="none"
+          opacity={0.6}
+        />
+      </G>
+
+      <Capim x={l * 0.1} y={a * 0.96} alto={12} cor={CONTORNO_FOLHA} balanco={curva(p, [0, -1.2, -1.8, -0.8, 0])} />
+      <Capim x={l * 0.72} y={a * 0.93} alto={10} cor={CONTORNO_FOLHA} balanco={curva(p, [0, 1, 1.6, 0.7, 0])} />
+    </>
+  );
+}
+
 /* ---------- O mapa, que cresce a cada cartão aprovado ---------- */
 
 const CENARIOS: Record<string, (props: CenarioProps) => React.JSX.Element> = {
   ansiedade: Ansiedade,
   estresse: Estresse,
   raiva: Raiva,
+  insonia: Insonia,
 };
 
 export function ehTemaComCenario(chave: string): boolean {
