@@ -80,6 +80,24 @@ const CONTORNO_FOLHA = tracos.contornoFolha;
 const AGUA = palette.blue300;
 const AGUA_CLARA = palette.blue100;
 
+/** O acento do estresse: pedra. */
+const PEDRA = palette.slate300;
+const PEDRA_CLARA = palette.slate100;
+
+/** A haste do broto, para as cenas que têm planta de pé. */
+const HASTE = tracos.haste;
+
+/**
+ * A folha do broto, a mesma que `desenhosDosTemas` usa.
+ *
+ * Copiada e não importada de propósito: lá ela é uma constante de módulo sem
+ * `export`, e abrir um buraco na outra só para isto amarraria os dois arquivos
+ * — o antigo vai encolhendo a cada tema refeito, e o dia em que ele sumir não
+ * pode levar nada daqui junto.
+ */
+const FOLHA_DO_BROTO =
+  'M0 0 C -6 -14 -18 -26 -32 -24 C -42 -22 -44 -6 -34 4 C -22 16 -8 12 0 0 Z';
+
 /* ---------- As proporções, iguais para todas as cenas ---------- */
 
 /**
@@ -362,10 +380,259 @@ function Ansiedade({ l, a, p, id }: CenarioProps) {
   );
 }
 
+/* ---------- Estresse: a clareira depois que a pedra desceu ---------- */
+
+/**
+ * A pedra está no chão, ao lado, e o broto está de pé.
+ *
+ * ## A metáfora vem inteira da cena antiga, e ela é boa demais para se perder
+ *
+ * A pedra já esteve **em cima** do broto, com a folha escapando por baixo:
+ * peso, e alguém passando apesar dele. O cartão diz "Baixar o estresse", e
+ * baixar é exatamente o que a pedra faz — ela saiu de cima e foi posta no chão.
+ * Continua ali, e continua pedra: o estresse não evapora, sai de cima.
+ *
+ * O broto é o mais alto da cena, e é de propósito: quem está mais alto numa
+ * cena é quem manda nela.
+ *
+ * ## Por que o lugar é campo aberto, e não outra água
+ *
+ * Este tema divide o grupo com a ansiedade, e os dois cartões ficam lado a
+ * lado na mesma fileira. Se o meio da cena fosse água nos dois, eles leriam
+ * como o mesmo lugar em duas cores. Aqui o meio é chão: um campo subindo até a
+ * crista, com a mata escura ao longe.
+ *
+ * ## O movimento
+ *
+ * O mesmo da cena antiga, porque ele já dizia a coisa certa: a pedra assenta um
+ * fio de ponto — peso que acaba de ser posto no chão ainda acomoda — e o broto
+ * estica, sem pressa, como talo que perdeu o que o dobrava.
+ */
+function Estresse({ l, a, p, id }: CenarioProps) {
+  const h = a * HORIZONTE;
+  /** Onde o campo encontra a terra do primeiro plano. */
+  const chao = a * 0.8;
+  /** O pé da pedra e o do broto: os dois no mesmo chão. */
+  const pe = a * 0.9;
+
+  return (
+    <>
+      <Defs>
+        {/*
+          O campo é seco, e não verde.
+
+          Verde do horizonte até a pedra fazia do meio da cena uma massa só: a
+          mata ao longe, o campo e o capim eram o mesmo tom em três opacidades,
+          e o olho não achava onde uma coisa acabava e a outra começava. Em tom
+          seco o campo separa da mata por matiz, e não por opacidade — e é o
+          creme do próprio app, que já é a cor do papel de todas as telas.
+        */}
+        <LinearGradient id={`campo-${id}`} x1="0" y1="0" x2="0" y2="1">
+          <Stop offset="0" stopColor={palette.cream300} stopOpacity={0.95} />
+          <Stop offset="1" stopColor={TERRA_CLARA} stopOpacity={0.9} />
+        </LinearGradient>
+        {/*
+          A terra do primeiro plano começa já no tom médio, e não no claro.
+
+          Com o campo seco logo acima, começar no `TERRA_CLARA` emendava os
+          dois num marrom só e o chão perdia a borda. O degrau de valor entre
+          campo e terra é o que diz onde a pessoa está de pé.
+        */}
+        <LinearGradient id={`terra-${id}`} x1="0" y1="0" x2="0" y2="1">
+          <Stop offset="0" stopColor={TERRA} />
+          <Stop offset="0.45" stopColor={TERRA_FUNDA} />
+          <Stop offset="1" stopColor={TERRA_FUNDA} />
+        </LinearGradient>
+        {/* A mata ao longe: sem contorno, e caindo a zero nas bordas. */}
+        <RadialGradient id={`mata-${id}`} cx="50%" cy="50%" r="50%">
+          <Stop offset="0" stopColor={FOLHA} stopOpacity={0.9} />
+          <Stop offset="0.58" stopColor={FOLHA} stopOpacity={0.78} />
+          <Stop offset="1" stopColor={FOLHA} stopOpacity={0} />
+        </RadialGradient>
+
+      </Defs>
+
+      {/* A mata ao longe, baixa e comprida: é o pé da paisagem. */}
+      <Ellipse cx={l * 0.3} cy={h} rx={l * 0.42} ry={a * 0.062} fill={`url(#mata-${id})`} />
+      <Ellipse cx={l * 0.86} cy={h + 2} rx={l * 0.3} ry={a * 0.05} fill={`url(#mata-${id})`} />
+
+      {/*
+        A cerca viva na crista: uma borda **com aresta**, logo abaixo da mata
+        que não tem nenhuma.
+
+        Sem ela, tudo entre o céu e a pedra é verde sem contorno, e o meio da
+        cena lê como névoa em vez de chão. Uma linha definida ali diz onde o
+        campo começa, e dá ao olho de onde descer até o primeiro plano.
+      */}
+      <Path
+        d={`M0 ${h + 6} C${l * 0.14} ${h + 1} ${l * 0.27} ${h + 3} ${l * 0.42} ${h + 2} C${l * 0.6} ${h + 1} ${l * 0.78} ${h + 5} ${l} ${h + 2} L${l} ${h + 13} L0 ${h + 13} Z`}
+        fill={FOLHA}
+        opacity={0.8}
+      />
+
+      {/* O campo, subindo até a crista. */}
+      <Path
+        d={`M0 ${h + 3} C${l * 0.28} ${h - 2} ${l * 0.72} ${h - 2} ${l} ${h + 3} L${l} ${chao + 3} C${l * 0.7} ${chao - 2} ${l * 0.3} ${chao - 2} 0 ${chao + 3} Z`}
+        fill={`url(#campo-${id})`}
+      />
+      {/* Dois riscos de luz deitados no campo: o vento que passou e parou. */}
+      <Path
+        d={`M${l * 0.12} ${a * 0.63} C${l * 0.24} ${a * 0.622} ${l * 0.38} ${a * 0.622} ${l * 0.48} ${a * 0.632}`}
+        stroke={CREME}
+        strokeWidth={1.4}
+        strokeLinecap="round"
+        fill="none"
+        opacity={0.45}
+      />
+      <Path
+        d={`M${l * 0.56} ${a * 0.7} C${l * 0.68} ${a * 0.693} ${l * 0.8} ${a * 0.693} ${l * 0.9} ${a * 0.703}`}
+        stroke={CREME}
+        strokeWidth={1.2}
+        strokeLinecap="round"
+        fill="none"
+        opacity={0.32}
+      />
+
+      {/*
+        Capim espalhado pelo campo, menor e mais apagado quanto mais longe.
+
+        O que faz o campo é a repetição, não o detalhe de cada tufo.
+
+        ## O que já esteve aqui, e por que saiu
+
+        Um rastro de terra aberta descendo a encosta, contando de onde a pedra
+        tinha vindo. A ideia servia à metáfora e o desenho não servia à ideia:
+        num vão de sessenta pontos de altura, a faixa que estreita subindo vira
+        um triângulo com ponta no horizonte, e triângulo com ponta lê como
+        tenda. O que conta a história aqui é a própria pedra, no chão, com o
+        broto de pé e mais alto que ela.
+      */}
+      {[
+        { x: 0.16, y: 0.655, alto: 7, op: 0.42 },
+        { x: 0.38, y: 0.665, alto: 7, op: 0.42 },
+        { x: 0.62, y: 0.65, alto: 6, op: 0.38 },
+        { x: 0.8, y: 0.685, alto: 9, op: 0.5 },
+        { x: 0.28, y: 0.72, alto: 10, op: 0.55 },
+        { x: 0.55, y: 0.745, alto: 11, op: 0.6 },
+        { x: 0.09, y: 0.75, alto: 11, op: 0.6 },
+      ].map((t, i) => (
+        <G key={i} opacity={t.op}>
+          <Path
+            d={`M${l * t.x} ${a * t.y} C${l * t.x - 1} ${a * t.y - t.alto * 0.6} ${l * t.x - 2.5} ${a * t.y - t.alto * 0.85} ${l * t.x - 3.5} ${a * t.y - t.alto}`}
+            stroke={HASTE}
+            strokeWidth={1.5}
+            strokeLinecap="round"
+            fill="none"
+          />
+          <Path
+            d={`M${l * t.x + 1.5} ${a * t.y} C${l * t.x + 1.5} ${a * t.y - t.alto * 0.6} ${l * t.x + 2} ${a * t.y - t.alto * 0.9} ${l * t.x + 2.5} ${a * t.y - t.alto * 1.1}`}
+            stroke={HASTE}
+            strokeWidth={1.5}
+            strokeLinecap="round"
+            fill="none"
+          />
+        </G>
+      ))}
+
+      {/* A terra do primeiro plano. */}
+      <Path
+        d={`M0 ${chao} C${l * 0.3} ${chao - 5} ${l * 0.7} ${chao - 5} ${l} ${chao} L${l} ${a + 20} L0 ${a + 20} Z`}
+        fill={`url(#terra-${id})`}
+      />
+
+      {/*
+        A pedra, com as faces que ela sempre teve: a quina clara em cima, a
+        rachadura descendo e a face escura à direita. Sem elas o bloco lê como
+        uma mancha cinza com um brilho.
+      */}
+      <G transform={`translate(0 ${curva(p, [0, 0.5, 0.9, 1.1, 1.2])})`}>
+        <Path
+          d={`M${l * 0.09} ${pe} L${l * 0.13} ${pe - 21} L${l * 0.23} ${pe - 32} L${l * 0.37} ${pe - 27} L${l * 0.44} ${pe - 12} L${l * 0.46} ${pe} Z`}
+          fill={PEDRA}
+          stroke={CONTORNO}
+          strokeWidth={1.8}
+          strokeLinejoin="round"
+        />
+        <Path
+          d={`M${l * 0.13} ${pe - 21} L${l * 0.23} ${pe - 32} L${l * 0.3} ${pe - 18} L${l * 0.18} ${pe - 13} Z`}
+          fill={PEDRA_CLARA}
+          opacity={0.85}
+        />
+        <Path
+          d={`M${l * 0.3} ${pe - 18} L${l * 0.35} ${pe - 7} L${l * 0.335} ${pe}`}
+          stroke={CONTORNO}
+          strokeWidth={1.2}
+          strokeLinecap="round"
+          fill="none"
+          opacity={0.45}
+        />
+        <Path
+          d={`M${l * 0.37} ${pe - 27} L${l * 0.44} ${pe - 12} L${l * 0.35} ${pe - 7} Z`}
+          fill={PEDRA}
+          opacity={0.6}
+        />
+      </G>
+      {/* A lasca caída ao lado: o que saiu de cima não foi uma peça só. */}
+      <Path
+        d={`M${l * 0.48} ${pe} C${l * 0.488} ${pe - 5.5} ${l * 0.535} ${pe - 8} ${l * 0.572} ${pe - 6} C${l * 0.6} ${pe - 3.6} ${l * 0.605} ${pe - 1.5} ${l * 0.596} ${pe} Z`}
+        fill={PEDRA}
+        stroke={CONTORNO}
+        strokeWidth={1.3}
+        strokeLinejoin="round"
+        opacity={0.92}
+      />
+
+      {/*
+        O broto de pé, mais alto que a pedra. Ele estica no toque: talo que
+        perdeu o que o dobrava não salta, ele se desenrola.
+      */}
+      <G transform={cresce(curva(p, [1, 1.04, 1.08, 1.11, 1.12]), l * 0.74, pe)}>
+        <Path
+          d={`M${l * 0.74} ${pe} L${l * 0.74} ${pe - 58}`}
+          stroke={HASTE}
+          strokeWidth={3}
+          strokeLinecap="round"
+        />
+        {/*
+          A folha vem do desenho de 60 pontos, onde ela ia a 0,27. Aqui a caixa
+          é o cartão inteiro — cento e oitenta por duzentos e dez —, e a mesma
+          escala devolvia uma folha de doze pontos com três de contorno: um
+          risco fechado, que na tela lia como uma argola no alto da haste.
+        */}
+        <Path
+          d={FOLHA_DO_BROTO}
+          fill={FOLHA}
+          stroke={CONTORNO_FOLHA}
+          strokeWidth={1.8}
+          transform={`translate(${l * 0.74} ${pe - 58}) rotate(-52) scale(0.62)`}
+        />
+        {/*
+          As duas folhas abrem do **mesmo ponto** da haste, uma para cada lado,
+          e a segunda é um pouco menor. É a relação do broto antigo, copiada
+          número a número: com origens diferentes elas empilham, e o que aparece
+          no alto da haste é uma argola em vez de um par de folhas.
+        */}
+        <Path
+          d={FOLHA_DO_BROTO}
+          fill={FOLHA_CLARA}
+          stroke={CONTORNO_FOLHA}
+          strokeWidth={1.8}
+          transform={`translate(${l * 0.74} ${pe - 58}) rotate(230) scale(0.53)`}
+        />
+      </G>
+
+      <Capim x={l * 0.13} y={pe + 13} alto={15} cor={FOLHA} balanco={curva(p, [0, -1.8, -2.8, -1.2, 0])} />
+      <Capim x={l * 0.85} y={pe + 11} alto={12} cor={FOLHA_CLARA} balanco={curva(p, [0, 1.6, 2.4, 1, 0])} />
+      <Ellipse cx={l * 0.6} cy={a * 0.975} rx={1.6} ry={1.3} fill={TERRA_FUNDA} opacity={0.55} />
+    </>
+  );
+}
+
 /* ---------- O mapa, que cresce a cada cartão aprovado ---------- */
 
 const CENARIOS: Record<string, (props: CenarioProps) => React.JSX.Element> = {
   ansiedade: Ansiedade,
+  estresse: Estresse,
 };
 
 export function ehTemaComCenario(chave: string): boolean {

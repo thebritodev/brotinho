@@ -52,13 +52,20 @@ export const VAO_DO_CARROSSEL = 12;
 const CARTOES_A_VISTA = 1.9;
 
 /**
- * A proporção do cartão de tema.
+ * A proporção do cartão de tema: quadrado.
  *
- * Mais alto que largo, e de propósito: a cena precisa de céu para o título
- * pousar e de chão para o lugar existir, e os dois só cabem em retrato. Um
- * cartão quadrado devolve a cena ao aperto de que ela veio.
+ * Começou em retrato, 1,16, pensando que a cena precisava de altura. Montadas
+ * três no app, o retrato mostrou o contrário: o que crescia com a altura era o
+ * **vão vazio** entre o título e a paisagem, e nas cenas de campo aberto isso
+ * vira um meio sem nada acontecendo. No quadrado os objetos do primeiro plano
+ * preenchem o quadro, e a faixa do meio volta a ser faixa.
+ *
+ * O limite de baixo é o título: em 156 pontos de altura, um título de duas
+ * linhas — "Acalmar a ansiedade" — quase encosta no horizonte, e o céu deixa
+ * de ser folga. Quadrado é o ponto onde a tela mostra três grupos inteiros sem
+ * apertar nenhuma das duas coisas.
  */
-const ALTURA_SOBRE_LARGURA = 1.16;
+const ALTURA_SOBRE_LARGURA = 1;
 
 /** A largura de cada cartão numa tela desta largura. */
 export function larguraDoCartaoDoTema(larguraDaTela: number, recuo = 20) {
