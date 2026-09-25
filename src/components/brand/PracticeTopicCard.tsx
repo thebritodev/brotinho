@@ -4,7 +4,7 @@ import { Pressable, StyleProp, Text, View, ViewStyle } from 'react-native';
 import { useToqueAnimado } from '../../hooks/useToqueAnimado';
 import { fonts, radius, useTema } from '../../theme';
 import { Icon, type IconName } from '../core/Icon';
-import { CenarioDoTema, ehTemaComCenario } from './cenariosDosTemas';
+import { CenarioDoTema, ehTemaComCenario, peDoTituloNaCena } from './cenariosDosTemas';
 import { DesenhoDoTema, ehTemaDesenhado } from './desenhosDosTemas';
 
 type Props = {
@@ -215,27 +215,44 @@ export function PracticeTopicCard({
             </View>
           ) : null}
 
-          <Text
-            numberOfLines={2}
-            style={{
-              fontFamily: fonts.body.extraBold,
-              fontSize: 15.5,
-              lineHeight: 15.5 * 1.2,
-              color: palette.brown900,
-              /*
-                O título usa quase toda a largura, e não a metade.
+          {/*
+            Com cenário, o título é preso pelo **pé**, e não pelo topo.
 
-                O desenho começa vinte pontos abaixo do topo do cartão, então a
-                primeira linha passa livre por cima dele — e a borda de cima
-                das cenas é folga, não assunto. Com meia largura,
-                "Procrastinação" quebrava em "Procrastina / ção", que é pior do
-                que qualquer sobreposição.
-              */
-              width: '84%',
-            }}
+            O horizonte é calculado para o pior caso, um título de duas linhas.
+            Vários cabem numa linha — "Baixar o estresse", "Recuperar o foco" —
+            e com o texto preso no topo esses cartões ficavam com o vão da
+            segunda linha sobrando entre a palavra e a paisagem: a cena parecia
+            ter descido só neles. Preso pelo pé, o de uma linha desce, o de duas
+            sobe, e os dois ficam à mesma distância do horizonte. O que varia
+            vira o céu vazio acima do texto, que é onde ninguém repara.
+          */}
+          <View
+            style={
+              comCenario
+                ? { height: peDoTituloNaCena(alturaDoCartao) - 13, justifyContent: 'flex-end' }
+                : undefined
+            }
           >
-            {title}
-          </Text>
+            <Text
+              numberOfLines={2}
+              style={{
+                fontFamily: fonts.body.extraBold,
+                fontSize: 15.5,
+                lineHeight: 15.5 * 1.2,
+                color: palette.brown900,
+                /*
+                  O título usa quase toda a largura, e não a metade.
+
+                  A borda de cima das cenas é folga, não assunto. Com meia
+                  largura, "Procrastinação" quebrava em "Procrastina / ção", que
+                  é pior do que qualquer sobreposição.
+                */
+                width: '84%',
+              }}
+            >
+              {title}
+            </Text>
+          </View>
         </Pressable>
 
         {/*

@@ -13,7 +13,7 @@ import Svg, {
 
 import { palette, tracos } from '../../theme/tokens';
 import { cresce, curva, gira } from './movimentoDaCena';
-import { TERRA, TERRA_CLARA, TERRA_FUNDA } from './terraDoCanteiro';
+import { BRASA, TERRA, TERRA_CLARA, TERRA_FUNDA } from './terraDoCanteiro';
 
 /**
  * O tema de prática como **lugar**, ocupando o cartão inteiro.
@@ -84,6 +84,11 @@ const AGUA_CLARA = palette.blue100;
 const PEDRA = palette.slate300;
 const PEDRA_CLARA = palette.slate100;
 
+/** O acento da raiva: o que sobra de quente depois da chama. */
+const CARVAO = palette.terracotta400;
+const BRASA_VIVA = palette.amber400;
+const FUMACA = palette.brown400;
+
 /** A haste do broto, para as cenas que têm planta de pé. */
 const HASTE = tracos.haste;
 
@@ -101,19 +106,59 @@ const FOLHA_DO_BROTO =
 /* ---------- As proporções, iguais para todas as cenas ---------- */
 
 /**
- * Onde cai o horizonte, em fração da altura do cartão.
+ * Onde acaba um título de duas linhas, contado do topo do cartão.
  *
- * Abaixo do título de duas linhas com folga: o título acaba em 50, e num cartão
- * de 175 o horizonte cai em 93 — quarenta e três pontos de céu livre entre um e
- * outro. Acima dele é só o degradê, e é por isso que o texto pode pousar ali sem
- * disputar com nada.
- *
- * A fração baixou de 0,586 para 0,53 quando os temas viraram carrossel: o cartão
- * cresceu em altura, e mantendo a fração antiga o que crescia era o **céu
- * vazio** — cinquenta pontos de nada entre o título e a paisagem. O que tinha de
- * crescer era o chão.
+ * Treze pontos de recuo mais duas linhas de 18,6: `PracticeTopicCard` decide
+ * esses números, e a paisagem tem de caber abaixo deles. Não é a maioria dos
+ * títulos — vários cabem numa linha —, mas é o pior caso, e é o pior caso que
+ * decide onde a cena pode começar.
  */
-const HORIZONTE = 0.53;
+const TITULO_DE_DUAS_LINHAS = 50;
+
+/** O respiro entre o pé do título e o alto da paisagem. */
+const FOLGA_DO_TITULO = 24;
+
+/** O quanto os morros sobem acima da linha do horizonte. */
+const MORROS_ACIMA_DO_HORIZONTE = 8;
+
+/**
+ * Onde cai o horizonte, em pontos, num cartão desta altura.
+ *
+ * ## Por que deixou de ser uma fração
+ *
+ * Era 0,53 da altura, e fração funciona enquanto o cartão só cresce. Encolhendo
+ * o cartão, ela puxa a paisagem **para cima do título**: o título acaba sempre
+ * em 50, não importa o tamanho do cartão, enquanto o horizonte sobe junto com a
+ * altura. Num cartão de 130, meia altura são 69 pontos, e os morros começam em
+ * 61 — onze pontos abaixo da segunda linha do texto, o que na prática é
+ * encavalar.
+ *
+ * Agora ele é o que for **mais baixo**: a metade do cartão, ou o primeiro ponto
+ * em que a paisagem ainda passa longe do título. Em cartão alto manda a
+ * metade, e a cena fica equilibrada; em cartão baixo manda o título, e o que
+ * encolhe é o chão — que é a parte que aguenta encolher.
+ */
+export function horizonteDaCena(a: number) {
+  return Math.max(TITULO_DE_DUAS_LINHAS + FOLGA_DO_TITULO + MORROS_ACIMA_DO_HORIZONTE, a * 0.5);
+}
+
+/**
+ * Onde o **pé** do título tem de cair, para ficar à mesma distância da
+ * paisagem em todo cartão.
+ *
+ * O horizonte é calculado para o pior caso — um título de duas linhas. Só que
+ * vários títulos cabem numa linha: "Baixar o estresse", "Recuperar o foco". Com
+ * o texto preso no topo, esses cartões ficam com o vão da segunda linha
+ * sobrando entre a palavra e a paisagem, e a cena parece ter descido.
+ *
+ * Prendendo o **pé** do texto neste ponto em vez do topo, um título de uma
+ * linha desce e um de duas sobe, e os dois acabam à mesma distância do
+ * horizonte. O que varia passa a ser o céu vazio acima do texto, que é onde
+ * ninguém repara.
+ */
+export function peDoTituloNaCena(a: number) {
+  return horizonteDaCena(a) - MORROS_ACIMA_DO_HORIZONTE - FOLGA_DO_TITULO;
+}
 
 type CenarioProps = {
   /** A largura do cartão, em pontos. A paisagem é desenhada 1:1, sem escala. */
@@ -180,7 +225,7 @@ function Capim({ x, y, alto, cor, balanco }: { x: number; y: number; alto: numbe
  * bastante para tê-lo: o capim.
  */
 function Ansiedade({ l, a, p, id }: CenarioProps) {
-  const h = a * HORIZONTE;
+  const h = horizonteDaCena(a);
   /** Onde a água encosta na margem de cá. */
   const margem = a * 0.855;
   const centro = l * 0.46;
@@ -409,7 +454,7 @@ function Ansiedade({ l, a, p, id }: CenarioProps) {
  * estica, sem pressa, como talo que perdeu o que o dobrava.
  */
 function Estresse({ l, a, p, id }: CenarioProps) {
-  const h = a * HORIZONTE;
+  const h = horizonteDaCena(a);
   /** Onde o campo encontra a terra do primeiro plano. */
   const chao = a * 0.8;
   /** O pé da pedra e o do broto: os dois no mesmo chão. */
@@ -628,11 +673,254 @@ function Estresse({ l, a, p, id }: CenarioProps) {
   );
 }
 
+/* ---------- Raiva: a cova de fogo depois que a chama passou ---------- */
+
+/**
+ * A brasa no chão, e um fio de fumaça subindo.
+ *
+ * ## A metáfora, herdada e intacta
+ *
+ * Já foi uma chama inteira, tremendo. O cartão diz "Descarregar a raiva", e
+ * descarregar tem um **depois**: o que sobra quando o corpo já gastou o que
+ * tinha para gastar. É o que o intro do tema promete — descarregar o corpo
+ * primeiro é o que deixa ver o que tem embaixo.
+ *
+ * Ela não apaga. Fogo apagado diria que a raiva foi embora, e ela não vai:
+ * baixa de temperatura e fica olhável. Por isso a brasa continua quente no
+ * meio, com o halo por baixo.
+ *
+ * A silhueta do monte é quebrada, e não um arco: com a borda lisa, uma forma
+ * cor de fogo subindo do chão lê como sol nascendo, que é quase o contrário do
+ * tema. Carvão tem quina.
+ *
+ * ## Por que esta cena é de perto
+ *
+ * A ansiedade olha a água de longe e o estresse olha o campo de longe. Se a
+ * raiva também fosse paisagem larga, os três seriam a mesma foto com objetos
+ * diferentes. Aqui quem olha está **agachado ao lado da cova**: o horizonte é
+ * uma tira no alto, a terra ocupa quase tudo, e a brasa tem o tamanho que uma
+ * coisa tem quando se está perto dela.
+ *
+ * Variar a distância é o que faz treze cenas do mesmo mundo não virarem treze
+ * repetições dele.
+ */
+function Raiva({ l, a, p, id }: CenarioProps) {
+  const h = horizonteDaCena(a);
+  /** A cova fica baixa: quem olha está agachado ao lado dela. */
+  const cova = a * 0.82;
+  const centro = l * 0.47;
+
+  /*
+    O comprimento da fumaça sai do céu que sobrou, e não de um número fixo.
+
+    Ela mora na faixa entre a brasa e o pé do título, e essa faixa muda de
+    tamanho com o cartão: num cartão alto sobram quase sessenta pontos de céu,
+    num de cento e trinta sobram vinte e poucos. Com comprimento fixo, o fio
+    subia direto para cima da palavra no cartão baixo — e fumaça atravessando
+    texto não é cena, é defeito.
+
+    A subida da animação entra na conta: o fio anda para cima enquanto some, e
+    é o fim dessa subida que não pode encostar no título.
+  */
+  const teto = peDoTituloNaCena(a) + 14;
+  const pe = cova - 22;
+  const fio = Math.max(10, pe - teto);
+  const subida = Math.min(10, fio * 0.3);
+
+  return (
+    <>
+      <Defs>
+        <LinearGradient id={`chao-${id}`} x1="0" y1="0" x2="0" y2="1">
+          <Stop offset="0" stopColor={TERRA_CLARA} />
+          <Stop offset="0.35" stopColor={TERRA} />
+          <Stop offset="1" stopColor={TERRA_FUNDA} />
+        </LinearGradient>
+        {/* O calor que escapa da brasa, caindo a zero: halo não tem borda. */}
+        <RadialGradient id={`calor-${id}`} cx="50%" cy="50%" r="50%">
+          <Stop offset="0" stopColor={BRASA} stopOpacity={0.85} />
+          <Stop offset="0.5" stopColor={BRASA} stopOpacity={0.4} />
+          <Stop offset="1" stopColor={BRASA} stopOpacity={0} />
+        </RadialGradient>
+        <RadialGradient id={`mataR-${id}`} cx="50%" cy="50%" r="50%">
+          <Stop offset="0" stopColor={FOLHA} stopOpacity={0.8} />
+          <Stop offset="0.58" stopColor={FOLHA} stopOpacity={0.66} />
+          <Stop offset="1" stopColor={FOLHA} stopOpacity={0} />
+        </RadialGradient>
+      </Defs>
+
+      {/* A mata ao longe, baixa: daqui de baixo ela é só uma tira. */}
+      <Ellipse cx={l * 0.34} cy={h + 1} rx={l * 0.4} ry={a * 0.05} fill={`url(#mataR-${id})`} />
+      <Ellipse cx={l * 0.84} cy={h + 3} rx={l * 0.3} ry={a * 0.04} fill={`url(#mataR-${id})`} />
+
+      {/* A terra, que daqui ocupa quase tudo. */}
+      <Path
+        d={`M0 ${h + 5} C${l * 0.3} ${h} ${l * 0.7} ${h} ${l} ${h + 5} L${l} ${a + 20} L0 ${a + 20} Z`}
+        fill={`url(#chao-${id})`}
+      />
+
+      {/*
+        O chão indo embora: tufos e pedrinhas minguando até a mata.
+
+        Sem eles a faixa entre o horizonte e a cova é um marrom liso de
+        cinquenta pontos, e o olho não tem como medir a distância — a cova
+        poderia estar a um metro ou a cem. Cada marca é menor e mais apagada
+        que a anterior, que é a única régua que uma cena desenhada tem.
+      */}
+      {[
+        { x: 0.13, y: 0.6, r: 1.2, op: 0.3 },
+        { x: 0.56, y: 0.59, r: 1.1, op: 0.26 },
+        { x: 0.83, y: 0.615, r: 1.4, op: 0.32 },
+        { x: 0.32, y: 0.655, r: 1.9, op: 0.36 },
+        { x: 0.72, y: 0.68, r: 2.2, op: 0.4 },
+        { x: 0.06, y: 0.71, r: 2.6, op: 0.42 },
+      ].map((m, i) => (
+        <Ellipse
+          key={i}
+          cx={l * m.x}
+          cy={a * m.y}
+          rx={m.r}
+          ry={m.r * 0.8}
+          fill={TERRA_FUNDA}
+          opacity={m.op}
+        />
+      ))}
+      {[
+        { x: 0.22, y: 0.63, alto: 6, op: 0.32 },
+        { x: 0.66, y: 0.645, alto: 7, op: 0.34 },
+        { x: 0.43, y: 0.7, alto: 10, op: 0.4 },
+        { x: 0.92, y: 0.72, alto: 11, op: 0.42 },
+      ].map((t, i) => (
+        <G key={i} opacity={t.op}>
+          <Path
+            d={`M${l * t.x} ${a * t.y} C${l * t.x - 1} ${a * t.y - t.alto * 0.6} ${l * t.x - 2.5} ${a * t.y - t.alto * 0.85} ${l * t.x - 3.5} ${a * t.y - t.alto}`}
+            stroke={HASTE}
+            strokeWidth={1.5}
+            strokeLinecap="round"
+            fill="none"
+          />
+          <Path
+            d={`M${l * t.x + 1.5} ${a * t.y} C${l * t.x + 1.5} ${a * t.y - t.alto * 0.6} ${l * t.x + 2} ${a * t.y - t.alto * 0.9} ${l * t.x + 2.5} ${a * t.y - t.alto * 1.1}`}
+            stroke={HASTE}
+            strokeWidth={1.5}
+            strokeLinecap="round"
+            fill="none"
+          />
+        </G>
+      ))}
+
+      {/* A cova: a terra rebaixada e escurecida em volta da brasa. */}
+      <Ellipse cx={centro} cy={cova} rx={l * 0.33} ry={a * 0.1} fill={TERRA_FUNDA} opacity={0.55} />
+      <Ellipse cx={centro} cy={cova + 1} rx={l * 0.27} ry={a * 0.075} fill={TERRA_FUNDA} opacity={0.5} />
+
+      {/*
+        O calor, por baixo de tudo o que é sólido.
+
+        Dois halos e não um: o de fora é o que esquenta a terra da cova, o de
+        dentro é o que diz que ainda tem fogo no meio do monte. Com um só, a
+        cena inteira ficava do mesmo marrom da terra e a brasa não parecia
+        quente — que é a única coisa que ela tem de parecer.
+      */}
+      <G transform={cresce(curva(p, [1, 1.1, 1.18, 1.1, 1.04]), centro, cova - 2)}>
+        <Ellipse cx={centro} cy={cova - 2} rx={l * 0.3} ry={a * 0.1} fill={`url(#calor-${id})`} />
+        <Ellipse cx={centro} cy={cova - 4} rx={l * 0.15} ry={a * 0.055} fill={`url(#calor-${id})`} />
+      </G>
+
+      {/*
+        As pedras da roda, só as de trás: as da frente esconderiam a brasa, e a
+        roda de fogueira se lê inteira pela metade dela.
+      */}
+      {[
+        { x: 0.17, y: 0.795, rx: 0.052, ry: 0.029 },
+        { x: 0.29, y: 0.762, rx: 0.036, ry: 0.019 },
+        { x: 0.68, y: 0.768, rx: 0.044, ry: 0.026 },
+        { x: 0.8, y: 0.792, rx: 0.038, ry: 0.021 },
+      ].map((s, i) => (
+        <Ellipse
+          key={i}
+          cx={l * s.x}
+          cy={a * s.y}
+          rx={l * s.rx}
+          ry={a * s.ry}
+          fill={PEDRA}
+          stroke={CONTORNO}
+          strokeWidth={1.4}
+          opacity={0.92}
+        />
+      ))}
+
+      {/* O fio de fumaça: o único movimento que sobe na cena. */}
+      <G
+        transform={`translate(0 ${curva(p, [0, -subida * 0.2, -subida * 0.5, -subida * 0.8, -subida])})`}
+        opacity={curva(p, [0.5, 0.45, 0.34, 0.18, 0])}
+      >
+        <Path
+          d={`M${centro - 1} ${pe} C${centro - 7} ${pe - fio * 0.3} ${centro + 6} ${pe - fio * 0.45} ${centro + 1} ${pe - fio * 0.62}`}
+          stroke={FUMACA}
+          strokeWidth={2.4}
+          strokeLinecap="round"
+          fill="none"
+          opacity={0.7}
+        />
+        <Path
+          d={`M${centro + 1} ${pe - fio * 0.62} C${centro - 2} ${pe - fio * 0.76} ${centro + 5} ${pe - fio * 0.88} ${centro + 2} ${pe - fio}`}
+          stroke={FUMACA}
+          strokeWidth={1.5}
+          strokeLinecap="round"
+          fill="none"
+          opacity={0.35}
+        />
+      </G>
+
+      {/* O monte de carvão: baixo e largo, o oposto da chama que subia. */}
+      <G transform={cresce(curva(p, [1, 1.02, 1.01, 0.99, 1]), centro, cova)}>
+        {/*
+          Três bossas desiguais, e não um arco.
+
+          Com a borda lisa, uma forma cor de fogo subindo do chão lê como sol
+          nascendo — que é quase o contrário do tema. Carvão tem quina, e as
+          três bossas têm de ter alturas diferentes: iguais, elas viram uma
+          coroa.
+        */}
+        <Path
+          d={`M${centro - 31} ${cova} C${centro - 29} ${cova - 9} ${centro - 22} ${cova - 15} ${centro - 16} ${cova - 13} L${centro - 13} ${cova - 21} C${centro - 7} ${cova - 28} ${centro + 3} ${cova - 26} ${centro + 6} ${cova - 18} L${centro + 12} ${cova - 21} C${centro + 21} ${cova - 20} ${centro + 27} ${cova - 11} ${centro + 29} ${cova} Z`}
+          fill={CARVAO}
+          stroke={CONTORNO}
+          strokeWidth={1.8}
+          strokeLinejoin="round"
+        />
+        <Path
+          d={`M${centro - 16} ${cova} C${centro - 13} ${cova - 9} ${centro - 6} ${cova - 14} ${centro} ${cova - 12} C${centro + 6} ${cova - 14} ${centro + 13} ${cova - 9} ${centro + 16} ${cova} Z`}
+          fill={BRASA_VIVA}
+        />
+        {/* As fendas: é por elas que a brasa mostra que ainda está quente. */}
+        <Path
+          d={`M${centro - 11} ${cova} L${centro - 8} ${cova - 10}`}
+          stroke={CONTORNO}
+          strokeWidth={1.4}
+          strokeLinecap="round"
+          opacity={0.3}
+        />
+        <Path
+          d={`M${centro + 11} ${cova} L${centro + 8} ${cova - 10}`}
+          stroke={CONTORNO}
+          strokeWidth={1.4}
+          strokeLinecap="round"
+          opacity={0.3}
+        />
+      </G>
+
+      <Capim x={l * 0.07} y={a * 0.95} alto={13} cor={FOLHA} balanco={curva(p, [0, -1.6, -2.6, -1.2, 0])} />
+      <Capim x={l * 0.89} y={a * 0.93} alto={11} cor={FOLHA_CLARA} balanco={curva(p, [0, 1.4, 2.2, 1, 0])} />
+    </>
+  );
+}
+
 /* ---------- O mapa, que cresce a cada cartão aprovado ---------- */
 
 const CENARIOS: Record<string, (props: CenarioProps) => React.JSX.Element> = {
   ansiedade: Ansiedade,
   estresse: Estresse,
+  raiva: Raiva,
 };
 
 export function ehTemaComCenario(chave: string): boolean {

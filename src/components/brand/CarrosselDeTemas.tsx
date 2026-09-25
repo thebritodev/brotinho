@@ -52,20 +52,27 @@ export const VAO_DO_CARROSSEL = 12;
 const CARTOES_A_VISTA = 1.9;
 
 /**
- * A proporção do cartão de tema: quadrado.
+ * A proporção do cartão de tema: deitado, 181 por 130.
  *
  * Começou em retrato, 1,16, pensando que a cena precisava de altura. Montadas
  * três no app, o retrato mostrou o contrário: o que crescia com a altura era o
- * **vão vazio** entre o título e a paisagem, e nas cenas de campo aberto isso
- * vira um meio sem nada acontecendo. No quadrado os objetos do primeiro plano
- * preenchem o quadro, e a faixa do meio volta a ser faixa.
+ * **vão vazio** entre o título e a paisagem. Passou por quadrado e desceu até
+ * aqui — quanto mais baixo, mais grupo cabe na tela, e a cena não perde nada
+ * que ela use.
  *
- * O limite de baixo é o título: em 156 pontos de altura, um título de duas
- * linhas — "Acalmar a ansiedade" — quase encosta no horizonte, e o céu deixa
- * de ser folga. Quadrado é o ponto onde a tela mostra três grupos inteiros sem
- * apertar nenhuma das duas coisas.
+ * ## O que o título deixou de limitar, e o que passou a limitar
+ *
+ * O título não limita mais: `horizonteDaCena` prende a paisagem embaixo dele
+ * em vez de calculá-la como fração da altura, e `peDoTituloNaCena` prende o pé
+ * do texto à mesma distância do horizonte em todo cartão.
+ *
+ * Quem limita agora é **a coisa mais alta desenhada em alguma cena**: a copa
+ * do broto do estresse, que sobe cinquenta e oito pontos do chão. Em 130 ela
+ * passa a nove pontos do pé do título — apertado, e escolhido assim: encurtar
+ * a copa custaria o "ele é o mais alto da cena", que é o que a metáfora
+ * daquele cartão diz.
  */
-const ALTURA_SOBRE_LARGURA = 1;
+const ALTURA_SOBRE_LARGURA = 0.72;
 
 /** A largura de cada cartão numa tela desta largura. */
 export function larguraDoCartaoDoTema(larguraDaTela: number, recuo = 20) {
