@@ -1,5 +1,6 @@
 import React, { useId } from 'react';
 import Svg, {
+  Circle,
   ClipPath,
   Defs,
   Ellipse,
@@ -88,6 +89,14 @@ const PEDRA_CLARA = palette.slate100;
 const CARVAO = palette.terracotta400;
 const BRASA_VIVA = palette.amber400;
 const FUMACA = palette.brown400;
+
+/** O acento da solidão: o barro dos dois vasos. */
+const VASO = tracos.vaso;
+const VASO_LUZ = tracos.vasoLuz;
+
+/** O acento da tristeza: o sol que estava atrás o tempo todo. */
+const SOL = palette.yellow300;
+const NUVEM_BRANCA = '#FFFFFF';
 
 /** O acento da insônia: a última luz do dia, e a lua. */
 const LUA = palette.yellow100;
@@ -1116,6 +1125,461 @@ function Insonia({ l, a, p, id }: CenarioProps) {
   );
 }
 
+/* ---------- Tristeza: o campo quando a nuvem sai da frente ---------- */
+
+/**
+ * O sol que estava atrás o tempo todo, e a nuvem saindo da frente dele.
+ *
+ * ## A metáfora, herdada e intacta
+ *
+ * A cena já foi nuvem, chuva fina e poça — o dia que não passa. O cartão diz
+ * "Atravessar a tristeza", e atravessar tem um outro lado; aquela cena não
+ * mostrava nenhum.
+ *
+ * O sol não **chega**: ele estava ali desde o começo, e o que se move é o que
+ * estava na frente. É a diferença entre prometer que a tristeza acaba e dizer
+ * que ela passa na frente de alguma coisa que continua existindo.
+ *
+ * Os raios aparecem conforme a nuvem sai, e não antes: parados, a cena
+ * entregaria o outro lado de graça.
+ *
+ * ## O enquadramento
+ *
+ * Esta é a única cena do app em que **o céu é o assunto**. As outras usam o
+ * céu como fundo para o título; aqui é lá que a coisa acontece, e o chão é só o
+ * lugar de onde se olha. Por isso o campo é raso e sem evento: quem disputasse
+ * com o sol tiraria dele o que ele tem de único.
+ */
+function Tristeza({ l, a, p, id }: CenarioProps) {
+  const h = horizonteDaCena(a);
+  const ceuLivre = h - peDoTituloNaCena(a);
+  const solX = l * 0.72;
+  const solY = peDoTituloNaCena(a) + ceuLivre * 0.4;
+  const solR = Math.min(16, ceuLivre * 0.4);
+  /** A nuvem anda para a esquerda conforme o passo corre. */
+  const nuvemX = l * 0.55 - curva(p, [0, 6, 13, 19, 24]);
+  const nuvemAlto = Math.min(17, ceuLivre * 0.46);
+
+  return (
+    <>
+      <Defs>
+        <LinearGradient id={`campoT-${id}`} x1="0" y1="0" x2="0" y2="1">
+          <Stop offset="0" stopColor={FOLHA_CLARA} stopOpacity={0.9} />
+          <Stop offset="1" stopColor={FOLHA} stopOpacity={0.95} />
+        </LinearGradient>
+        <LinearGradient id={`terraT-${id}`} x1="0" y1="0" x2="0" y2="1">
+          <Stop offset="0" stopColor={TERRA} />
+          <Stop offset="1" stopColor={TERRA_FUNDA} />
+        </LinearGradient>
+        <RadialGradient id={`mataT-${id}`} cx="50%" cy="50%" r="50%">
+          <Stop offset="0" stopColor={FOLHA} stopOpacity={0.6} />
+          <Stop offset="0.58" stopColor={FOLHA} stopOpacity={0.5} />
+          <Stop offset="1" stopColor={FOLHA} stopOpacity={0} />
+        </RadialGradient>
+      </Defs>
+
+      {/*
+        Os raios aparecem conforme a nuvem sai, e não antes. A opacidade deles é
+        a mesma conta do passo, para que a recompensa seja do movimento.
+      */}
+      <G opacity={curva(p, [0, 0.15, 0.45, 0.75, 1])}>
+        {[
+          [1, 0],
+          [0.71, -0.71],
+          [0.71, 0.71],
+          [0.26, -0.97],
+          [0.26, 0.97],
+        ].map(([dx, dy], i) => (
+          <Path
+            key={i}
+            d={`M${solX + dx * solR * 1.25} ${solY + dy * solR * 1.25} L${solX + dx * solR * 1.6} ${solY + dy * solR * 1.6}`}
+            stroke={SOL}
+            strokeWidth={2}
+            strokeLinecap="round"
+          />
+        ))}
+      </G>
+      <Circle cx={solX} cy={solY} r={solR} fill={SOL} stroke={CONTORNO} strokeWidth={1.8} />
+      {/* A luz bate no alto à esquerda, como em todo desenho do app. */}
+      <Path
+        d={`M${solX - solR * 0.5} ${solY - solR * 0.4} C${solX - solR * 0.36} ${solY - solR * 0.64} ${solX - solR * 0.09} ${solY - solR * 0.77} ${solX + solR * 0.18} ${solY - solR * 0.73}`}
+        stroke={CREME}
+        strokeWidth={2}
+        strokeLinecap="round"
+        fill="none"
+        opacity={0.75}
+      />
+
+      {/*
+        A nuvem que sai da frente. Ela começa cobrindo um terço do sol e anda
+        para a esquerda: o que se move é o que estava na frente, e não o sol.
+      */}
+      <G>
+        <Path
+          d={`M${nuvemX - 25} ${h - 4} C${nuvemX - 31} ${h - 4} ${nuvemX - 34} ${h - nuvemAlto * 0.45} ${nuvemX - 34} ${h - nuvemAlto * 0.7} C${nuvemX - 34} ${h - nuvemAlto} ${nuvemX - 29} ${h - nuvemAlto * 1.12} ${nuvemX - 24} ${h - nuvemAlto * 1.06} C${nuvemX - 21} ${h - nuvemAlto * 1.56} ${nuvemX - 11} ${h - nuvemAlto * 1.7} ${nuvemX - 4} ${h - nuvemAlto * 1.38} C${nuvemX + 3} ${h - nuvemAlto * 1.22} ${nuvemX + 8} ${h - nuvemAlto * 0.9} ${nuvemX + 9} ${h - nuvemAlto * 0.64} C${nuvemX + 18} ${h - nuvemAlto * 0.88} ${nuvemX + 27} ${h - nuvemAlto * 0.54} ${nuvemX + 27} ${h - nuvemAlto * 0.24} C${nuvemX + 27} ${h - 4.6} ${nuvemX + 24} ${h - 4} ${nuvemX + 20} ${h - 4} Z`}
+          fill={NUVEM_BRANCA}
+          stroke={CONTORNO}
+          strokeWidth={1.5}
+          strokeLinejoin="round"
+        />
+        {/* A barriga da nuvem, um tom abaixo. */}
+        <Path
+          d={`M${nuvemX - 30} ${h - nuvemAlto * 0.46} C${nuvemX - 21} ${h - 5.6} ${nuvemX - 6} ${h - 5} ${nuvemX + 8} ${h - 5} C${nuvemX + 15} ${h - 5} ${nuvemX + 22} ${h - 5.4} ${nuvemX + 25} ${h - 6.4} C${nuvemX + 24.5} ${h - 4.8} ${nuvemX + 23} ${h - 4.3} ${nuvemX + 20} ${h - 4.3} L${nuvemX - 25} ${h - 4.3} C${nuvemX - 28} ${h - 4.3} ${nuvemX - 29.4} ${h - nuvemAlto * 0.32} ${nuvemX - 30} ${h - nuvemAlto * 0.46} Z`}
+          fill={NUVEM_SOMBRA}
+          opacity={0.3}
+        />
+      </G>
+
+      {/* A mata ao longe, e o campo raso: o chão aqui é só de onde se olha. */}
+      <Ellipse cx={l * 0.24} cy={h + 1} rx={l * 0.38} ry={a * 0.05} fill={`url(#mataT-${id})`} />
+      <Ellipse cx={l * 0.82} cy={h + 3} rx={l * 0.3} ry={a * 0.042} fill={`url(#mataT-${id})`} />
+      <Path
+        d={`M0 ${h + 4} C${l * 0.3} ${h - 1} ${l * 0.7} ${h - 1} ${l} ${h + 4} L${l} ${a * 0.86} C${l * 0.7} ${a * 0.82} ${l * 0.3} ${a * 0.82} 0 ${a * 0.86} Z`}
+        fill={`url(#campoT-${id})`}
+      />
+      <Path
+        d={`M0 ${a * 0.85} C${l * 0.3} ${a * 0.81} ${l * 0.7} ${a * 0.81} ${l} ${a * 0.85} L${l} ${a + 20} L0 ${a + 20} Z`}
+        fill={`url(#terraT-${id})`}
+      />
+
+      {/*
+        A luz voltando ao chão, no mesmo compasso dos raios: é ela que liga o
+        que acontece no céu ao lugar onde a pessoa está.
+      */}
+      <Ellipse
+        cx={solX - l * 0.06}
+        cy={a * 0.92}
+        rx={l * 0.32}
+        ry={a * 0.1}
+        fill={SOL}
+        opacity={curva(p, [0, 0.03, 0.08, 0.13, 0.18])}
+      />
+
+      {/* Capim pelo campo, minguando com a distância — como no estresse. */}
+      {[
+        { x: 0.2, y: 0.71, alto: 6, op: 0.4 },
+        { x: 0.45, y: 0.72, alto: 6, op: 0.4 },
+        { x: 0.68, y: 0.735, alto: 7, op: 0.45 },
+        { x: 0.32, y: 0.79, alto: 9, op: 0.5 },
+        { x: 0.9, y: 0.78, alto: 8, op: 0.45 },
+      ].map((t, i) => (
+        <G key={i} opacity={t.op}>
+          <Path
+            d={`M${l * t.x} ${a * t.y} C${l * t.x - 1} ${a * t.y - t.alto * 0.6} ${l * t.x - 2.5} ${a * t.y - t.alto * 0.85} ${l * t.x - 3.5} ${a * t.y - t.alto}`}
+            stroke={HASTE}
+            strokeWidth={1.5}
+            strokeLinecap="round"
+            fill="none"
+          />
+          <Path
+            d={`M${l * t.x + 1.5} ${a * t.y} C${l * t.x + 1.5} ${a * t.y - t.alto * 0.6} ${l * t.x + 2} ${a * t.y - t.alto * 0.9} ${l * t.x + 2.5} ${a * t.y - t.alto * 1.1}`}
+            stroke={HASTE}
+            strokeWidth={1.5}
+            strokeLinecap="round"
+            fill="none"
+          />
+        </G>
+      ))}
+
+      <Capim x={l * 0.11} y={a * 0.95} alto={13} cor={FOLHA} balanco={curva(p, [0, -1.6, -2.4, -1, 0])} />
+      <Capim x={l * 0.83} y={a * 0.97} alto={11} cor={FOLHA_CLARA} balanco={curva(p, [0, 1.4, 2.2, 0.9, 0])} />
+    </>
+  );
+}
+
+/* ---------- Luto: a terra onde a folha caiu ---------- */
+
+/**
+ * A folha caída fica, e ao lado dela um broto novo.
+ *
+ * ## A metáfora, herdada e intacta — e é a mais delicada das treze
+ *
+ * A cena já foi só a perda: o galho vazio e a folha no chão. O cartão passou a
+ * dizer "Seguir com a saudade", e seguir é a segunda metade que faltava
+ * desenhar — a mesma que a prática "O que ficou de herança" trabalha.
+ *
+ * O broto é pequeno de propósito, e **não substitui a folha**: ele nasce do
+ * lado, na mesma terra. Se tomasse o lugar dela, a cena diria que a perda virou
+ * outra coisa — que é a frase que ninguém enlutado suporta ouvir.
+ *
+ * O galho continua vazio. Ele não rebrota no canto da tela: o que voltou a
+ * crescer veio da terra, e não do lugar de onde a folha saiu.
+ *
+ * ## O enquadramento e o movimento
+ *
+ * É a cena mais perto das treze: a folha ocupa um quinto da largura do cartão,
+ * e o horizonte está lá em cima só para dizer que existe um lugar em volta.
+ * Perto é o enquadramento de quem está agachado olhando uma coisa pequena, que
+ * é o que esta prática pede.
+ *
+ * O movimento é o mais contido de todos, e tem de ser: a folha se ajeita — gira
+ * pouco e assenta — e o broto sobe um fio e para. Luto não pede animação
+ * animada.
+ */
+function Luto({ l, a, p, id }: CenarioProps) {
+  const h = horizonteDaCena(a);
+  const chao = a * 0.84;
+  const folhaX = l * 0.58;
+  const folhaY = a * 0.89;
+  const brotoX = l * 0.26;
+  const brotoY = a * 0.9;
+
+  return (
+    <>
+      <Defs>
+        <LinearGradient id={`terraL-${id}`} x1="0" y1="0" x2="0" y2="1">
+          <Stop offset="0" stopColor={TERRA_CLARA} />
+          <Stop offset="0.4" stopColor={TERRA} />
+          <Stop offset="1" stopColor={TERRA_FUNDA} />
+        </LinearGradient>
+        <RadialGradient id={`mataL-${id}`} cx="50%" cy="50%" r="50%">
+          <Stop offset="0" stopColor={FOLHA} stopOpacity={0.5} />
+          <Stop offset="0.58" stopColor={FOLHA} stopOpacity={0.42} />
+          <Stop offset="1" stopColor={FOLHA} stopOpacity={0} />
+        </RadialGradient>
+      </Defs>
+
+      <Ellipse cx={l * 0.3} cy={h} rx={l * 0.42} ry={a * 0.05} fill={`url(#mataL-${id})`} />
+      <Ellipse cx={l * 0.88} cy={h + 2} rx={l * 0.28} ry={a * 0.042} fill={`url(#mataL-${id})`} />
+
+      <Path
+        d={`M0 ${h + 3} C${l * 0.3} ${h - 2} ${l * 0.7} ${h - 2} ${l} ${h + 3} L${l} ${chao} C${l * 0.7} ${chao - 4} ${l * 0.3} ${chao - 4} 0 ${chao} Z`}
+        fill={FOLHA_CLARA}
+        opacity={0.5}
+      />
+      <Path
+        d={`M0 ${chao - 1} C${l * 0.3} ${chao - 5} ${l * 0.7} ${chao - 5} ${l} ${chao - 1} L${l} ${a + 20} L0 ${a + 20} Z`}
+        fill={`url(#terraL-${id})`}
+      />
+
+      {/* Torrõezinhos na terra, para ela não ser uma faixa chapada. */}
+      {[
+        { x: 0.12, y: 0.94, r: 2 },
+        { x: 0.42, y: 0.97, r: 1.5 },
+        { x: 0.78, y: 0.95, r: 1.8 },
+        { x: 0.92, y: 0.89, r: 1.3 },
+      ].map((t, i) => (
+        <Ellipse key={i} cx={l * t.x} cy={a * t.y} rx={t.r} ry={t.r * 0.72} fill={TERRA_CLARA} opacity={0.45} />
+      ))}
+
+      {/*
+        O galho vazio, entrando pela esquerda.
+
+        Dois galhinhos saindo dele é o que o faz ler como galho, e não como um
+        cabo. Nenhum tem folha — é esse o assunto. Ele entra pela lateral e não
+        pelo alto porque o alto do cartão é do título.
+      */}
+      <Path
+        d={`M0 ${h - 16} C${l * 0.14} ${h - 13} ${l * 0.26} ${h - 8} ${l * 0.36} ${h - 1}`}
+        stroke={HASTE}
+        strokeWidth={3.6}
+        strokeLinecap="round"
+        fill="none"
+        opacity={0.95}
+      />
+      <Path
+        d={`M${l * 0.13} ${h - 13.4} C${l * 0.15} ${h - 18.6} ${l * 0.19} ${h - 21.4} ${l * 0.24} ${h - 23}`}
+        stroke={HASTE}
+        strokeWidth={2.1}
+        strokeLinecap="round"
+        fill="none"
+        opacity={0.9}
+      />
+      <Path
+        d={`M${l * 0.24} ${h - 8.6} C${l * 0.27} ${h - 13} ${l * 0.31} ${h - 15.2} ${l * 0.37} ${h - 16.4}`}
+        stroke={HASTE}
+        strokeWidth={1.8}
+        strokeLinecap="round"
+        fill="none"
+        opacity={0.8}
+      />
+
+      {/*
+        A folha caída se ajeita: gira pouco e assenta. É o movimento mais
+        contido dos treze.
+      */}
+      <G
+        transform={[
+          `translate(0 ${curva(p, [0, 0.4, 0.9, 1.1, 1.2])})`,
+          gira(curva(p, [0, -3, -4.5, -3, 0]), folhaX, folhaY),
+        ].join(' ')}
+      >
+        {/*
+          A folha e a nervura dela andam no **mesmo** sistema de coordenadas.
+
+          Desenhada por fora, a nervura vira um risco solto ao lado da folha —
+          e um risco saindo de uma forma redonda faz ela ler como pedra com um
+          graveto encostado, não como folha. Dentro do grupo transformado, ela é
+          a linha que percorre a folha de ponta a ponta, que é o que dá a ela o
+          desenho de folha.
+        */}
+        <G transform={`translate(${folhaX + 14} ${folhaY - 4}) rotate(163) scale(0.72)`}>
+          <Path d={FOLHA_DO_BROTO} fill={FOLHA} stroke={CONTORNO_FOLHA} strokeWidth={3.2} />
+          <Path
+            d="M-3 -1 C-12 -6 -24 -10 -33 -9"
+            stroke={CONTORNO_FOLHA}
+            strokeWidth={2.2}
+            strokeLinecap="round"
+            fill="none"
+            opacity={0.55}
+          />
+        </G>
+      </G>
+
+      {/* O broto novo sobe um fio, devagar, e para. */}
+      <G transform={cresce(curva(p, [1, 1.05, 1.1, 1.14, 1.16]), brotoX, brotoY)}>
+        <Path
+          d={`M${brotoX} ${brotoY} L${brotoX} ${brotoY - 26}`}
+          stroke={HASTE}
+          strokeWidth={2.2}
+          strokeLinecap="round"
+        />
+        <Path
+          d={FOLHA_DO_BROTO}
+          fill={FOLHA_CLARA}
+          stroke={CONTORNO_FOLHA}
+          strokeWidth={2}
+          transform={`translate(${brotoX} ${brotoY - 26}) rotate(-54) scale(0.48)`}
+        />
+        <Path
+          d={FOLHA_DO_BROTO}
+          fill={FOLHA}
+          stroke={CONTORNO_FOLHA}
+          strokeWidth={2}
+          transform={`translate(${brotoX} ${brotoY - 26}) rotate(234) scale(0.41)`}
+        />
+      </G>
+    </>
+  );
+}
+
+/* ---------- Solidão: dois vasos no mesmo chão ---------- */
+
+/**
+ * Dois vasos com broto, inclinados um para o outro. Sem encostar.
+ *
+ * ## A metáfora, herdada e intacta
+ *
+ * O segundo vaso já foi um contorno tracejado e vazio, e o broto do primeiro se
+ * inclinava **sem alcançar** — a falta, desenhada. Estava certo quando o cartão
+ * dizia "Solidão".
+ *
+ * Ele diz "Diminuir a solidão", e diminuir é o que a cena faz: o vaso de lá tem
+ * alguém, e os dois se inclinam um para o outro.
+ *
+ * **Sem encostar, e em vasos separados.** O intro do tema define solidão como
+ * "a distância entre o que você sente e o que os outros sabem", e o que as
+ * práticas fazem é encurtar essa distância, não apagá-la. Duas plantas no mesmo
+ * vaso seria outra promessa — e seria mentira.
+ *
+ * ## O enquadramento
+ *
+ * Meia distância: perto o bastante para os dois vasos serem objetos com barro,
+ * luz e terra na boca, e longe o bastante para o vão entre eles aparecer. O vão
+ * é o assunto, então ele precisa de espaço para existir.
+ */
+function Solidao({ l, a, p, id }: CenarioProps) {
+  const h = horizonteDaCena(a);
+  const chao = a * 0.86;
+  const peDoVaso = a * 0.95;
+  const vasoA = l * 0.28;
+  const vasoB = l * 0.72;
+  const larguraDoVaso = l * 0.1;
+  const altoDoVaso = a * 0.17;
+
+  /** Cada vaso inclina para o lado do outro, e nenhum dos dois chega lá. */
+  const inclina = curva(p, [0, 2.5, 4.5, 6, 6.5]);
+
+  const vaso = (cx: number, lado: 1 | -1, graus: number, chave: string) => (
+    <G key={chave} transform={gira(graus * lado, cx, peDoVaso)}>
+      <Path
+        d={`M${cx - larguraDoVaso} ${peDoVaso - altoDoVaso} L${cx + larguraDoVaso} ${peDoVaso - altoDoVaso} L${cx + larguraDoVaso * 0.78} ${peDoVaso} C${cx + larguraDoVaso * 0.78} ${peDoVaso + 1.6} ${cx + larguraDoVaso * 0.4} ${peDoVaso + 2.2} ${cx} ${peDoVaso + 2.2} C${cx - larguraDoVaso * 0.4} ${peDoVaso + 2.2} ${cx - larguraDoVaso * 0.78} ${peDoVaso + 1.6} ${cx - larguraDoVaso * 0.78} ${peDoVaso} Z`}
+        fill={VASO}
+        stroke={CONTORNO}
+        strokeWidth={1.8}
+        strokeLinejoin="round"
+      />
+      {/* A terra na boca do vaso, e a listra de luz no barro. */}
+      <Ellipse cx={cx} cy={peDoVaso - altoDoVaso + 0.6} rx={larguraDoVaso * 0.92} ry={2} fill={TERRA_SOMBRA} opacity={0.85} />
+      <Path
+        d={`M${cx - larguraDoVaso * 0.55} ${peDoVaso - altoDoVaso + 4} L${cx - larguraDoVaso * 0.62} ${peDoVaso - 2}`}
+        stroke={VASO_LUZ}
+        strokeWidth={1.6}
+        strokeLinecap="round"
+        opacity={0.8}
+      />
+      {/* O broto, inclinado para o lado do outro vaso. */}
+      <G transform={gira(graus * lado * 1.6, cx, peDoVaso - altoDoVaso)}>
+        <Path
+          d={`M${cx} ${peDoVaso - altoDoVaso} L${cx} ${peDoVaso - altoDoVaso - 17}`}
+          stroke={HASTE}
+          strokeWidth={2.2}
+          strokeLinecap="round"
+        />
+        <Path
+          d={FOLHA_DO_BROTO}
+          fill={FOLHA_CLARA}
+          stroke={CONTORNO_FOLHA}
+          strokeWidth={2.2}
+          transform={`translate(${cx} ${peDoVaso - altoDoVaso - 17}) rotate(${lado > 0 ? -50 : 230}) scale(${lado > 0 ? 0.3 : -0.3} 0.3)`}
+        />
+        <Path
+          d={FOLHA_DO_BROTO}
+          fill={FOLHA}
+          stroke={CONTORNO_FOLHA}
+          strokeWidth={2.2}
+          transform={`translate(${cx} ${peDoVaso - altoDoVaso - 17}) rotate(${lado > 0 ? 230 : -50}) scale(${lado > 0 ? 0.25 : -0.25} 0.25)`}
+        />
+      </G>
+    </G>
+  );
+
+  return (
+    <>
+      <Defs>
+        <LinearGradient id={`terraS-${id}`} x1="0" y1="0" x2="0" y2="1">
+          <Stop offset="0" stopColor={TERRA} />
+          <Stop offset="1" stopColor={TERRA_FUNDA} />
+        </LinearGradient>
+        <RadialGradient id={`mataS-${id}`} cx="50%" cy="50%" r="50%">
+          <Stop offset="0" stopColor={FOLHA} stopOpacity={0.5} />
+          <Stop offset="0.58" stopColor={FOLHA} stopOpacity={0.42} />
+          <Stop offset="1" stopColor={FOLHA} stopOpacity={0} />
+        </RadialGradient>
+      </Defs>
+
+      <Ellipse cx={l * 0.2} cy={h} rx={l * 0.4} ry={a * 0.05} fill={`url(#mataS-${id})`} />
+      <Ellipse cx={l * 0.8} cy={h + 2} rx={l * 0.34} ry={a * 0.044} fill={`url(#mataS-${id})`} />
+
+      <Path
+        d={`M0 ${h + 3} C${l * 0.3} ${h - 2} ${l * 0.7} ${h - 2} ${l} ${h + 3} L${l} ${chao} C${l * 0.7} ${chao - 4} ${l * 0.3} ${chao - 4} 0 ${chao} Z`}
+        fill={FOLHA_CLARA}
+        opacity={0.5}
+      />
+      <Path
+        d={`M0 ${chao - 1} C${l * 0.3} ${chao - 5} ${l * 0.7} ${chao - 5} ${l} ${chao - 1} L${l} ${a + 20} L0 ${a + 20} Z`}
+        fill={`url(#terraS-${id})`}
+      />
+
+      {/*
+        As duas sombras no chão, separadas.
+
+        Elas são o que mais depressa diz que os vasos estão no mesmo lugar, e
+        não colados num fundo — e o vão entre as duas é o mesmo vão que a cena
+        inteira é sobre.
+      */}
+      <Ellipse cx={vasoA} cy={peDoVaso + 3} rx={larguraDoVaso * 1.25} ry={2.6} fill={TERRA_FUNDA} opacity={0.4} />
+      <Ellipse cx={vasoB} cy={peDoVaso + 3} rx={larguraDoVaso * 1.25} ry={2.6} fill={TERRA_FUNDA} opacity={0.4} />
+
+      {vaso(vasoA, 1, inclina, 'a')}
+      {vaso(vasoB, -1, inclina, 'b')}
+
+      <Capim x={l * 0.07} y={a * 0.97} alto={11} cor={FOLHA} balanco={curva(p, [0, -1.4, -2, -0.9, 0])} />
+      <Capim x={l * 0.93} y={a * 0.95} alto={9} cor={FOLHA_CLARA} balanco={curva(p, [0, 1.2, 1.8, 0.8, 0])} />
+    </>
+  );
+}
+
 /* ---------- O mapa, que cresce a cada cartão aprovado ---------- */
 
 const CENARIOS: Record<string, (props: CenarioProps) => React.JSX.Element> = {
@@ -1123,6 +1587,9 @@ const CENARIOS: Record<string, (props: CenarioProps) => React.JSX.Element> = {
   estresse: Estresse,
   raiva: Raiva,
   insonia: Insonia,
+  tristeza: Tristeza,
+  luto: Luto,
+  solidao: Solidao,
 };
 
 export function ehTemaComCenario(chave: string): boolean {
