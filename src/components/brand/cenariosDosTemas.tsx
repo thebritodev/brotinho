@@ -1979,6 +1979,182 @@ function Solidao({ l, a, p, id }: CenarioProps) {
   );
 }
 
+/* ---------- Procrastinação: o barranco e o primeiro degrau ---------- */
+
+/**
+ * Um barranco de terra alto demais para se ver o topo, e um degrau cortado no
+ * pé dele. Acima, os próximos degraus estão só marcados.
+ *
+ * ## A frase do tema é o desenho
+ *
+ * O intro diz: "Procrastinar raramente é preguiça. É quase sempre uma tarefa
+ * grande demais para o estado em que você está." O barranco é a tarefa, e ele
+ * **sai pela borda de cima à esquerda** de propósito — não se vê onde acaba,
+ * porque o tamanho dele não é o assunto e não vai mudar.
+ *
+ * O que muda é o degrau. Ele é pequeno, é do tamanho do estado em que a pessoa
+ * está, e é a única coisa acesa no cartão: terra recém-aberta é mais clara que
+ * a terra velha, e os farelos ainda estão caindo dele. Acabou de acontecer.
+ *
+ * ## Por que os de cima são tracejados
+ *
+ * Porque eles não existem ainda. Se estivessem cortados, a cena diria que a
+ * subida já está pronta e a pessoa só não andou — que é a leitura de preguiça,
+ * a única que o intro desmente.
+ *
+ * O tracejado é o mesmo idioma da solidão: ali ele é a planta que falta, aqui
+ * é o degrau que falta. Duas cenas dividindo um idioma é vocabulário, e não
+ * repetição — elas não se parecem em mais nada, uma é canteiro plano e a outra
+ * é barranco de pé.
+ *
+ * ## A superfície
+ *
+ * É a única cena com **desnível**: em todas as outras o chão é horizontal e a
+ * vista é para o horizonte. Aqui a terra sobe na frente de quem olha e tapa
+ * metade do céu. A estrutura de luz da família continua: o claro fica na fresta
+ * de campo à direita, onde o horizonte aparece, e escurece descendo pela face
+ * do barranco.
+ */
+function Procrastinacao({ l, a, p, id }: CenarioProps) {
+  const h = horizonteDaCena(a);
+  /** Onde a crista do barranco sai pela borda esquerda. */
+  const crista = Math.max(peDoTituloNaCena(a) + 10, a * 0.46);
+  /** O degrau: a quina de cima à esquerda da pisada. */
+  const pisadaX = l * 0.38;
+  const pisadaY = a * 0.7;
+  /** A quina de fora, onde a pisada acaba e o espelho começa a descer. */
+  const quinaX = l * 0.68;
+  const quinaY = a * 0.74;
+  /** O pé do espelho, onde a terra solta se junta. */
+  const peX = l * 0.71;
+  const peY = a * 0.96;
+
+  /**
+   * A silhueta do barranco, com o degrau **dentro dela**.
+   *
+   * Esta é a decisão inteira da cena. Desenhado por cima da face, o degrau vira
+   * uma tábua clara encostada no morro — foi o que aconteceu na primeira
+   * tentativa. Recortado na silhueta, ele tem céu do outro lado: a pisada vira
+   * uma linha horizontal e o espelho uma queda a prumo, e não existe outra
+   * coisa no mundo com esse contorno.
+   */
+  const crestaComGrama =
+    `M0 ${crista} C${l * 0.12} ${crista + a * 0.05} ${l * 0.26} ${a * 0.6} ${pisadaX} ${pisadaY}`;
+  const barranco =
+    `${crestaComGrama}` +
+    ` L${quinaX} ${quinaY}` +
+    ` L${peX} ${peY}` +
+    ` C${l * 0.76} ${a * 0.97} ${l * 0.88} ${a} ${l} ${a * 1.01}`;
+
+  return (
+    <>
+      <Defs>
+        {/* O barranco: crista clara, pé fundo. */}
+        <LinearGradient id={`barrancoP-${id}`} x1="0" y1="0" x2="0.3" y2="1">
+          <Stop offset="0" stopColor={TERRA_CLARA} />
+          <Stop offset="0.3" stopColor={TERRA} />
+          <Stop offset="1" stopColor={TERRA_FUNDA} />
+        </LinearGradient>
+        <LinearGradient id={`campoP-${id}`} x1="0" y1="0" x2="0" y2="1">
+          <Stop offset="0" stopColor={FOLHA_CLARA} />
+          <Stop offset="1" stopColor={FOLHA} />
+        </LinearGradient>
+        <RadialGradient id={`mataP-${id}`} cx="50%" cy="50%" r="50%">
+          <Stop offset="0" stopColor={FOLHA} stopOpacity={0.5} />
+          <Stop offset="0.58" stopColor={FOLHA} stopOpacity={0.42} />
+          <Stop offset="1" stopColor={FOLHA} stopOpacity={0} />
+        </RadialGradient>
+      </Defs>
+
+      {/* A fresta de distância à direita: é ela que dá o claro da cena. */}
+      <Ellipse cx={l * 0.9} cy={h - 1} rx={l * 0.3} ry={a * 0.05} fill={`url(#mataP-${id})`} />
+      <Path
+        d={`M0 ${h + 2} C${l * 0.3} ${h - 3} ${l * 0.7} ${h - 3} ${l} ${h + 2} L${l} ${a + 10} L0 ${a + 10} Z`}
+        fill={`url(#campoP-${id})`}
+      />
+
+      <Path d={`${barranco} L${l} ${a + 10} L0 ${a + 10} Z`} fill={`url(#barrancoP-${id})`} />
+      {/* A grama da crista: é ela que diz que aquilo é terra, e não parede. */}
+      <Path d={crestaComGrama} stroke={FOLHA} strokeWidth={3.4} fill="none" opacity={0.85} strokeLinejoin="round" />
+      <Capim x={l * 0.05} y={crista + 3} alto={10} cor={FOLHA} balanco={curva(p, [0, -1.2, -1.8, -0.8, 0])} />
+      <Capim x={l * 0.2} y={a * 0.56} alto={8} cor={FOLHA_CLARA} balanco={curva(p, [0, 1, 1.5, 0.6, 0])} />
+      <Capim x={l * 0.34} y={a * 0.66} alto={7} cor={FOLHA} balanco={curva(p, [0, 1.2, 1.8, 0.8, 0])} />
+
+      {/* Torrões na face: terra aberta tem grão. */}
+      {[
+        { x: 0.08, y: 0.68, r: 2 },
+        { x: 0.26, y: 0.76, r: 1.7 },
+        { x: 0.14, y: 0.87, r: 2.4 },
+        { x: 0.38, y: 0.86, r: 2 },
+        { x: 0.06, y: 0.97, r: 2.6 },
+        { x: 0.5, y: 0.94, r: 2.2 },
+        { x: 0.3, y: 0.99, r: 1.8 },
+      ].map((t, i) => (
+        <Torrao key={i} x={l * t.x} y={a * t.y} r={t.r} />
+      ))}
+
+      {/*
+        A terra do degrau é mais clara que a do barranco: terra recém-aberta é
+        sempre mais clara que a terra velha, e é esse degrau de tom que diz que
+        o corte é de agora. Sem ele, o degrau podia estar ali há dez anos.
+      */}
+      <Path
+        d={
+          `M${pisadaX} ${pisadaY} L${quinaX} ${quinaY} L${peX} ${peY}` +
+          ` L${peX - 10} ${peY + 1} L${quinaX - 11} ${quinaY + 12} L${pisadaX + 4} ${pisadaY + 13} Z`
+        }
+        fill={TERRA_CLARA}
+        opacity={curva(p, [0.62, 0.7, 0.78, 0.86, 0.9])}
+      />
+      {/* Duas raspagens no espelho do degrau: corte feito à mão tem marca. */}
+      <Path
+        d={`M${quinaX - 7} ${quinaY + 8} L${peX - 7} ${peY - 9}`}
+        stroke={CREME}
+        strokeWidth={1.2}
+        strokeLinecap="round"
+        opacity={0.3}
+      />
+      <Path
+        d={`M${quinaX - 2} ${quinaY + 11} L${peX - 2} ${peY - 5}`}
+        stroke={TERRA_SOMBRA}
+        strokeWidth={1.1}
+        strokeLinecap="round"
+        opacity={0.3}
+      />
+      {/* O lábio de luz na quina da pisada. */}
+      <Path
+        d={`M${pisadaX + 1} ${pisadaY + 0.6} L${quinaX - 1} ${quinaY - 0.6}`}
+        stroke={CREME}
+        strokeWidth={1.8}
+        strokeLinecap="round"
+        opacity={curva(p, [0.55, 0.66, 0.78, 0.88, 0.94])}
+      />
+
+      {/*
+        Os farelos caindo da quina, e o montinho de terra solta no pé.
+
+        São eles que dizem "isto acabou de ser cortado". Sem eles o degrau é uma
+        coisa que sempre esteve ali, e o cartão volta a dizer preguiça — que é a
+        única leitura que o intro do tema desmente.
+      */}
+      <Ellipse cx={peX - 2} cy={peY + 2} rx={11} ry={3.4} fill={TERRA_CLARA} opacity={0.5} />
+      <Torrao x={peX - 8} y={peY + 1} r={2.4} />
+      <Torrao x={peX + 4} y={peY + 3} r={1.9} />
+      <G transform={`translate(0 ${curva(p, [0, 2.6, 5.8, 9, 11.5])})`} opacity={curva(p, [0.9, 0.8, 0.6, 0.34, 0])}>
+        <Ellipse cx={quinaX + 2} cy={quinaY + 7} rx={1.7} ry={1.4} fill={TERRA_CLARA} />
+        <Ellipse cx={quinaX + 4} cy={quinaY + 15} rx={1.2} ry={1} fill={TERRA_CLARA} />
+      </G>
+      <G transform={`translate(0 ${curva(p, [0, 1.4, 3.2, 5.2, 7])})`} opacity={curva(p, [0.7, 0.62, 0.48, 0.28, 0])}>
+        <Ellipse cx={quinaX + 6} cy={quinaY + 10} rx={1.1} ry={0.9} fill={TERRA_CLARA} />
+      </G>
+
+      {/* Capim no chão de cá, ao pé do barranco: é onde a pessoa está. */}
+      <Capim x={l * 0.82} y={a * 0.99} alto={12} cor={CONTORNO_FOLHA} balanco={curva(p, [0, 1.4, 2.2, 0.9, 0])} />
+      <Capim x={l * 0.95} y={a * 0.93} alto={9} cor={FOLHA} balanco={curva(p, [0, -1.2, -1.8, -0.8, 0])} />
+    </>
+  );
+}
+
 /* ---------- O mapa, que cresce a cada cartão aprovado ---------- */
 
 const CENARIOS: Record<string, (props: CenarioProps) => React.JSX.Element> = {
@@ -1989,6 +2165,7 @@ const CENARIOS: Record<string, (props: CenarioProps) => React.JSX.Element> = {
   tristeza: Tristeza,
   luto: Luto,
   solidao: Solidao,
+  procrastinacao: Procrastinacao,
 };
 
 export function ehTemaComCenario(chave: string): boolean {
