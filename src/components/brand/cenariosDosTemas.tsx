@@ -1,6 +1,5 @@
 import React, { useId } from 'react';
 import Svg, {
-  Circle,
   ClipPath,
   Defs,
   Ellipse,
@@ -13,7 +12,7 @@ import Svg, {
 } from 'react-native-svg';
 
 import { palette, tracos } from '../../theme/tokens';
-import { cresce, curva, estica, gira } from './movimentoDaCena';
+import { cresce, curva, gira } from './movimentoDaCena';
 import { BRASA, TERRA, TERRA_CLARA, TERRA_FUNDA, TERRA_SOMBRA } from './terraDoCanteiro';
 
 /**
@@ -90,15 +89,11 @@ const CARVAO = palette.terracotta400;
 const BRASA_VIVA = palette.amber400;
 const FUMACA = palette.brown400;
 
-/** O acento da solidão: o barro dos dois vasos. */
-const VASO = tracos.vaso;
-const VASO_LUZ = tracos.vasoLuz;
-
-/** O acento da tristeza: o sol que estava atrás o tempo todo. */
+/** O acento da tristeza: a claridade que a neblina espalha no fim da trilha. */
 const SOL = palette.yellow300;
 const NUVEM_BRANCA = '#FFFFFF';
 
-/** O acento da insônia: a última luz do dia, e a lua. */
+/** O acento da insônia: a lua, e o ar entre ela e quem olha. */
 const LUA = palette.yellow100;
 const CRATERA = palette.amber100;
 const ESTRELA = palette.amber400;
@@ -975,105 +970,180 @@ function Raiva({ l, a, p, id }: CenarioProps) {
   );
 }
 
-/* ---------- Insônia: a névoa deitada no campo ---------- */
+/* ---------- Um banco de nuvem, para a cena que é só céu ---------- */
 
 /**
- * A lua baixa, estrelas quietas, e a neblina assentando no chão.
+ * Uma faixa de nuvem de fundo chato e alto em quatro corcovas.
  *
- * ## A metáfora, herdada e intacta
+ * ## O tamanho dela decide se é nuvem ou morro
  *
- * As estrelas já piscaram fora de compasso, de propósito, para dar "a noite
- * acordada" — e noite acordada era o tema quando o cartão se chamava "Insônia".
- * Hoje ele diz "Preparar o sono", e a cena precisa mostrar o contrário: **nada
- * se mexendo quando você quer que tudo pare**. Então elas baixam juntas até um
- * brilho fraco.
+ * A primeira versão era sempre mais larga que o cartão, para que as pontas
+ * ficassem de fora. Deu no contrário do esperado: uma corcova só, atravessando
+ * a janela inteira com o fundo reto na borda de baixo, é exatamente o desenho
+ * de um morro nevado.
  *
- * ## A névoa é a superfície desta cena, e é ela que a torna única
+ * Nuvem tem ponta, e é a ponta que diz que aquilo flutua. Então elas são um
+ * pouco mais estreitas que o cartão, com o fundo já fora da janela: vê-se o
+ * corpo inteiro, com os dois lados descendo, e o que está embaixo fica cortado
+ * pela borda — que é como se vê um banco de nuvem de dentro dele.
  *
- * A primeira versão tinha lua, nuvem e campo, e ficou **igual à tristeza** —
- * mesmo chão genérico, mudando só a bola no céu. O defeito não era o objeto: as
- * duas dividiam a mesma superfície, e a superfície é metade do cartão.
+ * ## As três partes
  *
- * A neblina resolve os dois lados de uma vez. Ela não se repete em tema nenhum,
- * e é literalmente o que a noite faz num campo: o chão esfria antes do ar, e o
- * vapor deita. Cobrindo o pé do capim, ela ainda diz a coisa certa sobre o
- * tema — o mundo não sumiu, ele só ficou menos nítido, que é o que acontece
- * quando o corpo começa a desligar.
+ * O corpo, a barriga e a luz. A barriga é um tom abaixo, encostada no fundo
+ * chato: sem ela, uma nuvem clara sobre céu claro é uma silhueta vazia. A luz é
+ * um risco branco na corcova maior, do lado que a lua ilumina. É a mesma
+ * anatomia da nuvem do desenho antigo da insônia — o que muda é que aqui ela é
+ * calculada, e não desenhada à mão, porque são cinco.
  *
- * A nuvem que assentava embaixo da lua saiu: com a névoa no chão, ter também
- * uma nuvem no céu era a mesma ideia contada duas vezes.
+ * `contorno` separa o que está perto do que está longe: a de perto leva traço
+ * grosso, as de longe nenhum. Mesma regra de perspectiva atmosférica das outras
+ * doze cenas, só que de pé.
+ */
+function BancoDeNuvem({
+  x,
+  y,
+  l: larg,
+  alt,
+  cor,
+  opacidade,
+  contorno = false,
+}: {
+  x: number;
+  y: number;
+  l: number;
+  alt: number;
+  cor: string;
+  opacidade: number;
+  contorno?: boolean;
+}) {
+  const topo =
+    `M${x - larg / 2} ${y}` +
+    ` C${x - larg * 0.47} ${y - alt * 0.34} ${x - larg * 0.4} ${y - alt * 0.62} ${x - larg * 0.3} ${y - alt * 0.56}` +
+    ` C${x - larg * 0.26} ${y - alt * 0.92} ${x - larg * 0.08} ${y - alt} ${x - larg * 0.02} ${y - alt * 0.66}` +
+    ` C${x + larg * 0.04} ${y - alt * 0.95} ${x + larg * 0.24} ${y - alt * 0.86} ${x + larg * 0.26} ${y - alt * 0.5}` +
+    ` C${x + larg * 0.34} ${y - alt * 0.56} ${x + larg * 0.45} ${y - alt * 0.32} ${x + larg / 2} ${y}`;
+
+  return (
+    <>
+      <Path
+        d={`${topo} Z`}
+        fill={cor}
+        opacity={opacidade}
+        stroke={contorno ? CONTORNO : 'none'}
+        strokeWidth={contorno ? 1.6 : 0}
+        strokeLinejoin="round"
+      />
+      <Path
+        d={
+          `M${x - larg * 0.42} ${y - alt * 0.24}` +
+          ` C${x - larg * 0.2} ${y - alt * 0.08} ${x + larg * 0.2} ${y - alt * 0.08} ${x + larg * 0.42} ${y - alt * 0.24}` +
+          ` L${x + larg * 0.42} ${y} L${x - larg * 0.42} ${y} Z`
+        }
+        fill={NUVEM_SOMBRA}
+        opacity={opacidade * 0.5}
+      />
+      <Path
+        d={`M${x - larg * 0.25} ${y - alt * 0.7} C${x - larg * 0.2} ${y - alt * 0.91} ${x - larg * 0.09} ${y - alt * 0.96} ${x - larg * 0.03} ${y - alt * 0.78}`}
+        stroke={NUVEM_BRANCA}
+        strokeWidth={1.4}
+        strokeLinecap="round"
+        fill="none"
+        opacity={opacidade * 0.85}
+      />
+    </>
+  );
+}
+
+/* ---------- Insônia: a lua entre as nuvens, e nenhum chão ---------- */
+
+/**
+ * A lua no meio do cartão, com bancos de nuvem passando atrás e na frente dela.
+ * É a única das treze cenas que não tem chão.
+ *
+ * ## Por que o chão saiu
+ *
+ * A versão anterior tinha lua, campo e névoa deitada, e a névoa era boa — só
+ * que o cartão continuava sendo um lugar visto de fora, com a mesma armação dos
+ * vizinhos: céu em cima, horizonte no meio, terra embaixo. Doze cenas com a
+ * mesma armação e um objeto diferente em cada uma é uma coleção de figurinhas.
+ *
+ * Aqui não existe horizonte. O cartão é céu do topo à borda de baixo, e quem
+ * olha está **dentro** dele — que é onde a cabeça está na hora de dormir, e não
+ * num campo olhando a paisagem.
+ *
+ * A estrutura de luz da família continua de pé: o banco mais claro é o de
+ * baixo, e o cartão escurece na borda pela barriga dele. O que mudou é que o
+ * claro do meio virou nuvem, e não horizonte.
+ *
+ * ## Entre as nuvens, e não do lado delas
+ *
+ * O banco escuro passa **atrás** da lua e o de traço grosso passa na
+ * **frente**, cobrindo o pé dela. Sem esse cruzamento a cena seria "uma lua e
+ * umas nuvens"; com ele, existe ar entre ela e quem olha. É o mesmo truque de
+ * profundidade da mata das outras cenas, de pé em vez de deitado.
+ *
+ * O banco de trás tem uma segunda função, e é ela que decide se a cena existe:
+ * a lua é creme-amarelada e o céu do cartão acaba em creme. Lua clara sobre céu
+ * claro é uma forma que ninguém acha. Com o banco atrás, ela tem contra o que
+ * aparecer — e o halo em volta dela fecha o resto.
+ *
+ * ## O movimento
+ *
+ * As nuvens escorregam de lado, cada banco no seu passo, o de perto mais que o
+ * de longe — que é como paralaxe funciona, e é o que faz o céu ter camadas. A
+ * lua pende um grau e fica. As estrelas baixam juntas até um brilho fraco, como
+ * já baixavam: o cartão diz "Preparar o sono", e o que ele tem de mostrar é
+ * tudo indo parando.
  */
 function Insonia({ l, a, p, id }: CenarioProps) {
-  const h = horizonteDaCena(a);
-  /** A faixa de céu livre: entre o pé do título e a linha do horizonte. */
-  const ceuLivre = h - peDoTituloNaCena(a);
-  const luaX = l * 0.74;
-  const luaY = peDoTituloNaCena(a) + ceuLivre * 0.48;
-  const luaR = Math.min(22, ceuLivre * 0.55);
+  /** O céu livre: do pé do título até a borda de baixo. Aqui, o cartão todo. */
+  const alto = peDoTituloNaCena(a);
+  const ceu = a - alto;
+  const luaX = l * 0.48;
+  const luaY = alto + ceu * 0.42;
+  const luaR = Math.min(29, ceu * 0.37);
+
+  /** As estrelas ficam nos vãos entre os bancos, e por isso vêm antes deles. */
+  const estrelas = [
+    { x: 0.11, y: 0.06, r: 2.8 },
+    { x: 0.3, y: 0.12, r: 2 },
+    { x: 0.63, y: 0.05, r: 2.4 },
+    { x: 0.83, y: 0.15, r: 1.8 },
+    { x: 0.92, y: 0.34, r: 1.5 },
+    { x: 0.2, y: 0.28, r: 1.6 },
+  ] as const;
 
   return (
     <>
       <Defs>
-        <LinearGradient id={`noite-${id}`} x1="0" y1="0" x2="0" y2="1">
-          <Stop offset="0" stopColor={TERRA} />
-          <Stop offset="0.35" stopColor={TERRA_FUNDA} />
-          <Stop offset="1" stopColor={TERRA_SOMBRA} />
-        </LinearGradient>
-        <RadialGradient id={`mataI-${id}`} cx="50%" cy="50%" r="50%">
-          <Stop offset="0" stopColor={FOLHA} stopOpacity={0.95} />
-          <Stop offset="0.58" stopColor={FOLHA} stopOpacity={0.8} />
-          <Stop offset="1" stopColor={FOLHA} stopOpacity={0} />
-        </RadialGradient>
         {/*
-          Cada faixa de névoa cai a zero nas pontas. Com opacidade chapada ela
-          vira uma fita branca atravessada no cartão — e névoa não tem ponta.
+          O luar: um halo que cai a zero. Ele não é enfeite — é o que separa a
+          lua do céu claro nos dois temas, junto com o banco escuro atrás dela.
         */}
-        <RadialGradient id={`nevoa-${id}`} cx="50%" cy="50%" r="50%">
-          <Stop offset="0" stopColor={CREME} stopOpacity={1} />
-          <Stop offset="0.45" stopColor={CREME} stopOpacity={0.7} />
-          <Stop offset="1" stopColor={CREME} stopOpacity={0} />
+        {/*
+          A bruma atrás da lua: um borrão escuro de bordas em nada.
+
+          Ela começou como mais um banco de nuvem, e o cartão virou paisagem de
+          morro — quatro fundos chatos empilhados leem como serra, não como
+          céu. Sem fundo nenhum, ela só escurece o ar onde a lua está, que é
+          tudo o que ela precisava fazer.
+        */}
+        <RadialGradient id={`brumaI-${id}`} cx="50%" cy="50%" r="50%">
+          <Stop offset="0" stopColor={NUVEM_SOMBRA} stopOpacity={0.62} />
+          <Stop offset="0.5" stopColor={NUVEM_SOMBRA} stopOpacity={0.4} />
+          <Stop offset="1" stopColor={NUVEM_SOMBRA} stopOpacity={0} />
+        </RadialGradient>
+        <RadialGradient id={`luarI-${id}`} cx="50%" cy="50%" r="50%">
+          <Stop offset="0" stopColor={LUA} stopOpacity={0.5} />
+          <Stop offset="0.45" stopColor={LUA} stopOpacity={0.26} />
+          <Stop offset="1" stopColor={LUA} stopOpacity={0} />
         </RadialGradient>
       </Defs>
 
-      {/* A mata ao longe é a mais fechada das cenas, e é o que diz a hora. */}
-      <Ellipse cx={l * 0.26} cy={h - 1} rx={l * 0.4} ry={a * 0.055} fill={`url(#mataI-${id})`} />
-      <Ellipse cx={l * 0.86} cy={h + 2} rx={l * 0.3} ry={a * 0.045} fill={`url(#mataI-${id})`} />
-
-      {/* A última claridade do dia, deitada na linha do horizonte. */}
-      <Path
-        d={`M0 ${h + 2} C${l * 0.3} ${h - 3} ${l * 0.7} ${h - 3} ${l} ${h + 2} L${l} ${h + 6} L0 ${h + 6} Z`}
-        fill={CREME}
-        opacity={0.55}
-      />
-
-      <Path
-        d={`M0 ${h + 4} C${l * 0.3} ${h - 1} ${l * 0.7} ${h - 1} ${l} ${h + 4} L${l} ${a + 20} L0 ${a + 20} Z`}
-        fill={`url(#noite-${id})`}
-      />
-
-      {/* Torrões na terra da noite, antes da névoa deitar sobre eles. */}
-      {[
-        { x: 0.1, y: 0.79, r: 2 },
-        { x: 0.32, y: 0.86, r: 2.4 },
-        { x: 0.55, y: 0.81, r: 1.7 },
-        { x: 0.68, y: 0.92, r: 2.6 },
-        { x: 0.88, y: 0.84, r: 2.1 },
-      ].map((t, i) => (
-        <Torrao key={i} x={l * t.x} y={a * t.y} r={t.r} />
-      ))}
-
-      {/* As estrelas, baixando **juntas**. */}
       <G opacity={curva(p, [1, 0.86, 0.7, 0.56, 0.45])}>
-        {[
-          { x: 0.1, y: 0.26, r: 3.2 },
-          { x: 0.26, y: 0.6, r: 2.2 },
-          { x: 0.47, y: 0.2, r: 2 },
-          { x: 0.18, y: 0.82, r: 1.6 },
-          { x: 0.38, y: 0.42, r: 1.5 },
-          { x: 0.56, y: 0.62, r: 1.7 },
-        ].map((e, i) => {
+        {estrelas.map((e, i) => {
           const ex = l * e.x;
-          const ey = peDoTituloNaCena(a) + ceuLivre * e.y;
+          const ey = alto + ceu * e.y;
           return (
             <Path
               key={i}
@@ -1083,6 +1153,41 @@ function Insonia({ l, a, p, id }: CenarioProps) {
           );
         })}
       </G>
+
+      {/* Duas nuvens altas e longe: quase só um tom no céu. */}
+      <BancoDeNuvem
+        x={l * 0.26 + curva(p, [0, 0.6, 1.2, 1.7, 2])}
+        y={alto + ceu * 0.22}
+        l={l * 0.66}
+        alt={ceu * 0.15}
+        cor={NUVEM}
+        opacidade={0.5}
+      />
+      <BancoDeNuvem
+        x={l * 0.88 + curva(p, [0, 0.4, 0.8, 1.1, 1.3])}
+        y={alto + ceu * 0.33}
+        l={l * 0.5}
+        alt={ceu * 0.12}
+        cor={NUVEM}
+        opacidade={0.4}
+      />
+
+      {/* A bruma de trás: é contra ela que a lua clara aparece. */}
+      <Ellipse
+        cx={luaX + l * 0.06 - curva(p, [0, 0.5, 1, 1.4, 1.7])}
+        cy={luaY + luaR * 0.1}
+        rx={l * 0.4}
+        ry={luaR * 1.15}
+        fill={`url(#brumaI-${id})`}
+      />
+
+      <Ellipse
+        cx={luaX}
+        cy={luaY}
+        rx={luaR * 1.9}
+        ry={luaR * 1.7}
+        fill={`url(#luarI-${id})`}
+      />
 
       {/* A lua, pendendo um fio de grau — o único movimento dela. */}
       <G transform={gira(curva(p, [0, -1, -2, -2.6, -3]), luaX, luaY)}>
@@ -1099,7 +1204,7 @@ function Insonia({ l, a, p, id }: CenarioProps) {
         <Ellipse cx={luaX - luaR * 0.06} cy={luaY + luaR * 0.48} rx={luaR * 0.075} ry={luaR * 0.065} fill={CRATERA} opacity={0.6} />
         <Path
           d={`M${luaX + luaR * 0.1} ${luaY - luaR * 0.88} C${luaX - luaR * 0.24} ${luaY - luaR * 0.68} ${luaX - luaR * 0.44} ${luaY - luaR * 0.36} ${luaX - luaR * 0.44} ${luaY}`}
-          stroke="#FFFFFF"
+          stroke={NUVEM_BRANCA}
           strokeWidth={1.3}
           strokeLinecap="round"
           fill="none"
@@ -1108,329 +1213,387 @@ function Insonia({ l, a, p, id }: CenarioProps) {
       </G>
 
       {/*
-        O capim vem **antes** da névoa: é ela que cobre o pé dele, e não o
-        contrário. Essa ordem é a cena inteira — o que faz a neblina ler como
-        neblina é o que ela esconde.
+        O banco da frente: o único com traço grosso, porque é o que está perto.
+
+        Ele cobre o pé da lua, e é esse cruzamento que põe a lua **entre** as
+        nuvens. Também é o que mais escorrega no toque — quanto mais perto,
+        mais anda.
       */}
-      <Capim x={l * 0.12} y={a * 0.97} alto={17} cor={CONTORNO_FOLHA} balanco={curva(p, [0, -1.2, -1.8, -0.8, 0])} />
-      <Capim x={l * 0.42} y={a * 0.94} alto={14} cor={CONTORNO_FOLHA} balanco={curva(p, [0, 1, 1.6, 0.7, 0])} />
-      <Capim x={l * 0.86} y={a * 0.98} alto={15} cor={CONTORNO_FOLHA} balanco={curva(p, [0, -0.8, -1.4, -0.6, 0])} />
+      <BancoDeNuvem
+        x={l * 0.3 + curva(p, [0, 1.6, 3.2, 4.6, 5.5])}
+        y={a + 5}
+        l={l * 0.98}
+        alt={ceu * 0.44}
+        cor={NUVEM}
+        opacidade={0.95}
+        contorno
+      />
 
       {/*
-        A névoa: três faixas deitadas, a de baixo mais cheia.
-
-        Cada mancha cai a zero em toda a volta, e elas se cruzam fora de
-        compasso. Como faixas de opacidade chapada, a névoa virava três fitas
-        cinzas atravessadas no cartão — e o que denuncia uma fita é a aresta de
-        cima e a de baixo, que névoa não tem.
-
-        Ela sobe um fio no toque, como vapor que ainda está assentando — é o
-        movimento mais lento da cena, e é de propósito.
+        E a de baixo à direita, mais clara e sem traço: ela fecha o banco e é o
+        ponto mais claro da cena — o lugar onde as outras doze têm horizonte.
       */}
-      <G transform={`translate(0 ${curva(p, [0, -0.5, -1, -1.4, -1.6])})`}>
-        {[
-          { x: 0.2, y: 0.84, rx: 0.34, ry: 0.045, op: 0.3 },
-          { x: 0.66, y: 0.865, rx: 0.36, ry: 0.05, op: 0.32 },
-          { x: 0.36, y: 0.92, rx: 0.42, ry: 0.06, op: 0.4 },
-          { x: 0.84, y: 0.95, rx: 0.34, ry: 0.055, op: 0.36 },
-          { x: 0.06, y: 0.97, rx: 0.3, ry: 0.05, op: 0.34 },
-        ].map((n, i) => (
-          <Ellipse
-            key={i}
-            cx={l * n.x}
-            cy={a * n.y}
-            rx={l * n.rx}
-            ry={a * n.ry}
-            fill={`url(#nevoa-${id})`}
-            opacity={n.op}
-          />
-        ))}
-      </G>
+      <BancoDeNuvem
+        x={l * 0.94 - curva(p, [0, 0.9, 1.8, 2.6, 3.2])}
+        y={a + 8}
+        l={l * 0.66}
+        alt={ceu * 0.3}
+        cor={CREME}
+        opacidade={0.95}
+      />
     </>
   );
 }
 
-/* ---------- Tristeza: o céu tomando o cartão ---------- */
+/* ---------- Tristeza: a neblina, e o caminho que passa por ela ---------- */
 
 /**
- * O sol que estava atrás o tempo todo, e a nuvem saindo da frente dele.
+ * O campo tomado de neblina, e uma trilha de terra clara atravessando até
+ * desaparecer dentro dela.
  *
- * ## A metáfora, herdada e intacta
+ * ## O nome do cartão é o desenho
  *
- * A cena já foi nuvem, chuva fina e poça — o dia que não passa. O cartão diz
- * "Atravessar a tristeza", e atravessar tem um outro lado; aquela cena não
- * mostrava nenhum.
+ * "Atravessar a tristeza" — e atravessar é uma trilha. A versão anterior era um
+ * céu enorme com nuvens, e dizia o que a tristeza **é**: pesada, ocupando tudo.
+ * Só que o cartão não é sobre estar triste, é sobre passar por dentro. Um
+ * caminho que entra na neblina diz isso numa olhada, sem metáfora que precise
+ * ser explicada.
  *
- * O sol não **chega**: ele estava ali desde o começo, e o que se move é o que
- * estava na frente. É a diferença entre prometer que a tristeza acaba e dizer
- * que ela passa na frente de alguma coisa que continua existindo.
+ * E ele diz a coisa honesta: a trilha **não** mostra a saída. Ela some na
+ * neblina ainda larga, sem afinar até virar ponta. Prometer o outro lado à
+ * vista seria mentira, e o que a prática promete é só que existe caminho.
  *
- * Os raios aparecem conforme a nuvem sai, e não antes: parados, a cena
- * entregaria o outro lado de graça.
+ * ## O que a neblina esconde
  *
- * ## Por que esta é a única cena em que o céu toma o cartão
+ * A mata e a linha do horizonte estão desenhadas embaixo dela, e é por isso que
+ * ela lê como neblina e não como uma faixa branca: névoa só existe pelo que
+ * cobre. A claridade atrás, no fim da trilha, é o sol que a neblina espalha —
+ * sem disco, porque disco de sol atravessando névoa não se vê.
  *
- * A primeira versão tinha o horizonte no meio, como todas, e um sol atrás de
- * uma nuvem no alto. Ficou **igual à insônia** — mesmo campo, mudando só a bola
- * no céu. O erro não era o objeto: era a superfície. As duas dividiam o mesmo
- * chão genérico, e o chão é metade do cartão.
+ * No toque a neblina sobe um fio e as manchas da frente afinam, e a claridade
+ * do fundo cresce: aparece um pouco mais de caminho do que antes. É o
+ * movimento mais ligado ao assunto das treze — o cartão faz, em meio segundo, o
+ * que a prática faz.
  *
- * Aqui o horizonte desce para quatro quintos da altura. O céu deixa de ser
- * fundo e vira o lugar, o chão vira uma tira de onde se olha, e o sol e a nuvem
- * ganham o tamanho de quem manda na cena. Nenhum outro cartão tem esta
- * proporção — e é a proporção, e não o desenho, que faz este ser único.
+ * ## Por que esta trilha não é o rastro que foi descartado
+ *
+ * A cena do luto já teve um rastro na terra, e ele virou uma barraca com ponta
+ * no horizonte. Aqui são três diferenças: a trilha é clara contra o capim
+ * escuro dos dois lados, ela curva em vez de ir reta, e a neblina corta o fim
+ * dela **antes** da ponta. O que fazia a outra ler como forma geométrica era o
+ * bico; sem bico, ela lê como chão.
  */
 function Tristeza({ l, a, p, id }: CenarioProps) {
-  /** Quatro quintos: o céu é o assunto, e o chão é só de onde se olha. */
-  const h = horizonteDaCena(a, 0.8);
-  const ceuLivre = h - peDoTituloNaCena(a);
-  const solX = l * 0.7;
-  const solY = peDoTituloNaCena(a) + ceuLivre * 0.44;
-  const solR = Math.min(21, ceuLivre * 0.34);
-  /** A nuvem anda para a esquerda conforme o passo corre. */
-  const nuvemX = l * 0.52 - curva(p, [0, 7, 15, 22, 28]);
-  const nuvemY = solY + solR * 0.5;
-  const nuvemAlto = solR * 1;
+  const h = horizonteDaCena(a);
+  /** O alto da neblina: logo abaixo do pé do título. */
+  const alto = peDoTituloNaCena(a) + 8;
 
   return (
     <>
       <Defs>
-        <LinearGradient id={`terraT-${id}`} x1="0" y1="0" x2="0" y2="1">
-          <Stop offset="0" stopColor={FOLHA} />
-          <Stop offset="0.45" stopColor={TERRA} />
-          <Stop offset="1" stopColor={TERRA_FUNDA} />
+        <LinearGradient id={`campoT-${id}`} x1="0" y1="0" x2="0" y2="1">
+          <Stop offset="0" stopColor={FOLHA_CLARA} />
+          <Stop offset="0.45" stopColor={FOLHA} />
+          <Stop offset="1" stopColor={CONTORNO_FOLHA} stopOpacity={0.85} />
+        </LinearGradient>
+        {/* A trilha: clara no fundo, onde a luz está, e terrosa perto. */}
+        <LinearGradient id={`trilhaT-${id}`} x1="0" y1="1" x2="0" y2="0">
+          <Stop offset="0" stopColor={TERRA} />
+          <Stop offset="0.5" stopColor={TERRA_CLARA} />
+          <Stop offset="1" stopColor={CREME} />
         </LinearGradient>
         <RadialGradient id={`mataT-${id}`} cx="50%" cy="50%" r="50%">
-          <Stop offset="0" stopColor={FOLHA} stopOpacity={0.6} />
-          <Stop offset="0.58" stopColor={FOLHA} stopOpacity={0.5} />
+          <Stop offset="0" stopColor={FOLHA} stopOpacity={0.55} />
+          <Stop offset="0.58" stopColor={FOLHA} stopOpacity={0.45} />
           <Stop offset="1" stopColor={FOLHA} stopOpacity={0} />
         </RadialGradient>
-        {/* Uma nuvem alta e sem contorno, bem no fundo: o céu ganha camada. */}
-        <RadialGradient id={`altaT-${id}`} cx="50%" cy="50%" r="50%">
-          <Stop offset="0" stopColor={NUVEM_BRANCA} stopOpacity={1} />
-          <Stop offset="0.55" stopColor={NUVEM_BRANCA} stopOpacity={0.72} />
-          <Stop offset="1" stopColor={NUVEM_BRANCA} stopOpacity={0} />
+        {/* A claridade do fundo: sol espalhado, sem disco. */}
+        <RadialGradient id={`solT-${id}`} cx="50%" cy="50%" r="50%">
+          <Stop offset="0" stopColor={SOL} stopOpacity={0.55} />
+          <Stop offset="0.5" stopColor={SOL} stopOpacity={0.24} />
+          <Stop offset="1" stopColor={SOL} stopOpacity={0} />
+        </RadialGradient>
+        {/* Cada mancha de névoa cai a zero na borda: névoa não tem contorno. */}
+        <RadialGradient id={`nevoaT-${id}`} cx="50%" cy="50%" r="50%">
+          <Stop offset="0" stopColor={CREME} stopOpacity={1} />
+          <Stop offset="0.5" stopColor={CREME} stopOpacity={0.82} />
+          <Stop offset="1" stopColor={CREME} stopOpacity={0} />
         </RadialGradient>
       </Defs>
 
-      {/*
-        Duas nuvens altas, sem contorno e mais lentas que a da frente.
+      {/* A mata, que a neblina vai cobrir quase toda. */}
+      <Ellipse cx={l * 0.22} cy={h - 2} rx={l * 0.38} ry={a * 0.06} fill={`url(#mataT-${id})`} />
+      <Ellipse cx={l * 0.8} cy={h} rx={l * 0.34} ry={a * 0.05} fill={`url(#mataT-${id})`} />
 
-        É profundidade barata e honesta: duas camadas a velocidades diferentes
-        leem como céu, e não como adesivo colado no fundo. Contorno as traria
-        para a frente, que é onde elas não estão.
-      */}
-      {[
-        { x: 0.22, y: 0.1, rx: 0.26, ry: 0.05, anda: 7, op: 1 },
-        { x: 0.72, y: 0.19, rx: 0.22, ry: 0.042, anda: 5, op: 0.9 },
-        { x: 0.38, y: 0.3, rx: 0.3, ry: 0.052, anda: 9, op: 0.85 },
-        { x: 0.88, y: 0.42, rx: 0.2, ry: 0.038, anda: 4, op: 0.7 },
-      ].map((n, i) => {
-        const cx = l * n.x - curva(p, [0, n.anda * 0.3, n.anda * 0.6, n.anda * 0.85, n.anda]);
-        const cy = peDoTituloNaCena(a) + ceuLivre * n.y;
-        return (
-          <G key={i} opacity={n.op}>
-            <Ellipse cx={cx} cy={cy} rx={l * n.rx} ry={a * n.ry} fill={`url(#altaT-${id})`} />
-            {/*
-              A barriga da nuvem alta, um fio abaixo dela.
-
-              Branco sobre um céu que já é quase branco perto do horizonte
-              simplesmente não aparece — e o céu desta cena ocupa o cartão
-              inteiro, então nuvem que não aparece é área morta. A sombra por
-              baixo é o que faz a forma existir em qualquer altura do degradê.
-            */}
-            <Ellipse
-              cx={cx + l * 0.02}
-              cy={cy + a * n.ry * 0.62}
-              rx={l * n.rx * 0.82}
-              ry={a * n.ry * 0.42}
-              fill={NUVEM_SOMBRA}
-              opacity={0.16}
-            />
-          </G>
-        );
-      })}
-
-      {/*
-        Os raios aparecem conforme a nuvem sai, e não antes. A opacidade deles é
-        a mesma conta do passo, para que a recompensa seja do movimento.
-      */}
-      <G opacity={curva(p, [0, 0.15, 0.45, 0.75, 1])}>
-        {[
-          [1, 0],
-          [0.87, -0.5],
-          [0.87, 0.5],
-          [0.5, -0.87],
-          [0.5, 0.87],
-          [0, -1],
-        ].map(([dx, dy], i) => (
-          <Path
-            key={i}
-            d={`M${solX + dx * solR * 1.22} ${solY + dy * solR * 1.22} L${solX + dx * solR * 1.58} ${solY + dy * solR * 1.58}`}
-            stroke={SOL}
-            strokeWidth={2.2}
-            strokeLinecap="round"
-          />
-        ))}
-      </G>
-      <Circle cx={solX} cy={solY} r={solR} fill={SOL} stroke={CONTORNO} strokeWidth={1.8} />
-      {/* A luz bate no alto à esquerda, como em todo desenho do app. */}
+      {/* O campo, do horizonte até a borda de baixo. */}
       <Path
-        d={`M${solX - solR * 0.52} ${solY - solR * 0.42} C${solX - solR * 0.38} ${solY - solR * 0.66} ${solX - solR * 0.1} ${solY - solR * 0.79} ${solX + solR * 0.2} ${solY - solR * 0.75}`}
-        stroke={CREME}
-        strokeWidth={2.2}
-        strokeLinecap="round"
+        d={`M0 ${h + 2} C${l * 0.3} ${h - 3} ${l * 0.7} ${h - 3} ${l} ${h + 2} L${l} ${a + 8} L0 ${a + 8} Z`}
+        fill={`url(#campoT-${id})`}
+      />
+
+      {/*
+        A trilha, torta de propósito.
+
+        A primeira versão era simétrica, e simétrico com as duas beiras retas é
+        uma rampa, não um caminho — o mesmo defeito do rastro que o luto já teve.
+        Aqui a beira da esquerda sobe quase a prumo e a da direita varre para
+        dentro: o caminho dobra para a esquerda enquanto se afasta, que é o que
+        trilha de pé na terra faz.
+
+        O fundo dela fica em `h + 2`, ainda com um sétimo da largura do cartão e
+        embaixo da neblina mais fechada: é a névoa que acaba com ela, e não a
+        perspectiva. Trilha que afina até virar bico promete o outro lado.
+      */}
+      <Path
+        d={
+          `M${l * 0.24} ${a + 8}` +
+          ` C${l * 0.28} ${a * 0.92} ${l * 0.24} ${a * 0.8} ${l * 0.255} ${h + 2}` +
+          ` L${l * 0.405} ${h + 2}` +
+          ` C${l * 0.44} ${a * 0.78} ${l * 0.6} ${a * 0.88} ${l * 0.72} ${a + 8} Z`
+        }
+        fill={`url(#trilhaT-${id})`}
+      />
+      {/* As duas beiras, para o capim não encostar na terra sem emenda. */}
+      <Path
+        d={`M${l * 0.24} ${a + 8} C${l * 0.28} ${a * 0.92} ${l * 0.24} ${a * 0.8} ${l * 0.255} ${h + 2}`}
+        stroke={CONTORNO_FOLHA}
+        strokeWidth={1.2}
         fill="none"
-        opacity={0.75}
+        opacity={0.35}
       />
-
-      {/*
-        A nuvem que sai da frente. Ela começa cobrindo um terço do sol e anda
-        para a esquerda: o que se move é o que estava na frente, e não o sol.
-      */}
-      <G>
-        <Path
-          d={`M${nuvemX - 26} ${nuvemY} C${nuvemX - 33} ${nuvemY} ${nuvemX - 36} ${nuvemY - nuvemAlto * 0.42} ${nuvemX - 36} ${nuvemY - nuvemAlto * 0.66} C${nuvemX - 36} ${nuvemY - nuvemAlto * 0.96} ${nuvemX - 31} ${nuvemY - nuvemAlto * 1.08} ${nuvemX - 25} ${nuvemY - nuvemAlto * 1.02} C${nuvemX - 22} ${nuvemY - nuvemAlto * 1.52} ${nuvemX - 11} ${nuvemY - nuvemAlto * 1.66} ${nuvemX - 3} ${nuvemY - nuvemAlto * 1.34} C${nuvemX + 4} ${nuvemY - nuvemAlto * 1.18} ${nuvemX + 10} ${nuvemY - nuvemAlto * 0.86} ${nuvemX + 11} ${nuvemY - nuvemAlto * 0.6} C${nuvemX + 21} ${nuvemY - nuvemAlto * 0.84} ${nuvemX + 31} ${nuvemY - nuvemAlto * 0.5} ${nuvemX + 31} ${nuvemY - nuvemAlto * 0.2} C${nuvemX + 31} ${nuvemY - 0.6} ${nuvemX + 28} ${nuvemY} ${nuvemX + 23} ${nuvemY} Z`}
-          fill={NUVEM_BRANCA}
-          stroke={CONTORNO}
-          strokeWidth={1.6}
-          strokeLinejoin="round"
-        />
-        <Path
-          d={`M${nuvemX - 32} ${nuvemY - nuvemAlto * 0.42} C${nuvemX - 22} ${nuvemY - 1.6} ${nuvemX - 6} ${nuvemY - 1} ${nuvemX + 9} ${nuvemY - 1} C${nuvemX + 17} ${nuvemY - 1} ${nuvemX + 25} ${nuvemY - 1.4} ${nuvemX + 29} ${nuvemY - 2.4} C${nuvemX + 28.5} ${nuvemY - 0.8} ${nuvemX + 26.5} ${nuvemY - 0.3} ${nuvemX + 23} ${nuvemY - 0.3} L${nuvemX - 26} ${nuvemY - 0.3} C${nuvemX - 29.5} ${nuvemY - 0.3} ${nuvemX - 31.4} ${nuvemY - nuvemAlto * 0.28} ${nuvemX - 32} ${nuvemY - nuvemAlto * 0.42} Z`}
-          fill={NUVEM_SOMBRA}
-          opacity={0.3}
-        />
-      </G>
-
-      {/* A mata ao longe, rasa: daqui o chão é só uma tira. */}
-      <Ellipse cx={l * 0.3} cy={h + 1} rx={l * 0.4} ry={a * 0.035} fill={`url(#mataT-${id})`} />
-      <Ellipse cx={l * 0.86} cy={h + 2} rx={l * 0.28} ry={a * 0.03} fill={`url(#mataT-${id})`} />
       <Path
-        d={`M0 ${h + 3} C${l * 0.3} ${h - 2} ${l * 0.7} ${h - 2} ${l} ${h + 3} L${l} ${a + 20} L0 ${a + 20} Z`}
-        fill={`url(#terraT-${id})`}
+        d={`M${l * 0.72} ${a + 8} C${l * 0.6} ${a * 0.88} ${l * 0.44} ${a * 0.78} ${l * 0.405} ${h + 2}`}
+        stroke={CONTORNO_FOLHA}
+        strokeWidth={1.2}
+        fill="none"
+        opacity={0.35}
       />
 
-      {/*
-        A luz voltando ao chão, no mesmo compasso dos raios: é ela que liga o
-        que acontece no céu ao lugar onde a pessoa está.
-      */}
-      <Ellipse
-        cx={solX - l * 0.08}
-        cy={a * 0.95}
-        rx={l * 0.34}
-        ry={a * 0.05}
-        fill={SOL}
-        opacity={curva(p, [0, 0.04, 0.1, 0.17, 0.24])}
-      />
+      {/* Torrões na trilha, minguando com a distância. */}
+      {[
+        { x: 0.46, y: 0.96, r: 2.6 },
+        { x: 0.38, y: 0.89, r: 2.1 },
+        { x: 0.45, y: 0.83, r: 1.7 },
+        { x: 0.33, y: 0.77, r: 1.4 },
+        { x: 0.37, y: 0.72, r: 1.1 },
+      ].map((t, i) => (
+        <Torrao key={i} x={l * t.x} y={a * t.y} r={t.r} cor={TERRA_SOMBRA} />
+      ))}
 
       {/*
-        A tira de chão tem pouca altura, então o que a enche é quantidade de
-        coisa pequena: capim em cinco pontos e torrões entre eles.
+        O capim dos dois lados, mais alto e mais escuro perto, mais baixo e mais
+        claro ao longe: é ele que dá a distância da trilha.
       */}
       {[
-        { x: 0.08, y: 0.99, alto: 11 },
-        { x: 0.26, y: 0.97, alto: 8 },
-        { x: 0.47, y: 1, alto: 10 },
-        { x: 0.7, y: 0.975, alto: 8 },
-        { x: 0.9, y: 0.995, alto: 11 },
-      ].map((t, i) => (
+        { x: 0.09, y: 0.99, alto: 14, perto: true, para: -1 },
+        { x: 0.18, y: 0.9, alto: 11, perto: true, para: 1 },
+        { x: 0.17, y: 0.8, alto: 8, perto: false, para: -1 },
+        { x: 0.19, y: 0.72, alto: 6, perto: false, para: 1 },
+        { x: 0.82, y: 0.98, alto: 14, perto: true, para: 1 },
+        { x: 0.7, y: 0.88, alto: 11, perto: true, para: -1 },
+        { x: 0.57, y: 0.79, alto: 8, perto: false, para: 1 },
+        { x: 0.47, y: 0.71, alto: 6, perto: false, para: -1 },
+        { x: 0.94, y: 0.9, alto: 10, perto: true, para: -1 },
+      ].map((c, i) => (
         <Capim
           key={i}
-          x={l * t.x}
-          y={a * t.y}
-          alto={t.alto}
-          cor={i % 2 ? FOLHA_CLARA : FOLHA}
-          balanco={curva(p, i % 2 ? [0, 1.4, 2.2, 0.9, 0] : [0, -1.6, -2.4, -1, 0])}
+          x={l * c.x}
+          y={a * c.y}
+          alto={c.alto}
+          cor={c.perto ? CONTORNO_FOLHA : FOLHA}
+          balanco={curva(p, c.para > 0 ? [0, 1.4, 2.2, 0.9, 0] : [0, -1.4, -2.2, -0.9, 0])}
         />
       ))}
-      {[
-        { x: 0.17, y: 0.94, r: 1.8 },
-        { x: 0.58, y: 0.96, r: 2.1 },
-        { x: 0.81, y: 0.93, r: 1.6 },
-      ].map((t, i) => (
-        <Torrao key={i} x={l * t.x} y={a * t.y} r={t.r} />
-      ))}
+
+      {/* A claridade no fim da trilha, que cresce um fio no toque. */}
+      <G transform={cresce(curva(p, [1, 1.04, 1.09, 1.13, 1.16]), l * 0.5, h - 6)}>
+        <Ellipse cx={l * 0.5} cy={h - 6} rx={l * 0.3} ry={a * 0.13} fill={`url(#solT-${id})`} />
+      </G>
 
       {/*
-        Uma nuvem alta a mais, bem baixa no céu e quase parada.
-
-        As quatro de cima cruzam a metade de cima; esta fica logo acima do
-        horizonte, e é ela que fecha a escada de profundidade — sem ela, entre a
-        nuvem da frente e a mata ao longe havia um vão de céu liso.
+        A neblina. As de trás são fixas — é o horizonte que elas apagam; as da
+        frente afinam no toque, e é aí que aparece mais um trecho de caminho.
       */}
-      <G opacity={0.6}>
-        <Ellipse
-          cx={l * 0.24 - curva(p, [0, 0.8, 1.6, 2.4, 3])}
-          cy={h - a * 0.08}
-          rx={l * 0.24}
-          ry={a * 0.028}
-          fill={`url(#altaT-${id})`}
-        />
-        <Ellipse
-          cx={l * 0.26 - curva(p, [0, 0.8, 1.6, 2.4, 3])}
-          cy={h - a * 0.068}
-          rx={l * 0.2}
-          ry={a * 0.014}
-          fill={NUVEM_SOMBRA}
-          opacity={0.18}
-        />
+      <G transform={`translate(0 ${curva(p, [0, -0.5, -1, -1.4, -1.7])})`}>
+        <Ellipse cx={l * 0.32} cy={alto + 2} rx={l * 0.46} ry={a * 0.08} fill={`url(#nevoaT-${id})`} opacity={0.55} />
+        <Ellipse cx={l * 0.78} cy={alto + 8} rx={l * 0.4} ry={a * 0.072} fill={`url(#nevoaT-${id})`} opacity={0.5} />
+        {/*
+          A faixa que apaga o horizonte. Ela é a mais fechada de todas e vem
+          larga a ponto de sair pelas duas bordas: onde a névoa afina, a linha
+          do campo reaparece, e uma linha reta atravessando o cartão desfaz a
+          cena inteira.
+        */}
+        <Ellipse cx={l * 0.4} cy={h} rx={l * 0.72} ry={a * 0.075} fill={`url(#nevoaT-${id})`} opacity={0.88} />
+        <Ellipse cx={l * 0.33} cy={h + 5} rx={l * 0.4} ry={a * 0.06} fill={`url(#nevoaT-${id})`} opacity={0.8} />
+        <Ellipse cx={l * 0.88} cy={h + 3} rx={l * 0.34} ry={a * 0.07} fill={`url(#nevoaT-${id})`} opacity={0.7} />
+        <G opacity={curva(p, [1, 0.86, 0.72, 0.58, 0.48])}>
+          <Ellipse cx={l * 0.24} cy={a * 0.77} rx={l * 0.34} ry={a * 0.055} fill={`url(#nevoaT-${id})`} opacity={0.5} />
+          <Ellipse cx={l * 0.78} cy={a * 0.83} rx={l * 0.32} ry={a * 0.05} fill={`url(#nevoaT-${id})`} opacity={0.42} />
+        </G>
       </G>
     </>
   );
 }
 
-/* ---------- Luto: o pé da árvore e o tapete de folhas ---------- */
+/**
+ * A folha seca do tapete: bico, talo, nervura e duas veias.
+ *
+ * ## Por que ela não usa a folha do broto
+ *
+ * A folha do broto é gorda e arredondada nas duas pontas — é uma folha nova,
+ * e é assim que ela tem de ser no broto. Repetida vinte e quatro vezes num
+ * chão de terra, ela vira **pedregulho**: a primeira tentativa deste tapete
+ * ficou um calçamento de paralelepípedo, e não um chão de folha.
+ *
+ * Três coisas separam folha de pedra, e as três estão aqui. O **bico**, que
+ * pedra não tem. O **talo**, que é o sinal mais barato de todos: um risquinho
+ * saindo da base e a forma inteira passa a ter vindo de um galho. E as
+ * **veias**, num tom que contrasta com a lâmina em vez de acompanhar o
+ * contorno — nervura escura sobre folha escura não existe de longe.
+ */
+const LAMINA_SECA = 'M-22 0 C-14 -13 6 -14 22 0 C6 14 -14 13 -22 0 Z';
+
+function FolhaSeca({
+  x,
+  y,
+  giro,
+  escala,
+  cor,
+  veia,
+}: {
+  x: number;
+  y: number;
+  giro: number;
+  escala: number;
+  cor: string;
+  veia: string;
+}) {
+  return (
+    <G transform={`translate(${x} ${y}) rotate(${giro}) scale(${escala})`}>
+      <Path
+        d={`M-21 1 C-26 2.5 -31 3.5 -35 3`}
+        stroke={TERRA_SOMBRA}
+        strokeWidth={2.6}
+        strokeLinecap="round"
+        fill="none"
+      />
+      <Path d={LAMINA_SECA} fill={cor} stroke={TERRA_SOMBRA} strokeWidth={2.6} strokeLinejoin="round" />
+      <Path
+        d="M-18 0 C-6 1.5 8 1.5 19 0"
+        stroke={veia}
+        strokeWidth={1.8}
+        strokeLinecap="round"
+        fill="none"
+        opacity={0.6}
+      />
+      <Path
+        d="M-8 0.8 L-1 -6"
+        stroke={veia}
+        strokeWidth={1.4}
+        strokeLinecap="round"
+        fill="none"
+        opacity={0.45}
+      />
+      <Path
+        d="M3 0.9 L9 -4.6"
+        stroke={veia}
+        strokeWidth={1.3}
+        strokeLinecap="round"
+        fill="none"
+        opacity={0.4}
+      />
+    </G>
+  );
+}
+
+/* ---------- Luto: o toco cortado e o tapete de folhas ---------- */
 
 /**
- * O chão coberto de folhas caídas, uma delas um pouco à parte, e um broto novo
- * ao lado dela.
+ * O chão coberto de folha seca, um toco de árvore cortado no meio dele, e um
+ * broto novo ao lado.
  *
- * ## A metáfora, herdada e intacta — e é a mais delicada das treze
+ * ## O toco, e por que ele diz a coisa certa
  *
- * A cena já foi só a perda: o galho vazio e a folha no chão. O cartão passou a
- * dizer "Seguir com a saudade", e seguir é a segunda metade que faltava
- * desenhar — a mesma que a prática "O que ficou de herança" trabalha.
+ * A cena já teve um tronco inteiro entrando pela borda esquerda, e o tronco
+ * tinha um problema: árvore de pé com as folhas no chão é outono, e outono
+ * volta. Um toco cortado não volta. Foi cortado, e a data disso está desenhada
+ * nele.
  *
- * O broto é pequeno de propósito, e **não substitui a folha**: ele nasce do
- * lado, na mesma terra. Se tomasse o lugar dela, a cena diria que a perda virou
- * outra coisa — que é a frase que ninguém enlutado suporta ouvir.
+ * É o **corte** que faz a cena ser sobre memória. A face cortada é a parte mais
+ * clara do cartão de propósito: é madeira aberta, e é onde estão os anéis. Os
+ * anéis são os anos que a árvore viveu, e eles só ficaram à vista porque ela
+ * caiu. É bem o que a saudade é — o que a pessoa foi, visível agora de um jeito
+ * que não era antes.
  *
- * A árvore continua sem folha nenhuma. O que voltou a crescer veio da terra, e
- * não do lugar de onde as folhas saíram.
+ * ## O tapete é a superfície, e ele cobre tudo
  *
- * ## O tapete é a superfície, e é ele que faz esta cena existir
+ * O chão inteiro é folha caída, em tom de terra: caiu muita coisa, e faz tempo.
+ * Foram vinte e quatro folhas grandes, e não quarenta miúdas, porque folha
+ * pequena demais vira pedrinha — ver `FolhaSeca`.
  *
- * A primeira versão tinha um galho fino, uma folha e um broto sobre uma terra
- * lisa. Lia como graveto e folha na terra — o tema não estava em lugar nenhum,
- * estava pendurado em dois objetos pequenos.
+ * Sobre esse chão seco, uma folha ainda **verde**, um pouco separada das
+ * outras. Ela não é maior nem está em destaque; é a única que não secou. É a
+ * lembrança que continua fresca enquanto o resto já virou chão.
  *
- * Aqui o chão inteiro é folha caída. É uma superfície que não se repete em tema
- * nenhum, e ela diz o assunto antes de qualquer objeto: **caiu muita coisa, e
- * faz tempo**. Sobre esse chão, uma folha um pouco separada das outras vira
- * "aquela", sem precisar de tamanho nem de cor diferente — separação basta.
+ * ## O broto não substitui nada
  *
- * O movimento é o mais contido dos treze, e tem de ser: a folha se ajeita e
- * assenta, o broto sobe um fio e para. Luto não pede animação animada.
+ * Ele é pequeno, nasce na terra ao lado e **não** sai do toco. Broto saindo do
+ * tronco cortado é a frase "a perda virou outra coisa", que é a frase que
+ * ninguém enlutado suporta ouvir. Nascendo do lado, ele só diz que a vida
+ * seguiu no mesmo lugar — que é o "seguir" do nome do cartão.
+ *
+ * As duas folhas que ainda descem no ar são o acontecimento da cena: sem nada
+ * em movimento, o tapete é um estado, e o cartão diria que tudo já aconteceu.
+ * Com elas, ainda está acontecendo.
  */
 function Luto({ l, a, p, id }: CenarioProps) {
   const h = horizonteDaCena(a);
-  const chao = a * 0.72;
-  const folhaX = l * 0.4;
-  const folhaY = a * 0.95;
-  const brotoX = l * 0.66;
-  const brotoY = a * 0.99;
+  /** Onde a terra começa. O campo fica entre ela e a mata, e dá a distância. */
+  const chao = a * 0.74;
+  /** O toco: a base fica enterrada no tapete, e a face cortada é o alto. */
+  const tocoX = l * 0.28;
+  const tocoTopo = h + 9;
+  const tocoPe = a * 0.95;
+  const tocoRaio = l * 0.1;
+  const folhaX = l * 0.55;
+  const folhaY = a * 0.9;
+  const brotoX = l * 0.87;
+  const brotoY = a * 0.93;
 
-  /** O tapete: espalhado de propósito, e sempre o mesmo. */
+  /** O tapete: quatro fileiras, cada uma maior que a de trás. */
   const tapete = [
-    { x: 0.31, y: 0.78, g: -18, e: 0.36, c: 1 },
-    { x: 0.5, y: 0.765, g: 12, e: 0.33, c: 2 },
-    { x: 0.68, y: 0.785, g: -30, e: 0.35, c: 0 },
-    { x: 0.87, y: 0.775, g: 20, e: 0.34, c: 1 },
-    { x: 0.28, y: 0.855, g: 26, e: 0.4, c: 2 },
-    { x: 0.95, y: 0.87, g: -22, e: 0.42, c: 2 },
+    { x: 0.03, y: 0.785, g: 16, e: 0.3, c: 0 },
+    { x: 0.16, y: 0.775, g: -24, e: 0.28, c: 1 },
+    { x: 0.3, y: 0.79, g: 6, e: 0.31, c: 0 },
+    { x: 0.44, y: 0.775, g: -40, e: 0.29, c: 1 },
+    { x: 0.58, y: 0.785, g: 22, e: 0.3, c: 0 },
+    { x: 0.72, y: 0.775, g: -12, e: 0.28, c: 1 },
+    { x: 0.86, y: 0.79, g: 32, e: 0.31, c: 0 },
+    { x: 0.99, y: 0.78, g: -30, e: 0.29, c: 1 },
+    { x: 0.07, y: 0.85, g: -32, e: 0.37, c: 1 },
+    { x: 0.22, y: 0.865, g: 12, e: 0.39, c: 0 },
+    { x: 0.37, y: 0.85, g: -8, e: 0.36, c: 1 },
+    { x: 0.52, y: 0.87, g: 34, e: 0.38, c: 0 },
+    { x: 0.67, y: 0.855, g: -20, e: 0.37, c: 1 },
+    { x: 0.82, y: 0.87, g: 8, e: 0.39, c: 0 },
+    { x: 0.96, y: 0.855, g: -36, e: 0.36, c: 1 },
+    { x: 0.02, y: 0.94, g: 8, e: 0.46, c: 1 },
+    { x: 0.18, y: 0.955, g: -18, e: 0.49, c: 0 },
+    { x: 0.34, y: 0.935, g: 28, e: 0.45, c: 1 },
+    { x: 0.5, y: 0.96, g: -6, e: 0.48, c: 0 },
+    { x: 0.66, y: 0.94, g: 40, e: 0.46, c: 1 },
+    { x: 0.81, y: 0.955, g: -22, e: 0.48, c: 0 },
+    { x: 0.96, y: 0.935, g: 14, e: 0.45, c: 1 },
+    { x: 0.06, y: 1.03, g: -14, e: 0.56, c: 0 },
+    { x: 0.24, y: 1.045, g: 10, e: 0.58, c: 1 },
+    { x: 0.42, y: 1.025, g: -26, e: 0.55, c: 0 },
+    { x: 0.6, y: 1.05, g: 18, e: 0.57, c: 1 },
+    { x: 0.78, y: 1.025, g: -10, e: 0.55, c: 0 },
+    { x: 0.95, y: 1.045, g: 26, e: 0.57, c: 1 },
   ] as const;
-  const tomDaFolha = [FOLHA, FOLHA_CLARA, TERRA_CLARA];
+  /** Cada tom leva a sua veia: a veia tem de contrastar com a lâmina. */
+  const tomDaFolha = [TERRA_CLARA, TERRA, FOLHA_CLARA];
+  const veiaDaFolha = [TERRA_SOMBRA, CREME, CONTORNO_FOLHA];
 
   return (
     <>
@@ -1439,99 +1602,139 @@ function Luto({ l, a, p, id }: CenarioProps) {
           <Stop offset="0" stopColor={TERRA} />
           <Stop offset="1" stopColor={TERRA_FUNDA} />
         </LinearGradient>
-        <LinearGradient id={`troncoL-${id}`} x1="0" y1="0" x2="1" y2="0">
-          <Stop offset="0" stopColor={TERRA_FUNDA} />
-          <Stop offset="0.45" stopColor={TERRA} />
+        {/* O toco: iluminado à esquerda, na sombra à direita. */}
+        <LinearGradient id={`tocoL-${id}`} x1="0" y1="0" x2="1" y2="0">
+          <Stop offset="0" stopColor={TERRA_CLARA} />
+          <Stop offset="0.38" stopColor={TERRA} />
           <Stop offset="1" stopColor={TERRA_SOMBRA} />
         </LinearGradient>
         <RadialGradient id={`mataL-${id}`} cx="50%" cy="50%" r="50%">
-          <Stop offset="0" stopColor={FOLHA} stopOpacity={0.45} />
-          <Stop offset="0.58" stopColor={FOLHA} stopOpacity={0.38} />
+          <Stop offset="0" stopColor={FOLHA} stopOpacity={0.5} />
+          <Stop offset="0.58" stopColor={FOLHA} stopOpacity={0.42} />
           <Stop offset="1" stopColor={FOLHA} stopOpacity={0} />
         </RadialGradient>
       </Defs>
 
-      <Ellipse cx={l * 0.48} cy={h} rx={l * 0.46} ry={a * 0.045} fill={`url(#mataL-${id})`} />
-      <Ellipse cx={l * 0.92} cy={h + 2} rx={l * 0.26} ry={a * 0.038} fill={`url(#mataL-${id})`} />
+      <Ellipse cx={l * 0.48} cy={h - 1} rx={l * 0.46} ry={a * 0.05} fill={`url(#mataL-${id})`} />
+      <Ellipse cx={l * 0.92} cy={h + 2} rx={l * 0.26} ry={a * 0.04} fill={`url(#mataL-${id})`} />
 
+      {/* O campo raso entre a mata e o tapete: é ele que dá a distância. */}
       <Path
         d={`M0 ${h + 3} C${l * 0.3} ${h - 2} ${l * 0.7} ${h - 2} ${l} ${h + 3} L${l} ${chao} C${l * 0.7} ${chao - 4} ${l * 0.3} ${chao - 4} 0 ${chao} Z`}
         fill={FOLHA_CLARA}
-        opacity={0.4}
+        opacity={0.5}
       />
       <Path
         d={`M0 ${chao - 1} C${l * 0.3} ${chao - 5} ${l * 0.7} ${chao - 5} ${l} ${chao - 1} L${l} ${a + 20} L0 ${a + 20} Z`}
         fill={`url(#terraL-${id})`}
       />
 
+      {/* Torrões, para a terra não ser um degradê liso onde o tapete abre. */}
+      {[
+        { x: 0.33, y: 0.8, r: 1.6 },
+        { x: 0.92, y: 0.81, r: 2 },
+        { x: 0.16, y: 0.89, r: 2.2 },
+        { x: 0.46, y: 0.88, r: 1.8 },
+        { x: 0.8, y: 0.97, r: 2.4 },
+      ].map((t, i) => (
+        <Torrao key={i} x={l * t.x} y={a * t.y} r={t.r} />
+      ))}
+
       {/*
-        A raiz da árvore, arqueando para fora da terra na borda esquerda.
-
-        Era um tronco inteiro, e não funcionava: para não encostar no título ele
-        tinha de acabar antes do alto do cartão, e tronco com topo chapado lê
-        como poste cortado. A raiz resolve o mesmo e mora onde há espaço — ela
-        diz que a árvore está logo ali, fora do quadro, sem precisar aparecer.
-
-        É também o único lugar do cartão com traço grosso, e é de propósito: ela
-        é a coisa mais perto do olho.
+        O toco. A base é mais larga que o alto e ainda abre em duas raízes: é
+        isso que o faz ler como árvore que estava plantada, e não como poste.
       */}
       <Path
-        d={`M-6 ${a * 0.76} C${l * 0.08} ${a * 0.755} ${l * 0.16} ${a * 0.82} ${l * 0.2} ${a * 0.93} C${l * 0.215} ${a * 0.97} ${l * 0.23} ${a} ${l * 0.235} ${a + 6} L${l * 0.13} ${a + 6} C${l * 0.125} ${a * 0.97} ${l * 0.115} ${a * 0.93} ${l * 0.1} ${a * 0.885} C${l * 0.07} ${a * 0.845} ${l * 0.03} ${a * 0.83} -6 ${a * 0.835} Z`}
-        fill={`url(#troncoL-${id})`}
+        d={`M${tocoX - tocoRaio * 1.18} ${tocoPe} C${tocoX - tocoRaio * 1.5} ${tocoPe + 1} ${tocoX - tocoRaio * 1.9} ${tocoPe + 4} ${tocoX - tocoRaio * 2.3} ${tocoPe + 6}`}
+        stroke={TERRA_SOMBRA}
+        strokeWidth={4.2}
+        strokeLinecap="round"
+        fill="none"
+      />
+      <Path
+        d={`M${tocoX + tocoRaio * 1.1} ${tocoPe - 1} C${tocoX + tocoRaio * 1.6} ${tocoPe + 1} ${tocoX + tocoRaio * 2} ${tocoPe + 3} ${tocoX + tocoRaio * 2.4} ${tocoPe + 6}`}
+        stroke={TERRA_SOMBRA}
+        strokeWidth={3.6}
+        strokeLinecap="round"
+        fill="none"
+      />
+      <Path
+        d={
+          `M${tocoX - tocoRaio} ${tocoTopo}` +
+          ` C${tocoX - tocoRaio * 1.06} ${tocoTopo + (tocoPe - tocoTopo) * 0.45} ${tocoX - tocoRaio * 1.02} ${tocoPe - 7} ${tocoX - tocoRaio * 1.2} ${tocoPe}` +
+          ` C${tocoX - tocoRaio * 0.5} ${tocoPe + 3} ${tocoX + tocoRaio * 0.5} ${tocoPe + 3} ${tocoX + tocoRaio * 1.12} ${tocoPe}` +
+          ` C${tocoX + tocoRaio * 0.98} ${tocoPe - 7} ${tocoX + tocoRaio * 1.02} ${tocoTopo + (tocoPe - tocoTopo) * 0.45} ${tocoX + tocoRaio} ${tocoTopo} Z`
+        }
+        fill={`url(#tocoL-${id})`}
         stroke={CONTORNO}
         strokeWidth={1.8}
         strokeLinejoin="round"
       />
-      {/* Uma raiz menor, mais fina, saindo da mesma curva. */}
+      {/* Três fibras na casca: é a fibra que dá a idade. */}
       <Path
-        d={`M${l * 0.13} ${a * 0.815} C${l * 0.2} ${a * 0.83} ${l * 0.26} ${a * 0.865} ${l * 0.31} ${a * 0.93}`}
+        d={`M${tocoX - tocoRaio * 0.52} ${tocoTopo + 4} C${tocoX - tocoRaio * 0.6} ${tocoTopo + 12} ${tocoX - tocoRaio * 0.62} ${tocoPe - 8} ${tocoX - tocoRaio * 0.68} ${tocoPe - 2}`}
         stroke={TERRA_SOMBRA}
-        strokeWidth={3.4}
-        strokeLinecap="round"
-        fill="none"
-      />
-      {/* A fibra da casca, que é o que dá idade a ela. */}
-      <Path
-        d={`M-4 ${a * 0.795} C${l * 0.06} ${a * 0.792} ${l * 0.12} ${a * 0.845} ${l * 0.155} ${a * 0.93}`}
-        stroke={TERRA_SOMBRA}
-        strokeWidth={1.4}
+        strokeWidth={1.3}
         strokeLinecap="round"
         fill="none"
         opacity={0.5}
       />
+      <Path
+        d={`M${tocoX - tocoRaio * 0.05} ${tocoTopo + 5} C${tocoX - tocoRaio * 0.08} ${tocoTopo + 13} ${tocoX - tocoRaio * 0.1} ${tocoPe - 9} ${tocoX - tocoRaio * 0.12} ${tocoPe - 3}`}
+        stroke={TERRA_SOMBRA}
+        strokeWidth={1}
+        strokeLinecap="round"
+        fill="none"
+        opacity={0.32}
+      />
+      <Path
+        d={`M${tocoX + tocoRaio * 0.5} ${tocoTopo + 5} C${tocoX + tocoRaio * 0.56} ${tocoTopo + 13} ${tocoX + tocoRaio * 0.58} ${tocoPe - 9} ${tocoX + tocoRaio * 0.62} ${tocoPe - 3}`}
+        stroke={TERRA_SOMBRA}
+        strokeWidth={1.2}
+        strokeLinecap="round"
+        fill="none"
+        opacity={0.4}
+      />
+      {/*
+        A face cortada: a parte mais clara do cartão, porque é madeira aberta.
+        Os anéis são o que ela tem para dizer, e a racha atravessa todos.
+      */}
+      <Ellipse
+        cx={tocoX}
+        cy={tocoTopo}
+        rx={tocoRaio}
+        ry={tocoRaio * 0.26}
+        fill={TERRA_CLARA}
+        stroke={CONTORNO}
+        strokeWidth={1.6}
+      />
+      <Ellipse cx={tocoX} cy={tocoTopo} rx={tocoRaio * 0.72} ry={tocoRaio * 0.185} fill="none" stroke={TERRA_SOMBRA} strokeWidth={1} opacity={0.5} />
+      <Ellipse cx={tocoX} cy={tocoTopo} rx={tocoRaio * 0.46} ry={tocoRaio * 0.12} fill="none" stroke={TERRA_SOMBRA} strokeWidth={0.9} opacity={0.42} />
+      <Ellipse cx={tocoX} cy={tocoTopo} rx={tocoRaio * 0.2} ry={tocoRaio * 0.055} fill="none" stroke={TERRA_SOMBRA} strokeWidth={0.8} opacity={0.35} />
+      <Path
+        d={`M${tocoX - tocoRaio * 0.08} ${tocoTopo - tocoRaio * 0.05} L${tocoX + tocoRaio * 0.92} ${tocoTopo + tocoRaio * 0.1}`}
+        stroke={TERRA_SOMBRA}
+        strokeWidth={1}
+        strokeLinecap="round"
+        opacity={0.5}
+      />
 
-      {/* O tapete de folhas caídas: é ele a superfície desta cena. */}
+      {/* O tapete de folhas secas: é ele a superfície desta cena. */}
       {tapete.map((f, i) => (
-        <G key={i} transform={`translate(${l * f.x} ${a * f.y}) rotate(${f.g}) scale(${f.e})`}>
-          <Path
-            d={FOLHA_DO_BROTO}
-            fill={tomDaFolha[f.c]}
-            stroke={CONTORNO_FOLHA}
-            strokeWidth={4.2}
-            opacity={0.92}
-          />
-          {/*
-            A nervura vale para todas, e não só para a folha da frente.
-
-            Sem ela, uma folha deste tamanho é uma mancha arredondada com
-            contorno — e sete manchas arredondadas num chão de terra leem como
-            pedrinhas, não como folhas caídas. Uma linha percorrendo cada uma
-            basta para o olho decidir o que está vendo.
-          */}
-          <Path
-            d="M-3 -1 C-12 -6 -24 -10 -33 -9"
-            stroke={CONTORNO_FOLHA}
-            strokeWidth={2.8}
-            strokeLinecap="round"
-            fill="none"
-            opacity={0.5}
-          />
-        </G>
+        <FolhaSeca
+          key={i}
+          x={l * f.x}
+          y={a * f.y}
+          giro={f.g}
+          escala={f.e}
+          cor={tomDaFolha[f.c]}
+          veia={veiaDaFolha[f.c]}
+        />
       ))}
 
       {/*
-        A folha que ficou um pouco à parte: nem maior, nem de outra cor. O que
-        faz dela "aquela" é estar separada das outras.
+        A folha que ainda está verde, um pouco à parte das outras. Nem maior,
+        nem em destaque: só é a única que não secou.
       */}
       <G
         transform={[
@@ -1539,73 +1742,35 @@ function Luto({ l, a, p, id }: CenarioProps) {
           gira(curva(p, [0, -3, -4.5, -3, 0]), folhaX, folhaY),
         ].join(' ')}
       >
-        <G transform={`translate(${folhaX + 16} ${folhaY - 5}) rotate(168) scale(0.62)`}>
-          <Path d={FOLHA_DO_BROTO} fill={FOLHA} stroke={CONTORNO_FOLHA} strokeWidth={3.6} />
-          <Path
-            d="M-3 -1 C-12 -6 -24 -10 -33 -9"
-            stroke={CONTORNO_FOLHA}
-            strokeWidth={2.4}
-            strokeLinecap="round"
-            fill="none"
-            opacity={0.55}
-          />
-        </G>
+        <FolhaSeca x={folhaX} y={folhaY} giro={-8} escala={0.52} cor={FOLHA} veia={FOLHA_CLARA} />
       </G>
 
-      {/*
-        Torrões e pedrinhas entre as folhas.
-
-        A terra deste cartão era um degradê liso com folhas por cima, e liso ao
-        lado da água da ansiedade lia como cena pela metade. Ver `Torrao`.
-      */}
-      {[
-        { x: 0.09, y: 0.9, r: 2.4 },
-        { x: 0.38, y: 0.83, r: 1.7 },
-        { x: 0.53, y: 0.87, r: 2.1 },
-        { x: 0.79, y: 0.94, r: 2.6 },
-        { x: 0.24, y: 0.97, r: 2.2 },
-        { x: 0.61, y: 0.79, r: 1.5 },
-      ].map((t, i) => (
-        <Torrao key={i} x={l * t.x} y={a * t.y} r={t.r} />
-      ))}
-
-      {/*
-        Duas folhas ainda no ar, caindo devagar.
-
-        Elas são o acontecimento que faltava: sem nada em movimento, o tapete é
-        um estado, e o cartão dizia que tudo já aconteceu. Com elas, ainda está
-        acontecendo — que é o que saudade é. Descem e giram no toque, e cada uma
-        no seu tempo.
-      */}
+      {/* Duas folhas ainda no ar, cada uma no seu tempo. */}
       <G
         transform={[
           `translate(0 ${curva(p, [0, 1.6, 3.4, 5, 6])})`,
-          gira(curva(p, [4, 8, 13, 17, 20]), l * 0.42, a * 0.6),
+          gira(curva(p, [4, 8, 13, 17, 20]), l * 0.52, a * 0.6),
         ].join(' ')}
-        opacity={0.85}
+        opacity={0.9}
       >
-        <G transform={`translate(${l * 0.42} ${a * 0.6}) rotate(-28) scale(0.3)`}>
-          <Path d={FOLHA_DO_BROTO} fill={FOLHA_CLARA} stroke={CONTORNO_FOLHA} strokeWidth={4.6} />
-        </G>
+        <FolhaSeca x={l * 0.52} y={a * 0.6} giro={-28} escala={0.34} cor={TERRA_CLARA} veia={TERRA_SOMBRA} />
       </G>
       <G
         transform={[
           `translate(0 ${curva(p, [0, 1, 2.2, 3.4, 4.4])})`,
-          gira(curva(p, [-3, -7, -11, -15, -18]), l * 0.86, a * 0.66),
+          gira(curva(p, [-3, -7, -11, -15, -18]), l * 0.93, a * 0.66),
         ].join(' ')}
-        opacity={0.7}
+        opacity={0.8}
       >
-        <G transform={`translate(${l * 0.86} ${a * 0.66}) rotate(34) scale(0.24)`}>
-          <Path d={FOLHA_DO_BROTO} fill={TERRA_CLARA} stroke={CONTORNO_FOLHA} strokeWidth={5.4} />
-        </G>
+        <FolhaSeca x={l * 0.93} y={a * 0.66} giro={34} escala={0.28} cor={TERRA} veia={CREME} />
       </G>
 
       {/* O broto novo sobe um fio, devagar, e para. */}
       <G transform={cresce(curva(p, [1, 1.05, 1.1, 1.14, 1.16]), brotoX, brotoY)}>
         <Path
-          d={`M${brotoX} ${brotoY} L${brotoX} ${brotoY - 30}`}
+          d={`M${brotoX} ${brotoY} L${brotoX} ${brotoY - 17}`}
           stroke={HASTE}
-          strokeWidth={2.6}
+          strokeWidth={2.2}
           strokeLinecap="round"
         />
         <Path
@@ -1613,132 +1778,121 @@ function Luto({ l, a, p, id }: CenarioProps) {
           fill={FOLHA_CLARA}
           stroke={CONTORNO_FOLHA}
           strokeWidth={2}
-          transform={`translate(${brotoX} ${brotoY - 30}) rotate(-54) scale(0.44)`}
+          transform={`translate(${brotoX} ${brotoY - 17}) rotate(-54) scale(0.3)`}
         />
         <Path
           d={FOLHA_DO_BROTO}
           fill={FOLHA}
           stroke={CONTORNO_FOLHA}
           strokeWidth={2}
-          transform={`translate(${brotoX} ${brotoY - 30}) rotate(234) scale(0.37)`}
+          transform={`translate(${brotoX} ${brotoY - 17}) rotate(234) scale(0.25)`}
         />
       </G>
     </>
   );
 }
 
-/* ---------- Solidão: o corte da terra, e as raízes ---------- */
+/* ---------- Solidão: a planta, e o lugar da que falta ---------- */
 
 /**
- * Duas plantinhas separadas na superfície, e embaixo dela as raízes indo uma na
- * direção da outra. Sem se tocar.
+ * Uma planta no canteiro e, ao lado dela, a mesma planta tracejada num lugar
+ * vazio da terra.
  *
- * ## A metáfora, e por que ela mudou de lugar sem mudar de sentido
+ * ## A falta desenhada
  *
- * A cena já foi dois vasos inclinados um para o outro. O segundo vaso, antes,
- * era um contorno tracejado e vazio, e o broto do primeiro se inclinava **sem
- * alcançar** — a falta, desenhada. Estava certo quando o cartão dizia
- * "Solidão".
+ * Duas plantas separadas leem como duas plantas. Uma planta e o **contorno** de
+ * outra leem como falta — e é a falta que o cartão trata. O tracejado é o
+ * desenho mais direto disso que existe: a forma está ali, o preenchimento não.
  *
- * Ele diz "Diminuir a solidão", e diminuir é o que a cena faz. Mas dois vasos
- * pousados num chão liso leem como dois vasos: o assunto ficava pendurado na
- * inclinação, que é um detalhe de poucos graus.
+ * A cova rasa embaixo do tracejado é o que impede a cena de virar fantasma. Ela
+ * diz que aquele lugar **é** um lugar: terra aberta, do tamanho certo, à espera.
+ * O intro do tema define solidão como "a distância entre o que você sente e o
+ * que os outros sabem" — e um lugar guardado é o oposto exato disso.
  *
- * Aqui o assunto é a superfície. O intro do tema define solidão como **"a
- * distância entre o que você sente e o que os outros sabem"** — e é exatamente
- * isso que um corte de terra mostra: em cima, duas plantas separadas, cada uma
- * na sua; embaixo, onde ninguém vê, as raízes já foram uma na direção da outra.
+ * ## O que faz o cartão ser "diminuir", e não "solidão"
  *
- * E elas **não se tocam**. O que as práticas fazem é encurtar a distância, não
- * apagá-la; raízes emendadas seriam outra promessa, e seriam mentira. O vão do
- * meio é o desenho inteiro.
+ * O movimento, e só ele. No toque os tracinhos se aproximam e o contorno fica
+ * mais forte: a planta que falta chega mais perto de existir. E a planta de pé
+ * se inclina um grau para o lado dela.
  *
- * ## O corte não se repete em tema nenhum
+ * Nenhuma das duas coisas completa a outra, de propósito. O tracejado nunca
+ * fecha, porque o que a prática faz é encurtar a distância, não apagá-la;
+ * contorno virando planta cheia seria outra promessa, e seria mentira.
  *
- * É a única cena do app em que se vê o que está debaixo da terra fora da faixa
- * da Composta. Por isso ela não se parece com nenhuma outra, mesmo tendo o
- * mesmo horizonte e o mesmo chão das vizinhas.
+ * ## Por que esta cena não se parece com nenhuma outra
+ *
+ * É a única com terra de canteiro à mostra — superfície trabalhada, com crista,
+ * torrão e cova —, e a única em que parte do desenho não é desenho cheio. As
+ * vizinhas têm água, campo seco, cova de fogo, céu de nuvem, neblina e tapete
+ * de folha; nenhuma tem chão de plantio.
  */
 function Solidao({ l, a, p, id }: CenarioProps) {
   const h = horizonteDaCena(a);
-  /** A linha do solo: é ela que separa o que se vê do que não se vê. */
-  const solo = a * 0.76;
-  const esquerda = l * 0.24;
-  const direita = l * 0.76;
-  /** As raízes crescem uma na direção da outra, e param antes de encostar. */
-  const cresceu = curva(p, [1, 1.04, 1.08, 1.11, 1.12]);
+  /** A crista do canteiro: daqui para baixo é terra trabalhada. */
+  const crista = a * 0.7;
+  /** As duas plantas ficam à frente, na mesma linha de terra. */
+  const pe = a * 0.87;
+  const plantaX = l * 0.3;
+  const vagaX = l * 0.66;
+  const haste = 32;
 
-  const planta = (cx: number, lado: 1 | -1, chave: string) => (
-    <G key={chave}>
-      <Path
-        d={`M${cx} ${solo} L${cx} ${solo - 21}`}
-        stroke={HASTE}
-        strokeWidth={2.4}
-        strokeLinecap="round"
-      />
-      <Path
-        d={FOLHA_DO_BROTO}
-        fill={FOLHA_CLARA}
-        stroke={CONTORNO_FOLHA}
-        strokeWidth={2.2}
-        transform={`translate(${cx} ${solo - 21}) rotate(${lado > 0 ? -52 : 232}) scale(${lado * 0.34} 0.34)`}
-      />
-      <Path
-        d={FOLHA_DO_BROTO}
-        fill={FOLHA}
-        stroke={CONTORNO_FOLHA}
-        strokeWidth={2.2}
-        transform={`translate(${cx} ${solo - 21}) rotate(${lado > 0 ? 232 : -52}) scale(${lado * 0.28} 0.28)`}
-      />
-    </G>
-  );
-
-  /** Três raízes por planta, indo para o vão do meio e minguando. */
-  const raizes = (cx: number, lado: 1 | -1, chave: string) => (
-    <G key={chave} transform={estica(cresceu, 1, cx, solo)}>
-      <Path
-        d={`M${cx} ${solo} C${cx + lado * 6} ${solo + 8} ${cx + lado * 16} ${solo + 12} ${cx + lado * 30} ${solo + 14}`}
-        stroke={TERRA_CLARA}
-        strokeWidth={2.2}
-        strokeLinecap="round"
-        fill="none"
-        opacity={0.9}
-      />
-      <Path
-        d={`M${cx} ${solo + 2} C${cx + lado * 4} ${solo + 12} ${cx + lado * 12} ${solo + 20} ${cx + lado * 24} ${solo + 26}`}
-        stroke={TERRA_CLARA}
-        strokeWidth={1.7}
-        strokeLinecap="round"
-        fill="none"
-        opacity={0.75}
-      />
-      <Path
-        d={`M${cx} ${solo + 1} C${cx - lado * 3} ${solo + 10} ${cx - lado * 4} ${solo + 20} ${cx + lado * 2} ${solo + 30}`}
-        stroke={TERRA_CLARA}
-        strokeWidth={1.4}
-        strokeLinecap="round"
-        fill="none"
-        opacity={0.6}
-      />
-      {/* Um pelinho em cada, para a raiz ter idade e não ser um arame. */}
-      <Path
-        d={`M${cx + lado * 18} ${solo + 12.6} C${cx + lado * 20} ${solo + 16} ${cx + lado * 21} ${solo + 18} ${cx + lado * 21} ${solo + 20}`}
-        stroke={TERRA_CLARA}
-        strokeWidth={1}
-        strokeLinecap="round"
-        fill="none"
-        opacity={0.5}
-      />
-    </G>
-  );
+  /**
+   * A planta, cheia ou tracejada.
+   *
+   * É a mesma geometria nas duas, e tem de ser: o que diz que ali falta
+   * **aquela** planta é o contorno ser o mesmo.
+   *
+   * As três folhas saem de alturas diferentes da haste e para lados
+   * alternados. Saindo todas do topo, como no broto, elas se empilham numa
+   * roseta — que é broto, e não planta feita. O que faz uma planta ler como
+   * planta é a haste aparecer **entre** as folhas.
+   */
+  const planta = (cx: number, vazia: boolean, vazio: number) => {
+    /*
+      Os ângulos foram medidos, e não escolhidos no olho: a folha se prende
+      pela ponta direita, então girar 0 a deita para a esquerda, 90 a põe de
+      pé e 145 a deita para a direita. Entre 200 e 300 ela cai por cima da
+      haste, e o desenho vira uma argola — que foi o que aconteceu na primeira
+      tentativa.
+    */
+    const folhas = [
+      { altura: 1, escala: 0.42, giro: 105, tom: FOLHA_CLARA },
+      { altura: 0.62, escala: 0.36, giro: 40, tom: FOLHA },
+      { altura: 0.3, escala: 0.28, giro: 150, tom: FOLHA },
+    ];
+    const risco = vazia
+      ? { stroke: CREME, strokeWidth: 2, strokeDasharray: `3.4 ${vazio}`, strokeLinecap: 'round' as const }
+      : { stroke: CONTORNO_FOLHA, strokeWidth: 2.2 };
+    return (
+      <>
+        <Path
+          d={`M${cx} ${pe} C${cx - 2} ${pe - haste * 0.4} ${cx - 1.4} ${pe - haste * 0.75} ${cx} ${pe - haste}`}
+          stroke={vazia ? CREME : HASTE}
+          strokeWidth={vazia ? 2 : 2.6}
+          strokeLinecap="round"
+          strokeDasharray={vazia ? `3.4 ${vazio}` : undefined}
+          fill="none"
+        />
+        {folhas.map((f, i) => (
+          <Path
+            key={i}
+            d={FOLHA_DO_BROTO}
+            fill={vazia ? 'none' : f.tom}
+            transform={`translate(${cx} ${pe - haste * f.altura}) rotate(${f.giro}) scale(${f.escala})`}
+            {...risco}
+          />
+        ))}
+      </>
+    );
+  };
 
   return (
     <>
       <Defs>
-        <LinearGradient id={`corteS-${id}`} x1="0" y1="0" x2="0" y2="1">
-          <Stop offset="0" stopColor={TERRA} />
-          <Stop offset="0.3" stopColor={TERRA_FUNDA} />
-          <Stop offset="1" stopColor={TERRA_SOMBRA} />
+        <LinearGradient id={`canteiroS-${id}`} x1="0" y1="0" x2="0" y2="1">
+          <Stop offset="0" stopColor={TERRA_CLARA} />
+          <Stop offset="0.35" stopColor={TERRA} />
+          <Stop offset="1" stopColor={TERRA_FUNDA} />
         </LinearGradient>
         <RadialGradient id={`mataS-${id}`} cx="50%" cy="50%" r="50%">
           <Stop offset="0" stopColor={FOLHA} stopOpacity={0.5} />
@@ -1750,65 +1904,77 @@ function Solidao({ l, a, p, id }: CenarioProps) {
       <Ellipse cx={l * 0.2} cy={h} rx={l * 0.4} ry={a * 0.045} fill={`url(#mataS-${id})`} />
       <Ellipse cx={l * 0.82} cy={h + 2} rx={l * 0.32} ry={a * 0.04} fill={`url(#mataS-${id})`} />
 
-      {/* O campo raso entre o horizonte e a beira do corte. */}
+      {/* O campo raso entre o horizonte e a crista do canteiro. */}
       <Path
-        d={`M0 ${h + 3} C${l * 0.3} ${h - 2} ${l * 0.7} ${h - 2} ${l} ${h + 3} L${l} ${solo} L0 ${solo} Z`}
+        d={`M0 ${h + 3} C${l * 0.3} ${h - 2} ${l * 0.7} ${h - 2} ${l} ${h + 3} L${l} ${crista} L0 ${crista} Z`}
         fill={FOLHA_CLARA}
         opacity={0.55}
       />
 
-      {planta(esquerda, 1, 'a')}
-      {planta(direita, -1, 'b')}
-
-      {/*
-        O corte: a terra vista de lado, a partir da linha do solo.
-
-        A faixa clara logo abaixo da linha é o húmus — a terra recém-aberta é
-        mais clara que a funda, e é esse degrau que faz o corte ler como corte, e
-        não como uma sombra embaixo das plantas.
-      */}
-      <Path d={`M0 ${solo} L${l} ${solo} L${l} ${a + 20} L0 ${a + 20} Z`} fill={`url(#corteS-${id})`} />
-      <Path d={`M0 ${solo} L${l} ${solo} L${l} ${solo + 3.5} L0 ${solo + 3.5} Z`} fill={TERRA_CLARA} opacity={0.5} />
-
-      {raizes(esquerda, 1, 'ra')}
-      {raizes(direita, -1, 'rb')}
-
-      {/*
-        As camadas da terra, e as pedrinhas dentro delas.
-
-        Corte de verdade tem estrato: a terra não é uma cor só do solo até o
-        fundo. São duas linhas de tom, tortas de propósito, e elas fazem o corte
-        ler como corte em vez de como sombra embaixo das plantas.
-      */}
+      {/* O canteiro: terra trabalhada, com a crista clara na beira de cima. */}
       <Path
-        d={`M0 ${solo + 13} C${l * 0.26} ${solo + 10} ${l * 0.58} ${solo + 17} ${l} ${solo + 13}`}
-        stroke={TERRA_CLARA}
-        strokeWidth={1.4}
-        fill="none"
-        opacity={0.22}
+        d={`M0 ${crista} C${l * 0.28} ${crista - 4} ${l * 0.66} ${crista - 3} ${l} ${crista + 1} L${l} ${a + 20} L0 ${a + 20} Z`}
+        fill={`url(#canteiroS-${id})`}
       />
       <Path
-        d={`M0 ${solo + 27} C${l * 0.3} ${solo + 32} ${l * 0.66} ${solo + 24} ${l} ${solo + 29}`}
+        d={`M0 ${crista} C${l * 0.28} ${crista - 4} ${l * 0.66} ${crista - 3} ${l} ${crista + 1}`}
         stroke={TERRA_CLARA}
-        strokeWidth={1.2}
+        strokeWidth={2.6}
         fill="none"
-        opacity={0.16}
+        opacity={0.5}
       />
+
+      {/* Capim na beira de cima do canteiro: o de lá também é lugar. */}
+      <Capim x={l * 0.06} y={crista} alto={9} cor={FOLHA} balanco={curva(p, [0, -1.2, -1.8, -0.8, 0])} />
+      <Capim x={l * 0.52} y={crista - 1} alto={7} cor={FOLHA_CLARA} balanco={curva(p, [0, 1, 1.5, 0.6, 0])} />
+      <Capim x={l * 0.93} y={crista + 1} alto={8} cor={FOLHA} balanco={curva(p, [0, 1.2, 1.8, 0.8, 0])} />
+
+      {/* Torrões na terra do canteiro. */}
       {[
-        { x: 0.12, y: 0.88, r: 2.4 },
-        { x: 0.5, y: 0.83, r: 1.7 },
-        { x: 0.62, y: 0.96, r: 2.6 },
-        { x: 0.92, y: 0.92, r: 2 },
-        { x: 0.33, y: 0.98, r: 2.2 },
-        { x: 0.78, y: 0.86, r: 1.5 },
-      ].map((m, i) => (
-        <Torrao key={i} x={l * m.x} y={a * m.y} r={m.r} />
+        { x: 0.12, y: 0.79, r: 2.2 },
+        { x: 0.46, y: 0.775, r: 1.7 },
+        { x: 0.84, y: 0.8, r: 2 },
+        { x: 0.21, y: 0.93, r: 2.6 },
+        { x: 0.44, y: 0.89, r: 1.9 },
+        { x: 0.58, y: 0.98, r: 2.3 },
+        { x: 0.78, y: 0.92, r: 2.1 },
+        { x: 0.93, y: 0.99, r: 2.4 },
+        { x: 0.34, y: 1, r: 2.2 },
+      ].map((t, i) => (
+        <Torrao key={i} x={l * t.x} y={a * t.y} r={t.r} />
       ))}
 
-      {/* Capim na beira do corte, dos dois lados: o de cima também é lugar. */}
-      <Capim x={l * 0.06} y={solo} alto={11} cor={FOLHA} balanco={curva(p, [0, -1.2, -1.8, -0.8, 0])} />
-      <Capim x={l * 0.45} y={solo} alto={8} cor={FOLHA_CLARA} balanco={curva(p, [0, 1, 1.5, 0.6, 0])} />
-      <Capim x={l * 0.94} y={solo} alto={10} cor={FOLHA} balanco={curva(p, [0, 1.2, 1.8, 0.8, 0])} />
+      {/*
+        A cova rasa: a sombra por dentro e a luz na beira de trás. É esse par
+        que faz o buraco ler como buraco, e não como mancha.
+      */}
+      <Ellipse cx={vagaX} cy={pe} rx={l * 0.07} ry={a * 0.028} fill={TERRA_SOMBRA} opacity={0.28} />
+      <Path
+        d={`M${vagaX - l * 0.07} ${pe} C${vagaX - l * 0.046} ${pe - a * 0.03} ${vagaX + l * 0.046} ${pe - a * 0.03} ${vagaX + l * 0.07} ${pe}`}
+        stroke={CREME}
+        strokeWidth={1.4}
+        fill="none"
+        opacity={0.4}
+      />
+      {/* A terra que saiu da cova, amontoada na beira de baixo. */}
+      <Ellipse cx={vagaX} cy={pe + a * 0.03} rx={l * 0.055} ry={a * 0.016} fill={TERRA_CLARA} opacity={0.38} />
+
+      {/*
+        A planta que falta. Os tracinhos se aproximam no toque e o contorno
+        ganha corpo — é aqui que o cartão deixa de dizer "solidão" e passa a
+        dizer "diminuir".
+      */}
+      <G opacity={curva(p, [0.62, 0.7, 0.78, 0.86, 0.92])}>
+        {planta(vagaX, true, curva(p, [4.8, 4.2, 3.6, 3, 2.6]))}
+      </G>
+
+      {/* A planta de pé, inclinando um grau para o lado da outra. */}
+      <G transform={gira(curva(p, [0, 0.8, 1.6, 2.2, 2.6]), plantaX, pe)}>
+        <Ellipse cx={plantaX} cy={pe} rx={l * 0.055} ry={a * 0.022} fill={TERRA_SOMBRA} opacity={0.35} />
+        {planta(plantaX, false, 0)}
+        <Capim x={plantaX - 11} y={pe + 1} alto={7} cor={FOLHA} balanco={curva(p, [0, -1, -1.6, -0.7, 0])} />
+        <Capim x={plantaX + 9} y={pe + 2} alto={6} cor={FOLHA_CLARA} balanco={curva(p, [0, 1, 1.4, 0.6, 0])} />
+      </G>
     </>
   );
 }
