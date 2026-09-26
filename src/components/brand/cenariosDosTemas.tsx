@@ -208,6 +208,29 @@ type CenarioProps = {
   id: string;
 };
 
+/**
+ * Um torrão de terra: a mancha e a luz que bate no alto dela.
+ *
+ * ## Por que duas formas, e não uma
+ *
+ * Uma elipse chapada na terra lê como sujeira no desenho. Com a segunda,
+ * menor e clara, encostada no alto à esquerda, ela vira um **volume** — e é a
+ * mesma luz que bate no alto à esquerda em todo desenho deste app.
+ *
+ * Isto existe porque a terra das cenas era um degradê liso, e degradê liso ao
+ * lado da água da ansiedade — que tem risco de luz, anel, folha e pedra
+ * acontecendo nela — lia como cena pela metade. O que enche a terra não é um
+ * objeto grande: é repetição de coisa pequena.
+ */
+function Torrao({ x, y, r, cor = TERRA_CLARA }: { x: number; y: number; r: number; cor?: string }) {
+  return (
+    <>
+      <Ellipse cx={x} cy={y} rx={r} ry={r * 0.72} fill={cor} opacity={0.45} />
+      <Ellipse cx={x - r * 0.22} cy={y - r * 0.24} rx={r * 0.5} ry={r * 0.34} fill={CREME} opacity={0.2} />
+    </>
+  );
+}
+
 /** Um tufo de capim de três lâminas, com a base em `y`. */
 function Capim({ x, y, alto, cor, balanco }: { x: number; y: number; alto: number; cor: string; balanco: number }) {
   return (
@@ -1028,12 +1051,26 @@ function Insonia({ l, a, p, id }: CenarioProps) {
         fill={`url(#noite-${id})`}
       />
 
-      {/* As três estrelas, baixando **juntas**. */}
+      {/* Torrões na terra da noite, antes da névoa deitar sobre eles. */}
+      {[
+        { x: 0.1, y: 0.79, r: 2 },
+        { x: 0.32, y: 0.86, r: 2.4 },
+        { x: 0.55, y: 0.81, r: 1.7 },
+        { x: 0.68, y: 0.92, r: 2.6 },
+        { x: 0.88, y: 0.84, r: 2.1 },
+      ].map((t, i) => (
+        <Torrao key={i} x={l * t.x} y={a * t.y} r={t.r} />
+      ))}
+
+      {/* As estrelas, baixando **juntas**. */}
       <G opacity={curva(p, [1, 0.86, 0.7, 0.56, 0.45])}>
         {[
           { x: 0.1, y: 0.26, r: 3.2 },
           { x: 0.26, y: 0.6, r: 2.2 },
           { x: 0.47, y: 0.2, r: 2 },
+          { x: 0.18, y: 0.82, r: 1.6 },
+          { x: 0.38, y: 0.42, r: 1.5 },
+          { x: 0.56, y: 0.62, r: 1.7 },
         ].map((e, i) => {
           const ex = l * e.x;
           const ey = peDoTituloNaCena(a) + ceuLivre * e.y;
@@ -1183,20 +1220,36 @@ function Tristeza({ l, a, p, id }: CenarioProps) {
         leem como céu, e não como adesivo colado no fundo. Contorno as traria
         para a frente, que é onde elas não estão.
       */}
-      <Ellipse
-        cx={l * 0.24 - curva(p, [0, 2, 4, 6, 7])}
-        cy={peDoTituloNaCena(a) + ceuLivre * 0.16}
-        rx={l * 0.22}
-        ry={a * 0.045}
-        fill={`url(#altaT-${id})`}
-      />
-      <Ellipse
-        cx={l * 0.86 - curva(p, [0, 1.4, 3, 4.4, 5])}
-        cy={peDoTituloNaCena(a) + ceuLivre * 0.3}
-        rx={l * 0.17}
-        ry={a * 0.035}
-        fill={`url(#altaT-${id})`}
-      />
+      {[
+        { x: 0.22, y: 0.1, rx: 0.26, ry: 0.05, anda: 7, op: 1 },
+        { x: 0.72, y: 0.19, rx: 0.22, ry: 0.042, anda: 5, op: 0.9 },
+        { x: 0.38, y: 0.3, rx: 0.3, ry: 0.052, anda: 9, op: 0.85 },
+        { x: 0.88, y: 0.42, rx: 0.2, ry: 0.038, anda: 4, op: 0.7 },
+      ].map((n, i) => {
+        const cx = l * n.x - curva(p, [0, n.anda * 0.3, n.anda * 0.6, n.anda * 0.85, n.anda]);
+        const cy = peDoTituloNaCena(a) + ceuLivre * n.y;
+        return (
+          <G key={i} opacity={n.op}>
+            <Ellipse cx={cx} cy={cy} rx={l * n.rx} ry={a * n.ry} fill={`url(#altaT-${id})`} />
+            {/*
+              A barriga da nuvem alta, um fio abaixo dela.
+
+              Branco sobre um céu que já é quase branco perto do horizonte
+              simplesmente não aparece — e o céu desta cena ocupa o cartão
+              inteiro, então nuvem que não aparece é área morta. A sombra por
+              baixo é o que faz a forma existir em qualquer altura do degradê.
+            */}
+            <Ellipse
+              cx={cx + l * 0.02}
+              cy={cy + a * n.ry * 0.62}
+              rx={l * n.rx * 0.82}
+              ry={a * n.ry * 0.42}
+              fill={NUVEM_SOMBRA}
+              opacity={0.16}
+            />
+          </G>
+        );
+      })}
 
       {/*
         Os raios aparecem conforme a nuvem sai, e não antes. A opacidade deles é
@@ -1271,8 +1324,58 @@ function Tristeza({ l, a, p, id }: CenarioProps) {
         opacity={curva(p, [0, 0.04, 0.1, 0.17, 0.24])}
       />
 
-      <Capim x={l * 0.14} y={a * 0.99} alto={10} cor={FOLHA} balanco={curva(p, [0, -1.6, -2.4, -1, 0])} />
-      <Capim x={l * 0.62} y={a * 0.97} alto={8} cor={FOLHA_CLARA} balanco={curva(p, [0, 1.4, 2.2, 0.9, 0])} />
+      {/*
+        A tira de chão tem pouca altura, então o que a enche é quantidade de
+        coisa pequena: capim em cinco pontos e torrões entre eles.
+      */}
+      {[
+        { x: 0.08, y: 0.99, alto: 11 },
+        { x: 0.26, y: 0.97, alto: 8 },
+        { x: 0.47, y: 1, alto: 10 },
+        { x: 0.7, y: 0.975, alto: 8 },
+        { x: 0.9, y: 0.995, alto: 11 },
+      ].map((t, i) => (
+        <Capim
+          key={i}
+          x={l * t.x}
+          y={a * t.y}
+          alto={t.alto}
+          cor={i % 2 ? FOLHA_CLARA : FOLHA}
+          balanco={curva(p, i % 2 ? [0, 1.4, 2.2, 0.9, 0] : [0, -1.6, -2.4, -1, 0])}
+        />
+      ))}
+      {[
+        { x: 0.17, y: 0.94, r: 1.8 },
+        { x: 0.58, y: 0.96, r: 2.1 },
+        { x: 0.81, y: 0.93, r: 1.6 },
+      ].map((t, i) => (
+        <Torrao key={i} x={l * t.x} y={a * t.y} r={t.r} />
+      ))}
+
+      {/*
+        Uma nuvem alta a mais, bem baixa no céu e quase parada.
+
+        As quatro de cima cruzam a metade de cima; esta fica logo acima do
+        horizonte, e é ela que fecha a escada de profundidade — sem ela, entre a
+        nuvem da frente e a mata ao longe havia um vão de céu liso.
+      */}
+      <G opacity={0.6}>
+        <Ellipse
+          cx={l * 0.24 - curva(p, [0, 0.8, 1.6, 2.4, 3])}
+          cy={h - a * 0.08}
+          rx={l * 0.24}
+          ry={a * 0.028}
+          fill={`url(#altaT-${id})`}
+        />
+        <Ellipse
+          cx={l * 0.26 - curva(p, [0, 0.8, 1.6, 2.4, 3])}
+          cy={h - a * 0.068}
+          rx={l * 0.2}
+          ry={a * 0.014}
+          fill={NUVEM_SOMBRA}
+          opacity={0.18}
+        />
+      </G>
     </>
   );
 }
@@ -1449,6 +1552,54 @@ function Luto({ l, a, p, id }: CenarioProps) {
         </G>
       </G>
 
+      {/*
+        Torrões e pedrinhas entre as folhas.
+
+        A terra deste cartão era um degradê liso com folhas por cima, e liso ao
+        lado da água da ansiedade lia como cena pela metade. Ver `Torrao`.
+      */}
+      {[
+        { x: 0.09, y: 0.9, r: 2.4 },
+        { x: 0.38, y: 0.83, r: 1.7 },
+        { x: 0.53, y: 0.87, r: 2.1 },
+        { x: 0.79, y: 0.94, r: 2.6 },
+        { x: 0.24, y: 0.97, r: 2.2 },
+        { x: 0.61, y: 0.79, r: 1.5 },
+      ].map((t, i) => (
+        <Torrao key={i} x={l * t.x} y={a * t.y} r={t.r} />
+      ))}
+
+      {/*
+        Duas folhas ainda no ar, caindo devagar.
+
+        Elas são o acontecimento que faltava: sem nada em movimento, o tapete é
+        um estado, e o cartão dizia que tudo já aconteceu. Com elas, ainda está
+        acontecendo — que é o que saudade é. Descem e giram no toque, e cada uma
+        no seu tempo.
+      */}
+      <G
+        transform={[
+          `translate(0 ${curva(p, [0, 1.6, 3.4, 5, 6])})`,
+          gira(curva(p, [4, 8, 13, 17, 20]), l * 0.42, a * 0.6),
+        ].join(' ')}
+        opacity={0.85}
+      >
+        <G transform={`translate(${l * 0.42} ${a * 0.6}) rotate(-28) scale(0.3)`}>
+          <Path d={FOLHA_DO_BROTO} fill={FOLHA_CLARA} stroke={CONTORNO_FOLHA} strokeWidth={4.6} />
+        </G>
+      </G>
+      <G
+        transform={[
+          `translate(0 ${curva(p, [0, 1, 2.2, 3.4, 4.4])})`,
+          gira(curva(p, [-3, -7, -11, -15, -18]), l * 0.86, a * 0.66),
+        ].join(' ')}
+        opacity={0.7}
+      >
+        <G transform={`translate(${l * 0.86} ${a * 0.66}) rotate(34) scale(0.24)`}>
+          <Path d={FOLHA_DO_BROTO} fill={TERRA_CLARA} stroke={CONTORNO_FOLHA} strokeWidth={5.4} />
+        </G>
+      </G>
+
       {/* O broto novo sobe um fio, devagar, e para. */}
       <G transform={cresce(curva(p, [1, 1.05, 1.1, 1.14, 1.16]), brotoX, brotoY)}>
         <Path
@@ -1622,15 +1773,42 @@ function Solidao({ l, a, p, id }: CenarioProps) {
       {raizes(esquerda, 1, 'ra')}
       {raizes(direita, -1, 'rb')}
 
-      {/* Pedrinhas no corte: terra de perfil tem corpo. */}
+      {/*
+        As camadas da terra, e as pedrinhas dentro delas.
+
+        Corte de verdade tem estrato: a terra não é uma cor só do solo até o
+        fundo. São duas linhas de tom, tortas de propósito, e elas fazem o corte
+        ler como corte em vez de como sombra embaixo das plantas.
+      */}
+      <Path
+        d={`M0 ${solo + 13} C${l * 0.26} ${solo + 10} ${l * 0.58} ${solo + 17} ${l} ${solo + 13}`}
+        stroke={TERRA_CLARA}
+        strokeWidth={1.4}
+        fill="none"
+        opacity={0.22}
+      />
+      <Path
+        d={`M0 ${solo + 27} C${l * 0.3} ${solo + 32} ${l * 0.66} ${solo + 24} ${l} ${solo + 29}`}
+        stroke={TERRA_CLARA}
+        strokeWidth={1.2}
+        fill="none"
+        opacity={0.16}
+      />
       {[
-        { x: 0.12, y: 0.88, r: 2.1 },
-        { x: 0.5, y: 0.83, r: 1.6 },
-        { x: 0.62, y: 0.96, r: 2.3 },
-        { x: 0.92, y: 0.92, r: 1.8 },
+        { x: 0.12, y: 0.88, r: 2.4 },
+        { x: 0.5, y: 0.83, r: 1.7 },
+        { x: 0.62, y: 0.96, r: 2.6 },
+        { x: 0.92, y: 0.92, r: 2 },
+        { x: 0.33, y: 0.98, r: 2.2 },
+        { x: 0.78, y: 0.86, r: 1.5 },
       ].map((m, i) => (
-        <Ellipse key={i} cx={l * m.x} cy={a * m.y} rx={m.r} ry={m.r * 0.78} fill={TERRA_CLARA} opacity={0.3} />
+        <Torrao key={i} x={l * m.x} y={a * m.y} r={m.r} />
       ))}
+
+      {/* Capim na beira do corte, dos dois lados: o de cima também é lugar. */}
+      <Capim x={l * 0.06} y={solo} alto={11} cor={FOLHA} balanco={curva(p, [0, -1.2, -1.8, -0.8, 0])} />
+      <Capim x={l * 0.45} y={solo} alto={8} cor={FOLHA_CLARA} balanco={curva(p, [0, 1, 1.5, 0.6, 0])} />
+      <Capim x={l * 0.94} y={solo} alto={10} cor={FOLHA} balanco={curva(p, [0, 1.2, 1.8, 0.8, 0])} />
     </>
   );
 }
