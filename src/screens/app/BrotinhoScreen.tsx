@@ -541,7 +541,7 @@ export function BrotinhoScreen({
         <CartaoHeroi
           altura={alturaDoHeroi}
           fundo={palette.cream200}
-          cena={(p) => <CenaDoDiario fundo={palette.cream200} passo={p} />}
+          cena={(p) => <CenaDoDiario passo={p} />}
           selo={seloDoDiario}
           titulo="Diário"
           linha="Escreva ou fale o que passou hoje. Não sai do seu aparelho."

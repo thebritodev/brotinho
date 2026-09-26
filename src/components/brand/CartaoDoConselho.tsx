@@ -204,7 +204,7 @@ export function CartaoDoConselho({
         <CartaoHeroi
           altura={heroi}
           fundo={palette.brown200}
-          cena={() => <CenaDaFrase fundo={palette.brown200} />}
+          cena={() => <CenaDaFrase />}
           selo={aberto ? 'lida hoje' : 'uma por dia'}
           titulo="Frase do dia"
           linha={

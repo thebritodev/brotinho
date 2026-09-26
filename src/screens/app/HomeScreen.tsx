@@ -627,9 +627,7 @@ export function HomeScreen({
         <CartaoHeroi
           altura={alturaDoHeroi}
           fundo={tomDaPratica}
-          cena={() => (
-            <CenaDaPratica fundo={tomDaPratica} tema={oferta.topico} altura={alturaDoHeroi} />
-          )}
+          cena={() => <CenaDaPratica tema={oferta.topico} altura={alturaDoHeroi} />}
           selo={oferta.selo}
           titulo={oferta.titulo}
           linha={`${oferta.convite} ${oferta.duracao}, guiada pelo app.`}

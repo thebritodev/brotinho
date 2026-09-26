@@ -1,5 +1,6 @@
-import React from 'react';
+import React, { useId } from 'react';
 import { Pressable, Text, View } from 'react-native';
+import Svg, { Defs, LinearGradient, Rect, Stop } from 'react-native-svg';
 
 import { useToqueAnimado } from '../../hooks/useToqueAnimado';
 import { fonts, radius, useTema } from '../../theme';
@@ -22,11 +23,9 @@ import { fonts, radius, useTema } from '../../theme';
  * ## O véu
  *
  * Texto sobre ilustração só funciona com alguma coisa entre os dois. Aqui esse
- * alguma coisa é desenhado **dentro da própria cena**, como um degradê que
- * termina na cor de fundo do cartão — ver `cenasDoCarrossel`. Fazer isso em
- * SVG, e não com uma camada por cima, evita uma dependência nova só para
- * pintar gradiente em `View`, e deixa cada cena escolher onde o véu começa:
- * a do Diário precisa dele mais cedo, porque a folha é clara e sobe mais.
+ * alguma coisa é um degradê que termina na cor de fundo do cartão, desenhado
+ * **dentro do bloco de texto** — ver `Veu` logo abaixo, que é onde está a
+ * história inteira.
  *
  * ## Um alvo de toque, não dois
  *
@@ -64,6 +63,106 @@ type Props = {
   /** Altura do cartão; o carrossel manda a mesma para todos. */
   altura: number;
 };
+
+/**
+ * Onde o véu termina de subir, em pontos contados do alto do bloco de texto.
+ *
+ * `SUBIDA` é a distância inteira: do transparente até a cor cheia do cartão.
+ * `QUASE` é onde ele já está em 86%, e existe para a subida não ser uma reta —
+ * uma reta deixa uma borda visível justamente no meio do título.
+ *
+ * Os dois números vêm do véu antigo, convertidos: ele media 62% de um cartão
+ * de 286, e as paradas ficavam em 26% e 42% desses 177 pontos.
+ */
+const SUBIDA = 74;
+const QUASE = 46;
+
+/**
+ * O véu: o degradê que separa o texto da ilustração.
+ *
+ * ## Por que ele é duas camadas, e não uma
+ *
+ * A camada de baixo é a subida — 74 pontos de altura fixa, colada no alto do
+ * bloco de texto. A de cima é a cor do cartão, cheia, do fim da subida até o
+ * fim do bloco.
+ *
+ * Elas são duas porque o degradê precisa ter **comprimento fixo** e o bloco
+ * não tem altura fixa. Uma camada só, esticada pelo bloco inteiro, tem a
+ * subida esticada junto: num título de duas linhas o degradê fica mais longo e
+ * mais fraco exatamente onde ele precisava estar mais forte.
+ *
+ * ## Por que ele mora dentro do bloco de texto
+ *
+ * Porque é assim que ele fica do tamanho certo sem ninguém calcular nada. O
+ * véu é filho absoluto do bloco: `top`, `left`, `right` e `bottom` em zero, e
+ * o layout o estica até a altura do bloco, seja ela qual for.
+ *
+ * Isso é a correção de um erro. O véu já foi desenhado dentro da cena, com
+ * altura de 62% do cartão — um palpite da altura do bloco, feito para um
+ * título de uma linha. "Aterramento 5-4-3-2-1" quebra em duas: o bloco vai de
+ * 186 para 226 pontos num cartão de 286, e os 40 que sobram ficam acima do
+ * véu. O desenho do lago do tema atravessava a primeira linha do título e as
+ * duas ficavam ilegíveis.
+ *
+ * Medir o bloco com `onLayout` e passar o número para a cena **não** resolve:
+ * `onLayout` não dispara no `react-native-web`, então o véu voltaria ao
+ * palpite justamente no navegador, que é onde eu confiro e de onde saem as
+ * capturas da loja. Esta casa já tropeçou nisso três vezes — ver
+ * `LuzDeEstufa`, `geometriaDoBroto` e `FaixaDaComposta`. Aqui não há medida:
+ * quem mede é o layout, que sabe fazer isso nas duas plataformas.
+ *
+ * ## Por que SVG
+ *
+ * Gradiente em `View` pediria uma dependência nova (`expo-linear-gradient`) só
+ * para isto, e `react-native-svg` já é dependência do app. O
+ * `preserveAspectRatio="none"` é de propósito: o desenho é um degradê
+ * puramente vertical, então esticar na horizontal não deforma nada, e é o que
+ * garante que ele cubra a largura inteira em qualquer aparelho.
+ *
+ * ## O id
+ *
+ * `url(#id)` não tem escopo por componente: dois cartões na mesma tela
+ * disputariam o mesmo nome de gradiente e um deles apareceria sem
+ * preenchimento. Por isso cada instância gera o seu com `useId`.
+ */
+function Veu({ fundo }: { fundo: string }) {
+  const id = useId().replace(/[^a-zA-Z0-9]/g, '');
+  return (
+    <>
+      <View
+        pointerEvents="none"
+        style={{ position: 'absolute', left: 0, right: 0, top: 0, height: SUBIDA }}
+      >
+        <Svg width="100%" height="100%" viewBox="0 0 1 1" preserveAspectRatio="none">
+          <Defs>
+            <LinearGradient id={`veu-${id}`} x1="0" y1="0" x2="0" y2="1">
+              <Stop offset="0" stopColor={fundo} stopOpacity={0} />
+              <Stop offset={QUASE / SUBIDA} stopColor={fundo} stopOpacity={0.86} />
+              <Stop offset="1" stopColor={fundo} stopOpacity={1} />
+            </LinearGradient>
+          </Defs>
+          <Rect x={0} y={0} width={1} height={1} fill={`url(#veu-${id})`} />
+        </Svg>
+      </View>
+
+      {/*
+        O resto do bloco, na cor cheia. `bottom: 0` é o que faz a linha de
+        apoio e o botão ficarem cobertos por mais que o título empurre.
+      */}
+      <View
+        pointerEvents="none"
+        style={{
+          position: 'absolute',
+          left: 0,
+          right: 0,
+          top: SUBIDA,
+          bottom: 0,
+          backgroundColor: fundo,
+        }}
+      />
+    </>
+  );
+}
 
 export function CartaoHeroi({
   cena,
@@ -128,7 +227,13 @@ export function CartaoHeroi({
         </View>
       )}
 
+      {/*
+        O bloco de texto — e, atrás dele, o véu do tamanho dele. Cresce junto
+        quando o título quebra em duas linhas, que é o ponto inteiro.
+      */}
       <View style={{ padding: 16, gap: 10 }}>
+        <Veu fundo={fundo} />
+
         <Text
           style={{
             fontFamily: fonts.display.extraBold,

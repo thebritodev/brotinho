@@ -36,18 +36,25 @@ import { BRASA, TERRA, TERRA_CLARA, TERRA_FUNDA, TERRA_SOMBRA } from './terraDoC
  * o chão atravessa a largura toda, e há coisa nas beiradas — folhas, torrões,
  * um lápis — para a cena continuar depois da borda em vez de acabar nela.
  *
- * ## O véu, e por que ele mora aqui
+ * ## O véu não mora mais aqui
  *
- * O título e o botão ficam **em cima** da cena. Sem nada entre os dois, texto
- * escuro sobre folha clara é ilegível em metade das linhas. O véu é um degradê
- * que vai do transparente até a cor de fundo do cartão, cobrindo a parte de
- * baixo — a parte que o texto ocupa.
+ * O título e o botão ficam **em cima** da cena, e entre os dois é preciso
+ * haver um véu — um degradê que termina na cor de fundo do cartão — ou texto
+ * escuro sobre folha clara fica ilegível em metade das linhas.
  *
- * Ele é SVG, e não uma camada com gradiente de `View`, porque gradiente em
- * `View` pediria uma dependência nova (`expo-linear-gradient`) só para isto. E
- * é uma peça separada da cena, com `preserveAspectRatio="none"`, porque a cena
- * usa `slice` para preencher o cartão sem distorcer — e com `slice` a borda de
- * baixo do desenho pode ser cortada, o que levaria o véu junto.
+ * Ele já foi desenhado dentro de cada cena, com altura de 62% do cartão. Esses
+ * 62% eram um palpite da altura do bloco de texto, e o palpite era de um
+ * título de **uma linha**: "Aterramento 5-4-3-2-1" quebra em duas, o bloco
+ * passa de 186 para 226 pontos num cartão de 286, e os 40 que sobram ficavam
+ * acima do véu — a cena do tema atravessava a primeira linha do título.
+ *
+ * A cena não tem como saber disso. Quantas linhas o título ocupou depende da
+ * palavra, da largura da tela e do corpo de letra que a pessoa escolheu no
+ * sistema, e quem tem essa informação é o layout, dentro do cartão. Por isso o
+ * véu foi para o `CartaoHeroi`, colado no bloco de texto — ver o `Veu` de lá,
+ * que é onde está a explicação inteira.
+ *
+ * O que sobrou aqui é só o desenho.
  *
  * ## Os ids
  *
@@ -60,41 +67,8 @@ import { BRASA, TERRA, TERRA_CLARA, TERRA_FUNDA, TERRA_SOMBRA } from './terraDoC
 const LARGURA = 300;
 const ALTURA = 290;
 
-/** Quanto da altura do cartão o véu cobre. É onde o texto mora. */
-const VEU = '62%';
-
-/**
- * O degradê que vai do nada até a cor do cartão.
- *
- * `preserveAspectRatio="none"` é de propósito: o desenho é um gradiente
- * puramente vertical, então esticar na horizontal não deforma nada, e é o que
- * garante que ele cubra a largura inteira em qualquer aparelho.
- */
-function Veu({ fundo }: { fundo: string }) {
-  const id = useId().replace(/[^a-zA-Z0-9]/g, '');
-  return (
-    <View
-      style={{ position: 'absolute', left: 0, right: 0, bottom: 0, height: VEU }}
-      pointerEvents="none"
-    >
-      <Svg width="100%" height="100%" viewBox="0 0 1 1" preserveAspectRatio="none">
-        <Defs>
-          <LinearGradient id={`veu-${id}`} x1="0" y1="0" x2="0" y2="1">
-            <Stop offset="0" stopColor={fundo} stopOpacity={0} />
-            <Stop offset="0.26" stopColor={fundo} stopOpacity={0.86} />
-            <Stop offset="0.42" stopColor={fundo} stopOpacity={1} />
-            <Stop offset="0.68" stopColor={fundo} stopOpacity={1} />
-            <Stop offset="1" stopColor={fundo} stopOpacity={1} />
-          </LinearGradient>
-        </Defs>
-        <Rect x={0} y={0} width={1} height={1} fill={`url(#veu-${id})`} />
-      </Svg>
-    </View>
-  );
-}
-
-/** O casco de toda cena: preenche o cartão, corta o que sobra, põe o véu. */
-function Cena({ fundo, children }: { fundo: string; children: React.ReactNode }) {
+/** O casco de toda cena: preenche o cartão e corta o que sobra. */
+function Cena({ children }: { children: React.ReactNode }) {
   return (
     <View style={{ flex: 1 }} pointerEvents="none">
       <Svg
@@ -105,7 +79,6 @@ function Cena({ fundo, children }: { fundo: string; children: React.ReactNode })
       >
         {children}
       </Svg>
-      <Veu fundo={fundo} />
     </View>
   );
 }
@@ -174,7 +147,7 @@ function Folha({
 }
 
 /**
- * Prática de hoje — a cena do tema dela, grande, com o véu por baixo.
+ * Prática de hoje — a cena do tema dela, no tamanho do cartão.
  *
  * Esta não desenha nada próprio: reaproveita a cena do tema
  * (`desenhosDosTemas`) no tamanho de cartão. É de propósito — a pessoa vê a
@@ -184,15 +157,12 @@ function Folha({
  *
  * Por isso ela também não usa o casco `Cena`: aquele monta um `Svg` próprio, e
  * o desenho do tema já vem com o dele. SVG dentro de SVG não é caminho no
- * `react-native-svg`. O que se aproveita aqui é só o véu, que é uma peça à
- * parte justamente para poder ser usada solta assim.
+ * `react-native-svg`.
  */
 export function CenaDaPratica({
-  fundo,
   tema,
   altura,
 }: {
-  fundo: string;
   tema: string;
   /** A altura do cartão; a cena ocupa a parte de cima dela. */
   altura: number;
@@ -218,7 +188,6 @@ export function CenaDaPratica({
       >
         <DesenhoDoTema tema={tema} size={altura * 0.92} />
       </View>
-      <Veu fundo={fundo} />
     </View>
   );
 }
@@ -243,12 +212,12 @@ export function CenaDaPratica({
  * não chega a encostar e a linha não alcança o comprimento das outras, porque
  * quem escreve é a pessoa, do outro lado do toque.
  */
-export function CenaDoDiario({ fundo, passo = 0 }: { fundo: string; passo?: number }) {
+export function CenaDoDiario({ passo = 0 }: { passo?: number }) {
   const id = useId().replace(/[^a-zA-Z0-9]/g, '');
   const p = passo;
 
   return (
-    <Cena fundo={fundo}>
+    <Cena>
       <Defs>
         <LinearGradient id={`papel-${id}`} x1="0" y1="0" x2="0.25" y2="1">
           <Stop offset="0" stopColor="#FFFFFF" />
@@ -474,10 +443,8 @@ function opacidadeDaQueda(t: number): number {
  * convencido pela demonstração é justamente quem ainda não compostou nada.
  */
 export function CenaDaComposta({
-  fundo,
   demonstrando = false,
 }: {
-  fundo: string;
   /** O cartão está à vista: hora de deixar a frase cair. */
   demonstrando?: boolean;
 }) {
@@ -528,7 +495,7 @@ export function CenaDaComposta({
   const fatia = 1 / palavras.length;
 
   return (
-    <Cena fundo={fundo}>
+    <Cena>
       <Defs>
         <LinearGradient id={`terra-${id}`} x1="0" y1="0" x2="0" y2="1">
           <Stop offset="0" stopColor={TERRA_CLARA} />
@@ -668,11 +635,11 @@ export function CenaDaComposta({
  * pista de que tem alguma coisa ali, e é isso que faz "desenterrar" ser um
  * gesto e não um botão de carregar texto.
  */
-export function CenaDaFrase({ fundo }: { fundo: string }) {
+export function CenaDaFrase() {
   const id = useId().replace(/[^a-zA-Z0-9]/g, '');
 
   return (
-    <Cena fundo={fundo}>
+    <Cena>
       <Defs>
         <LinearGradient id={`terra-${id}`} x1="0" y1="0" x2="0" y2="1">
           <Stop offset="0" stopColor={TERRA_CLARA} />
