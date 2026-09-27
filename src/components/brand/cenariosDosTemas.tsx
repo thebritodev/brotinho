@@ -2066,105 +2066,138 @@ function Ripa({
  * A tábua deitada no capim, embaixo, é a peça que não subiu. Ela fecha a
  * história no chão: o material está aí, do lado, há tempo.
  *
+ * ## A altura é metade do desenho
+ *
+ * A primeira versão tinha a casa em cima de um estrado com o capim logo
+ * embaixo, e não lia como casa **na árvore**: lia como puxadinho pregado num
+ * poste. Casa na árvore é uma casa que está **alta**, e altura se desenha com
+ * três coisas, todas aqui.
+ *
+ * O tronco atravessa o cartão inteiro, sem pé à vista: árvore com base no
+ * quadro tem tamanho medido, árvore que entra pelo alto e sai por baixo, não.
+ * O chão virou três manchas moles no fundo, sem um traço — é a perspectiva
+ * atmosférica do app apontada para baixo, e com contorno ela viraria chão
+ * perto e a casa desceria da árvore. E a escada **sai pela borda de baixo**:
+ * escada que acaba no capim põe a casa no chão; escada que sai do quadro deixa
+ * o chão onde ele está, longe.
+ *
+ * As ripas penduradas ganharam com isso: balançando sobre o vazio, elas dizem
+ * a altura junto com o resto.
+ *
  * ## A superfície
  *
- * É a única cena com **coisa construída**, e a única com madeira serrada — que
- * é por isso que ela tem a sua própria dupla de tons, mais clara e mais fria
- * que a terra. Contra a casca escura do tronco, tábua clara aparece de longe,
- * que é o que um cartão deste tamanho precisa.
+ * É a única cena com **coisa construída**, a única com madeira serrada e a única
+ * vista de dentro de uma copa. A madeira tem dupla de tons própria, mais clara
+ * e mais fria que a terra: contra a casca escura do tronco, tábua clara aparece
+ * de longe, que é o que um cartão deste tamanho precisa.
  */
 function Procrastinacao({ l, a, p, id }: CenarioProps) {
-  const h = horizonteDaCena(a);
   const alto = peDoTituloNaCena(a);
-  /** O tronco: a casa se apoia nele, então ele é o prumo da cena. */
-  const troncoX = l * 0.78;
-  const troncoMeia = l * 0.038;
-  const chao = a * 0.95;
-  /**
-   * O estrado: a linha de cima dele é o chão da casa.
-   *
-   * Ele desceu para 0,72 da altura. Em 0,63 a casa tinha 22 pontos de pé —
-   * régua de parede virava risquinho, e o dentro não tinha área para escurecer.
-   * O cartão inteiro tem 130, e o título leva os 50 primeiros: o que sobra tem
-   * de ser gasto onde está o assunto, que é a casa, e não no chão embaixo dela.
-   */
-  const estrado = a * 0.72;
-  const vigaEsq = l * 0.12;
-  const estradoEsq = l * 0.3;
-  const estradoDir = troncoX + troncoMeia;
+  /** O tronco atravessa o cartão inteiro, de borda a borda. */
+  const troncoTopoX = l * 0.82;
+  const troncoPeX = l * 0.88;
+  const troncoMeia = l * 0.045;
+  /** O chão do estrado: é nele que as paredes se apoiam. */
+  const piso = a * 0.64;
+  const viga = piso + 5.5;
+  const vigaEsq = l * 0.1;
+  const pisoEsq = l * 0.26;
   /** A casa: da parede da frente até o tronco, com o teto subindo para lá. */
-  const casaEsq = l * 0.42;
-  const casaDir = l * 0.82;
-  const cumeEsq = a * 0.5;
-  const cumeDir = a * 0.41;
+  const casaEsq = l * 0.28;
+  const casaDir = troncoTopoX - troncoMeia + 2;
+  /*
+    O teto sobe bastante para a direita, e não um fio.
+
+    Com pouca inclinação, a parede fica com vinte pontos de pé direito e as
+    réguas viram tijolinhos de pé. A inclinação é o que compra altura sem
+    invadir o título: o lado alto fica sob a primeira linha, que acaba muito
+    antes da borda direita.
+  */
+  const cumeEsq = a * 0.45;
+  const cumeDir = a * 0.32;
   /** A altura do teto no ponto `x`: é ela que corta as réguas da parede. */
   const teto = (x: number) => cumeEsq + ((x - casaEsq) / (casaDir - casaEsq)) * (cumeDir - cumeEsq);
-
-  /**
-   * As réguas da parede: seis lugares encostados um no outro, dois vazios.
-   *
-   * Largas e juntas, como tábua de parede é. Estreitas e espalhadas — que foi a
-   * primeira tentativa — elas viram uma fileira de dominós de pé, e o vazio
-   * entre duas deixa de ser falta e passa a ser o desenho normal.
-   */
   const larguraDaRegua = (casaDir - casaEsq) / 6;
-  const reguas = [0, 1, 2, 3, 4, 5];
+
+  /** Um punhado de folhas na ponta do galho, sempre as mesmas três. */
+  const folhagem = (x: number, y: number, chave: string) => (
+    <G key={chave}>
+      <Path
+        d={FOLHA_DO_BROTO}
+        fill={FOLHA_CLARA}
+        stroke={CONTORNO_FOLHA}
+        strokeWidth={2.2}
+        transform={`translate(${x} ${y}) rotate(84) scale(0.26)`}
+      />
+      <Path
+        d={FOLHA_DO_BROTO}
+        fill={FOLHA}
+        stroke={CONTORNO_FOLHA}
+        strokeWidth={2.2}
+        transform={`translate(${x} ${y}) rotate(36) scale(0.22)`}
+      />
+      <Path
+        d={FOLHA_DO_BROTO}
+        fill={FOLHA}
+        stroke={CONTORNO_FOLHA}
+        strokeWidth={2.4}
+        transform={`translate(${x} ${y}) rotate(142) scale(0.2)`}
+      />
+    </G>
+  );
 
   return (
     <>
       <Defs>
-        <LinearGradient id={`campoR-${id}`} x1="0" y1="0" x2="0" y2="1">
-          <Stop offset="0" stopColor={FOLHA_CLARA} />
-          <Stop offset="1" stopColor={FOLHA} />
-        </LinearGradient>
         <LinearGradient id={`troncoR-${id}`} x1="0" y1="0" x2="1" y2="0">
           <Stop offset="0" stopColor={TERRA} />
           <Stop offset="0.45" stopColor={TERRA_FUNDA} />
           <Stop offset="1" stopColor={TERRA_SOMBRA} />
         </LinearGradient>
-        {/* A copa: mancha que cai a zero, como a mata das outras cenas. */}
         <RadialGradient id={`copaR-${id}`} cx="50%" cy="50%" r="50%">
-          <Stop offset="0" stopColor={FOLHA} stopOpacity={0.8} />
-          <Stop offset="0.55" stopColor={FOLHA} stopOpacity={0.62} />
+          <Stop offset="0" stopColor={FOLHA} stopOpacity={0.72} />
+          <Stop offset="0.55" stopColor={FOLHA} stopOpacity={0.55} />
           <Stop offset="1" stopColor={FOLHA} stopOpacity={0} />
         </RadialGradient>
-        <RadialGradient id={`copaClaraR-${id}`} cx="50%" cy="50%" r="50%">
-          <Stop offset="0" stopColor={FOLHA_CLARA} stopOpacity={0.8} />
-          <Stop offset="0.55" stopColor={FOLHA_CLARA} stopOpacity={0.6} />
-          <Stop offset="1" stopColor={FOLHA_CLARA} stopOpacity={0} />
-        </RadialGradient>
-        <RadialGradient id={`mataR-${id}`} cx="50%" cy="50%" r="50%">
-          <Stop offset="0" stopColor={FOLHA} stopOpacity={0.45} />
-          <Stop offset="0.58" stopColor={FOLHA} stopOpacity={0.36} />
-          <Stop offset="1" stopColor={FOLHA} stopOpacity={0} />
+        {/* O fundo lá embaixo: a mesma conta da mata ao longe, deitada para baixo. */}
+        <RadialGradient id={`fundoR-${id}`} cx="50%" cy="50%" r="50%">
+          <Stop offset="0" stopColor={CONTORNO_FOLHA} stopOpacity={0.4} />
+          <Stop offset="0.55" stopColor={CONTORNO_FOLHA} stopOpacity={0.28} />
+          <Stop offset="1" stopColor={CONTORNO_FOLHA} stopOpacity={0} />
         </RadialGradient>
       </Defs>
 
       {/*
-        A copa fica **atrás de tudo** e sem contorno nenhum, e sai pelo alto do
-        cartão: a árvore continua fora da janela, como o resto do mundo das cenas.
-
-        Ela existe para o tronco não nascer do nada, e não para ser olhada — com
-        traço, roubaria a cena da madeira, que é o assunto.
+        Não existe horizonte nesta cena: a vista é de **dentro da copa**, e o
+        chão ficou fora da janela.
       */}
-      <Ellipse cx={l * 0.76} cy={alto - 6} rx={l * 0.42} ry={a * 0.11} fill={`url(#copaR-${id})`} />
-      <Ellipse cx={l * 0.92} cy={alto + 6} rx={l * 0.2} ry={a * 0.07} fill={`url(#copaR-${id})`} />
-      <Ellipse cx={l * 0.6} cy={alto - 10} rx={l * 0.2} ry={a * 0.07} fill={`url(#copaClaraR-${id})`} />
+      <Ellipse cx={l * 0.3} cy={alto - 2} rx={l * 0.34} ry={a * 0.09} fill={`url(#copaR-${id})`} />
+      <Ellipse cx={l * 0.88} cy={alto + 4} rx={l * 0.3} ry={a * 0.1} fill={`url(#copaR-${id})`} />
 
-      {/* A mata ao longe e o campo, com o claro no horizonte. */}
-      <Ellipse cx={l * 0.2} cy={h - 1} rx={l * 0.32} ry={a * 0.045} fill={`url(#mataR-${id})`} />
-      <Path
-        d={`M0 ${h + 2} C${l * 0.3} ${h - 3} ${l * 0.7} ${h - 3} ${l} ${h + 2} L${l} ${a + 10} L0 ${a + 10} Z`}
-        fill={`url(#campoR-${id})`}
-      />
+      {/*
+        O chão, muito lá embaixo: três manchas sem contorno e sem detalhe.
 
-      {/* O tronco, quase a prumo, com a base abrindo em raiz. */}
+        É a perspectiva atmosférica do app virada de lado — o que está longe
+        perde contorno e contraste, e aqui o longe é **para baixo**. São essas
+        manchas moles que dizem a altura, e é por isso que elas não podem ganhar
+        um só traço: com contorno, elas viram chão perto, e a casa desce da
+        árvore.
+      */}
+      <Ellipse cx={l * 0.24} cy={a * 1.04} rx={l * 0.42} ry={a * 0.11} fill={`url(#fundoR-${id})`} />
+      <Ellipse cx={l * 0.72} cy={a * 1.02} rx={l * 0.4} ry={a * 0.1} fill={`url(#fundoR-${id})`} />
+      <Ellipse cx={l * 0.48} cy={a * 1.1} rx={l * 0.6} ry={a * 0.12} fill={`url(#fundoR-${id})`} />
+
+      {/*
+        O tronco entra pelo alto e sai por baixo, sem base à vista. É ele que
+        diz a altura antes de qualquer outra coisa: árvore com pé no quadro tem
+        tamanho; árvore que atravessa a janela inteira, não.
+      */}
       <Path
         d={
-          `M${troncoX - troncoMeia} ${alto - 12}` +
-          ` C${troncoX - troncoMeia * 1.08} ${a * 0.62} ${troncoX - troncoMeia * 1.14} ${a * 0.82} ${troncoX - troncoMeia * 1.5} ${chao}` +
-          ` C${troncoX - troncoMeia * 0.6} ${chao + 3} ${troncoX + troncoMeia * 0.6} ${chao + 3} ${troncoX + troncoMeia * 1.5} ${chao}` +
-          ` C${troncoX + troncoMeia * 1.14} ${a * 0.82} ${troncoX + troncoMeia * 1.08} ${a * 0.62} ${troncoX + troncoMeia} ${alto - 12} Z`
+          `M${troncoTopoX - troncoMeia} ${alto - 14}` +
+          ` C${troncoTopoX - troncoMeia} ${a * 0.55} ${troncoPeX - troncoMeia * 1.15} ${a * 0.8} ${troncoPeX - troncoMeia * 1.2} ${a + 8}` +
+          ` L${troncoPeX + troncoMeia * 1.2} ${a + 8}` +
+          ` C${troncoPeX + troncoMeia * 1.15} ${a * 0.8} ${troncoTopoX + troncoMeia} ${a * 0.55} ${troncoTopoX + troncoMeia} ${alto - 14} Z`
         }
         fill={`url(#troncoR-${id})`}
         stroke={CONTORNO}
@@ -2172,7 +2205,7 @@ function Procrastinacao({ l, a, p, id }: CenarioProps) {
         strokeLinejoin="round"
       />
       <Path
-        d={`M${troncoX - troncoMeia * 0.3} ${alto - 8} C${troncoX - troncoMeia * 0.42} ${a * 0.66} ${troncoX - troncoMeia * 0.48} ${a * 0.82} ${troncoX - troncoMeia * 0.6} ${chao - 4}`}
+        d={`M${troncoTopoX - troncoMeia * 0.3} ${alto - 8} C${troncoTopoX - troncoMeia * 0.35} ${a * 0.6} ${troncoPeX - troncoMeia * 0.5} ${a * 0.82} ${troncoPeX - troncoMeia * 0.55} ${a + 4}`}
         stroke={TERRA_SOMBRA}
         strokeWidth={1.3}
         strokeLinecap="round"
@@ -2181,61 +2214,73 @@ function Procrastinacao({ l, a, p, id }: CenarioProps) {
       />
 
       {/*
-        O dentro da casa, em sombra.
-
-        Esta é a peça que decide se a cena lê. Sem ela, réguas de pé em cima de
-        um estrado são postes de cerca; com um dentro escuro atrás delas, os
-        vazios entre as réguas passam a mostrar o interior — e só casa tem
-        interior. É o buraco que constrói a parede.
+        O galho de cima sai do tronco **por baixo do teto** e vai para a
+        esquerda, onde o título já acabou. Ele já passou por cima da casa uma
+        vez, e a folhagem foi parar em cima da palavra "adia" — no cartão, o
+        alto é do texto, e o desenho mora embaixo dele.
       */}
       <Path
-        d={`M${casaEsq} ${estrado} L${casaEsq} ${cumeEsq} L${casaDir} ${cumeDir} L${casaDir} ${estrado} Z`}
+        d={`M${casaEsq + 4} ${a * 0.46} C${l * 0.2} ${a * 0.45} ${l * 0.12} ${a * 0.43} ${l * 0.04} ${a * 0.42}`}
+        stroke={TERRA_FUNDA}
+        strokeWidth={4}
+        strokeLinecap="round"
+        fill="none"
+      />
+      {folhagem(l * 0.05, a * 0.42, 'fa')}
+      {folhagem(l * 0.19, a * 0.45, 'fb')}
+      {/* E o galho da direita, saindo pela borda. */}
+      <Path
+        d={`M${troncoTopoX + troncoMeia} ${a * 0.5} C${l * 0.92} ${a * 0.47} ${l * 0.97} ${a * 0.44} ${l * 1.02} ${a * 0.42}`}
+        stroke={TERRA_FUNDA}
+        strokeWidth={3.4}
+        strokeLinecap="round"
+        fill="none"
+      />
+      {folhagem(l * 0.97, a * 0.43, 'fc')}
+
+      {/*
+        O dentro da casa, em sombra.
+
+        Sem ele, régua de pé sobre um estrado é poste de cerca; com um dentro
+        escuro atrás delas, o vazio entre duas passa a mostrar interior — e só
+        casa tem interior. É o buraco que constrói a parede.
+      */}
+      <Path
+        d={`M${casaEsq} ${piso} L${casaEsq} ${cumeEsq} L${casaDir} ${cumeDir} L${casaDir} ${piso} Z`}
         fill={TERRA_SOMBRA}
         opacity={0.72}
       />
 
-      {/* O galho que segura a ponta da viga: a casa tem de estar apoiada. */}
+      {/* O galho grosso que segura o estrado: a casa tem de estar apoiada. */}
       <Path
-        d={`M${troncoX - troncoMeia} ${estrado - 2} C${l * 0.58} ${estrado + 1} ${l * 0.42} ${estrado + 3} ${l * 0.3} ${estrado + 5}`}
+        d={`M${troncoTopoX - troncoMeia} ${viga + 2} C${l * 0.6} ${viga + 5} ${l * 0.4} ${viga + 7} ${l * 0.22} ${viga + 9}`}
         stroke={TERRA_FUNDA}
-        strokeWidth={5}
+        strokeWidth={5.5}
         strokeLinecap="round"
         fill="none"
       />
-      {/* E a mão-francesa, do tronco para baixo do estrado. */}
-      <Path
-        d={`M${troncoX - troncoMeia} ${a * 0.86} L${l * 0.62} ${estrado + 5}`}
-        stroke={MADEIRA_SOMBRA}
-        strokeWidth={3.4}
-        strokeLinecap="round"
-      />
 
       {/*
-        As réguas da parede: cinco lugares, três pregadas e dois vazios. Cada uma
-        acaba na linha do teto, e a última ficou baixa — parede parada tem topo
-        desigual.
+        As réguas da parede: seis lugares encostados um no outro, dois vazios, e
+        o topo desigual. Parede parada não acaba na linha reta.
       */}
-      {reguas.map((i) => {
+      {[0, 1, 2, 3, 4, 5].map((i) => {
         if (i === 2 || i === 4) return null;
         const x = casaEsq + i * larguraDaRegua;
-        const topo = teto(x) + (i === 3 ? 13 : i === 5 ? 7 : 2);
-        return <Ripa key={i} x={x + 1} y={topo} comp={larguraDaRegua - 2} grossura={estrado - topo + 1} />;
+        const topo = teto(x) + (i === 3 ? 12 : i === 5 ? 6 : 2);
+        return <Ripa key={i} x={x + 1} y={topo} comp={larguraDaRegua - 2} grossura={piso - topo + 1} />;
       })}
 
-      {/*
-        O teto, uma água só, subindo para o tronco — e com as duas pontas
-        passando da parede, que é o que beiral faz.
-      */}
-      <Ripa x={casaEsq - 5} y={cumeEsq - 4} comp={casaDir - casaEsq + 12} grossura={6} giro={-11.5} />
+      {/* O teto, uma água só, com as duas pontas passando da parede. */}
+      <Ripa x={casaEsq - 3} y={cumeEsq - 4} comp={casaDir - casaEsq + 8} grossura={6} giro={-9.8} />
 
       {/* A viga atravessa inteira; o assoalho só chegou até o meio dela. */}
-      <Ripa x={vigaEsq} y={estrado} comp={estradoDir - vigaEsq} grossura={4} cor={MADEIRA_SOMBRA} />
-      <Ripa x={estradoEsq} y={estrado - 5} comp={estradoDir - estradoEsq} grossura={5.5} />
-      {/* As juntas do assoalho: sem elas o estrado é uma barra, e não tábuas. */}
-      {[0.22, 0.44, 0.66, 0.86].map((f, i) => (
+      <Ripa x={vigaEsq} y={piso} comp={casaDir + 4 - vigaEsq} grossura={5} cor={MADEIRA_SOMBRA} />
+      <Ripa x={pisoEsq} y={piso - 5.5} comp={casaDir + 2 - pisoEsq} grossura={6} />
+      {[0.2, 0.4, 0.6, 0.8].map((f, i) => (
         <Path
           key={i}
-          d={`M${estradoEsq + (estradoDir - estradoEsq) * f} ${estrado - 4.6} L${estradoEsq + (estradoDir - estradoEsq) * f} ${estrado - 0.4}`}
+          d={`M${pisoEsq + (casaDir + 2 - pisoEsq) * f} ${piso - 5.1} L${pisoEsq + (casaDir + 2 - pisoEsq) * f} ${piso - 0.4}`}
           stroke={MADEIRA_SOMBRA}
           strokeWidth={1.1}
           opacity={0.8}
@@ -2243,53 +2288,54 @@ function Procrastinacao({ l, a, p, id }: CenarioProps) {
       ))}
 
       {/*
-        As ripas penduradas por um prego só. Elas balançam no toque, cada uma no
-        seu compasso — é o que diz que estão soltas, e não que foram desenhadas
-        tortas.
+        As ripas penduradas por um prego só, balançando sobre o vazio. Cada uma
+        no seu compasso — é o balanço que diz que estão soltas, e não que foram
+        desenhadas tortas. E é sobre o vazio que elas contam a altura.
       */}
-      <G transform={gira(curva(p, [0, 2.6, 4.4, 2.4, 0]), l * 0.21, estrado + 4)}>
-        <Ripa x={l * 0.195} y={estrado + 4} comp={4} grossura={a * 0.19} giro={13} />
-        <Ellipse cx={l * 0.21} cy={estrado + 5} rx={1.4} ry={1.4} fill={CONTORNO} />
+      <G transform={gira(curva(p, [0, 2.8, 4.6, 2.6, 0]), l * 0.26, viga + 3)}>
+        <Ripa x={l * 0.245} y={viga + 3} comp={4.4} grossura={a * 0.22} giro={12} />
+        <Ellipse cx={l * 0.26} cy={viga + 4} rx={1.4} ry={1.4} fill={CONTORNO} />
       </G>
-      <G transform={gira(curva(p, [0, -2.2, -3.6, -2, 0]), l * 0.4, estrado + 4)}>
-        <Ripa x={l * 0.385} y={estrado + 4} comp={3.6} grossura={a * 0.15} giro={-17} />
-        <Ellipse cx={l * 0.4} cy={estrado + 5} rx={1.3} ry={1.3} fill={CONTORNO} />
+      <G transform={gira(curva(p, [0, -2.4, -3.8, -2.2, 0]), l * 0.42, viga + 3)}>
+        <Ripa x={l * 0.405} y={viga + 3} comp={4} grossura={a * 0.16} giro={-16} />
+        <Ellipse cx={l * 0.42} cy={viga + 4} rx={1.3} ry={1.3} fill={CONTORNO} />
+      </G>
+      <G transform={gira(curva(p, [0, 1.8, 3, 1.6, 0]), l * 0.58, viga + 3)}>
+        <Ripa x={l * 0.565} y={viga + 3} comp={3.6} grossura={a * 0.11} giro={7} />
+        <Ellipse cx={l * 0.58} cy={viga + 4} rx={1.2} ry={1.2} fill={CONTORNO} />
       </G>
 
-      {/* A escada encostada, com um degrau faltando no meio. */}
+      {/*
+        A escada sai pela borda de baixo.
+
+        É a peça que fecha a altura: escada que acaba no capim põe a casa no
+        chão; escada que sai do quadro deixa o chão onde ele está, longe.
+      */}
       <Path
-        d={`M${l * 0.05} ${chao + 4} L${l * 0.11} ${estrado - 4}`}
+        d={`M${l * 0.03} ${a + 8} L${l * 0.13} ${viga + 2}`}
         stroke={MADEIRA}
         strokeWidth={3}
         strokeLinecap="round"
       />
       <Path
-        d={`M${l * 0.12} ${chao + 4} L${l * 0.18} ${estrado - 4}`}
+        d={`M${l * 0.11} ${a + 8} L${l * 0.2} ${viga + 2}`}
         stroke={MADEIRA}
         strokeWidth={3}
         strokeLinecap="round"
       />
-      <Path
-        d={`M${l * 0.085} ${chao - 6} L${l * 0.155} ${chao - 6}`}
-        stroke={MADEIRA}
-        strokeWidth={2.4}
-        strokeLinecap="round"
-      />
-      <Path
-        d={`M${l * 0.1} ${chao - 20} L${l * 0.17} ${chao - 20}`}
-        stroke={MADEIRA}
-        strokeWidth={2.4}
-        strokeLinecap="round"
-      />
+      {[0.14, 0.42, 0.86].map((f, i) => {
+        const yA = a + 8 + (viga + 2 - (a + 8)) * f;
+        return (
+          <Path
+            key={i}
+            d={`M${l * (0.03 + 0.1 * f)} ${yA} L${l * (0.11 + 0.09 * f)} ${yA}`}
+            stroke={MADEIRA}
+            strokeWidth={2.4}
+            strokeLinecap="round"
+          />
+        );
+      })}
 
-      {/* O capim, e a tábua que não subiu deitada nele. */}
-      <Capim x={l * 0.04} y={a * 0.99} alto={12} cor={CONTORNO_FOLHA} balanco={curva(p, [0, -1.4, -2.2, -0.9, 0])} />
-      <Capim x={l * 0.28} y={a * 0.96} alto={9} cor={FOLHA} balanco={curva(p, [0, 1.2, 1.8, 0.8, 0])} />
-      <Capim x={l * 0.88} y={a * 0.98} alto={11} cor={CONTORNO_FOLHA} balanco={curva(p, [0, 1.4, 2.2, 0.9, 0])} />
-      <Capim x={l * 0.97} y={a * 0.93} alto={8} cor={FOLHA} balanco={curva(p, [0, -1, -1.6, -0.7, 0])} />
-      <Ripa x={l * 0.34} y={a * 0.95} comp={l * 0.28} grossura={5} giro={-4} />
-      <Torrao x={l * 0.3} y={a * 0.99} r={2.2} />
-      <Torrao x={l * 0.68} y={a * 0.98} r={1.8} />
     </>
   );
 }
