@@ -100,6 +100,16 @@ const ESTRELA = palette.amber400;
 const NUVEM = palette.lavender100;
 const NUVEM_SOMBRA = palette.lavender300;
 
+/**
+ * O acento da procrastinação: madeira serrada.
+ *
+ * É o único material construído das treze cenas, e por isso tem dupla própria:
+ * mais clara e mais fria que a terra, para aparecer contra a casca escura do
+ * tronco num cartão de 181 por 130.
+ */
+const MADEIRA = palette.amber100;
+const MADEIRA_SOMBRA = palette.brown200;
+
 /** A haste do broto, para as cenas que têm planta de pé. */
 const HASTE = tracos.haste;
 
@@ -1979,6 +1989,311 @@ function Solidao({ l, a, p, id }: CenarioProps) {
   );
 }
 
+/* ---------- Procrastinação: a casa na árvore por acabar ---------- */
+
+/**
+ * Uma ripa de madeira serrada, com veio e a ponta clara do corte.
+ *
+ * As duas faces existem porque tábua tem espessura: a de cima pega luz, a de
+ * baixo fica na sombra. Sem esse par, a ripa é um retângulo — e retângulo
+ * pintado de bege não é madeira, é adesivo.
+ */
+function Ripa({
+  x,
+  y,
+  comp,
+  grossura,
+  giro = 0,
+  cor = MADEIRA,
+}: {
+  x: number;
+  y: number;
+  comp: number;
+  grossura: number;
+  giro?: number;
+  cor?: string;
+}) {
+  return (
+    <G transform={giro ? gira(giro, x, y) : undefined}>
+      <Rect
+        x={x}
+        y={y}
+        width={comp}
+        height={grossura}
+        rx={1.2}
+        fill={cor}
+        stroke={CONTORNO}
+        strokeWidth={1.4}
+      />
+      {/* A face de baixo, na sombra, e um veio na de cima. */}
+      <Rect x={x + 1} y={y + grossura * 0.62} width={comp - 2} height={grossura * 0.3} fill={MADEIRA_SOMBRA} opacity={0.55} />
+      <Path
+        d={`M${x + comp * 0.15} ${y + grossura * 0.36} L${x + comp * 0.8} ${y + grossura * 0.36}`}
+        stroke={MADEIRA_SOMBRA}
+        strokeWidth={0.9}
+        strokeLinecap="round"
+        opacity={0.5}
+      />
+    </G>
+  );
+}
+
+/**
+ * A casa na árvore que ficou pela metade: o estrado sem metade das tábuas,
+ * duas paredes começadas e ripas penduradas por um prego só.
+ *
+ * ## Por que esta cena passa e o barranco não passava
+ *
+ * A versão anterior era um barranco alto com um degrau cortado no pé — a
+ * tarefa grande demais e o primeiro passo do tamanho que dá. A metáfora estava
+ * certa e o desenho não dizia nada: quem olha um barranco com uma saliência vê
+ * um morro com uma saliência. Ela só funcionava **narrada**, e um cartão de
+ * 181 por 130 num carrossel não tem quem narre.
+ *
+ * Coisa começada e largada não precisa de narrador. Ninguém olha uma casa na
+ * árvore com ripa pendurada e pensa outra coisa — e o intro do tema é
+ * exatamente isto: "procrastinar raramente é preguiça". Casa na árvore é a
+ * prova disso desenhada, porque ninguém adia o que não queria fazer. Era
+ * vontade, e parou assim mesmo.
+ *
+ * ## O que diz "por acabar", em três sinais
+ *
+ * A **viga à mostra** do lado esquerdo, onde o assoalho ainda não chegou. As
+ * **duas paredes começadas**, uma delas fora de prumo. E as **ripas penduradas
+ * por um prego**, que balançam no toque — é o movimento da cena, e é ele que
+ * diz que aquilo está solto, e não que foi desenhado torto.
+ *
+ * A tábua deitada no capim, embaixo, é a peça que não subiu. Ela fecha a
+ * história no chão: o material está aí, do lado, há tempo.
+ *
+ * ## A superfície
+ *
+ * É a única cena com **coisa construída**, e a única com madeira serrada — que
+ * é por isso que ela tem a sua própria dupla de tons, mais clara e mais fria
+ * que a terra. Contra a casca escura do tronco, tábua clara aparece de longe,
+ * que é o que um cartão deste tamanho precisa.
+ */
+function Procrastinacao({ l, a, p, id }: CenarioProps) {
+  const h = horizonteDaCena(a);
+  const alto = peDoTituloNaCena(a);
+  /** O tronco: a casa se apoia nele, então ele é o prumo da cena. */
+  const troncoX = l * 0.78;
+  const troncoMeia = l * 0.038;
+  const chao = a * 0.95;
+  /**
+   * O estrado: a linha de cima dele é o chão da casa.
+   *
+   * Ele desceu para 0,72 da altura. Em 0,63 a casa tinha 22 pontos de pé —
+   * régua de parede virava risquinho, e o dentro não tinha área para escurecer.
+   * O cartão inteiro tem 130, e o título leva os 50 primeiros: o que sobra tem
+   * de ser gasto onde está o assunto, que é a casa, e não no chão embaixo dela.
+   */
+  const estrado = a * 0.72;
+  const vigaEsq = l * 0.12;
+  const estradoEsq = l * 0.3;
+  const estradoDir = troncoX + troncoMeia;
+  /** A casa: da parede da frente até o tronco, com o teto subindo para lá. */
+  const casaEsq = l * 0.42;
+  const casaDir = l * 0.82;
+  const cumeEsq = a * 0.5;
+  const cumeDir = a * 0.41;
+  /** A altura do teto no ponto `x`: é ela que corta as réguas da parede. */
+  const teto = (x: number) => cumeEsq + ((x - casaEsq) / (casaDir - casaEsq)) * (cumeDir - cumeEsq);
+
+  /**
+   * As réguas da parede: seis lugares encostados um no outro, dois vazios.
+   *
+   * Largas e juntas, como tábua de parede é. Estreitas e espalhadas — que foi a
+   * primeira tentativa — elas viram uma fileira de dominós de pé, e o vazio
+   * entre duas deixa de ser falta e passa a ser o desenho normal.
+   */
+  const larguraDaRegua = (casaDir - casaEsq) / 6;
+  const reguas = [0, 1, 2, 3, 4, 5];
+
+  return (
+    <>
+      <Defs>
+        <LinearGradient id={`campoR-${id}`} x1="0" y1="0" x2="0" y2="1">
+          <Stop offset="0" stopColor={FOLHA_CLARA} />
+          <Stop offset="1" stopColor={FOLHA} />
+        </LinearGradient>
+        <LinearGradient id={`troncoR-${id}`} x1="0" y1="0" x2="1" y2="0">
+          <Stop offset="0" stopColor={TERRA} />
+          <Stop offset="0.45" stopColor={TERRA_FUNDA} />
+          <Stop offset="1" stopColor={TERRA_SOMBRA} />
+        </LinearGradient>
+        {/* A copa: mancha que cai a zero, como a mata das outras cenas. */}
+        <RadialGradient id={`copaR-${id}`} cx="50%" cy="50%" r="50%">
+          <Stop offset="0" stopColor={FOLHA} stopOpacity={0.8} />
+          <Stop offset="0.55" stopColor={FOLHA} stopOpacity={0.62} />
+          <Stop offset="1" stopColor={FOLHA} stopOpacity={0} />
+        </RadialGradient>
+        <RadialGradient id={`copaClaraR-${id}`} cx="50%" cy="50%" r="50%">
+          <Stop offset="0" stopColor={FOLHA_CLARA} stopOpacity={0.8} />
+          <Stop offset="0.55" stopColor={FOLHA_CLARA} stopOpacity={0.6} />
+          <Stop offset="1" stopColor={FOLHA_CLARA} stopOpacity={0} />
+        </RadialGradient>
+        <RadialGradient id={`mataR-${id}`} cx="50%" cy="50%" r="50%">
+          <Stop offset="0" stopColor={FOLHA} stopOpacity={0.45} />
+          <Stop offset="0.58" stopColor={FOLHA} stopOpacity={0.36} />
+          <Stop offset="1" stopColor={FOLHA} stopOpacity={0} />
+        </RadialGradient>
+      </Defs>
+
+      {/*
+        A copa fica **atrás de tudo** e sem contorno nenhum, e sai pelo alto do
+        cartão: a árvore continua fora da janela, como o resto do mundo das cenas.
+
+        Ela existe para o tronco não nascer do nada, e não para ser olhada — com
+        traço, roubaria a cena da madeira, que é o assunto.
+      */}
+      <Ellipse cx={l * 0.76} cy={alto - 6} rx={l * 0.42} ry={a * 0.11} fill={`url(#copaR-${id})`} />
+      <Ellipse cx={l * 0.92} cy={alto + 6} rx={l * 0.2} ry={a * 0.07} fill={`url(#copaR-${id})`} />
+      <Ellipse cx={l * 0.6} cy={alto - 10} rx={l * 0.2} ry={a * 0.07} fill={`url(#copaClaraR-${id})`} />
+
+      {/* A mata ao longe e o campo, com o claro no horizonte. */}
+      <Ellipse cx={l * 0.2} cy={h - 1} rx={l * 0.32} ry={a * 0.045} fill={`url(#mataR-${id})`} />
+      <Path
+        d={`M0 ${h + 2} C${l * 0.3} ${h - 3} ${l * 0.7} ${h - 3} ${l} ${h + 2} L${l} ${a + 10} L0 ${a + 10} Z`}
+        fill={`url(#campoR-${id})`}
+      />
+
+      {/* O tronco, quase a prumo, com a base abrindo em raiz. */}
+      <Path
+        d={
+          `M${troncoX - troncoMeia} ${alto - 12}` +
+          ` C${troncoX - troncoMeia * 1.08} ${a * 0.62} ${troncoX - troncoMeia * 1.14} ${a * 0.82} ${troncoX - troncoMeia * 1.5} ${chao}` +
+          ` C${troncoX - troncoMeia * 0.6} ${chao + 3} ${troncoX + troncoMeia * 0.6} ${chao + 3} ${troncoX + troncoMeia * 1.5} ${chao}` +
+          ` C${troncoX + troncoMeia * 1.14} ${a * 0.82} ${troncoX + troncoMeia * 1.08} ${a * 0.62} ${troncoX + troncoMeia} ${alto - 12} Z`
+        }
+        fill={`url(#troncoR-${id})`}
+        stroke={CONTORNO}
+        strokeWidth={1.8}
+        strokeLinejoin="round"
+      />
+      <Path
+        d={`M${troncoX - troncoMeia * 0.3} ${alto - 8} C${troncoX - troncoMeia * 0.42} ${a * 0.66} ${troncoX - troncoMeia * 0.48} ${a * 0.82} ${troncoX - troncoMeia * 0.6} ${chao - 4}`}
+        stroke={TERRA_SOMBRA}
+        strokeWidth={1.3}
+        strokeLinecap="round"
+        fill="none"
+        opacity={0.5}
+      />
+
+      {/*
+        O dentro da casa, em sombra.
+
+        Esta é a peça que decide se a cena lê. Sem ela, réguas de pé em cima de
+        um estrado são postes de cerca; com um dentro escuro atrás delas, os
+        vazios entre as réguas passam a mostrar o interior — e só casa tem
+        interior. É o buraco que constrói a parede.
+      */}
+      <Path
+        d={`M${casaEsq} ${estrado} L${casaEsq} ${cumeEsq} L${casaDir} ${cumeDir} L${casaDir} ${estrado} Z`}
+        fill={TERRA_SOMBRA}
+        opacity={0.72}
+      />
+
+      {/* O galho que segura a ponta da viga: a casa tem de estar apoiada. */}
+      <Path
+        d={`M${troncoX - troncoMeia} ${estrado - 2} C${l * 0.58} ${estrado + 1} ${l * 0.42} ${estrado + 3} ${l * 0.3} ${estrado + 5}`}
+        stroke={TERRA_FUNDA}
+        strokeWidth={5}
+        strokeLinecap="round"
+        fill="none"
+      />
+      {/* E a mão-francesa, do tronco para baixo do estrado. */}
+      <Path
+        d={`M${troncoX - troncoMeia} ${a * 0.86} L${l * 0.62} ${estrado + 5}`}
+        stroke={MADEIRA_SOMBRA}
+        strokeWidth={3.4}
+        strokeLinecap="round"
+      />
+
+      {/*
+        As réguas da parede: cinco lugares, três pregadas e dois vazios. Cada uma
+        acaba na linha do teto, e a última ficou baixa — parede parada tem topo
+        desigual.
+      */}
+      {reguas.map((i) => {
+        if (i === 2 || i === 4) return null;
+        const x = casaEsq + i * larguraDaRegua;
+        const topo = teto(x) + (i === 3 ? 13 : i === 5 ? 7 : 2);
+        return <Ripa key={i} x={x + 1} y={topo} comp={larguraDaRegua - 2} grossura={estrado - topo + 1} />;
+      })}
+
+      {/*
+        O teto, uma água só, subindo para o tronco — e com as duas pontas
+        passando da parede, que é o que beiral faz.
+      */}
+      <Ripa x={casaEsq - 5} y={cumeEsq - 4} comp={casaDir - casaEsq + 12} grossura={6} giro={-11.5} />
+
+      {/* A viga atravessa inteira; o assoalho só chegou até o meio dela. */}
+      <Ripa x={vigaEsq} y={estrado} comp={estradoDir - vigaEsq} grossura={4} cor={MADEIRA_SOMBRA} />
+      <Ripa x={estradoEsq} y={estrado - 5} comp={estradoDir - estradoEsq} grossura={5.5} />
+      {/* As juntas do assoalho: sem elas o estrado é uma barra, e não tábuas. */}
+      {[0.22, 0.44, 0.66, 0.86].map((f, i) => (
+        <Path
+          key={i}
+          d={`M${estradoEsq + (estradoDir - estradoEsq) * f} ${estrado - 4.6} L${estradoEsq + (estradoDir - estradoEsq) * f} ${estrado - 0.4}`}
+          stroke={MADEIRA_SOMBRA}
+          strokeWidth={1.1}
+          opacity={0.8}
+        />
+      ))}
+
+      {/*
+        As ripas penduradas por um prego só. Elas balançam no toque, cada uma no
+        seu compasso — é o que diz que estão soltas, e não que foram desenhadas
+        tortas.
+      */}
+      <G transform={gira(curva(p, [0, 2.6, 4.4, 2.4, 0]), l * 0.21, estrado + 4)}>
+        <Ripa x={l * 0.195} y={estrado + 4} comp={4} grossura={a * 0.19} giro={13} />
+        <Ellipse cx={l * 0.21} cy={estrado + 5} rx={1.4} ry={1.4} fill={CONTORNO} />
+      </G>
+      <G transform={gira(curva(p, [0, -2.2, -3.6, -2, 0]), l * 0.4, estrado + 4)}>
+        <Ripa x={l * 0.385} y={estrado + 4} comp={3.6} grossura={a * 0.15} giro={-17} />
+        <Ellipse cx={l * 0.4} cy={estrado + 5} rx={1.3} ry={1.3} fill={CONTORNO} />
+      </G>
+
+      {/* A escada encostada, com um degrau faltando no meio. */}
+      <Path
+        d={`M${l * 0.05} ${chao + 4} L${l * 0.11} ${estrado - 4}`}
+        stroke={MADEIRA}
+        strokeWidth={3}
+        strokeLinecap="round"
+      />
+      <Path
+        d={`M${l * 0.12} ${chao + 4} L${l * 0.18} ${estrado - 4}`}
+        stroke={MADEIRA}
+        strokeWidth={3}
+        strokeLinecap="round"
+      />
+      <Path
+        d={`M${l * 0.085} ${chao - 6} L${l * 0.155} ${chao - 6}`}
+        stroke={MADEIRA}
+        strokeWidth={2.4}
+        strokeLinecap="round"
+      />
+      <Path
+        d={`M${l * 0.1} ${chao - 20} L${l * 0.17} ${chao - 20}`}
+        stroke={MADEIRA}
+        strokeWidth={2.4}
+        strokeLinecap="round"
+      />
+
+      {/* O capim, e a tábua que não subiu deitada nele. */}
+      <Capim x={l * 0.04} y={a * 0.99} alto={12} cor={CONTORNO_FOLHA} balanco={curva(p, [0, -1.4, -2.2, -0.9, 0])} />
+      <Capim x={l * 0.28} y={a * 0.96} alto={9} cor={FOLHA} balanco={curva(p, [0, 1.2, 1.8, 0.8, 0])} />
+      <Capim x={l * 0.88} y={a * 0.98} alto={11} cor={CONTORNO_FOLHA} balanco={curva(p, [0, 1.4, 2.2, 0.9, 0])} />
+      <Capim x={l * 0.97} y={a * 0.93} alto={8} cor={FOLHA} balanco={curva(p, [0, -1, -1.6, -0.7, 0])} />
+      <Ripa x={l * 0.34} y={a * 0.95} comp={l * 0.28} grossura={5} giro={-4} />
+      <Torrao x={l * 0.3} y={a * 0.99} r={2.2} />
+      <Torrao x={l * 0.68} y={a * 0.98} r={1.8} />
+    </>
+  );
+}
+
 /* ---------- O mapa, que cresce a cada cartão aprovado ---------- */
 
 const CENARIOS: Record<string, (props: CenarioProps) => React.JSX.Element> = {
@@ -1989,6 +2304,7 @@ const CENARIOS: Record<string, (props: CenarioProps) => React.JSX.Element> = {
   tristeza: Tristeza,
   luto: Luto,
   solidao: Solidao,
+  procrastinacao: Procrastinacao,
 };
 
 export function ehTemaComCenario(chave: string): boolean {
