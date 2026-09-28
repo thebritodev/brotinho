@@ -1592,6 +1592,10 @@ function Luto({ l, a, p, id }: CenarioProps) {
     { x: 0.72, y: 0.775, g: -12, e: 0.28, c: 1 },
     { x: 0.86, y: 0.79, g: 32, e: 0.31, c: 0 },
     { x: 0.99, y: 0.78, g: -30, e: 0.29, c: 1 },
+    { x: 0.1, y: 0.815, g: -8, e: 0.3, c: 1 },
+    { x: 0.37, y: 0.82, g: 26, e: 0.31, c: 0 },
+    { x: 0.65, y: 0.815, g: -34, e: 0.3, c: 1 },
+    { x: 0.92, y: 0.82, g: 12, e: 0.31, c: 0 },
     { x: 0.07, y: 0.85, g: -32, e: 0.37, c: 1 },
     { x: 0.22, y: 0.865, g: 12, e: 0.39, c: 0 },
     { x: 0.37, y: 0.85, g: -8, e: 0.36, c: 1 },
@@ -1599,6 +1603,9 @@ function Luto({ l, a, p, id }: CenarioProps) {
     { x: 0.67, y: 0.855, g: -20, e: 0.37, c: 1 },
     { x: 0.82, y: 0.87, g: 8, e: 0.39, c: 0 },
     { x: 0.96, y: 0.855, g: -36, e: 0.36, c: 1 },
+    { x: 0.14, y: 0.905, g: 20, e: 0.42, c: 0 },
+    { x: 0.45, y: 0.9, g: -14, e: 0.41, c: 1 },
+    { x: 0.75, y: 0.905, g: 30, e: 0.42, c: 0 },
     { x: 0.02, y: 0.94, g: 8, e: 0.46, c: 1 },
     { x: 0.18, y: 0.955, g: -18, e: 0.49, c: 0 },
     { x: 0.34, y: 0.935, g: 28, e: 0.45, c: 1 },
@@ -1625,9 +1632,16 @@ function Luto({ l, a, p, id }: CenarioProps) {
           <Stop offset="1" stopColor={TERRA_FUNDA} />
         </LinearGradient>
         {/* O toco: iluminado à esquerda, na sombra à direita. */}
+        {/*
+          O toco está **seco**, e madeira seca perde o vérmelho da terra e puxa
+          para o cinza. Por isso ele não usa a família da terra: usa os marrons
+          neutros do app, que são os mesmos da madeira serrada da casa na
+          árvore. Contra o tapete de folha, que é quente, ele fica frio — e é
+          esse degrau que diz que ali não corre mais seiva.
+        */}
         <LinearGradient id={`tocoL-${id}`} x1="0" y1="0" x2="1" y2="0">
-          <Stop offset="0" stopColor={TERRA_CLARA} />
-          <Stop offset="0.38" stopColor={TERRA} />
+          <Stop offset="0" stopColor={MADEIRA_SOMBRA} />
+          <Stop offset="0.4" stopColor={palette.brown400} />
           <Stop offset="1" stopColor={TERRA_SOMBRA} />
         </LinearGradient>
         <RadialGradient id={`mataL-${id}`} cx="50%" cy="50%" r="50%">
@@ -1726,19 +1740,43 @@ function Luto({ l, a, p, id }: CenarioProps) {
         cy={tocoTopo}
         rx={tocoRaio}
         ry={tocoRaio * 0.26}
-        fill={TERRA_CLARA}
+        fill={MADEIRA_SOMBRA}
         stroke={CONTORNO}
         strokeWidth={1.6}
       />
       <Ellipse cx={tocoX} cy={tocoTopo} rx={tocoRaio * 0.72} ry={tocoRaio * 0.185} fill="none" stroke={TERRA_SOMBRA} strokeWidth={1} opacity={0.5} />
       <Ellipse cx={tocoX} cy={tocoTopo} rx={tocoRaio * 0.46} ry={tocoRaio * 0.12} fill="none" stroke={TERRA_SOMBRA} strokeWidth={0.9} opacity={0.42} />
       <Ellipse cx={tocoX} cy={tocoTopo} rx={tocoRaio * 0.2} ry={tocoRaio * 0.055} fill="none" stroke={TERRA_SOMBRA} strokeWidth={0.8} opacity={0.35} />
+      {/* As rachaduras da face: madeira seca racha, e racha do centro para fora. */}
       <Path
         d={`M${tocoX - tocoRaio * 0.08} ${tocoTopo - tocoRaio * 0.05} L${tocoX + tocoRaio * 0.92} ${tocoTopo + tocoRaio * 0.1}`}
+        stroke={TERRA_SOMBRA}
+        strokeWidth={1.1}
+        strokeLinecap="round"
+        opacity={0.6}
+      />
+      <Path
+        d={`M${tocoX - tocoRaio * 0.05} ${tocoTopo} L${tocoX - tocoRaio * 0.88} ${tocoTopo - tocoRaio * 0.12}`}
         stroke={TERRA_SOMBRA}
         strokeWidth={1}
         strokeLinecap="round"
         opacity={0.5}
+      />
+      <Path
+        d={`M${tocoX + tocoRaio * 0.05} ${tocoTopo + tocoRaio * 0.04} L${tocoX + tocoRaio * 0.22} ${tocoTopo + tocoRaio * 0.24}`}
+        stroke={TERRA_SOMBRA}
+        strokeWidth={0.9}
+        strokeLinecap="round"
+        opacity={0.45}
+      />
+      {/* E uma fenda funda descendo pela casca, do corte até o meio do toco. */}
+      <Path
+        d={`M${tocoX + tocoRaio * 0.34} ${tocoTopo + tocoRaio * 0.2} C${tocoX + tocoRaio * 0.3} ${tocoTopo + 10} ${tocoX + tocoRaio * 0.38} ${tocoTopo + 18} ${tocoX + tocoRaio * 0.3} ${tocoPe - 8}`}
+        stroke={TERRA_SOMBRA}
+        strokeWidth={1.8}
+        strokeLinecap="round"
+        fill="none"
+        opacity={0.55}
       />
 
       {/* O tapete de folhas secas: é ele a superfície desta cena. */}
@@ -2112,30 +2150,19 @@ function Ripa({
 function Procrastinacao({ l, a, p, id }: CenarioProps) {
   const alto = peDoTituloNaCena(a);
   /** O tronco atravessa o cartão inteiro, de borda a borda. */
-  const troncoTopoX = l * 0.82;
-  const troncoPeX = l * 0.88;
+  const troncoTopoX = l * 0.83;
+  const troncoPeX = l * 0.89;
   const troncoMeia = l * 0.045;
-  /** O chão do estrado: é nele que as paredes se apoiam. */
-  const piso = a * 0.64;
+  /** O chão do estrado: é nele que a casinha se apoia. */
+  const piso = a * 0.66;
   const viga = piso + 5.5;
   const vigaEsq = l * 0.1;
-  const pisoEsq = l * 0.26;
-  /** A casa: da parede da frente até o tronco, com o teto subindo para lá. */
-  const casaEsq = l * 0.28;
-  const casaDir = troncoTopoX - troncoMeia + 2;
-  /*
-    O teto sobe bastante para a direita, e não um fio.
-
-    Com pouca inclinação, a parede fica com vinte pontos de pé direito e as
-    réguas viram tijolinhos de pé. A inclinação é o que compra altura sem
-    invadir o título: o lado alto fica sob a primeira linha, que acaba muito
-    antes da borda direita.
-  */
-  const cumeEsq = a * 0.45;
-  const cumeDir = a * 0.32;
-  /** A altura do teto no ponto `x`: é ela que corta as réguas da parede. */
-  const teto = (x: number) => cumeEsq + ((x - casaEsq) / (casaDir - casaEsq)) * (cumeDir - cumeEsq);
-  const larguraDaRegua = (casaDir - casaEsq) / 6;
+  /** A casinha: quadrada, com telhado de duas águas. */
+  const casaEsq = l * 0.26;
+  const casaDir = l * 0.72;
+  const beiral = a * 0.5;
+  const cumeeira = a * 0.36;
+  const meioDaCasa = (casaEsq + casaDir) / 2;
 
   /** Um punhado de folhas na ponta do galho, sempre as mesmas três. */
   const folhagem = (x: number, y: number, chave: string) => (
@@ -2190,7 +2217,7 @@ function Procrastinacao({ l, a, p, id }: CenarioProps) {
         chão ficou fora da janela.
       */}
       <Ellipse cx={l * 0.3} cy={alto - 2} rx={l * 0.34} ry={a * 0.09} fill={`url(#copaR-${id})`} />
-      <Ellipse cx={l * 0.88} cy={alto + 4} rx={l * 0.3} ry={a * 0.1} fill={`url(#copaR-${id})`} />
+      <Ellipse cx={l * 0.9} cy={alto + 4} rx={l * 0.28} ry={a * 0.1} fill={`url(#copaR-${id})`} />
 
       {/*
         O chão, muito lá embaixo: três manchas sem contorno e sem detalhe.
@@ -2231,42 +2258,40 @@ function Procrastinacao({ l, a, p, id }: CenarioProps) {
         opacity={0.5}
       />
 
+      {/* O galho de cima, e o da direita saindo pela borda. */}
       {/*
-        O galho de cima sai do tronco **por baixo do teto** e vai para a
-        esquerda, onde o título já acabou. Ele já passou por cima da casa uma
-        vez, e a folhagem foi parar em cima da palavra "adia" — no cartão, o
-        alto é do texto, e o desenho mora embaixo dele.
+        O galho da esquerda sai do tronco **por baixo** do título e passa atrás
+        da casinha. Na primeira tentativa ele corria na altura do pe do texto e
+        a folhagem foi parar em cima da palavra "adia".
       */}
       <Path
-        d={`M${casaEsq + 4} ${a * 0.46} C${l * 0.2} ${a * 0.45} ${l * 0.12} ${a * 0.43} ${l * 0.04} ${a * 0.42}`}
+        d={`M${troncoTopoX - troncoMeia} ${alto + 16} C${l * 0.2} ${alto + 13} ${l * 0.12} ${alto + 11} ${l * 0.03} ${alto + 9}`}
         stroke={TERRA_FUNDA}
         strokeWidth={4}
         strokeLinecap="round"
         fill="none"
+        opacity={0.9}
       />
-      {folhagem(l * 0.05, a * 0.42, 'fa')}
-      {folhagem(l * 0.19, a * 0.45, 'fb')}
-      {/* E o galho da direita, saindo pela borda. */}
+      {folhagem(l * 0.04, alto + 9, 'fa')}
+      {folhagem(l * 0.18, alto + 12, 'fb')}
       <Path
-        d={`M${troncoTopoX + troncoMeia} ${a * 0.5} C${l * 0.92} ${a * 0.47} ${l * 0.97} ${a * 0.44} ${l * 1.02} ${a * 0.42}`}
+        d={`M${troncoTopoX + troncoMeia} ${a * 0.5} C${l * 0.94} ${a * 0.47} ${l * 0.98} ${a * 0.44} ${l * 1.02} ${a * 0.42}`}
         stroke={TERRA_FUNDA}
         strokeWidth={3.4}
         strokeLinecap="round"
         fill="none"
       />
-      {folhagem(l * 0.97, a * 0.43, 'fc')}
+      {folhagem(l * 0.98, a * 0.43, 'fc')}
 
       {/*
-        O dentro da casa, em sombra.
-
-        Sem ele, régua de pé sobre um estrado é poste de cerca; com um dentro
-        escuro atrás delas, o vazio entre duas passa a mostrar interior — e só
-        casa tem interior. É o buraco que constrói a parede.
+        O dentro da casinha, em sombra: é ele que aparece na janela e no rasgo
+        do telhado. Sem um dentro escuro, janela é um quadrado desenhado na
+        parede, e não um buraco.
       */}
       <Path
-        d={`M${casaEsq} ${piso} L${casaEsq} ${cumeEsq} L${casaDir} ${cumeDir} L${casaDir} ${piso} Z`}
+        d={`M${casaEsq} ${piso} L${casaEsq} ${beiral} L${meioDaCasa} ${cumeeira} L${casaDir} ${beiral} L${casaDir} ${piso} Z`}
         fill={TERRA_SOMBRA}
-        opacity={0.72}
+        opacity={0.75}
       />
 
       {/* O galho grosso que segura o estrado: a casa tem de estar apoiada. */}
@@ -2279,48 +2304,75 @@ function Procrastinacao({ l, a, p, id }: CenarioProps) {
       />
 
       {/*
-        As réguas da parede: seis lugares encostados um no outro, dois vazios, e
-        o topo desigual. Parede parada não acaba na linha reta.
+        As paredes: duas réguas largas em cada lado e a janela no meio.
+
+        A casinha é um quadrado com telhado de duas águas — a forma que todo
+        mundo desenha quando desenha casa. A versão anterior era um barracão de
+        uma água só com seis réguas soltas, e lia como obra, não como casa.
       */}
-      {[0, 1, 2, 3, 4, 5].map((i) => {
-        if (i === 2 || i === 4) return null;
-        const x = casaEsq + i * larguraDaRegua;
-        const topo = teto(x) + (i === 3 ? 12 : i === 5 ? 6 : 2);
-        return <Ripa key={i} x={x + 1} y={topo} comp={larguraDaRegua - 2} grossura={piso - topo + 1} />;
-      })}
-
-      {/* O teto, uma água só, com as duas pontas passando da parede. */}
-      <Ripa x={casaEsq - 3} y={cumeEsq - 4} comp={casaDir - casaEsq + 8} grossura={6} giro={-9.8} />
-
-      {/* A viga atravessa inteira; o assoalho só chegou até o meio dela. */}
-      <Ripa x={vigaEsq} y={piso} comp={casaDir + 4 - vigaEsq} grossura={5} cor={MADEIRA_SOMBRA} />
-      <Ripa x={pisoEsq} y={piso - 5.5} comp={casaDir + 2 - pisoEsq} grossura={6} />
-      {[0.2, 0.4, 0.6, 0.8].map((f, i) => (
-        <Path
-          key={i}
-          d={`M${pisoEsq + (casaDir + 2 - pisoEsq) * f} ${piso - 5.1} L${pisoEsq + (casaDir + 2 - pisoEsq) * f} ${piso - 0.4}`}
-          stroke={MADEIRA_SOMBRA}
-          strokeWidth={1.1}
-          opacity={0.8}
-        />
-      ))}
+      <Ripa x={casaEsq} y={beiral + 3} comp={l * 0.1} grossura={piso - beiral - 2} />
+      <Ripa x={casaDir - l * 0.1} y={beiral + 3} comp={l * 0.1} grossura={piso - beiral - 2} />
+      <Ripa x={meioDaCasa - l * 0.115} y={beiral + 3} comp={l * 0.06} grossura={piso - beiral - 2} />
+      <Ripa x={meioDaCasa + l * 0.055} y={beiral + 3} comp={l * 0.06} grossura={piso - beiral - 2} />
+      {/* O peitoril, embaixo da janela. */}
+      <Ripa x={meioDaCasa - l * 0.06} y={piso - 9} comp={l * 0.12} grossura={6} />
 
       {/*
-        As ripas penduradas por um prego só, balançando sobre o vazio. Cada uma
-        no seu compasso — é o balanço que diz que estão soltas, e não que foram
-        desenhadas tortas. E é sobre o vazio que elas contam a altura.
+        O telhado: a água da esquerda pronta, a da direita ainda no cavalete.
+
+        É aqui que mora o "por acabar" agora — uma casinha inteira com meio
+        telhado diz o assunto sem precisar de tábua solta por toda parte.
       */}
-      <G transform={gira(curva(p, [0, 2.8, 4.6, 2.6, 0]), l * 0.26, viga + 3)}>
-        <Ripa x={l * 0.245} y={viga + 3} comp={4.4} grossura={a * 0.22} giro={12} />
-        <Ellipse cx={l * 0.26} cy={viga + 4} rx={1.4} ry={1.4} fill={CONTORNO} />
+      <Ripa
+        x={casaEsq - 5}
+        y={beiral + 2}
+        comp={l * 0.28}
+        grossura={6}
+        giro={-Math.round((Math.atan2(beiral - cumeeira, meioDaCasa - casaEsq) * 180) / Math.PI)}
+      />
+      {/* Os dois caibros da água que falta. */}
+      <Path
+        d={`M${meioDaCasa} ${cumeeira + 2} L${casaDir + 4} ${beiral + 4}`}
+        stroke={MADEIRA_SOMBRA}
+        strokeWidth={3}
+        strokeLinecap="round"
+      />
+      <Path
+        d={`M${meioDaCasa + l * 0.06} ${cumeeira + 7} L${meioDaCasa + l * 0.06} ${beiral + 3}`}
+        stroke={MADEIRA_SOMBRA}
+        strokeWidth={2.6}
+        strokeLinecap="round"
+      />
+
+      {/* A viga atravessa inteira; o assoalho cobre a casa e sobra à esquerda. */}
+      <Ripa x={vigaEsq} y={piso} comp={casaDir + 6 - vigaEsq} grossura={5} cor={MADEIRA_SOMBRA} />
+      <Ripa x={casaEsq - l * 0.1} y={piso - 5.5} comp={casaDir + 4 - casaEsq + l * 0.1} grossura={6} />
+      {[0.22, 0.46, 0.7, 0.9].map((f, i) => {
+        const x0 = casaEsq - l * 0.1;
+        const larg = casaDir + 4 - casaEsq + l * 0.1;
+        return (
+          <Path
+            key={i}
+            d={`M${x0 + larg * f} ${piso - 5.1} L${x0 + larg * f} ${piso - 0.4}`}
+            stroke={MADEIRA_SOMBRA}
+            strokeWidth={1.1}
+            opacity={0.8}
+          />
+        );
+      })}
+
+      {/*
+        Duas ripas penduradas por um prego só, balançando sobre o vazio. Era o
+        que dizia "largado no meio" antes, e continua dizendo — agora em duas, e
+        não em três, porque a casa já diz o resto.
+      */}
+      <G transform={gira(curva(p, [0, 2.8, 4.6, 2.6, 0]), l * 0.16, viga + 3)}>
+        <Ripa x={l * 0.145} y={viga + 3} comp={4.4} grossura={a * 0.19} giro={12} />
+        <Ellipse cx={l * 0.16} cy={viga + 4} rx={1.4} ry={1.4} fill={CONTORNO} />
       </G>
-      <G transform={gira(curva(p, [0, -2.4, -3.8, -2.2, 0]), l * 0.42, viga + 3)}>
-        <Ripa x={l * 0.405} y={viga + 3} comp={4} grossura={a * 0.16} giro={-16} />
-        <Ellipse cx={l * 0.42} cy={viga + 4} rx={1.3} ry={1.3} fill={CONTORNO} />
-      </G>
-      <G transform={gira(curva(p, [0, 1.8, 3, 1.6, 0]), l * 0.58, viga + 3)}>
-        <Ripa x={l * 0.565} y={viga + 3} comp={3.6} grossura={a * 0.11} giro={7} />
-        <Ellipse cx={l * 0.58} cy={viga + 4} rx={1.2} ry={1.2} fill={CONTORNO} />
+      <G transform={gira(curva(p, [0, -2.4, -3.8, -2.2, 0]), l * 0.38, viga + 3)}>
+        <Ripa x={l * 0.365} y={viga + 3} comp={4} grossura={a * 0.14} giro={-16} />
+        <Ellipse cx={l * 0.38} cy={viga + 4} rx={1.3} ry={1.3} fill={CONTORNO} />
       </G>
 
       {/*
@@ -2353,7 +2405,6 @@ function Procrastinacao({ l, a, p, id }: CenarioProps) {
           />
         );
       })}
-
     </>
   );
 }
@@ -2687,14 +2738,14 @@ function Autoestima({ l, a, p, id }: CenarioProps) {
  */
 function Culpa({ l, a, p, id }: CenarioProps) {
   const h = horizonteDaCena(a);
-  const chao = a * 0.82;
-  /** A boca do vaso, encostada na terra: o canto de baixo à direita é o apoio. */
-  const bocaDir = l * 0.78;
-  const bocaEsq = l * 0.26;
-  const bocaY = a * 0.94;
-  /** O quanto a borda esquerda subiu: é esta altura que é a fresta. */
-  const ergue = a * 0.11;
-  const fundoY = a * 0.52;
+  const chao = a * 0.8;
+  const pe = a * 0.93;
+  const plantaX = l * 0.46;
+  /** O alto da haste, já curvado: a planta não chega onde chegaria de pé. */
+  const topo = a * 0.5;
+
+  /** O quanto tudo se levanta no toque. Alívio é um grau, e não um salto. */
+  const levanta = curva(p, [0, -1.6, -3, -4, -4.6]);
 
   return (
     <>
@@ -2704,21 +2755,10 @@ function Culpa({ l, a, p, id }: CenarioProps) {
           <Stop offset="0.4" stopColor={TERRA} />
           <Stop offset="1" stopColor={TERRA_FUNDA} />
         </LinearGradient>
-        <LinearGradient id={`barroC-${id}`} x1="0" y1="0" x2="1" y2="0">
-          <Stop offset="0" stopColor={VASO_LUZ} />
-          <Stop offset="0.45" stopColor={VASO} />
-          <Stop offset="1" stopColor={CARVAO} />
-        </LinearGradient>
         <RadialGradient id={`mataC-${id}`} cx="50%" cy="50%" r="50%">
           <Stop offset="0" stopColor={FOLHA} stopOpacity={0.45} />
           <Stop offset="0.58" stopColor={FOLHA} stopOpacity={0.36} />
           <Stop offset="1" stopColor={FOLHA} stopOpacity={0} />
-        </RadialGradient>
-        {/* A luz que sai pela fresta: acesa no vão e morrendo depressa. */}
-        <RadialGradient id={`frestaC-${id}`} cx="50%" cy="50%" r="50%">
-          <Stop offset="0" stopColor={CREME} stopOpacity={0.9} />
-          <Stop offset="0.4" stopColor={CREME} stopOpacity={0.45} />
-          <Stop offset="1" stopColor={CREME} stopOpacity={0} />
         </RadialGradient>
       </Defs>
 
@@ -2727,162 +2767,97 @@ function Culpa({ l, a, p, id }: CenarioProps) {
       <Path
         d={`M0 ${h + 2} C${l * 0.3} ${h - 3} ${l * 0.7} ${h - 3} ${l} ${h + 2} L${l} ${chao} L0 ${chao} Z`}
         fill={FOLHA_CLARA}
-        opacity={0.55}
+        opacity={0.5}
       />
       <Path
         d={`M0 ${chao - 1} C${l * 0.3} ${chao - 5} ${l * 0.7} ${chao - 5} ${l} ${chao - 1} L${l} ${a + 10} L0 ${a + 10} Z`}
         fill={`url(#terraC-${id})`}
       />
       {[
-        { x: 0.1, y: 0.88, r: 2.4 },
-        { x: 0.92, y: 0.9, r: 2.2 },
-        { x: 0.16, y: 0.99, r: 2 },
-        { x: 0.86, y: 0.98, r: 1.8 },
+        { x: 0.12, y: 0.88, r: 2.4 },
+        { x: 0.86, y: 0.9, r: 2.2 },
+        { x: 0.24, y: 0.99, r: 2 },
+        { x: 0.72, y: 0.97, r: 1.8 },
+        { x: 0.62, y: 0.87, r: 1.6 },
       ].map((t, i) => (
         <Torrao key={i} x={l * t.x} y={a * t.y} r={t.r} />
       ))}
+      <Capim x={l * 0.1} y={a * 0.97} alto={10} cor={FOLHA} balanco={curva(p, [0, -1.2, -1.8, -0.8, 0])} />
+      <Capim x={l * 0.9} y={a * 0.95} alto={9} cor={CONTORNO_FOLHA} balanco={curva(p, [0, 1.2, 1.8, 0.8, 0])} />
 
-      {/* A luz que escapa pela fresta, deitada na terra. */}
-      <G opacity={curva(p, [0.65, 0.76, 0.87, 0.95, 1])}>
-        <Ellipse cx={bocaEsq - l * 0.08} cy={bocaY - ergue * 0.4} rx={l * 0.2} ry={a * 0.055} fill={`url(#frestaC-${id})`} />
+      {/* A terra revolvida no pé, e a folha que já caiu. */}
+      <Ellipse cx={plantaX} cy={pe + 1} rx={l * 0.08} ry={a * 0.026} fill={TERRA_SOMBRA} opacity={0.4} />
+      <G transform={`translate(${l * 0.71} ${a * 0.93}) rotate(-16) scale(0.3)`}>
+        <Path d={FOLHA_DO_BROTO} fill={TERRA_CLARA} stroke={CONTORNO_FOLHA} strokeWidth={4.4} opacity={0.9} />
       </G>
 
       {/*
-        O escuro da fresta: uma cunha, e só ela.
+        A planta murcha.
 
-        Na primeira tentativa o dentro do vaso era um retângulo inteiro atrás do
-        barro, e ele sobrava por cima e pelos lados — uma cartolina preta
-        encostada no vaso. O que se vê de um vaso emborcado é apenas o que cabe
-        na fresta; o resto está escondido, que é justamente o assunto.
-      */}
-      {/*
-        O broto estiolado, saindo pela fresta.
+        ## O que faz uma planta ler como murcha
 
-        Ele é quase branco e mole porque cresceu sem luz — é assim que planta
-        fica no escuro, e é a frase do tema desenhada. A ponta dele fica **fora**
-        da silhueta do vaso: dentro, ninguém o veria, e um cartão não pode
-        depender do que não se vê.
+        Não é a cor: é a **direção**. Folha viva aponta para cima e para fora;
+        folha murcha pendura para baixo a partir do talo, e a haste faz um arco
+        em vez de uma reta. Por isso cada folha aqui sai do caule apontando para
+        baixo, e a haste inteira é uma curva que nunca chega onde chegaria de
+        pé — dá para medir o quanto falta olhando o alto do cartão vazio.
+
+        A cor ajuda depois: as de baixo já estão em tom de terra, as de cima
+        ainda verdes. Murchar começa por baixo.
+
+        ## Por que ela, e não um vaso emborcado
+
+        O cartão trata de culpa e vergonha, e o intro separa as duas: "eu fiz
+        uma coisa ruim" dá para resolver, "eu sou ruim" só cresce no escuro. A
+        planta murcha é a segunda: nada foi arrancado, nada quebrou — ela só
+        parou de se sustentar. É o peso que a pessoa carrega parecendo ser ela
+        mesma.
+
+        E é por isso que o toque a **levanta um grau**, e não a endireita: o
+        nome do cartão é aliviar, não curar.
       */}
-      <G transform={gira(curva(p, [0, -3, -6, -8, -9]), bocaEsq + 6, bocaY - ergue * 0.3)}>
+      <G transform={`translate(0 ${levanta})`}>
         <Path
-          d={`M${bocaEsq + 6} ${bocaY - ergue * 0.3} C${bocaEsq - 1} ${bocaY - ergue * 0.7} ${bocaEsq - 7} ${bocaY - ergue * 0.9} ${bocaEsq - 13} ${bocaY - ergue * 1.5}`}
-          stroke={palette.cream100}
-          strokeWidth={1.9}
+          d={`M${plantaX} ${pe} C${plantaX - 4} ${pe - 18} ${plantaX + 6} ${topo + 14} ${plantaX + 14} ${topo}`}
+          stroke={HASTE}
+          strokeWidth={3.4}
           strokeLinecap="round"
           fill="none"
+          opacity={0.9}
         />
+        {/* A ponta pendida: a haste não sustenta mais o próprio alto. */}
         <Path
-          d={FOLHA_DO_BROTO}
-          fill={palette.cream100}
-          stroke={FOLHA_CLARA}
+          d={`M${plantaX + 14} ${topo} C${plantaX + 21} ${topo - 2} ${plantaX + 26} ${topo + 3} ${plantaX + 27} ${topo + 11}`}
+          stroke={HASTE}
           strokeWidth={3}
-          transform={`translate(${bocaEsq - 13} ${bocaY - ergue * 1.5}) rotate(46) scale(0.15)`}
-        />
-        <Path
-          d={FOLHA_DO_BROTO}
-          fill={palette.cream100}
-          stroke={FOLHA_CLARA}
-          strokeWidth={3.2}
-          opacity={0.92}
-          transform={`translate(${bocaEsq - 12.4} ${bocaY - ergue * 1.42}) rotate(140) scale(0.13)`}
-        />
-      </G>
-
-      {/*
-        O vaso de barro, emborcado: a boca larga encostada na terra, o fundo
-        estreito em cima e o furo à mostra. São esses três que impedem a leitura
-        de "vaso em pé", que é a única leitura errada possível aqui.
-      */}
-      <Path
-        d={
-          `M${bocaEsq + l * 0.05} ${fundoY + ergue * 0.75}` +
-          ` L${bocaDir - l * 0.07} ${fundoY}` +
-          ` L${bocaDir} ${bocaY - 6}` +
-          ` L${bocaEsq} ${bocaY - ergue - 1} Z`
-        }
-        fill={`url(#barroC-${id})`}
-        stroke={CONTORNO}
-        strokeWidth={1.8}
-        strokeLinejoin="round"
-      />
-      {/* O lábio da boca, agora embaixo: é a faixa mais grossa do vaso. */}
-      <Path
-        d={
-          `M${bocaEsq - 2} ${bocaY - ergue - 2}` +
-          ` L${bocaDir + 2} ${bocaY - 7.5}` +
-          ` L${bocaDir + 2} ${bocaY}` +
-          ` L${bocaEsq - 2} ${bocaY - ergue + 5} Z`
-        }
-        fill={VASO}
-        stroke={CONTORNO}
-        strokeWidth={1.8}
-        strokeLinejoin="round"
-      />
-      {/* O fundo, virado para cima, com o furo no meio. */}
-      <G transform={`rotate(-6 ${(bocaEsq + bocaDir) / 2} ${fundoY})`}>
-        <Ellipse
-          cx={(bocaEsq + bocaDir) / 2}
-          cy={fundoY + ergue * 0.36}
-          rx={l * 0.2}
-          ry={a * 0.045}
-          fill={VASO_LUZ}
-          stroke={CONTORNO}
-          strokeWidth={1.8}
-        />
-        <Ellipse
-          cx={(bocaEsq + bocaDir) / 2}
-          cy={fundoY + ergue * 0.36}
-          rx={l * 0.035}
-          ry={a * 0.012}
-          fill={TERRA_SOMBRA}
+          strokeLinecap="round"
+          fill="none"
           opacity={0.85}
         />
+        {[
+          { x: 2, y: pe - 15, giro: 250, escala: 0.34, tom: TERRA_CLARA },
+          { x: 0, y: pe - 28, giro: 292, escala: 0.38, tom: TERRA_CLARA },
+          { x: 7, y: pe - 40, giro: 246, escala: 0.34, tom: FOLHA },
+          { x: 13, y: pe - 50, giro: 300, escala: 0.3, tom: FOLHA },
+        ].map((f, i) => (
+          <Path
+            key={i}
+            d={FOLHA_DO_BROTO}
+            fill={f.tom}
+            stroke={CONTORNO_FOLHA}
+            strokeWidth={2.2}
+            transform={`translate(${plantaX + f.x} ${f.y}) rotate(${f.giro}) scale(${f.escala})`}
+          />
+        ))}
+        {/* A folha da ponta, a última a pender. */}
+        <Path
+          d={FOLHA_DO_BROTO}
+          fill={FOLHA_CLARA}
+          stroke={CONTORNO_FOLHA}
+          strokeWidth={2.2}
+          transform={`translate(${plantaX + 27} ${topo + 11}) rotate(272) scale(0.3)`}
+        />
       </G>
-
-      {/*
-        A fresta: a cunha escura entre o lábio erguido e a terra.
-
-        Ela vem **depois** do barro, e não antes. Desenhada atrás, o vaso a
-        cobria inteira e só sobrava uma cartolina preta pelos lados; por cima,
-        ela é exatamente o que se vê de um vaso emborcado: o vazio embaixo.
-      */}
-      <Path
-        d={
-          `M${bocaEsq - 2} ${bocaY - ergue + 5}` +
-          ` L${bocaEsq + l * 0.26} ${bocaY - ergue * 0.45 + 4}` +
-          ` L${bocaEsq + l * 0.26} ${bocaY - ergue * 0.45 + 9}` +
-          ` L${bocaEsq - 2} ${bocaY - ergue + 14} Z`
-        }
-        fill={TERRA_SOMBRA}
-        opacity={0.85}
-      />
-
-      {/*
-        A pedra que escora a borda erguida.
-
-        Ela é a peça que diz que alguém **pôs** o vaso assim. Vaso caído é
-        acidente, e acidente não é assunto de ninguém; escorado é escolha — e a
-        prática é exatamente essa, levantar um dedo da borda.
-      */}
-      <Path
-        d={
-          `M${bocaEsq - 9} ${bocaY}` +
-          ` C${bocaEsq - 10} ${bocaY - 5} ${bocaEsq - 6} ${bocaY - 9} ${bocaEsq - 1} ${bocaY - 8}` +
-          ` C${bocaEsq + 4} ${bocaY - 7} ${bocaEsq + 5} ${bocaY - 1} ${bocaEsq + 3} ${bocaY + 1} Z`
-        }
-        fill={PEDRA_CLARA}
-        stroke={CONTORNO}
-        strokeWidth={1.7}
-        strokeLinejoin="round"
-      />
-      <Path
-        d={`M${bocaEsq - 7} ${bocaY - 3} C${bocaEsq - 7} ${bocaY - 7} ${bocaEsq - 4} ${bocaY - 8.5} ${bocaEsq - 1} ${bocaY - 8}`}
-        stroke={CREME}
-        strokeWidth={1.8}
-        strokeLinecap="round"
-        fill="none"
-        opacity={0.55}
-      />
     </>
   );
 }
@@ -2916,151 +2891,176 @@ function Culpa({ l, a, p, id }: CenarioProps) {
  */
 function Comparacao({ l, a, p, id }: CenarioProps) {
   const h = horizonteDaCena(a);
-  /** O bico das estacas, e o pé delas na terra de cá. */
-  const bico = a * 0.64;
-  const peDaCerca = a * 0.9;
-  const chao = a * 0.78;
-  const plantaX = l * 0.355;
-  const pePlanta = a * 0.97;
+  /** A cerca corta o cartão de frente para trás: um terreno de cada lado. */
+  const pertoX = l * 0.44;
+  const pertoY = a + 10;
+  const longeX = l * 0.54;
+  const longeY = h + 3;
+  const alturaPerto = a * 0.34;
+  const alturaLonge = a * 0.085;
+
+  /** Onde a linha da cerca passa, para `t` entre 0 (perto) e 1 (longe). */
+  const naCerca = (t: number) => ({
+    x: pertoX + (longeX - pertoX) * t,
+    y: pertoY + (longeY - pertoY) * t,
+    alt: alturaPerto + (alturaLonge - alturaPerto) * t,
+    larg: 9 + (2.6 - 9) * t,
+  });
 
   return (
     <>
       <Defs>
+        {/* O terreno de cá: terra limpa, sem grama nenhuma. */}
         <LinearGradient id={`terraP-${id}`} x1="0" y1="0" x2="0" y2="1">
           <Stop offset="0" stopColor={TERRA_CLARA} />
-          <Stop offset="0.4" stopColor={TERRA} />
+          <Stop offset="0.35" stopColor={TERRA} />
           <Stop offset="1" stopColor={TERRA_FUNDA} />
         </LinearGradient>
-        {/* O jardim de lá: manchas sem contorno, como toda coisa longe. */}
-        <RadialGradient id={`jardimP-${id}`} cx="50%" cy="50%" r="50%">
-          <Stop offset="0" stopColor={FOLHA_CLARA} stopOpacity={0.95} />
-          <Stop offset="0.55" stopColor={FOLHA_CLARA} stopOpacity={0.75} />
-          <Stop offset="1" stopColor={FOLHA_CLARA} stopOpacity={0} />
-        </RadialGradient>
+        {/* E o de lá: gramado parelho, sem um talo fora do lugar. */}
+        <LinearGradient id={`gramaP-${id}`} x1="0" y1="0" x2="0" y2="1">
+          <Stop offset="0" stopColor={FOLHA_CLARA} />
+          <Stop offset="1" stopColor={FOLHA} />
+        </LinearGradient>
         <RadialGradient id={`mataP2-${id}`} cx="50%" cy="50%" r="50%">
-          <Stop offset="0" stopColor={FOLHA} stopOpacity={0.4} />
-          <Stop offset="0.58" stopColor={FOLHA} stopOpacity={0.3} />
+          <Stop offset="0" stopColor={FOLHA} stopOpacity={0.42} />
+          <Stop offset="0.58" stopColor={FOLHA} stopOpacity={0.32} />
           <Stop offset="1" stopColor={FOLHA} stopOpacity={0} />
         </RadialGradient>
       </Defs>
 
-      <Ellipse cx={l * 0.4} cy={h - 4} rx={l * 0.44} ry={a * 0.05} fill={`url(#mataP2-${id})`} />
-      <Path
-        d={`M0 ${h} C${l * 0.3} ${h - 5} ${l * 0.7} ${h - 5} ${l} ${h} L${l} ${a + 10} L0 ${a + 10} Z`}
-        fill={FOLHA_CLARA}
-        opacity={0.5}
-      />
+      <Ellipse cx={l * 0.22} cy={h - 2} rx={l * 0.34} ry={a * 0.05} fill={`url(#mataP2-${id})`} />
+      <Ellipse cx={l * 0.82} cy={h - 1} rx={l * 0.32} ry={a * 0.045} fill={`url(#mataP2-${id})`} />
 
       {/*
-        O jardim do outro lado: moitas floridas, todas iguais, todas sem um
-        traço. Elas não são melhores — são mais longe.
+        Os dois terrenos, divididos pela linha da cerca.
 
-        No toque perdem mais contraste, como quem parou de encarar.
+        A divisa vai da borda de baixo até o horizonte, e é ela que faz os dois
+        lados serem **o mesmo lugar visto de uma vez**. Cerca atravessada na
+        horizontal, que foi a primeira tentativa, separa "aqui" de "lá longe";
+        na diagonal, separa "o meu" do "o dele", que é o assunto.
       */}
-      <G opacity={curva(p, [1, 0.93, 0.85, 0.77, 0.7])}>
-        {[
-          { x: 0.06, y: 0.58, rx: 0.16, ry: 0.085 },
-          { x: 0.28, y: 0.605, rx: 0.14, ry: 0.075 },
-          { x: 0.5, y: 0.57, rx: 0.17, ry: 0.09 },
-          { x: 0.72, y: 0.6, rx: 0.15, ry: 0.08 },
-          { x: 0.94, y: 0.575, rx: 0.16, ry: 0.085 },
-        ].map((m, i) => (
-          <Ellipse key={i} cx={l * m.x} cy={a * m.y} rx={l * m.rx} ry={a * m.ry} fill={`url(#jardimP-${id})`} />
-        ))}
-        {[
-          { x: 0.04, y: 0.53 },
-          { x: 0.1, y: 0.565 },
-          { x: 0.2, y: 0.545 },
-          { x: 0.3, y: 0.58 },
-          { x: 0.42, y: 0.52 },
-          { x: 0.5, y: 0.555 },
-          { x: 0.6, y: 0.525 },
-          { x: 0.68, y: 0.57 },
-          { x: 0.79, y: 0.535 },
-          { x: 0.88, y: 0.575 },
-          { x: 0.97, y: 0.53 },
-        ].map((f, i) => (
-          <Ellipse key={i} cx={l * f.x} cy={a * f.y} rx={2.8} ry={2.4} fill={BRASA} opacity={0.65} />
-        ))}
-      </G>
-
-      {/* A terra de cá: o chão em que a cerca está cravada. */}
       <Path
-        d={`M0 ${chao} C${l * 0.3} ${chao - 4} ${l * 0.7} ${chao - 4} ${l} ${chao} L${l} ${a + 10} L0 ${a + 10} Z`}
+        d={`M0 ${h + 2} C${l * 0.16} ${h - 2} ${l * 0.34} ${h - 2} ${longeX} ${longeY} L${pertoX} ${pertoY} L0 ${pertoY} Z`}
         fill={`url(#terraP-${id})`}
       />
+      <Path
+        d={`M${longeX} ${longeY} C${l * 0.72} ${h - 2} ${l * 0.88} ${h - 2} ${l} ${h + 2} L${l} ${pertoY} L${pertoX} ${pertoY} Z`}
+        fill={`url(#gramaP-${id})`}
+      />
+
+      {/* O gramado de lá, com as flores dele. */}
+      <G opacity={curva(p, [1, 0.94, 0.87, 0.8, 0.74])}>
+        {[
+          { x: 0.62, y: 0.72, r: 3 },
+          { x: 0.76, y: 0.7, r: 2.6 },
+          { x: 0.9, y: 0.74, r: 3.2 },
+          { x: 0.68, y: 0.84, r: 3.4 },
+          { x: 0.84, y: 0.88, r: 3.6 },
+          { x: 0.97, y: 0.82, r: 3 },
+          { x: 0.6, y: 0.95, r: 3.8 },
+          { x: 0.76, y: 0.99, r: 4 },
+          { x: 0.93, y: 0.96, r: 3.6 },
+          { x: 0.7, y: 0.65, r: 2.2 },
+          { x: 0.86, y: 0.645, r: 2 },
+          { x: 0.96, y: 0.68, r: 2.4 },
+        ].map((f, i) => (
+          <G key={i}>
+            <Ellipse cx={l * f.x} cy={a * f.y} rx={f.r} ry={f.r * 0.9} fill={i % 3 === 0 ? CREME : BRASA} />
+            <Ellipse cx={l * f.x} cy={a * f.y} rx={f.r * 0.32} ry={f.r * 0.3} fill={CARVAO} opacity={0.7} />
+          </G>
+        ))}
+        <Capim x={l * 0.64} y={a * 0.78} alto={7} cor={FOLHA} balanco={curva(p, [0, 1, 1.5, 0.6, 0])} />
+        <Capim x={l * 0.88} y={a * 0.93} alto={9} cor={CONTORNO_FOLHA} balanco={curva(p, [0, -1, -1.6, -0.7, 0])} />
+      </G>
 
       {/*
-        A cerca. As estacas têm **bico**, e é o bico que faz oito retângulos de
-        pé lerem como cerca em vez de escada deitada — foi o que aconteceu na
-        primeira tentativa, com o topo reto.
+        O terreno de cá: terra, torrões, e um broto só.
 
-        O vão entre elas é largo de propósito: é por ele que se vê o outro lado,
-        e cerca fechada seria outro assunto.
+        Não há nada de errado com ele. Ele é **mais novo**, e é só isso — a terra
+        está aberta porque alguém plantou ontem. O intro do tema chama a isto
+        medir o próprio bastidor contra a estreia dos outros, e é literalmente o
+        que o cartão mostra: um canteiro no primeiro dia ao lado de um jardim no
+        centésimo.
       */}
-      <Ripa x={-6} y={bico + 14} comp={l + 12} grossura={5} cor={MADEIRA_SOMBRA} />
-      <Ripa x={-6} y={peDaCerca - 13} comp={l + 12} grossura={5} cor={MADEIRA_SOMBRA} />
-      {[0.02, 0.155, 0.29, 0.425, 0.56, 0.695, 0.83, 0.955].map((f, i) => {
-        const x = l * f;
-        const alt = i % 2 ? 1.5 : 0;
-        return (
-          <Path
-            key={i}
-            d={
-              `M${x} ${bico + alt}` +
-              ` L${x + 5} ${bico + 6 + alt}` +
-              ` L${x + 5} ${peDaCerca + alt}` +
-              ` L${x - 5} ${peDaCerca + alt}` +
-              ` L${x - 5} ${bico + 6 + alt} Z`
-            }
-            fill={MADEIRA}
-            stroke={CONTORNO}
-            strokeWidth={1.5}
-            strokeLinejoin="round"
-          />
-        );
-      })}
+      {[
+        { x: 0.06, y: 0.82, r: 2.2 },
+        { x: 0.2, y: 0.9, r: 2.6 },
+        { x: 0.33, y: 0.78, r: 1.8 },
+        { x: 0.1, y: 0.98, r: 2.4 },
+        { x: 0.3, y: 0.99, r: 2 },
+        { x: 0.4, y: 0.88, r: 1.6 },
+      ].map((t, i) => (
+        <Torrao key={i} x={l * t.x} y={a * t.y} r={t.r} />
+      ))}
 
-      {/*
-        A planta de cá: traço grosso, terra remexida no pé e uma folha comida
-        pela lagarta. É o bastidor — tudo o que só aparece de perto.
-      */}
-      <Ellipse cx={plantaX} cy={pePlanta} rx={l * 0.085} ry={a * 0.026} fill={TERRA_SOMBRA} opacity={0.4} />
-      <Torrao x={plantaX - 17} y={pePlanta + 1} r={2.4} />
-      <Torrao x={plantaX + 18} y={pePlanta - 3} r={2} />
-      <G transform={gira(curva(p, [0, -0.8, -1.4, -1.8, -2]), plantaX, pePlanta)}>
+      {/* O broto de cá cresce um fio no toque: é o único lado que dá para regar. */}
+      <G transform={cresce(curva(p, [1, 1.04, 1.08, 1.11, 1.13]), l * 0.2, a * 0.93)}>
+        <Ellipse cx={l * 0.2} cy={a * 0.93} rx={l * 0.05} ry={a * 0.018} fill={TERRA_SOMBRA} opacity={0.4} />
         <Path
-          d={`M${plantaX} ${pePlanta} C${plantaX - 4} ${a * 0.93} ${plantaX + 2} ${a * 0.88} ${plantaX - 2} ${a * 0.83}`}
+          d={`M${l * 0.2} ${a * 0.93} C${l * 0.194} ${a * 0.87} ${l * 0.198} ${a * 0.83} ${l * 0.2} ${a * 0.79}`}
           stroke={HASTE}
-          strokeWidth={3.2}
+          strokeWidth={2.8}
           strokeLinecap="round"
           fill="none"
         />
-        {/* A folha boa, que se levanta um fio na luz quando se toca no cartão. */}
+        <Path
+          d={FOLHA_DO_BROTO}
+          fill={FOLHA_CLARA}
+          stroke={CONTORNO_FOLHA}
+          strokeWidth={2.2}
+          transform={`translate(${l * 0.2} ${a * 0.79}) rotate(105) scale(0.32)`}
+        />
         <Path
           d={FOLHA_DO_BROTO}
           fill={FOLHA}
           stroke={CONTORNO_FOLHA}
-          strokeWidth={2.4}
-          transform={`translate(${plantaX - 2} ${a * 0.83}) rotate(${112 + curva(p, [0, -2, -4, -5.5, -6])}) scale(0.44)`}
+          strokeWidth={2.2}
+          transform={`translate(${l * 0.2} ${a * 0.845}) rotate(40) scale(0.26)`}
         />
-        {/*
-          E a folha mordida. O pedaço que falta é desenhado como um bocado
-          arrancado da beira, e não como um furo no meio: lagarta come pela
-          borda, e furo no meio leria como doença.
-        */}
-        <G transform={`translate(${plantaX + 2} ${a * 0.91}) rotate(38) scale(0.42)`}>
-          <Path d={FOLHA_DO_BROTO} fill={CONTORNO_FOLHA} stroke={CONTORNO_FOLHA} strokeWidth={6} />
-          <Path
-            d="M-38 -18 C-30 -22 -22 -20 -20 -13 C-27 -10 -34 -12 -38 -18 Z"
-            fill={FOLHA}
-            stroke={CONTORNO_FOLHA}
-            strokeWidth={6}
-          />
-        </G>
       </G>
-      <Capim x={l * 0.06} y={a * 0.99} alto={10} cor={CONTORNO_FOLHA} balanco={curva(p, [0, -1.2, -1.8, -0.8, 0])} />
-      <Capim x={l * 0.92} y={a * 0.97} alto={9} cor={FOLHA} balanco={curva(p, [0, 1.2, 1.8, 0.8, 0])} />
+
+      {/*
+        A cerca. As estacas diminuem com a distância, e as travessas afinam
+        junto — é a perspectiva que faz a divisa ir embora em vez de atravessar.
+      */}
+      {[0.82, 0.54].map((f, i) => {
+        const perto = naCerca(0);
+        const longe = naCerca(1);
+        return (
+          <Path
+            key={i}
+            d={
+              `M${perto.x - perto.larg / 2} ${perto.y - perto.alt * f}` +
+              ` L${longe.x - longe.larg / 2} ${longe.y - longe.alt * f}` +
+              ` L${longe.x + longe.larg / 2} ${longe.y - longe.alt * f + 2.2}` +
+              ` L${perto.x + perto.larg / 2} ${perto.y - perto.alt * f + 7} Z`
+            }
+            fill={MADEIRA_SOMBRA}
+            stroke={CONTORNO}
+            strokeWidth={1.4}
+            strokeLinejoin="round"
+          />
+        );
+      })}
+      {[0, 0.17, 0.33, 0.47, 0.6, 0.71, 0.81, 0.89, 0.96].map((t, i) => {
+        const e = naCerca(t);
+        return (
+          <Path
+            key={i}
+            d={
+              `M${e.x} ${e.y - e.alt - e.larg * 0.6}` +
+              ` L${e.x + e.larg / 2} ${e.y - e.alt}` +
+              ` L${e.x + e.larg / 2} ${e.y}` +
+              ` L${e.x - e.larg / 2} ${e.y}` +
+              ` L${e.x - e.larg / 2} ${e.y - e.alt} Z`
+            }
+            fill={MADEIRA}
+            stroke={CONTORNO}
+            strokeWidth={t > 0.6 ? 1.1 : 1.5}
+            strokeLinejoin="round"
+          />
+        );
+      })}
     </>
   );
 }
@@ -3089,135 +3089,199 @@ function Comparacao({ l, a, p, id }: CenarioProps) {
  */
 function Gratidao({ l, a, p, id }: CenarioProps) {
   const h = horizonteDaCena(a);
-  /** O sol fica baixo e à direita: é daí que as sombras saem para a esquerda. */
-  const solX = l * 0.8;
-  const solY = h - 4;
-  const solR = a * 0.1;
-  /** O quanto as sombras se esticam no toque. */
-  const puxa = curva(p, [1, 1.05, 1.1, 1.15, 1.18]);
+  /** A linha do solo: daqui para baixo se vê o que ninguém vê. */
+  const solo = a * 0.72;
+  const velhoX = l * 0.44;
+  const novoEsqX = l * 0.2;
+  const novoDirX = l * 0.72;
 
-  /**
-   * Uma sombra deitada: presa no pé da coisa e minguando para a esquerda.
-   *
-   * O bico fica na ponta **longe**, e a base larga encostada no objeto. Ao
-   * contrário — que foi a primeira tentativa, com as duas pontas iguais — ela
-   * se solta do objeto e vira poça.
-   */
-  const sombra = (x: number, y: number, largo: number, comp: number, alt: number, chave: string) => (
-    <Path
-      key={chave}
-      d={
-        `M${x + largo} ${y}` +
-        ` C${x} ${y - alt} ${x - comp * 0.5} ${y - alt * 0.55} ${x - comp * puxa} ${y - 0.5}` +
-        ` C${x - comp * 0.5} ${y + alt * 0.55} ${x} ${y + alt} ${x + largo} ${y} Z`
-      }
-      fill={TERRA_SOMBRA}
-      opacity={0.38}
-    />
-  );
+  /** Os brotos novos sobem no toque; o velho pende mais um fio. */
+  const sobe = curva(p, [1, 1.06, 1.12, 1.17, 1.2]);
 
   return (
     <>
       <Defs>
-        {/*
-          O campo pega a cor da hora: dourado encostado no horizonte, verde
-          embaixo. É a única das treze com luz quente no chão.
-        */}
-        <LinearGradient id={`campoG-${id}`} x1="0" y1="0" x2="0" y2="1">
-          <Stop offset="0" stopColor={BRASA} stopOpacity={0.72} />
-          <Stop offset="0.25" stopColor={BRASA} stopOpacity={0.3} />
-          <Stop offset="0.6" stopColor={FOLHA_CLARA} />
-          <Stop offset="1" stopColor={FOLHA} />
+        <LinearGradient id={`corteG-${id}`} x1="0" y1="0" x2="0" y2="1">
+          <Stop offset="0" stopColor={TERRA} />
+          <Stop offset="0.28" stopColor={TERRA_FUNDA} />
+          <Stop offset="1" stopColor={TERRA_SOMBRA} />
         </LinearGradient>
-        <RadialGradient id={`solG-${id}`} cx="50%" cy="50%" r="50%">
-          <Stop offset="0" stopColor={SOL} stopOpacity={0.95} />
-          <Stop offset="0.3" stopColor={SOL} stopOpacity={0.5} />
-          <Stop offset="1" stopColor={SOL} stopOpacity={0} />
-        </RadialGradient>
         <RadialGradient id={`mataG-${id}`} cx="50%" cy="50%" r="50%">
-          <Stop offset="0" stopColor={FOLHA} stopOpacity={0.5} />
-          <Stop offset="0.58" stopColor={FOLHA} stopOpacity={0.4} />
+          <Stop offset="0" stopColor={FOLHA} stopOpacity={0.48} />
+          <Stop offset="0.58" stopColor={FOLHA} stopOpacity={0.38} />
           <Stop offset="1" stopColor={FOLHA} stopOpacity={0} />
+        </RadialGradient>
+        {/* A luz que acende os brotos novos: pouca, e só neles. */}
+        <RadialGradient id={`luzG-${id}`} cx="50%" cy="50%" r="50%">
+          <Stop offset="0" stopColor={BRASA} stopOpacity={0.3} />
+          <Stop offset="0.5" stopColor={CREME} stopOpacity={0.22} />
+          <Stop offset="1" stopColor={CREME} stopOpacity={0} />
         </RadialGradient>
       </Defs>
 
-      {/* O brilho, e o disco meio enterrado na linha do horizonte. */}
-      <G transform={cresce(curva(p, [1, 1.04, 1.08, 1.11, 1.13]), solX, solY)}>
-        <Ellipse cx={solX} cy={solY} rx={l * 0.4} ry={a * 0.22} fill={`url(#solG-${id})`} />
-      </G>
-      <Ellipse cx={solX} cy={solY} rx={solR} ry={solR} fill={SOL} />
-
-      <Ellipse cx={l * 0.18} cy={h - 2} rx={l * 0.36} ry={a * 0.055} fill={`url(#mataG-${id})`} />
-      <Ellipse cx={l * 0.62} cy={h - 1} rx={l * 0.3} ry={a * 0.045} fill={`url(#mataG-${id})`} />
-
+      <Ellipse cx={l * 0.24} cy={h - 1} rx={l * 0.34} ry={a * 0.05} fill={`url(#mataG-${id})`} />
+      <Ellipse cx={l * 0.8} cy={h + 1} rx={l * 0.3} ry={a * 0.045} fill={`url(#mataG-${id})`} />
       <Path
-        d={`M0 ${h + 1} C${l * 0.3} ${h - 4} ${l * 0.7} ${h - 4} ${l} ${h + 1} L${l} ${a + 10} L0 ${a + 10} Z`}
-        fill={`url(#campoG-${id})`}
-      />
-
-      {/*
-        Três coisas sem graça nenhuma, e as sombras compridas delas.
-
-        Nada aqui é especial: uma pedra, um tufo de capim, uma folha caída.
-        Estariam no mesmo lugar às duas da tarde, e ninguém olharia. O que mudou
-        foi a hora — e é isso que a prática faz: não melhora o dia, muda de onde
-        ele é olhado.
-      */}
-      {sombra(l * 0.7, a * 0.93, l * 0.07, l * 0.34, a * 0.04, 'sa')}
-      {sombra(l * 0.44, a * 0.99, l * 0.04, l * 0.24, a * 0.032, 'sb')}
-      {sombra(l * 0.23, a * 0.87, l * 0.05, l * 0.17, a * 0.025, 'sc')}
-
-      {/* A pedra: a maior das três, e a mais comum de todas. */}
-      <Path
-        d={
-          `M${l * 0.615} ${a * 0.94}` +
-          ` L${l * 0.64} ${a * 0.865}` +
-          ` L${l * 0.688} ${a * 0.818}` +
-          ` L${l * 0.742} ${a * 0.842}` +
-          ` L${l * 0.783} ${a * 0.9}` +
-          ` L${l * 0.768} ${a * 0.947} Z`
-        }
-        fill={PEDRA_CLARA}
-        stroke={CONTORNO}
-        strokeWidth={1.8}
-        strokeLinejoin="round"
-      />
-      <Path
-        d={`M${l * 0.64} ${a * 0.865} L${l * 0.688} ${a * 0.818} L${l * 0.742} ${a * 0.842}`}
-        stroke={CREME}
-        strokeWidth={2.2}
-        strokeLinecap="round"
-        fill="none"
-        opacity={0.65}
-      />
-      {/* A face da direita, onde o sol bate em cheio. */}
-      <Path
-        d={`M${l * 0.742} ${a * 0.842} L${l * 0.783} ${a * 0.9} L${l * 0.768} ${a * 0.947}`}
-        stroke={BRASA}
-        strokeWidth={2.4}
-        strokeLinecap="round"
-        fill="none"
+        d={`M0 ${h + 2} C${l * 0.3} ${h - 3} ${l * 0.7} ${h - 3} ${l} ${h + 2} L${l} ${solo} L0 ${solo} Z`}
+        fill={FOLHA_CLARA}
         opacity={0.55}
       />
 
+      {/* A claridade em volta dos dois novos. */}
+      <Ellipse cx={novoEsqX} cy={a * 0.62} rx={l * 0.16} ry={a * 0.14} fill={`url(#luzG-${id})`} />
+      <Ellipse cx={novoDirX} cy={a * 0.62} rx={l * 0.16} ry={a * 0.14} fill={`url(#luzG-${id})`} />
+
+      {/*
+        O corte da terra: em cima o que se vê, embaixo o que sustenta.
+
+        É a única cena das treze em que se enxerga por baixo do chão, e ela
+        precisa ser: a frase do tema é "reparar no que sustentou o dia", e o que
+        sustenta está sempre embaixo. O húmus claro logo abaixo da linha é o que
+        faz o corte ler como corte, e não como sombra.
+      */}
+      <Path d={`M0 ${solo} L${l} ${solo} L${l} ${a + 20} L0 ${a + 20} Z`} fill={`url(#corteG-${id})`} />
+      <Path d={`M0 ${solo} L${l} ${solo} L${l} ${solo + 3.5} L0 ${solo + 3.5} Z`} fill={TERRA_CLARA} opacity={0.5} />
+      {[
+        { x: 0.1, y: 0.86, r: 2.2 },
+        { x: 0.56, y: 0.92, r: 2.6 },
+        { x: 0.88, y: 0.84, r: 2 },
+        { x: 0.32, y: 0.97, r: 2.4 },
+      ].map((t, i) => (
+        <Torrao key={i} x={l * t.x} y={a * t.y} r={t.r} />
+      ))}
+
+      {/*
+        A raiz do broto que está morrendo, indo para os dois lados — e é dela
+        que saem os novos.
+
+        O desenho inteiro está nesta linha: a raiz **não se interrompe** onde a
+        haste velha acaba. Ela continua, engrossa embaixo de cada broto novo e
+        vira o pé deles. Não é uma planta ao lado de outra: é a mesma planta,
+        continuando por outro lugar.
+      */}
       <Path
-        d={`M${l * 0.688} ${a * 0.818} L${l * 0.706} ${a * 0.892} L${l * 0.615} ${a * 0.94}`}
-        stroke={CONTORNO}
+        d={`M${velhoX} ${solo + 1} C${velhoX - 10} ${solo + 12} ${novoEsqX + 12} ${solo + 16} ${novoEsqX} ${solo + 2}`}
+        stroke={TERRA_CLARA}
+        strokeWidth={2.6}
+        strokeLinecap="round"
+        fill="none"
+        opacity={0.9}
+      />
+      <Path
+        d={`M${velhoX} ${solo + 1} C${velhoX + 12} ${solo + 14} ${novoDirX - 14} ${solo + 18} ${novoDirX} ${solo + 2}`}
+        stroke={TERRA_CLARA}
+        strokeWidth={2.6}
+        strokeLinecap="round"
+        fill="none"
+        opacity={0.9}
+      />
+      {/* Três raízes finas que só descem, para a terra ter idade. */}
+      <Path
+        d={`M${velhoX - 4} ${solo + 6} C${velhoX - 8} ${solo + 16} ${velhoX - 10} ${solo + 24} ${velhoX - 8} ${solo + 34}`}
+        stroke={TERRA_CLARA}
+        strokeWidth={1.6}
+        strokeLinecap="round"
+        fill="none"
+        opacity={0.6}
+      />
+      <Path
+        d={`M${velhoX + 6} ${solo + 8} C${velhoX + 10} ${solo + 18} ${velhoX + 8} ${solo + 26} ${velhoX + 12} ${solo + 34}`}
+        stroke={TERRA_CLARA}
         strokeWidth={1.4}
+        strokeLinecap="round"
+        fill="none"
+        opacity={0.5}
+      />
+      <Path
+        d={`M${novoEsqX - 2} ${solo + 10} C${novoEsqX - 6} ${solo + 18} ${novoEsqX - 5} ${solo + 26} ${novoEsqX - 9} ${solo + 32}`}
+        stroke={TERRA_CLARA}
+        strokeWidth={1.3}
+        strokeLinecap="round"
+        fill="none"
+        opacity={0.45}
+      />
+
+      <Path
+        d={`M${novoDirX + 3} ${solo + 9} C${novoDirX + 8} ${solo + 17} ${novoDirX + 7} ${solo + 25} ${novoDirX + 12} ${solo + 33}`}
+        stroke={TERRA_CLARA}
+        strokeWidth={1.3}
+        strokeLinecap="round"
+        fill="none"
+        opacity={0.45}
+      />
+      <Path
+        d={`M${velhoX - 14} ${solo + 11} C${velhoX - 20} ${solo + 18} ${velhoX - 22} ${solo + 24} ${velhoX - 21} ${solo + 30}`}
+        stroke={TERRA_CLARA}
+        strokeWidth={1.1}
+        strokeLinecap="round"
+        fill="none"
+        opacity={0.38}
+      />
+      <Path
+        d={`M${velhoX + 20} ${solo + 13} C${velhoX + 26} ${solo + 20} ${velhoX + 25} ${solo + 27} ${velhoX + 29} ${solo + 32}`}
+        stroke={TERRA_CLARA}
+        strokeWidth={1.1}
+        strokeLinecap="round"
         fill="none"
         opacity={0.35}
       />
 
-      {/* O capim, que estaria ali de qualquer jeito. */}
-      <Capim x={l * 0.43} y={a * 0.99} alto={19} cor={CONTORNO_FOLHA} balanco={curva(p, [0, 1.4, 2.2, 0.9, 0])} />
-      <Capim x={l * 0.52} y={a * 0.96} alto={14} cor={FOLHA} balanco={curva(p, [0, -1.2, -1.8, -0.8, 0])} />
+      {/*
+        O broto velho, morrendo: a haste em arco e as folhas penduradas para
+        baixo. Ele não é um vilão da cena — é o que pagou pelos outros dois.
+      */}
+      <G transform={`translate(0 ${curva(p, [0, 0.4, 0.8, 1.1, 1.3])})`}>
+        <Path
+          d={`M${velhoX} ${solo} C${velhoX - 4} ${solo - 16} ${velhoX + 6} ${solo - 26} ${velhoX + 14} ${solo - 30}`}
+          stroke={TERRA_CLARA}
+          strokeWidth={3}
+          strokeLinecap="round"
+          fill="none"
+        />
+        <Path
+          d={FOLHA_DO_BROTO}
+          fill={TERRA_CLARA}
+          stroke={TERRA_SOMBRA}
+          strokeWidth={2.2}
+          transform={`translate(${velhoX + 1} ${solo - 18}) rotate(252) scale(0.32)`}
+        />
+        <Path
+          d={FOLHA_DO_BROTO}
+          fill={TERRA_CLARA}
+          stroke={TERRA_SOMBRA}
+          strokeWidth={2.2}
+          transform={`translate(${velhoX + 14} ${solo - 30}) rotate(288) scale(0.28)`}
+        />
+      </G>
+      {/* E a folha dele que já caiu, no chão entre os três. */}
+      <FolhaSeca x={l * 0.58} y={solo - 3} giro={-10} escala={0.3} cor={TERRA_CLARA} veia={TERRA_SOMBRA} />
 
-      {/* E a folha caída, que ninguém tinha reparado. */}
-      <FolhaSeca x={l * 0.22} y={a * 0.87} giro={-8} escala={0.46} cor={TERRA_CLARA} veia={TERRA_SOMBRA} />
-
-      <Torrao x={l * 0.1} y={a * 0.96} r={2.6} />
-      <Torrao x={l * 0.34} y={a * 0.93} r={2} />
-      <Torrao x={l * 0.92} y={a * 0.98} r={2.4} />
+      {/* Os dois brotos novos, saindo da raiz do velho. */}
+      {[novoEsqX, novoDirX].map((x, i) => (
+        <G key={i} transform={cresce(sobe, x, solo)}>
+          <Path
+            d={`M${x} ${solo} C${x - 2} ${solo - 9} ${x - 1} ${solo - 16} ${x} ${solo - 23}`}
+            stroke={HASTE}
+            strokeWidth={2.6}
+            strokeLinecap="round"
+            fill="none"
+          />
+          <Path
+            d={FOLHA_DO_BROTO}
+            fill={FOLHA_CLARA}
+            stroke={CONTORNO_FOLHA}
+            strokeWidth={2.2}
+            transform={`translate(${x} ${solo - 23}) rotate(${i ? 105 : 96}) scale(0.32)`}
+          />
+          <Path
+            d={FOLHA_DO_BROTO}
+            fill={FOLHA}
+            stroke={CONTORNO_FOLHA}
+            strokeWidth={2.2}
+            transform={`translate(${x} ${solo - 14}) rotate(${i ? 40 : 148}) scale(0.26)`}
+          />
+        </G>
+      ))}
     </>
   );
 }
