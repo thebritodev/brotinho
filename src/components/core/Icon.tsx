@@ -6,8 +6,22 @@ import { useTema } from '../../theme';
 /** Traços do mesmo peso do mascote — todos desenhados em uma viewBox 24x24. */
 const PATHS = {
   back: 'M15 18l-6-6 6-6',
+  /*
+    A engrenagem, e o furo dela.
+
+    O corpo estava dois pontos acima de onde devia: as coordenadas absolutas do
+    dente de baixo (`V19`) e do de cima (`V1`) punham a geometria entre y=-1 e
+    y=21, ou seja, centro em 10 — enquanto o furo é um círculo em (12, 12). O
+    furo ficava baixo dentro da roda, e isso se vê mesmo a 22 pontos: o olho
+    acha o centro de um anél com muita precisão.
+
+    Corrigido, o desenho vai de 1 a 23 nos dois eixos, com centro em (12, 12) —
+    o mesmo do furo. E como ele passou a caber na caixa de 24 como todos os
+    outros, a `viewBox` folgada de 28 que existia só para ele saiu junto; era
+    ela que deixava este ícone menor que os vizinhos na mesma `size`.
+  */
   settings:
-    'M12 15a3 3 0 100-6 3 3 0 000 6zM19.4 13a1.7 1.7 0 00.34 1.87l.06.06a2 2 0 11-2.83 2.83l-.06-.06a1.7 1.7 0 00-1.87-.34 1.7 1.7 0 00-1 1.55V19a2 2 0 11-4 0v-.09a1.7 1.7 0 00-1-1.55 1.7 1.7 0 00-1.87.34l-.06.06a2 2 0 11-2.83-2.83l.06-.06A1.7 1.7 0 004.6 13a1.7 1.7 0 00-1.55-1H3a2 2 0 110-4h.09A1.7 1.7 0 004.6 7a1.7 1.7 0 00-.34-1.87l-.06-.06a2 2 0 112.83-2.83l.06.06A1.7 1.7 0 008.96 2.6a1.7 1.7 0 001-1.55V1a2 2 0 114 0v.09a1.7 1.7 0 001 1.55 1.7 1.7 0 001.87-.34l.06-.06a2 2 0 112.83 2.83l-.06.06A1.7 1.7 0 0019.4 7a1.7 1.7 0 001.55 1H21a2 2 0 110 4h-.09a1.7 1.7 0 00-1.55 1z',
+    'M12 15a3 3 0 100-6 3 3 0 000 6zM19.4 15a1.7 1.7 0 00.34 1.87l.06.06a2 2 0 11-2.83 2.83l-.06-.06a1.7 1.7 0 00-1.87-.34 1.7 1.7 0 00-1 1.55V21a2 2 0 11-4 0v-.09a1.7 1.7 0 00-1-1.55 1.7 1.7 0 00-1.87.34l-.06.06a2 2 0 11-2.83-2.83l.06-.06A1.7 1.7 0 004.6 15a1.7 1.7 0 00-1.55-1H3a2 2 0 110-4h.09A1.7 1.7 0 004.6 9a1.7 1.7 0 00-.34-1.87l-.06-.06a2 2 0 112.83-2.83l.06.06A1.7 1.7 0 008.96 4.6a1.7 1.7 0 001-1.55V3a2 2 0 114 0v.09a1.7 1.7 0 001 1.55 1.7 1.7 0 001.87-.34l.06-.06a2 2 0 112.83 2.83l-.06.06A1.7 1.7 0 0019.4 9a1.7 1.7 0 001.55 1H21a2 2 0 110 4h-.09a1.7 1.7 0 00-1.55 1z',
   bell: 'M9 17a3 3 0 006 0M5 8a7 7 0 0114 0c0 4 1.5 5.5 1.5 5.5H3.5S5 12 5 8z',
   pencil: 'M4 20l4-1 11-11-3-3L5 16l-1 4zM14 6l3 3',
   /*
@@ -143,18 +157,6 @@ const PATHS = {
 export type IconName = keyof typeof PATHS;
 export const ICON_NAMES = Object.keys(PATHS) as IconName[];
 
-/**
- * Ícones cujo desenho não cabe na caixa padrão de 24x24.
- *
- * A engrenagem foi traçada até fora dela: a geometria vai de y=-1 a y=21 e de
- * x=1 a x=23. Como o traço de 2 é centrado na linha, o que se desenha de fato
- * ocupa x 0..24 e y -2..22 — ou seja, o topo era cortado inteiro e as laterais
- * perdiam metade do contorno. Aqui ela ganha folga em vez de ser redesenhada.
- */
-const VIEW_BOX: Partial<Record<IconName, string>> = {
-  settings: '-2 -4 28 28',
-};
-
 type Props = {
   name: IconName;
   size?: number;
@@ -192,7 +194,7 @@ export function Icon({ name, size = 22, color, strokeWidth = 1.8, preenchido = f
   const d = PATHS[name];
   if (!d) return null;
   return (
-    <Svg width={size} height={size} viewBox={VIEW_BOX[name] ?? '0 0 24 24'} fill="none">
+    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
       <Path
         d={d}
         fill={preenchido ? traco : 'none'}
