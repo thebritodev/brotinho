@@ -1,8 +1,9 @@
 import React, { createContext, useContext, useEffect, useRef, useState } from 'react';
-import { Animated, Easing, StyleSheet } from 'react-native';
+import { Animated, Easing, StyleSheet, useWindowDimensions } from 'react-native';
 
 import { useMenosMovimento } from '../hooks/useMenosMovimento';
 import { useTema } from '../theme';
+import { DURACAO_DA_TROCA, FRACAO_DO_DESLIZE } from './regrasDaTroca';
 import { ScreenTransition } from './ScreenTransition';
 
 /**
@@ -75,11 +76,16 @@ export function QuandoDescoberta({ children }: { children: React.ReactNode }) {
   return useCoberta() ? null : <>{children}</>;
 }
 
-/** Quanto a tela empilhada anda para os lados ao entrar e ao sair. */
-const DESLIZE = 26;
-const ENTRADA_MS = 260;
+/*
+  O quanto a camada anda e quanto tempo leva vêm de `regrasDaTroca`.
+
+  Eram números próprios — 26 pontos e 260 ms — parecidos com os da
+  `ScreenTransition` mas não iguais, e dois deslizes parecidos e diferentes no
+  mesmo app é o que se lê como "cada tela faz uma coisa".
+*/
+const ENTRADA_MS = DURACAO_DA_TROCA;
 /** A saída é um pouco mais curta: quem pediu para voltar já quer estar lá. */
-const SAIDA_MS = 220;
+const SAIDA_MS = Math.round(DURACAO_DA_TROCA * 0.85);
 
 type Props<Chave extends string> = {
   /** A tela empilhada aberta agora, ou `null` quando nenhuma está. */
@@ -97,6 +103,9 @@ type Props<Chave extends string> = {
 
 export function CamadaEmpilhada<Chave extends string>({ aberta, render, aoCobrir }: Props<Chave>) {
   const { colors } = useTema();
+  const { width } = useWindowDimensions();
+  /** O mesmo caminho das telas de dentro, em fração da largura. */
+  const DESLIZE = width * FRACAO_DO_DESLIZE;
   const menosMovimento = useMenosMovimento();
   /** A tela desenhada: a aberta, ou a que está saindo. */
   const [mostrada, setMostrada] = useState<Chave | null>(aberta);
@@ -218,7 +227,12 @@ export function CamadaEmpilhada<Chave extends string>({ aberta, render, aoCobrir
         camada, então a de dentro não anima ao montar: as duas juntas davam um
         aparecer em câmera lenta.
       */}
-      <ScreenTransition transitionKey={mostrada} mode="sobe" semEntrada>
+      {/*
+        A troca entre duas telas empilhadas — da prática para o diário — entra
+        pelo lado, como todo o resto. A entrada da primeira já é o deslize
+        desta camada, então a de dentro não anima ao montar.
+      */}
+      <ScreenTransition transitionKey={mostrada} semEntrada>
         {desenhada.current?.no}
       </ScreenTransition>
     </Animated.View>

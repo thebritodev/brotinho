@@ -33,6 +33,16 @@ type Props = {
 
 type Mode = 'read' | 'guide' | 'finished';
 
+/**
+ * A ordem dos tres estados da pratica.
+ *
+ * E ela que decide o lado da troca: entrar no guia avanca, desistir dele
+ * volta, e a conclusao vem depois do guia. Sem a ordem, cada `return` teria de
+ * adivinhar sozinho para que lado estava indo — e era assim que um passo saia
+ * pelo lado errado e a troca parecia outra transicao.
+ */
+const PASSOS_DA_PRATICA = ['leitura', 'guia', 'fim'] as const;
+
 export function PracticeDetailScreen({
   practice,
   topicKey,
@@ -85,7 +95,7 @@ export function PracticeDetailScreen({
   if (mode === 'guide' && practice.guide) {
     const guide = practice.guide;
     return (
-      <ScreenTransition transitionKey="guia" mode="forward">
+      <ScreenTransition transitionKey="guia" ordem={PASSOS_DA_PRATICA}>
       <View style={{ flex: 1, backgroundColor: colors.bg, paddingTop: insets.top }}>
         <TopBar title={practice.title} onBack={() => setMode('read')} />
         {guide.kind === 'breathing' ? (
@@ -111,7 +121,7 @@ export function PracticeDetailScreen({
 
   if (mode === 'finished') {
     return (
-      <ScreenTransition transitionKey="fim" mode="sobe">
+      <ScreenTransition transitionKey="fim" ordem={PASSOS_DA_PRATICA}>
       <View
         style={{
           flex: 1,
@@ -185,6 +195,7 @@ export function PracticeDetailScreen({
   // --- Leitura -------------------------------------------------------------
 
   return (
+    <ScreenTransition transitionKey="leitura" ordem={PASSOS_DA_PRATICA}>
     <View style={{ flex: 1, backgroundColor: colors.bg, paddingTop: insets.top }}>
       <TopBar title={practice.title} onBack={onBack} />
 
@@ -345,5 +356,6 @@ export function PracticeDetailScreen({
         )}
       </ScrollView>
     </View>
+    </ScreenTransition>
   );
 }

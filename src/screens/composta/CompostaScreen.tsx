@@ -43,6 +43,14 @@ const diaDe = (quando: number) =>
 
 type Step = 'explain' | 'thought' | 'record' | 'done';
 
+/**
+ * Os quatro passos, na ordem em que acontecem.
+ *
+ * E dela que a transicao tira o lado: avancar entra pela direita, o "voltar"
+ * do pensamento entra pela esquerda.
+ */
+const PASSOS_DA_COMPOSTA = ['explain', 'thought', 'record', 'done'] as const;
+
 export function CompostaScreen({
   onClose,
   aoFazerExercicio,
@@ -262,7 +270,7 @@ export function CompostaScreen({
     );
 
     return (
-      <ScreenTransition transitionKey="explain" mode="forward">
+      <ScreenTransition transitionKey="explain" ordem={PASSOS_DA_COMPOSTA}>
       <View style={{ flex: 1, backgroundColor: colors.bg }}>
         {/*
           O mesmo nome do cartao que abre esta tela.
@@ -379,7 +387,7 @@ export function CompostaScreen({
 
   if (step === 'thought') {
     return (
-      <ScreenTransition transitionKey="thought" mode="forward">
+      <ScreenTransition transitionKey="thought" ordem={PASSOS_DA_COMPOSTA}>
       <View style={{ flex: 1, backgroundColor: colors.bg }}>
         {header('O pensamento', voltarDoPensamento)}
         <ScrollView
@@ -626,7 +634,7 @@ export function CompostaScreen({
           : 'Compostando';
 
     return (
-      <ScreenTransition transitionKey="record" mode="forward">
+      <ScreenTransition transitionKey="record" ordem={PASSOS_DA_COMPOSTA}>
       <View style={{ flex: 1, backgroundColor: colors.bg, paddingTop: insets.top }}>
         <View style={{ flex: 1, paddingHorizontal: 20, paddingTop: 18, paddingBottom: 22 + insets.bottom }}>
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
@@ -822,7 +830,7 @@ export function CompostaScreen({
   const totalCompostagens = data.composts.length;
 
   return (
-    <ScreenTransition transitionKey="done" mode="sobe">
+    <ScreenTransition transitionKey="done" ordem={PASSOS_DA_COMPOSTA}>
     <View style={{ flex: 1, backgroundColor: colors.bg, paddingTop: insets.top }}>
       <ScrollView
         contentContainerStyle={{

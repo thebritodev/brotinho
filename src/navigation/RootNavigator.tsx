@@ -12,6 +12,14 @@ import { useTema } from '../theme';
 import { MainTabs } from './MainTabs';
 import { useBotaoVoltar } from './useBotaoVoltar';
 
+/**
+ * As portas do app, da de fora para a de dentro.
+ *
+ * E dela que a transicao tira o lado: das boas-vindas para o onboarding entra
+ * pela direita, e voltar para as boas-vindas entra pela esquerda.
+ */
+const PORTAS_DO_APP = ['boas-vindas', 'onboarding', 'paywall', 'app'] as const;
+
 export function RootNavigator() {
   const { colors } = useTema();
   const { hydrated, data } = useAppState();
@@ -94,7 +102,7 @@ export function RootNavigator() {
   return (
     // A passagem do onboarding para o app é o corte mais marcante do fluxo:
     // entra suave em vez de trocar de tela de uma vez.
-    <ScreenTransition transitionKey={tela} mode="sobe">
+    <ScreenTransition transitionKey={tela} ordem={PORTAS_DO_APP}>
       {trancado ? (
         <PaywallGate />
       ) : dentroDoApp ? (

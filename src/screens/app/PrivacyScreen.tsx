@@ -66,6 +66,14 @@ function PrivRow({
   );
 }
 
+/**
+ * As duas telas da privacidade, na ordem em que se entra.
+ *
+ * E dela que a transicao tira o lado: para a politica entra pela direita, e o
+ * voltar entra pela esquerda.
+ */
+const PASSOS_DA_PRIVACIDADE = ['lista', 'politica'] as const;
+
 export function PrivacyScreen({ onBack }: { onBack: () => void }) {
   const { colors, palette } = useTema();
   const insets = useSafeAreaInsets();
@@ -104,12 +112,13 @@ export function PrivacyScreen({ onBack }: { onBack: () => void }) {
 
   if (vendoPolitica)
     return (
-      <ScreenTransition transitionKey="politica" mode="forward">
+      <ScreenTransition transitionKey="politica" ordem={PASSOS_DA_PRIVACIDADE}>
         <PrivacyPolicyScreen onBack={() => setVendoPolitica(false)} />
       </ScreenTransition>
     );
 
   return (
+    <ScreenTransition transitionKey="lista" ordem={PASSOS_DA_PRIVACIDADE}>
     <View style={{ flex: 1, paddingTop: insets.top }}>
       <TopBar title="Privacidade" onBack={onBack} />
       <ScrollView
@@ -395,5 +404,6 @@ export function PrivacyScreen({ onBack }: { onBack: () => void }) {
         </View>
       </Modal>
     </View>
+    </ScreenTransition>
   );
 }

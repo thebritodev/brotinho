@@ -4,11 +4,18 @@ import {
   Animated,
   Easing,
   StyleSheet,
+  useWindowDimensions,
   type StyleProp,
   type ViewStyle,
 } from 'react-native';
 
 import { useTema } from '../theme';
+import {
+  DURACAO_DA_TROCA,
+  FRACAO_DO_DESLIZE,
+  RECUO_DE_QUEM_SAI,
+  ladoDaTroca,
+} from './regrasDaTroca';
 
 /**
  * A troca de uma tela por outra: as duas se mexem, e nenhuma some de um quadro
@@ -54,40 +61,35 @@ import { useTema } from '../theme';
  * de novo, dentro do toque, seria trocar o corte por uma travada.
  */
 
-/** Quanto dura a troca. */
-const DURACAO = 260;
+/*
+  Os números moram em `regrasDaTroca`, e não aqui.
 
-/** O caminho de quem chega, de lado. */
-const DESLIZE = 26;
-
-/** E o de quem chega por baixo, que é mais curto porque a tela é mais alta. */
-const SUBIDA = 20;
-
-/**
- * A fração do caminho que a tela de saída recua.
- *
- * O mesmo `RECUO_DE_QUEM_SAI` das abas, e pelo mesmo motivo: é o que cruza as
- * duas camadas em vez de encostá-las.
- */
-const RECUO = 0.25;
+  Porque a `CamadaEmpilhada` usa os mesmos, e eram dois conjuntos parecidos
+  mas diferentes — 26 pontos de um lado, 20 de outro, 260 ms e 220 ms. Quatro
+  gramáticas no mesmo app é o que se lê como "umas deslizam e outras só mudam".
+*/
 
 export type TransitionMode =
   /** Entra da direita: avancar para dentro de algo. */
   | 'forward'
   /** Entra da esquerda: voltar. */
-  | 'back'
-  /**
-   * Entra por baixo, um palmo só.
-   *
-   * É o modo de quem troca sem hierarquia — o Root indo do onboarding para o
-   * app, uma tela empilhada virando outra. Chamava-se `fade` e era uma
-   * dissolução; virou movimento pelo motivo do cabeçalho deste arquivo.
-   */
-  | 'sobe';
+  | 'back';
 
 type Props = {
   transitionKey: string | number;
+  /**
+   * O lado da entrada. Ignorado quando `ordem` é dada — ali o lado sai da
+   * posição das duas telas na sequência.
+   */
   mode?: TransitionMode;
+  /**
+   * A sequência a que estas telas pertencem, da primeira à última.
+   *
+   * Com ela, avançar entra pela direita e voltar entra pela esquerda sem que
+   * cada tela precise descobrir sozinha para que lado está indo — que era como
+   * um passo acabava com o lado errado e a troca parecia outra transição.
+   */
+  ordem?: readonly (string | number)[];
   /** Substitui o `flex: 1` padrão — telas dentro de ScrollView precisam disso. */
   style?: StyleProp<ViewStyle>;
   /**
@@ -103,12 +105,14 @@ type Props = {
 
 export function ScreenTransition({
   transitionKey,
-  mode = 'sobe',
+  mode = 'forward',
+  ordem,
   style,
   semEntrada = false,
   children,
 }: Props) {
   const { colors } = useTema();
+  const { width } = useWindowDimensions();
   const t = useRef(new Animated.Value(1)).current;
   const [reduceMotion, setReduceMotion] = useState(false);
   /** Camada de hardware só enquanto anima: manter ligada custa memória à toa. */
@@ -155,6 +159,14 @@ export function ScreenTransition({
   const chaveAnterior = useRef(transitionKey);
   /** A chave que a camada de saída leva quando a próxima troca acontece. */
   const chaveDaSaida = useRef<string | number>(transitionKey);
+  /**
+   * O lado desta troca, decidido **no instante dela**.
+   *
+   * Guardado numa ref e não recalculado no render: a chave anterior já virou a
+   * atual quando o próximo render acontece, e o lado mudaria no meio da
+   * animação — a tela daria meia-volta no ar.
+   */
+  const lado = useRef<TransitionMode>(mode);
 
   useLayoutEffect(() => {
     const estreia = primeira.current;
@@ -172,8 +184,11 @@ export function ScreenTransition({
       só, e ela entra sozinha — não existe tela anterior para recuar.
     */
     if (trocou) {
+      lado.current = ordem ? ladoDaTroca(chaveDaSaida.current, transitionKey, ordem) : mode;
       noDeSaida.current = ultimo.current;
       setSaindo(chaveDaSaida.current);
+    } else {
+      lado.current = mode;
     }
     chaveDaSaida.current = transitionKey;
 
@@ -181,7 +196,7 @@ export function ScreenTransition({
     setAnimando(true);
     const animacao = Animated.timing(t, {
       toValue: 1,
-      duration: DURACAO,
+      duration: DURACAO_DA_TROCA,
       easing: Easing.out(Easing.cubic),
       useNativeDriver: true,
     });
@@ -201,15 +216,22 @@ export function ScreenTransition({
       t.setValue(1);
       setAnimando(false);
       setSaindo(null);
-    }, DURACAO + 250);
+    }, DURACAO_DA_TROCA + 250);
     return () => {
       animacao.stop();
       clearTimeout(seguranca);
     };
   }, [transitionKey, reduceMotion]);
 
-  const entrada = mode === 'forward' ? DESLIZE : mode === 'back' ? -DESLIZE : SUBIDA;
-  const eixo = mode === 'sobe' ? 'translateY' : 'translateX';
+  /*
+    A distância é fração da largura, e o sentido vem do lado desta troca.
+
+    Toda troca do app anda na horizontal — ver `regrasDaTroca`. O que era um
+    modo "sobe", de vinte pontos para cima, virou entrada pela direita como
+    todas as outras: subir vinte pontos ao lado de uma aba que desliza a tela
+    inteira não lê como a mesma coisa acontecendo.
+  */
+  const entrada = width * FRACAO_DO_DESLIZE * (lado.current === 'back' ? -1 : 1);
 
   /*
     As duas camadas são **absolutas**, sempre.
@@ -219,10 +241,9 @@ export function ScreenTransition({
     subiria na frente da que chega. Absolutas as duas, quem manda é a ordem em
     que aparecem aqui — igual no Android e no navegador.
   */
-  const andaDe = (de: number, para: number) => {
-    const passo = t.interpolate({ inputRange: [0, 1], outputRange: [de, para] });
-    return eixo === 'translateY' ? [{ translateY: passo }] : [{ translateX: passo }];
-  };
+  const andaDe = (de: number, para: number) => [
+    { translateX: t.interpolate({ inputRange: [0, 1], outputRange: [de, para] }) },
+  ];
 
   const fundo = { backgroundColor: colors.bg };
 
@@ -245,7 +266,11 @@ export function ScreenTransition({
           testID="transicao-que-sai"
           pointerEvents="none"
           renderToHardwareTextureAndroid={animando}
-          style={[StyleSheet.absoluteFill, fundo, { transform: andaDe(0, -entrada * RECUO) }]}
+          style={[
+            StyleSheet.absoluteFill,
+            fundo,
+            { transform: andaDe(0, -entrada * RECUO_DE_QUEM_SAI) },
+          ]}
         >
           {noDeSaida.current}
         </Animated.View>

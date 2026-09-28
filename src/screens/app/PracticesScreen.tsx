@@ -13,6 +13,16 @@ import { PracticeDetailScreen } from '../practices/PracticeDetailScreen';
 import { useBotaoVoltar } from '../../navigation/useBotaoVoltar';
 import { POR_TRAS_DA_BARRA } from '../../components/navigation/BottomNav';
 
+/**
+ * Os tres niveis da tela de praticas, do mais raso ao mais fundo.
+ *
+ * A chave e o **nivel**, e nao o tema ou a pratica que esta dentro dele: trocar
+ * de tema e trocar do tema A para o tema B, que e o mesmo nivel, e ali a tela
+ * nao desliza — ela so troca de conteudo, que e o certo. Quem desliza e quem
+ * muda de profundidade.
+ */
+const PASSOS_DAS_PRATICAS = ['temas', 'tema', 'pratica'] as const;
+
 export function PracticesScreen({
   onBack,
   onEscreverNoDiario,
@@ -115,7 +125,7 @@ export function PracticesScreen({
 
   if (practice && topic) {
     return (
-      <ScreenTransition transitionKey={practice.key} mode="forward">
+      <ScreenTransition transitionKey="pratica" ordem={PASSOS_DAS_PRATICAS}>
         <PracticeDetailScreen
           practice={practice}
           topicKey={topic.key}
@@ -131,7 +141,7 @@ export function PracticesScreen({
 
   if (topic) {
     return (
-      <ScreenTransition transitionKey={topic.key} mode="forward">
+      <ScreenTransition transitionKey="tema" ordem={PASSOS_DAS_PRATICAS}>
       <View style={{ flex: 1, paddingTop: insets.top }}>
         <TopBar title={topic.title} onBack={voltarDoTema} />
         <ScrollView
@@ -247,6 +257,7 @@ export function PracticesScreen({
   // --- Temas ---------------------------------------------------------------
 
   return (
+    <ScreenTransition transitionKey="temas" ordem={PASSOS_DAS_PRATICAS}>
     <View style={{ flex: 1, paddingTop: insets.top }}>
       <TopBar title="Práticas" onBack={onBack} />
       {/* Os temas dividem a altura livre em vez de deixarem uma faixa vazia
@@ -403,5 +414,6 @@ export function PracticesScreen({
         ))}
       </ScrollView>
     </View>
+    </ScreenTransition>
   );
 }

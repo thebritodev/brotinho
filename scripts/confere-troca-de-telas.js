@@ -240,7 +240,61 @@ confere(
   'a camada empilhada ficou sem fundo próprio: sem ele, opaca ou não, o que está por baixo aparece',
 );
 
-/* ---------- 8: a cena do cartão para quando a tela assume ---------- */
+/* ---------- 8: uma gramatica so ---------- */
+
+/*
+  Toda troca do app anda na horizontal, na mesma distancia e no mesmo tempo, e
+  o lado sai da **ordem** das telas em vez de ser escolhido a mao em cada
+  `return`. Era a mao que produzia as quatro gramaticas: um `mode="sobe"` aqui,
+  um `forward` ali, e passos que nao se mexiam porque nenhum `return` tinha
+  transicao nenhuma.
+*/
+confere(
+  'ScreenTransition',
+  /* A forma do codigo, e nao a mencao: o comentario que conta a historia cita o nome. */
+  !/\|\s*'sobe'/.test(transicao) && !/mode = 'sobe'/.test(transicao),
+  'voltou a existir um modo que nao desliza na horizontal — e ele ao lado de uma aba que desliza a tela inteira e o que se le como "cada tela faz uma coisa"',
+);
+confere(
+  'ScreenTransition',
+  /FRACAO_DO_DESLIZE/.test(transicao) && /DURACAO_DA_TROCA/.test(transicao),
+  'a transicao voltou a ter numeros proprios em vez dos de `regrasDaTroca`',
+);
+confere(
+  'CamadaEmpilhada',
+  /FRACAO_DO_DESLIZE/.test(camada) && /DURACAO_DA_TROCA/.test(camada),
+  'a camada empilhada voltou a ter deslize e duracao proprios, parecidos com os das telas mas diferentes',
+);
+
+/*
+  E nenhuma tela escolhe o lado na mao: quem passa `ordem` deixa a decisao com
+  a regra, e quem passa `mode` decide sozinho — foi assim que um passo da
+  Composta subia enquanto o vizinho deslizava.
+*/
+const TELAS_QUE_TROCAM = [
+  ['screens', 'app', 'PracticesScreen.tsx'],
+  ['screens', 'app', 'SettingsScreen.tsx'],
+  ['screens', 'app', 'PrivacyScreen.tsx'],
+  ['screens', 'composta', 'CompostaScreen.tsx'],
+  ['screens', 'practices', 'PracticeDetailScreen.tsx'],
+  ['navigation', 'RootNavigator.tsx'],
+];
+for (const partes of TELAS_QUE_TROCAM) {
+  const texto = ler('src', ...partes);
+  const nome = partes[partes.length - 1].replace('.tsx', '');
+  confere(
+    nome,
+    !/<ScreenTransition[^>]*mode=/.test(texto),
+    'esta tela voltou a escolher o lado da troca na mao, em vez de declarar a `ordem` das telas dela',
+  );
+  confere(
+    nome,
+    /ordem=\{/.test(texto),
+    'esta tela nao declara mais a ordem das suas telas — sem ela, voltar entra pelo mesmo lado de avancar',
+  );
+}
+
+/* ---------- 9: a cena do cartão para quando a tela assume ---------- */
 
 const toque = ler('src', 'hooks', 'useToqueAnimado.ts');
 

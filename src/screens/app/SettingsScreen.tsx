@@ -84,6 +84,22 @@ function Section({ title, children }: { title: string; children: React.ReactNode
 /** Telas abertas de dentro das Configurações. */
 type Detalhe = 'dados' | 'valores' | 'sobre' | 'politica' | 'lembretes';
 
+/**
+ * A lista e os detalhes dela, na ordem em que se entra.
+ *
+ * E dela que a transicao tira o lado: da lista para um detalhe entra pela
+ * direita, e do detalhe de volta entra pela esquerda. A politica vem depois do
+ * "sobre" porque so se chega a ela por dentro dele.
+ */
+const PASSOS_DAS_CONFIGURACOES = [
+  'lista',
+  'lembretes',
+  'dados',
+  'valores',
+  'sobre',
+  'politica',
+] as const;
+
 export function SettingsScreen({ onBack }: { onBack: () => void }) {
   const { palette } = useTema();
   const insets = useSafeAreaInsets();
@@ -121,7 +137,7 @@ export function SettingsScreen({ onBack }: { onBack: () => void }) {
 
   if (detalhe)
     return (
-      <ScreenTransition transitionKey={detalhe} mode="forward">
+      <ScreenTransition transitionKey={detalhe} ordem={PASSOS_DAS_CONFIGURACOES}>
         {telas[detalhe]}
       </ScreenTransition>
     );
@@ -136,6 +152,7 @@ export function SettingsScreen({ onBack }: { onBack: () => void }) {
   };
 
   return (
+    <ScreenTransition transitionKey="lista" ordem={PASSOS_DAS_CONFIGURACOES}>
     <View style={{ flex: 1, paddingTop: insets.top }}>
       <TopBar title="Configurações" onBack={onBack} />
       <ScrollView
@@ -239,5 +256,6 @@ export function SettingsScreen({ onBack }: { onBack: () => void }) {
         </Section>
       </ScrollView>
     </View>
+    </ScreenTransition>
   );
 }
