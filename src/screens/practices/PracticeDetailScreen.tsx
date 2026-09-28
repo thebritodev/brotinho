@@ -111,7 +111,7 @@ export function PracticeDetailScreen({
 
   if (mode === 'finished') {
     return (
-      <ScreenTransition transitionKey="fim" mode="fade">
+      <ScreenTransition transitionKey="fim" mode="sobe">
       <View
         style={{
           flex: 1,

@@ -18,6 +18,40 @@ import { useMenosMovimento } from './useMenosMovimento';
 export const DURACAO_DO_TOQUE = 350;
 
 /**
+ * Em que ponto da cena a tela nova comeca a entrar.
+ *
+ * ## Por que nao no fim
+ *
+ * Porque duas animacoes em fila nao sao uma transicao fluida: sao duas. Medido
+ * no navegador com a CPU a um quarto, tocar num cartao de pratica deixava a
+ * tela **parada por 600 ms** — os 350 da cena mais o que a tela de destino
+ * levava para montar — e so entao o deslize comecava. Nada travava; era so
+ * espera, e espera entre dois movimentos e exatamente o que se le como corte.
+ *
+ * Disparando a navegacao aos 58% do caminho, a cena ainda esta se mexendo
+ * quando a tela comeca a andar. As duas se sobrepoem por um terco de segundo e
+ * o dedo ve **um** movimento, que e o que se queria desde o comeco: a cena e a
+ * resposta ao toque, e a tela nova e a continuacao dela.
+ *
+ * ## Por que 45%, e por que a cena **para** aqui
+ *
+ * A cena corre com `Easing.out(Easing.quad)`: sai rapido e freia no fim. Aos
+ * 45% do **tempo**, cerca de 70% do **caminho** ja aconteceu — a areia ja
+ * escorreu, a chama ja tremeu, e o que falta e a desaceleracao.
+ *
+ * E neste ponto ela para de vez, em vez de terminar por baixo da tela nova.
+ * Isso nao e economia de enfeite: a cena redesenha o cartao inteiro a cada
+ * quadro, e a tela de destino monta no mesmo instante. Medido no navegador com
+ * a CPU a um quarto, as duas disputando a mesma linha esticavam a montagem de
+ * 110 para 250 ms — adiantar a navegacao sem parar a cena so aumentava a
+ * briga, e o deslize continuava comecando depois de a cena ter acabado.
+ *
+ * Parada, a montagem corre sozinha e o deslize comeca **enquanto** o cartao
+ * ainda esta no lugar em que a cena o deixou. O dedo ve um movimento so.
+ */
+const ONDE_A_TELA_COMECA = 0.45;
+
+/**
  * Toca a cena de um cartão e só então executa a ação dele.
  *
  * A ordem é essa de propósito: a animação é a resposta ao dedo, e resposta que
@@ -73,7 +107,13 @@ export function useToqueAnimado(onPress?: () => void, duracao = DURACAO_DO_TOQUE
     andando.current = true;
     valor.setValue(0);
 
-    Animated.timing(valor, {
+    /*
+      A navegacao sai no meio da cena, por relogio e nao por listener.
+
+      `addListener` no valor animado dispararia a cada quadro e a comparacao
+      teria de ser feita 21 vezes; um `setTimeout` faz a mesma coisa uma vez.
+    */
+    const animacao = Animated.timing(valor, {
       toValue: 1,
       duration: duracao,
       /*
@@ -84,20 +124,33 @@ export function useToqueAnimado(onPress?: () => void, duracao = DURACAO_DO_TOQUE
       easing: Easing.out(Easing.quad),
       /* Não há driver nativo para isto: o destino é um número que vira SVG. */
       useNativeDriver: false,
-    }).start(({ finished }) => {
-      andando.current = false;
+    });
+
+    animacao.start(({ finished }) => {
       /*
-        Animação interrompida não age. Ela só é interrompida quando o cartão sai
-        da tela, e nesse caso a pessoa já está noutro lugar.
+        Chegar ao fim só acontece quando o toque não leva a lugar nenhum — um
+        cartão sem destino não existe aqui, então na prática quem termina é a
+        parada do relógio abaixo. Nos dois casos a cena volta ao repouso, para
+        quem voltar não encontrar a ampulheta vazia e a chuva já caída.
       */
-      if (!finished) return;
+      if (finished) {
+        andando.current = false;
+        valor.setValue(0);
+      }
+    });
+
+    const aMeioCaminho = setTimeout(() => {
+      animacao.stop();
+      andando.current = false;
       onPress();
       /*
-        E a cena volta ao repouso, para quem voltar não encontrar a ampulheta
-        vazia e a chuva já caída.
+        O repouso vem depois, e não junto: zerar a cena no mesmo quadro da
+        navegação faria o cartão dar um salto para trás bem no instante em que
+        a tela nova começa a passar por cima dele. Meio segundo depois ele já
+        está coberto, e ninguém vê a volta.
       */
-      valor.setValue(0);
-    });
+      setTimeout(() => valor.setValue(0), 500);
+    }, duracao * ONDE_A_TELA_COMECA);
   };
 
   return { p, tocar };

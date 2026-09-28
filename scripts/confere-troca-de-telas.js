@@ -39,7 +39,24 @@
  *    sair direto de `sub !== null`;
  * 6. **nenhum corpo de tela lê `useCoberta` ou `useAbaAVista`** — quem lê um
  *    contexto é redesenhado quando ele muda, e os dois mudam no instante de um
- *    toque. Só folha pequena pode ler: a faixa animada, o gatilho de um aviso.
+ *    toque. Só folha pequena pode ler: a faixa animada, o gatilho de um aviso;
+ * 7. a `ScreenTransition` desenha **a tela que sai**, e nenhuma das camadas da
+ *    troca anima opacidade.
+ *
+ * ## A sexta vez, e o que ela acrescentou
+ *
+ * As cinco primeiras consertaram a travada. A sexta era o que sobrava depois
+ * dela: a `ScreenTransition` animava só quem chega. A tela velha sumia no
+ * mesmo quadro do toque, e sumir num quadro é a definição de corte seco, por
+ * mais suave que seja a entrada — não adianta a metade boa quando falta a
+ * outra. Media-se nove a dezesseis quadros de animação e a queixa continuava,
+ * porque o que a pessoa via era metade de uma transição.
+ *
+ * Junto veio o **piscar** de novo, e no único lugar que ainda o tinha: a
+ * `CamadaEmpilhada` entrava esmaecendo de zero a um. Congelado o meio da
+ * animação no navegador, liam-se as duas telas ao mesmo tempo — o cabeçalho
+ * das Configurações escrito por cima do "Oi, Pedro". É a mesma regra das abas:
+ * nenhuma camada de troca pode ser translúcida.
  *
  * Uso: node scripts/confere-troca-de-telas.js
  */
@@ -186,6 +203,56 @@ confere(
   'CamadaEmpilhada',
   /aoCobrir\(true\)/.test(camada) && /aoCobrir\(false\)/.test(camada),
   'a camada não avisa mais os dois lados da cobertura',
+);
+
+/* ---------- 7: a que sai anda, e ninguém é translúcido ---------- */
+
+const transicao = ler('src', 'components', 'ScreenTransition.tsx');
+
+confere(
+  'ScreenTransition',
+  /testID="transicao-que-sai"/.test(transicao),
+  'a transição não desenha mais a tela que sai: ela volta a sumir num quadro só, que é o corte seco',
+);
+confere(
+  'ScreenTransition',
+  /\{noDeSaida\.current\}/.test(transicao),
+  'a tela que sai deixou de ser o elemento congelado do quadro anterior — desse jeito ela é montada de novo dentro do toque',
+);
+confere(
+  'ScreenTransition',
+  /key=\{String\(saindo\)\}/.test(transicao) && /key=\{String\(transitionKey\)\}/.test(transicao),
+  'as duas camadas perderam a `key`: sem ela o React remonta a que sai em vez de reconhecê-la',
+);
+confere(
+  'ScreenTransition',
+  !/opacity: t\b/.test(transicao),
+  'a transição voltou a animar opacidade: duas telas inteiras uma dentro da outra por um quinto de segundo',
+);
+confere(
+  'CamadaEmpilhada',
+  !/opacity: t\b/.test(camada),
+  'a camada empilhada voltou a entrar esmaecendo, e com ela o piscar de duas telas ao mesmo tempo',
+);
+confere(
+  'CamadaEmpilhada',
+  /backgroundColor: colors\.bg/.test(camada),
+  'a camada empilhada ficou sem fundo próprio: sem ele, opaca ou não, o que está por baixo aparece',
+);
+
+/* ---------- 8: a cena do cartão para quando a tela assume ---------- */
+
+const toque = ler('src', 'hooks', 'useToqueAnimado.ts');
+
+confere(
+  'useToqueAnimado',
+  /ONDE_A_TELA_COMECA\b/.test(toque),
+  'o toque voltou a navegar só no fim da cena: 350 ms de cartão, depois a tela — dois movimentos em fila, e o vão entre eles é lido como corte',
+);
+confere(
+  'useToqueAnimado',
+  /animacao\.stop\(\)/.test(toque),
+  'a cena não para mais quando a navegação sai: ela redesenha o cartão a cada quadro enquanto a tela de destino monta, e as duas disputam a mesma linha',
 );
 
 /* ---------- 6: contexto só em folha ---------- */

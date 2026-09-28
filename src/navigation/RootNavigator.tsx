@@ -94,7 +94,7 @@ export function RootNavigator() {
   return (
     // A passagem do onboarding para o app é o corte mais marcante do fluxo:
     // entra suave em vez de trocar de tela de uma vez.
-    <ScreenTransition transitionKey={tela} mode="fade">
+    <ScreenTransition transitionKey={tela} mode="sobe">
       {trancado ? (
         <PaywallGate />
       ) : dentroDoApp ? (

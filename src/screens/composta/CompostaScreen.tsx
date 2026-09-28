@@ -822,7 +822,7 @@ export function CompostaScreen({
   const totalCompostagens = data.composts.length;
 
   return (
-    <ScreenTransition transitionKey="done" mode="fade">
+    <ScreenTransition transitionKey="done" mode="sobe">
     <View style={{ flex: 1, backgroundColor: colors.bg, paddingTop: insets.top }}>
       <ScrollView
         contentContainerStyle={{

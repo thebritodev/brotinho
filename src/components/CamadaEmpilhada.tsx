@@ -2,6 +2,7 @@ import React, { createContext, useContext, useEffect, useRef, useState } from 'r
 import { Animated, Easing, StyleSheet } from 'react-native';
 
 import { useMenosMovimento } from '../hooks/useMenosMovimento';
+import { useTema } from '../theme';
 import { ScreenTransition } from './ScreenTransition';
 
 /**
@@ -95,6 +96,7 @@ type Props<Chave extends string> = {
 };
 
 export function CamadaEmpilhada<Chave extends string>({ aberta, render, aoCobrir }: Props<Chave>) {
+  const { colors } = useTema();
   const menosMovimento = useMenosMovimento();
   /** A tela desenhada: a aberta, ou a que está saindo. */
   const [mostrada, setMostrada] = useState<Chave | null>(aberta);
@@ -188,10 +190,24 @@ export function CamadaEmpilhada<Chave extends string>({ aberta, render, aoCobrir
       testID="camada-empilhada"
       pointerEvents={saindo ? 'none' : 'auto'}
       renderToHardwareTextureAndroid={animando}
+      /*
+        A camada entra **opaca**, e só anda.
+
+        Ela esmaecia de zero a um enquanto deslizava, e esmaecer uma tela
+        inteira por cima de outra mostra, pelos 260 ms da entrada, as duas
+        juntas: o cabeçalho das Configurações escrito por cima do "Oi, Pedro",
+        a frase do dia atravessando a lista de ajustes. Congelado o meio da
+        animação no navegador, dá para ler as duas. É o mesmo "piscar" que a
+        troca de abas teve, e a regra que saiu de lá vale aqui: **nenhuma
+        camada da troca pode ser translúcida** — ver `regrasDasAbas`.
+
+        O fundo vem da `ScreenTransition` de dentro, que pinta a cor do app
+        antes de qualquer conteúdo.
+      */
       style={[
         StyleSheet.absoluteFill,
         {
-          opacity: t,
+          backgroundColor: colors.bg,
           transform: [{ translateX: t.interpolate({ inputRange: [0, 1], outputRange: [DESLIZE, 0] }) }],
         },
       ]}
@@ -202,7 +218,7 @@ export function CamadaEmpilhada<Chave extends string>({ aberta, render, aoCobrir
         camada, então a de dentro não anima ao montar: as duas juntas davam um
         aparecer em câmera lenta.
       */}
-      <ScreenTransition transitionKey={mostrada} mode="fade" semEntrada>
+      <ScreenTransition transitionKey={mostrada} mode="sobe" semEntrada>
         {desenhada.current?.no}
       </ScreenTransition>
     </Animated.View>
