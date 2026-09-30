@@ -1,3 +1,5 @@
+import type { Mood } from '../theme/tokens';
+
 /** Conteúdo do fluxo de onboarding — copy e opções em um só lugar. */
 
 export const CHECKIN = [
@@ -6,6 +8,23 @@ export const CHECKIN = [
   'Por fora está tudo bem, por dentro nem tanto',
   'Estou bem, mas quero me conhecer melhor',
 ];
+
+/**
+ * O céu que cada resposta do check-in pinta atrás do broto.
+ *
+ * As quatro respostas não são humores — são frases sobre as últimas semanas.
+ * Mas o céu do app só sabe falar em humor, e deixá-lo neutro ali desperdiçaria
+ * o primeiro momento em que uma resposta da pessoa muda o mundo em volta do
+ * personagem. A tradução é conservadora de propósito: quem diz que as coisas
+ * andam pesadas ganha o céu triste, quem diz que está bem ganha o leve, e as
+ * duas do meio ficam no azul da ansiedade, que é onde elas de fato moram.
+ */
+export const CEU_DO_CHECKIN: Record<string, Mood> = {
+  'As coisas andam pesadas': 'triste',
+  'Tenho dias bons e dias difíceis': 'ansioso',
+  'Por fora está tudo bem, por dentro nem tanto': 'ansioso',
+  'Estou bem, mas quero me conhecer melhor': 'leve',
+};
 
 export const VALORES = [
   'Criatividade',

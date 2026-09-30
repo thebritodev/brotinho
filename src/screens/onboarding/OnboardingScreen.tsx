@@ -34,6 +34,7 @@ import {
   PRODUTO_DO_PLANO,
   STEPS,
   passoRestaurado,
+  CEU_DO_CHECKIN,
   VERSAO_DOS_PASSOS,
   TENTOU,
   TOTAL,
@@ -45,6 +46,7 @@ import {
   planoDe,
   type PlanKey,
 } from '../../data/onboarding';
+import { ehNoite } from '../../data/falasDoBroto';
 import { useAppState } from '../../state/AppStateProvider';
 import { descartarRascunho, loadRascunho, saveRascunho } from '../../storage/appStorage';
 import { useAssinatura } from '../../state/SubscriptionProvider';
@@ -400,10 +402,21 @@ export function OnboardingScreen() {
     setAvisoDaCompra('Não encontrei uma assinatura ativa nesta conta da loja.');
   };
 
+  /*
+    O céu do onboarding, e a pose de cada passo.
+
+    O céu começa azul de espera e vira o tom do check-in assim que a pessoa
+    responde — é a primeira vez no app em que uma resposta dela muda o mundo em
+    volta do broto. A hora é a do relógio dela: quem faz o onboarding de
+    madrugada faz sob um céu de madrugada, com o tema no claro ou no escuro.
+  */
+  const ceuDoPasso = draft.checkin ? (CEU_DO_CHECKIN[draft.checkin] ?? null) : null;
+  const ehDeNoite = ehNoite(new Date());
+
   const screens: Record<number, React.ReactNode> = {
     [PASSO.INTRO]: (
       <View style={{ alignItems: 'center', gap: 26, paddingVertical: 20 }}>
-        <AnimatedSprout mood="feliz" stage={3} size={brotoGrande} swayOnMount />
+        <AnimatedSprout mood="feliz" stage={3} size={brotoGrande} swayOnMount pose="acena" />
         <View style={{ gap: 12 }}>
           <Text
             style={{
@@ -446,6 +459,9 @@ export function OnboardingScreen() {
         <AskingSprout
           title="Como posso te chamar?"
           sub="Só para eu não falar com você como se fosse um formulário."
+          pose="acena"
+          humor={ceuDoPasso}
+          noite={ehDeNoite}
         />
         <Input placeholder="Seu nome" value={draft.name} onChangeText={(name) => set({ name })} />
       </View>
@@ -470,6 +486,9 @@ export function OnboardingScreen() {
         <AskingSprout
           title={`Prazer${draft.name.trim() ? `, ${draft.name.trim()}` : ''}. E eu, como você quer me chamar?`}
           sub="Pode me dar outro nome ou me deixar como Brotinho. Dá para trocar depois, em Meus dados."
+          pose="pensa"
+          humor={ceuDoPasso}
+          noite={ehDeNoite}
         />
         <Input
           placeholder="Brotinho"
@@ -487,6 +506,9 @@ export function OnboardingScreen() {
           sub="Pense nas últimas semanas, não só em hoje."
           reageA={draft.checkin}
           compacto
+          pose={draft.checkin ? 'calmo' : 'parado'}
+          humor={ceuDoPasso}
+          noite={ehDeNoite}
         />
         <OptionList items={CHECKIN} value={draft.checkin} onPick={(l) => set({ checkin: l })} />
       </View>
@@ -497,6 +519,9 @@ export function OnboardingScreen() {
         kicker={espelhoMomento.kicker}
         title={espelhoMomento.title}
         sub={espelhoMomento.body}
+        pose="calmo"
+        humor={ceuDoPasso}
+        noite={ehDeNoite}
       />
     ) : null,
 
@@ -507,6 +532,9 @@ export function OnboardingScreen() {
           sub="Pode marcar mais de um."
           reageA={draft.tentou.join('|')}
           compacto
+          pose="pensa"
+          humor={ceuDoPasso}
+          noite={ehDeNoite}
         />
         <OptionList items={TENTOU} value={draft.tentou} multi onPick={(l) => toggle('tentou', l)} />
       </View>
@@ -517,6 +545,9 @@ export function OnboardingScreen() {
         kicker={espelhoTentativa.kicker}
         title={espelhoTentativa.title}
         sub={espelhoTentativa.body}
+        pose="calmo"
+        humor={ceuDoPasso}
+        noite={ehDeNoite}
       />
     ) : null,
 
@@ -526,6 +557,9 @@ export function OnboardingScreen() {
           title="O que você queria ter mais no seu dia?"
           sub={`Escolha até ${MAX_VALUES} — ${draft.valores.length} escolhido${draft.valores.length === 1 ? '' : 's'}. Isso vira o que eu procuro no que você escrever.`}
           reageA={draft.valores.join('|')}
+          pose="espreguica"
+          humor={ceuDoPasso}
+          noite={ehDeNoite}
         />
         <OptionList
           items={VALORES}
@@ -542,6 +576,9 @@ export function OnboardingScreen() {
         <AskingSprout
           title="Que horas você costuma ir dormir?"
           sub="Noite mal dormida e dia difícil andam juntos com mais frequência do que parece."
+          pose="dorme"
+          humor={ceuDoPasso}
+          noite
         />
         <TimeWheel value={draft.sleepTime} onChange={(sleepTime) => set({ sleepTime })} />
       </View>

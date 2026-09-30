@@ -1,9 +1,20 @@
 import React from 'react';
 import { Text, useWindowDimensions, View } from 'react-native';
 
-import { fonts, useTema } from '../../theme';
+import { fonts, useTema, type Mood } from '../../theme';
 import { AnimatedSprout } from './AnimatedSprout';
 import { BalaoDoBroto } from './BalaoDoBroto';
+import { Cena, CRISTA_DO_MORRO } from './Cena';
+import type { Pose } from './geometriaDoBroto';
+
+/**
+ * A margem lateral da tela de onboarding, que a faixa de céu precisa desfazer.
+ *
+ * Ela mora no `contentContainerStyle` do `ScrollView` de lá. Escrita aqui como
+ * constante, e não como -20 solto no estilo, porque são dois números que têm
+ * de bater: se a margem de lá mudar, esta linha é a que precisa mudar junto.
+ */
+const MARGEM_DA_TELA = 20;
 
 /**
  * AskingSprout — o broto fazendo a pergunta, com o balão de fala acima dele.
@@ -14,6 +25,19 @@ import { BalaoDoBroto } from './BalaoDoBroto';
  *
  * Ele está sempre no estágio 3 e feliz: é o mesmo rosto do começo ao fim do
  * onboarding, para a pessoa reconhecer quem está falando com ela.
+ *
+ * ## O chão embaixo dele
+ *
+ * No redesenho ele deixa de flutuar sobre o creme e passa a **pisar em algum
+ * lugar**: uma faixa de céu com um morro, que sangra para fora da margem da
+ * tela. A margem é de 20, e a faixa a desfaz com `marginHorizontal: -20` —
+ * negativa, e não posição absoluta, porque posição absoluta fora dos limites
+ * do pai não desenha no Android.
+ *
+ * A cor do céu é a resposta da pessoa: enquanto ela não disse como tem estado,
+ * é o azul de espera; depois, é o tom do humor que ela marcou. É a primeira
+ * vez no app em que uma resposta muda o mundo em volta do broto, e é de
+ * propósito que seja no onboarding.
  */
 
 type Props = {
@@ -27,9 +51,24 @@ type Props = {
    * ficar pequeno no app inteiro por causa das duas mais cheias.
    */
   compacto?: boolean;
+  /** O que ele faz neste passo — acena na chegada, pensa quando pergunta. */
+  pose?: Pose;
+  /** O céu atrás dele. Antes do check-in, o azul de espera. */
+  humor?: Mood | null;
+  /** Depois do pôr do sol o céu escurece, mesmo no tema claro. */
+  noite?: boolean;
 };
 
-export function AskingSprout({ title, sub, kicker, reageA = null, compacto = false }: Props) {
+export function AskingSprout({
+  title,
+  sub,
+  kicker,
+  reageA = null,
+  compacto = false,
+  pose = 'parado',
+  humor = null,
+  noite = false,
+}: Props) {
   const { colors, palette } = useTema();
   const { width, height } = useWindowDimensions();
   /**
@@ -44,6 +83,16 @@ export function AskingSprout({ title, sub, kicker, reageA = null, compacto = fal
   const sproutSize = compacto
     ? Math.min(width * 0.30, height * 0.095)
     : Math.min(width * 0.44, height * 0.17);
+
+  /*
+    Sem vaso, o broto nasce da terra — e o pé dele precisa ficar **abaixo** da
+    linha do morro, senão a haste parece pousada em cima do chão em vez de
+    plantada nele. Uma fração do tamanho, e não um número fixo, porque ele
+    encolhe nas telas compactas.
+  */
+  const RAIZ_ENTERRADA = Math.round(sproutSize * 0.06);
+  /* A altura do desenho sem vaso é `size * 1,12` — ver `quadroDoBroto`. */
+  const alturaDaFaixa = Math.round(sproutSize * 1.12) + CRISTA_DO_MORRO.grama + 10;
 
   return (
     <View style={{ alignItems: 'center', gap: 2 }}>
@@ -91,13 +140,47 @@ export function AskingSprout({ title, sub, kicker, reageA = null, compacto = fal
         )}
       </BalaoDoBroto>
 
-      <AnimatedSprout
-        mood="feliz"
-        stage={3}
-        size={sproutSize}
-        bamboleia
-        swayOn={reageA}
-      />
+      {/*
+        A faixa de céu tem a altura do broto mais o morro, e nada além disso.
+
+        Uma faixa mais alta subiria atrás do balão e o balão branco sobre céu
+        azul perderia o contorno; mais baixa, o broto ficaria com a cabeça
+        fora do mundo dele.
+      */}
+      <View style={{ marginHorizontal: -MARGEM_DA_TELA, marginTop: 6 }}>
+        <View style={{ height: alturaDaFaixa }}>
+          <Cena
+            largura={width}
+            altura={alturaDaFaixa}
+            humor={humor ?? undefined}
+            ceu={humor ? undefined : palette.blue100}
+            noite={noite}
+            semAstro
+            nuvens={false}
+            chao="grama"
+            capim
+          />
+          <View
+            style={{
+              position: 'absolute',
+              left: 0,
+              right: 0,
+              bottom: CRISTA_DO_MORRO.grama - RAIZ_ENTERRADA,
+              alignItems: 'center',
+            }}
+          >
+            <AnimatedSprout
+              mood="feliz"
+              stage={3}
+              size={sproutSize}
+              bamboleia
+              swayOn={reageA}
+              pose={pose}
+              showPot={false}
+            />
+          </View>
+        </View>
+      </View>
     </View>
   );
 }

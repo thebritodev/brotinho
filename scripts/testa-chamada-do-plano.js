@@ -48,7 +48,29 @@ function confere(descricao, obtido, esperado) {
     { stdio: 'inherit', cwd: RAIZ },
   );
 
-  const js = path.join(saida, 'onboarding.js');
+  /*
+    O `tsc` emite espelhando a pasta comum das entradas, e ela muda.
+
+    Enquanto `onboarding.ts` nao importava nada de fora de `src/data`, a saida
+    era `onboarding.js` na raiz da pasta temporaria. Bastou um `import type` de
+    `src/theme` para a pasta comum virar `src`, e o arquivo passar a sair em
+    `data/onboarding.js` — com o caminho escrito a mao, o teste quebrou num
+    `rename` de arquivo inexistente, sem dizer que o problema era esse.
+
+    Procurar resolve de uma vez, para qualquer import que venha depois.
+  */
+  const procura = (dir) => {
+    for (const e of fs.readdirSync(dir, { withFileTypes: true })) {
+      const p = path.join(dir, e.name);
+      if (e.isDirectory()) {
+        const achado = procura(p);
+        if (achado) return achado;
+      } else if (e.name === 'onboarding.js') return p;
+    }
+    return null;
+  };
+  const js = procura(saida);
+  if (!js) throw new Error('nao achei onboarding.js na saida do tsc');
   const mjs = js.replace(/\.js$/, '.mjs');
   fs.renameSync(js, mjs);
   const { chamadaDoPlano, PLANS } = await import('file://' + mjs.split(path.sep).join('/'));
