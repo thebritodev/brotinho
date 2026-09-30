@@ -3,6 +3,7 @@ import { AccessibilityInfo, Animated, Easing, Pressable, Text, View } from 'reac
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { fonts, useTema } from '../../theme';
+import { lacoQueSoVai } from '../laco';
 import { BrotinhoMark, MARK_DISCO } from '../brand/BrotinhoMark';
 import { Icon, type IconName } from '../core/Icon';
 
@@ -246,14 +247,7 @@ export function BottomNav({ active = 'home', onChange }: Props) {
       [marolaDeTras, ONDA_DE_TRAS.giro] as const,
     ].map(([valor, duracao]) => {
       valor.setValue(0);
-      return Animated.loop(
-        Animated.timing(valor, {
-          toValue: 1,
-          duration: duracao,
-          easing: Easing.linear,
-          useNativeDriver: true,
-        }),
-      );
+      return lacoQueSoVai(valor, { ms: duracao, easing: Easing.linear });
     });
     lacos.forEach((l) => l.start());
     const pararMarola = () => lacos.forEach((l) => l.stop());

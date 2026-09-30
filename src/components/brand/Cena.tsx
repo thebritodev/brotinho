@@ -1,8 +1,9 @@
 import React, { useEffect, useRef } from 'react';
-import { Animated, Easing, View } from 'react-native';
+import { Animated, View } from 'react-native';
 import Svg, { Path, Rect } from 'react-native-svg';
 
 import { useMenosMovimento } from '../../hooks/useMenosMovimento';
+import { lacoDeIdaEVolta } from '../laco';
 import { useTema, type Mood } from '../../theme';
 import { palette } from '../../theme/tokens';
 import { TERRA, TERRA_FUNDA } from './terraDoCanteiro';
@@ -98,6 +99,21 @@ export type ChaoDaCena = 'grama' | 'terra' | 'nenhum';
 export const LINHA_DO_CHAO: Record<ChaoDaCena, number> = {
   grama: 46,
   terra: 50,
+  nenhum: 0,
+};
+
+/**
+ * A altura do chão **no meio** da cena, que é onde o broto costuma ficar.
+ *
+ * `LINHA_DO_CHAO` é onde o chão encosta nas bordas; o morro sobe no meio, e
+ * plantar o broto na altura da borda o deixaria com os pés enterrados. Os dois
+ * números saem da mesma curva: uma Bézier cúbica no meio vale
+ * `(inicio + 3·controle + 3·controle + fim) / 8`, e é essa conta, e não uma
+ * medida no olho, que mantém os dois juntos se a curva mudar.
+ */
+export const CRISTA_DO_MORRO: Record<ChaoDaCena, number> = {
+  grama: (46 + 78 * 3 + 78 * 3 + 46) / 8,
+  terra: (50 + 72 * 3 + 72 * 3 + 50) / 8,
   nenhum: 0,
 };
 
@@ -275,15 +291,7 @@ function Sol({ x, y, k, parado }: { x: number; y: number; k: number; parado: boo
       passo.setValue(0.5);
       return;
     }
-    const meia = (para: number) =>
-      Animated.timing(passo, {
-        toValue: para,
-        duration: HALO_MS / 2,
-        easing: Easing.inOut(Easing.sin),
-        useNativeDriver: true,
-        isInteraction: false,
-      });
-    const laco = Animated.loop(Animated.sequence([meia(1), meia(0)]));
+    const laco = lacoDeIdaEVolta(passo, { ms: HALO_MS });
     laco.start();
     return () => laco.stop();
   }, [parado]);
@@ -345,15 +353,7 @@ function Estrela({
       passo.setValue(0);
       return;
     }
-    const meia = (para: number) =>
-      Animated.timing(passo, {
-        toValue: para,
-        duration: ms / 2,
-        easing: Easing.inOut(Easing.sin),
-        useNativeDriver: true,
-        isInteraction: false,
-      });
-    const laco = Animated.loop(Animated.sequence([meia(1), meia(0)]));
+    const laco = lacoDeIdaEVolta(passo, { ms });
     laco.start();
     return () => laco.stop();
   }, [ms, parado]);
@@ -399,15 +399,7 @@ function Nuvem({
       passo.setValue(0);
       return;
     }
-    const meia = (para: number) =>
-      Animated.timing(passo, {
-        toValue: para,
-        duration: ms / 2,
-        easing: Easing.inOut(Easing.sin),
-        useNativeDriver: true,
-        isInteraction: false,
-      });
-    const laco = Animated.loop(Animated.sequence([meia(1), meia(0)]));
+    const laco = lacoDeIdaEVolta(passo, { ms });
     laco.start();
     return () => laco.stop();
   }, [ms, parado]);

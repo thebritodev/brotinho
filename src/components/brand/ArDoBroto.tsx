@@ -3,6 +3,7 @@ import { Animated, Easing, View } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
 
 import { useMenosMovimento } from '../../hooks/useMenosMovimento';
+import { lacoDeIdaEVolta, lacoQueSoVai } from '../laco';
 import { palette } from '../../theme/tokens';
 import { AR_DO_BROTO, noAr, type LugarNoAr } from './geometriaDoBroto';
 
@@ -119,23 +120,16 @@ function Pedaco({
       return;
     }
     passo.setValue(0);
-    const laco = Animated.loop(
-      Animated.timing(passo, {
-        toValue: 1,
-        duration: ms,
-        easing: ar === 'zzz' ? Easing.linear : Easing.inOut(Easing.sin),
-        useNativeDriver: true,
-        /*
-          Decorativo, e por isso fora da fila de interações.
+    /*
+      O zê sobe e some numa passada só; o brilho pisca e volta.
 
-          Um laço infinito registrado como interação deixa o
-          `InteractionManager` achar que a tela nunca assentou, e tudo que
-          espera por ele — a navegação, o carregamento preguiçoso — fica
-          esperando para sempre.
-        */
-        isInteraction: false,
-      }),
-    );
+      São os dois formatos de laço, e a escolha não é de gosto: um zê que
+      voltasse animando desceria de volta para a cabeça do broto.
+    */
+    const laco =
+      ar === 'zzz'
+        ? lacoQueSoVai(passo, { ms, easing: Easing.linear })
+        : lacoDeIdaEVolta(passo, { ms });
     const id = setTimeout(() => laco.start(), atraso);
     return () => {
       clearTimeout(id);

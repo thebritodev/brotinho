@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { AccessibilityInfo, Animated, Easing, View } from 'react-native';
 
+import { lacoDeIdaEVolta, lacoQueSoVai } from '../laco';
 import { type Mood } from '../../theme';
 import { ArDoBroto } from './ArDoBroto';
 import {
@@ -213,22 +214,7 @@ export function AnimatedSprout({
       return;
     }
     // Inspirar é mais curto que expirar, como numa respiração calma de verdade.
-    const laco = Animated.loop(
-      Animated.sequence([
-        Animated.timing(breath, {
-          toValue: 1,
-          duration: BREATH_IN_MS,
-          easing: Easing.inOut(Easing.sin),
-          useNativeDriver: true,
-        }),
-        Animated.timing(breath, {
-          toValue: 0,
-          duration: BREATH_OUT_MS,
-          easing: Easing.inOut(Easing.sin),
-          useNativeDriver: true,
-        }),
-      ]),
-    );
+    const laco = lacoDeIdaEVolta(breath, { ms: BREATH_IN_MS, msVolta: BREATH_OUT_MS });
     laco.start();
     return () => laco.stop();
   }, [breathe, reduceMotion]);
@@ -257,16 +243,14 @@ export function AnimatedSprout({
     }
     const ms = p.folhas?.ms ?? p.pulo?.ms ?? 1000;
     cicloDaPose.setValue(0);
-    const laco = Animated.loop(
-      Animated.timing(cicloDaPose, {
-        toValue: 1,
-        duration: ms,
-        easing: Easing.inOut(Easing.sin),
-        useNativeDriver: true,
-        /* Decorativo e infinito: fora da fila do `InteractionManager`. */
-        isInteraction: false,
-      }),
-    );
+    /*
+      O ciclo vai de 0 a 1 e recomeça do zero, sem voltar animando.
+
+      Cabe porque as duas curvas de folha terminam onde começaram — o aceno em
+      cinco paradas, o resto em três —, então a volta a zero cai num ponto que
+      já era zero e não aparece. Ver `giroDaFolha`.
+    */
+    const laco = lacoQueSoVai(cicloDaPose, { ms });
     laco.start();
     return () => laco.stop();
   }, [temCicloDePose, pose]);
@@ -281,16 +265,7 @@ export function AnimatedSprout({
       quando o componente monta, e duas animações estreando juntas fazem o
       broto parecer que tremeu em vez de que respirou.
     */
-    const meia = (para: number) =>
-      Animated.timing(brisa, {
-        toValue: para,
-        duration: msDoBalanco / 2,
-        easing: Easing.inOut(Easing.sin),
-        useNativeDriver: true,
-        /* Decorativo e infinito: fora da fila do `InteractionManager`. */
-        isInteraction: false,
-      });
-    const laco = Animated.loop(Animated.sequence([meia(1), meia(0)]));
+    const laco = lacoDeIdaEVolta(brisa, { ms: msDoBalanco });
     const id = setTimeout(() => laco.start(), 500);
     return () => {
       clearTimeout(id);
@@ -412,6 +387,7 @@ export function AnimatedSprout({
           return (
             <Animated.View
               key={indice}
+              testID="folha-que-mexe"
               style={{
                 position: 'absolute',
                 left: pe.x - lado / 2,

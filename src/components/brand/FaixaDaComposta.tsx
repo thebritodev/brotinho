@@ -4,6 +4,7 @@ import Svg, { Defs, Ellipse, LinearGradient, Path, RadialGradient, Rect, Stop } 
 
 import { fraseQueODiaDemonstra } from '../../data/composta';
 import { useMenosMovimento } from '../../hooks/useMenosMovimento';
+import { lacoQueSoVai } from '../laco';
 import { useAbaAVista } from '../AbasVivas';
 import { useCoberta } from '../CamadaEmpilhada';
 import { BrotoNaTerra } from './BrotoAoVento';
@@ -403,7 +404,10 @@ export function FaixaDaComposta({
         easing: Easing.linear,
         useNativeDriver: true,
       });
-    const animacao = Animated.sequence([volta(1), Animated.loop(volta(2))]);
+    const animacao = Animated.sequence([
+      volta(1),
+      lacoQueSoVai(tempo, { ms: plano.cicloMs, easing: Easing.linear, ate: 2 }),
+    ]);
     const espera = setTimeout(() => animacao.start(), ESPERA_PARA_LER);
 
     return () => {

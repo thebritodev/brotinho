@@ -3,6 +3,7 @@ import { Animated, Easing, View, type StyleProp, type ViewStyle } from 'react-na
 import Svg, { Circle } from 'react-native-svg';
 
 import { useTema } from '../../theme';
+import { lacoDeIdaEVolta } from '../laco';
 
 /**
  * A luz que cai sobre o broto.
@@ -324,14 +325,7 @@ export function LuzDeEstufa({
       no mesmo tempo. O movimento acelerava de repente ao dobrar a esquina, e
       foi isso, e não a lentidão, o "cortado" que apareceu no aparelho.
     */
-    const meia = (para: number) =>
-      Animated.timing(pulso, {
-        toValue: para,
-        duration: PULSO_MS / 2,
-        easing: Easing.inOut(Easing.sin),
-        useNativeDriver: true,
-      });
-    const laco = Animated.loop(Animated.sequence([meia(1), meia(0)]));
+    const laco = lacoDeIdaEVolta(pulso, { ms: PULSO_MS });
     laco.start();
     return () => laco.stop();
   }, []);

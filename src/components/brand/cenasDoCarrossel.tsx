@@ -14,6 +14,7 @@ import Svg, {
 
 import { fraseQueODiaDemonstra } from '../../data/composta';
 import { useMenosMovimento } from '../../hooks/useMenosMovimento';
+import { lacoQueSoVai } from '../laco';
 import { fonts } from '../../theme';
 import { palette, tracos } from '../../theme/tokens';
 import { DesenhoDoTema } from './desenhosDosTemas';
@@ -476,14 +477,11 @@ export function CenaDaComposta({
       pousando, e não uma coisa se desfazendo. E, num laço, a emenda entre o
       fim lento e o começo lento aparece como uma batida a cada volta.
     */
-    const laco = Animated.loop(
-      Animated.timing(valor, {
-        toValue: 1,
-        duration: QUEDA_DA_PALAVRA * palavras.length,
-        easing: Easing.linear,
-        useNativeDriver: false,
-      }),
-    );
+    const laco = lacoQueSoVai(valor, {
+      ms: QUEDA_DA_PALAVRA * palavras.length,
+      easing: Easing.linear,
+      nativo: false,
+    });
     const espera = setTimeout(() => laco.start(), ESPERA_PARA_LER);
     return () => {
       clearTimeout(espera);

@@ -3,6 +3,7 @@ import { Animated, Easing, View } from 'react-native';
 import Svg, { Defs, G, LinearGradient, Path, Stop } from 'react-native-svg';
 
 import { useMenosMovimento } from '../../hooks/useMenosMovimento';
+import { lacoQueSoVai } from '../laco';
 import { tracos } from '../../theme/tokens';
 
 /**
@@ -261,14 +262,7 @@ export function BrotoNaTerra({
       brisa.setValue(0);
       return;
     }
-    const volta = Animated.loop(
-      Animated.timing(brisa, {
-        toValue: 1,
-        duration: CICLO_MS,
-        easing: Easing.linear,
-        useNativeDriver: true,
-      }),
-    );
+    const volta = lacoQueSoVai(brisa, { ms: CICLO_MS, easing: Easing.linear });
     volta.start();
     return () => volta.stop();
   }, [ativa, menosMovimento, brisa]);
