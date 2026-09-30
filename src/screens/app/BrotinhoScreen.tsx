@@ -17,7 +17,11 @@ import {
   BalaoDoBroto,
   Button,
   Card,
+  CartaoDosEstagios,
   CartaoHeroi,
+  Cena,
+  CRISTA_DO_MORRO,
+  NOMES_DOS_ESTAGIOS,
   CenaDeCrescimento,
   CenaDoDiario,
   CrossedCard,
@@ -28,12 +32,12 @@ import {
   MemoryCard,
   MoodSelector,
   PalavraDoHumor,
-  TopBar,
   useAbaAVista,
   useCoberta,
   type IconName,
   type OrigemDoBroto,
 } from '../../components';
+import { falasDaCasa, ehNoite, horaDaCena } from '../../data/falasDoBroto';
 import { DIA_PESADO } from '../../data/humores';
 import { proximoPasso } from '../../data/primeiraSemana';
 import { saudacaoDoDia } from '../../data/saudacao';
@@ -44,13 +48,15 @@ import {
   compostaParaRepesar,
   dayKey,
   daysCaredFor,
+  daysToNextStage,
+  diasNoCiclo,
   lembranca,
   padraoDoDia,
   sproutStage,
 } from '../../state/derived';
 import type { Compost } from '../../state/types';
 import { ANCORA_RAPIDA } from '../../data/practices';
-import { fonts, useTema } from '../../theme';
+import { fonts, radius, useTema } from '../../theme';
 import { POR_TRAS_DA_BARRA } from '../../components/navigation/BottomNav';
 
 /**
@@ -140,11 +146,16 @@ function GatilhoDaCelebracao({ pronto, aoComecar }: { pronto: boolean; aoComecar
  * Um componente só para isto pelo mesmo motivo do `GatilhoDaCelebracao`: ler
  * a resposta aqui redesenha o broto, e não a aba inteira.
  */
-type BrotoDaAbaProps = Pick<React.ComponentProps<typeof AnimatedSprout>, 'mood' | 'stage' | 'size'>;
+type BrotoDaAbaProps = Pick<
+  React.ComponentProps<typeof AnimatedSprout>,
+  'mood' | 'stage' | 'size' | 'pose'
+>;
 
-function BrotoDaAba({ mood, stage, size }: BrotoDaAbaProps) {
+function BrotoDaAba({ mood, stage, size, pose }: BrotoDaAbaProps) {
   const aVista = useAbaAVista();
-  return <AnimatedSprout mood={mood} stage={stage} size={size} bamboleia={aVista} />;
+  return (
+    <AnimatedSprout mood={mood} stage={stage} size={size} bamboleia={aVista} pose={pose} />
+  );
 }
 
 export function BrotinhoScreen({
@@ -157,7 +168,7 @@ export function BrotinhoScreen({
   rolagemInicial = 0,
   aoRolar,
 }: Props) {
-  const { colors, palette } = useTema();
+  const { colors, palette, shadows } = useTema();
   const insets = useSafeAreaInsets();
   const { width, height } = useWindowDimensions();
   const { data, setTodayMood, setTodayPalavra, repesarComposta, markStageSeen } = useAppState();
@@ -278,6 +289,34 @@ export function BrotinhoScreen({
 
   const padrao = useMemo(() => padraoDoDia(data), [data]);
 
+  /*
+    A cena ocupa pouco menos da metade da tela.
+
+    O protótipo desenha 420 sobre 844. Como fração, o enquadramento sobrevive a
+    aparelhos curtos — onde 420 fixos empurrariam a pergunta do humor para fora
+    da primeira dobra, que é justamente o que esta aba não pode fazer.
+  */
+  const alturaDaCena = Math.max(300, Math.min(height * 0.5, 460));
+  const ehDeNoite = ehNoite(new Date());
+
+  /*
+    A pose segue a hora: ele se espreguiça de manhã, fica parado de tarde e
+    cochila de noite. É o mesmo relógio que pinta o céu, e por isso as duas
+    coisas nunca se contradizem — não existe broto dormindo sob o sol.
+  */
+  const poseDaHora =
+    horaDaCena(new Date()) === 'manha'
+      ? 'espreguica'
+      : ehDeNoite
+        ? 'dorme'
+        : 'parado';
+
+  /*
+    O rodízio de falas. Tocar no broto passa para a seguinte, e a conta não
+    zera ao trocar de aba: quem voltou quer continuar a conversa, não recomeçá-la.
+  */
+  const [falaAtual, setFalaAtual] = useState(0);
+
   /**
    * A frase compostada que voltou para ser pesada — ver `AFraseVoltou`.
    *
@@ -307,6 +346,15 @@ export function BrotinhoScreen({
   /** O nome que ela deu ao broto — e "Brotinho" para quem manteve. */
   const nomeDoBroto = data.profile.nomeDoBroto.trim() || 'Brotinho';
 
+  const faltamParaOProximo = daysToNextStage(data);
+  const falas = falasDaCasa({
+    nome: data.profile.name.trim() || 'você',
+    humor: mood,
+    hora: horaDaCena(new Date()),
+    folhasQueFaltam: faltamParaOProximo ?? 0,
+  });
+  const fala = falas[falaAtual % falas.length];
+
   const linha = (icone: IconName, rotulo: string, aoTocar: () => void) => (
     <Pressable
       accessibilityRole="button"
@@ -325,8 +373,15 @@ export function BrotinhoScreen({
   );
 
   return (
-    <View style={{ flex: 1, paddingTop: insets.top }}>
-      <TopBar title={nomeDoBroto} />
+    /*
+      Sem `TopBar`, e sem recuo no topo.
+
+      O nome do broto estava escrito duas vezes — pequeno na barra e grande
+      logo abaixo da cena —, e a barra roubava do céu justamente a faixa em
+      que ele precisa passar por trás da hora e da bateria. A cena agora sobe
+      até a borda do aparelho, e o que sobra de recuo cada bloco pede para si.
+    */
+    <View style={{ flex: 1 }}>
 
       <ScrollView
         ref={rolagem}
@@ -346,106 +401,164 @@ export function BrotinhoScreen({
           jaRestaurou.current = true;
           rolagem.current?.scrollTo({ y: alturaInicial, animated: false });
         }}
-        contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 32 + POR_TRAS_DA_BARRA, gap: 22 }}
+        contentContainerStyle={{
+          paddingHorizontal: 20,
+          paddingBottom: 32 + POR_TRAS_DA_BARRA,
+          gap: 22,
+        }}
         showsVerticalScrollIndicator={false}
       >
-        {/* O bico do balão avança para dentro do desenho; o `zIndex` mantém a
-            ponta por cima da luz, que é opaca. */}
-        <BalaoDoBroto style={{ marginBottom: -14, zIndex: 1 }}>
-          <Text
+        {/*
+          A cena: o broto num lugar, e não sobre um fundo.
+
+          Ela sangra para fora da margem de 20 com margem negativa — posição
+          absoluta fora dos limites do pai não desenha no Android. O céu é o
+          humor de hoje e a hora do relógio da pessoa; a `LuzDeEstufa` saiu
+          porque halo sobre céu vira mancha, e o que fazia o broto se destacar
+          do creme agora é o próprio céu atrás dele.
+        */}
+        <View style={{ marginHorizontal: -20 }}>
+          <View style={{ height: alturaDaCena + insets.top }}>
+            <Cena
+              largura={width}
+              altura={alturaDaCena + insets.top}
+              humor={mood}
+              noite={ehDeNoite}
+              chao="grama"
+              capim
+            />
+
+            {/*
+              Tocar no broto faz ele falar outra coisa. É o único toque do app
+              que não leva a lugar nenhum, e é de propósito: é o gesto de fazer
+              carinho no bicho, que não tem função e é metade do motivo de ter
+              um bicho. O jardim, que antes morava neste toque, tem a linha
+              dele logo abaixo — e tinha de ter, porque nada no desenho dizia
+              que ele era um botão.
+            */}
+            <View
+              ref={molduraDoBroto}
+              collapsable={false}
+              style={{
+                position: 'absolute',
+                left: 0,
+                right: 0,
+                bottom: CRISTA_DO_MORRO.grama - 6,
+                alignItems: 'center',
+              }}
+            >
+              <Pressable
+                accessibilityRole="button"
+                accessibilityLabel={`Falar com ${nomeDoBroto}`}
+                onPress={() => {
+                  toqueLeve(data.settings.vibracao);
+                  setFalaAtual((n) => n + 1);
+                }}
+                onLongPress={__DEV__ ? comecarCelebracao : undefined}
+              >
+                <BrotoDaAba mood={mood} stage={stage} size={sproutSize} pose={poseDaHora} />
+              </Pressable>
+            </View>
+
+            <BalaoDoBroto
+              lado="direita"
+              apareceEm={fala}
+              style={{ position: 'absolute', left: 20, top: insets.top + 16, maxWidth: 190 }}
+            >
+              <Text
+                style={{
+                  fontFamily: fonts.body.bold,
+                  fontSize: 14.5,
+                  lineHeight: 14.5 * 1.35,
+                  color: colors.textPrimary,
+                }}
+              >
+                {fala}
+              </Text>
+            </BalaoDoBroto>
+          </View>
+        </View>
+
+        <View style={{ alignItems: 'center', gap: 12, marginTop: -8 }}>
+          <View style={{ alignItems: 'center', gap: 2 }}>
+            <Text
+              style={{
+                color: colors.textPrimary,
+                fontFamily: fonts.display.extraBold,
+                fontSize: 30,
+                lineHeight: 30 * 1.1,
+              }}
+            >
+              {nomeDoBroto}
+            </Text>
+            <Text
+              style={{ fontFamily: fonts.body.regular, fontSize: 15, color: palette.brown700 }}
+            >
+              {NOMES_DOS_ESTAGIOS[stage - 1]} · cuidando de você há {diasCuidados}
+              {diasCuidados === 1 ? ' dia' : ' dias'}
+            </Text>
+          </View>
+          {/*
+            A pergunta do humor num cartão, e não solta sobre o creme.
+
+            Ela é a única coisa desta tela que se **responde**, e cartão é o que
+            o app usa para dizer "aqui tem algo a fazer". Solta, ela lia como
+            legenda do desenho — o que era verdade antes de o desenho ter um
+            céu próprio, e deixou de ser.
+          */}
+          <View
             style={{
-              fontFamily: fonts.body.regular,
-              fontSize: 15,
-              lineHeight: 15 * 1.5,
-              color: palette.brown700,
-              textAlign: 'center',
+              alignSelf: 'stretch',
+              backgroundColor: colors.surface,
+              borderRadius: radius.xl,
+              paddingVertical: 18,
+              paddingHorizontal: 16,
+              alignItems: 'center',
+              gap: 14,
+              ...shadows.sm,
             }}
           >
-            {saudacao}
-          </Text>
-        </BalaoDoBroto>
-
-        <View style={{ alignItems: 'center', gap: 12 }}>
-          {/* O broto é a porta do próprio histórico: tocar nele abre o jardim. */}
-          {/*
-            A moldura existe para ser medida: é dela que sai a `origem` da
-            cena de crescimento. `collapsable` falso porque o Android achata
-            `View` que só embrulha, e `View` achatada não se deixa medir.
-          */}
-          <View ref={molduraDoBroto} collapsable={false}>
-            <Pressable
-              accessibilityRole="button"
-              accessibilityLabel="Ver meu jardim"
-              onPress={onOpenGarden}
-              /*
-                Atalho **só na build de desenvolvimento**: segurar o broto roda
-                a cena de crescimento na hora.
-
-                Ela depende de dias de uso de verdade, e esperar três dias para
-                conferir um ajuste de animação não é conferir. `__DEV__` é
-                falso em qualquer build que vá para loja, então isto não existe
-                para quem instala o app.
-              */
-              onLongPress={
-                __DEV__
-                  ? () => {
-                      molduraDoBroto.current?.measureInWindow((x, y, largura, altura) => {
-                        setOrigemDoBroto(largura > 0 ? { x, y, largura, altura } : null);
-                        setCelebrando(true);
-                      });
-                    }
-                  : undefined
-              }
-              style={{ marginHorizontal: -20 }}
-            >
-              <LuzDeEstufa diametro={diametroDaLuz}>
-                <BrotoDaAba mood={mood} stage={stage} size={sproutSize} />
-              </LuzDeEstufa>
-            </Pressable>
-          </View>
-
-          {/* Nada no desenho diz que ele é um botão. A dica fica até a primeira
-              visita ao jardim e depois some. */}
-          {!data.jardimAberto && (
-            <Pressable
-              accessibilityRole="button"
-              accessibilityLabel="Ver meu jardim"
-              onPress={onOpenGarden}
-              hitSlop={8}
-              style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: -4 }}
-            >
-              <Icon name="leaf" size={14} color={colors.primaryStrong} />
-              <Text style={{ fontFamily: fonts.body.bold, fontSize: 13, color: palette.brown400 }}>
-                Toque em mim para ver seu jardim
-              </Text>
-            </Pressable>
-          )}
-
-          <Text style={{ color: colors.textPrimary, fontFamily: fonts.body.bold, fontSize: 16 }}>
-            Como você está se sentindo hoje?
-          </Text>
-          <MoodSelector
-            value={mood}
-            onChange={(m) => {
-              toqueLeve(data.settings.vibracao);
-              setTodayMood(m);
-            }}
-            faceSize={faceSize}
-          />
-
-          {/* A palavra é a mesma pergunta, mais fina. Ela mora aqui inteira; na
-              tela inicial ficam só as carinhas. */}
-          {!!humorMarcado && (
-            <PalavraDoHumor
-              mood={humorMarcado}
-              value={registroDeHoje?.palavra}
-              onChange={(p) => {
+            <Text style={{ color: colors.textPrimary, fontFamily: fonts.body.bold, fontSize: 16 }}>
+              Como você está se sentindo hoje?
+            </Text>
+            <MoodSelector
+              value={mood}
+              onChange={(m) => {
                 toqueLeve(data.settings.vibracao);
-                setTodayPalavra(p);
+                setTodayMood(m);
               }}
+              faceSize={faceSize}
             />
-          )}
+
+            {/* A palavra é a mesma pergunta, mais fina. Ela mora aqui inteira; na
+                tela inicial ficam só as carinhas. */}
+            {!!humorMarcado && (
+              <PalavraDoHumor
+                mood={humorMarcado}
+                value={registroDeHoje?.palavra}
+                onChange={(p) => {
+                  toqueLeve(data.settings.vibracao);
+                  setTodayPalavra(p);
+                }}
+              />
+            )}
+          </View>
         </View>
+
+        {/*
+          Onde ele está no crescimento — e para onde vai.
+
+          Vem logo depois do humor porque é a resposta ao que ela acabou de
+          fazer: marcar como está é o que faz o dia contar. Antes, o único
+          lugar que dizia isso era o cabeçalho da aba, com uma palavra só, e o
+          próximo passo não aparecia em lugar nenhum.
+        */}
+        <CartaoDosEstagios
+          estagio={stage}
+          dias={diasNoCiclo(data)}
+          faltam={faltamParaOProximo}
+          nome={nomeDoBroto}
+        />
 
         {!!padrao && (
           <View>

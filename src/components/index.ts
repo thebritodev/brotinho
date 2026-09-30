@@ -9,6 +9,7 @@ export { Switch } from './core/Switch';
 
 export { AnimatedSprout } from './brand/AnimatedSprout';
 export { ArDoBroto } from './brand/ArDoBroto';
+export { CartaoDosEstagios, NOMES_DOS_ESTAGIOS } from './brand/CartaoDosEstagios';
 export { Cena, CRISTA_DO_MORRO, LINHA_DO_CHAO, type ChaoDaCena } from './brand/Cena';
 export { AskingSprout } from './brand/AskingSprout';
 export { BrotinhoMark, MARK_DISCO, MARK_TRACO } from './brand/BrotinhoMark';
