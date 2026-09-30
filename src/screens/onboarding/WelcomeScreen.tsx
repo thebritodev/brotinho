@@ -10,7 +10,15 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { Button, TrazerDeVolta, WindowScene } from '../../components';
+import {
+  AnimatedSprout,
+  BalaoDoBroto,
+  Button,
+  Cena,
+  CRISTA_DO_MORRO,
+  TrazerDeVolta,
+} from '../../components';
+import { NA_CHEGADA } from '../../data/falasDoBroto';
 import { fonts, radius, useTema } from '../../theme';
 
 /**
@@ -20,11 +28,30 @@ import { fonts, radius, useTema } from '../../theme';
  * escreve sai do aparelho, e é isso que o app promete no Sobre e na política
  * de privacidade. Em vez de um "entrar" que não teria onde entrar, o segundo
  * botão explica como os registros voltam depois de reinstalar.
+ *
+ * ## O que mudou no redesenho
+ *
+ * A janela com as plantas saiu, e no lugar entrou o **broto acenando numa
+ * cena**. A janela era bonita e era um lugar — mas era um lugar sem ninguém
+ * dentro, e a primeira tela do app é onde o personagem precisa aparecer
+ * primeiro. Quem chega agora é cumprimentado por alguém, não recebido por uma
+ * paisagem.
+ *
+ * O céu daqui é azul fixo, e não o do humor: ninguém disse ainda como está.
  */
 export function WelcomeScreen({ onStart }: { onStart: () => void }) {
   const { colors, palette } = useTema();
   const insets = useSafeAreaInsets();
-  const { width } = useWindowDimensions();
+  const { width, height } = useWindowDimensions();
+  /*
+    A cena ocupa a metade de cima, e não uma altura fixa.
+
+    540 sobre 844 é o que o documento desenha — pouco menos de dois terços.
+    Escrito como número fixo, num aparelho curto ela empurraria o botão para
+    fora da tela, e num alto sobraria uma faixa de céu sem nada. Como fração,
+    o enquadramento é o mesmo em qualquer aparelho.
+  */
+  const alturaDaCena = Math.max(320, Math.min(height * 0.62, 560));
   const [explicando, setExplicando] = useState(false);
   /**
    * A confirmação da volta ocupa o mesmo modal, como segundo passo.
@@ -63,19 +90,74 @@ export function WelcomeScreen({ onStart }: { onStart: () => void }) {
           dele, que é o que ele sempre foi.
         */}
         <View>
-          <WindowScene width={width} />
+          <View style={{ height: alturaDaCena }}>
+            <Cena
+              largura={width}
+              altura={alturaDaCena}
+              ceu={palette.blue100}
+              chao="grama"
+              capim
+            />
+            {/*
+              O broto no meio, com os pés na crista do morro.
+
+              `size` é a largura de referência do desenho: 270 são os 1,35 de
+              escala do documento sobre as 200 unidades do enquadramento.
+            */}
+            <View
+              style={{
+                position: 'absolute',
+                left: 0,
+                right: 0,
+                bottom: CRISTA_DO_MORRO.grama,
+                alignItems: 'center',
+              }}
+            >
+              <AnimatedSprout mood="feliz" stage={1} pose="acena" size={270} />
+            </View>
+            {/*
+              O balão fica à esquerda do broto e aponta para ele.
+
+              Ele sai do alinhamento do texto de baixo de propósito: fala não é
+              parágrafo, e um balão alinhado à margem lê como legenda.
+            */}
+            <BalaoDoBroto
+              lado="esquerda"
+              style={{ position: 'absolute', right: 20, top: alturaDaCena * 0.42, maxWidth: 190 }}
+            >
+              <Text
+                style={{
+                  fontFamily: fonts.body.bold,
+                  fontSize: 14.5,
+                  lineHeight: 14.5 * 1.35,
+                  color: colors.textPrimary,
+                }}
+              >
+                {NA_CHEGADA}
+              </Text>
+            </BalaoDoBroto>
+          </View>
 
           <View style={{ paddingHorizontal: 24, gap: 12, marginTop: 28 }}>
+            <Text
+              style={{
+                color: palette.brown400,
+                fontFamily: fonts.display.bold,
+                fontSize: 24,
+                lineHeight: 24 * 1.2,
+              }}
+            >
+              Oi, eu sou o Brotinho
+            </Text>
             <Text
               style={{
                 color: colors.textPrimary,
                 fontFamily: fonts.display.extraBold,
                 fontSize: 30,
                 lineHeight: 30 * 1.2,
-                textAlign: 'center',
               }}
             >
-              Um lugar só seu para deixar o que pesa
+              Vou crescer junto com você, um dia de cada vez
             </Text>
             {/*
               O subtítulo diz o que o desenho não consegue.
@@ -102,7 +184,6 @@ export function WelcomeScreen({ onStart }: { onStart: () => void }) {
                 fontSize: 16,
                 lineHeight: 16 * 1.55,
                 color: palette.brown700,
-                textAlign: 'center',
               }}
             >
               Escreva ou fale o que passou hoje. E repita em voz alta o pensamento que te
@@ -113,7 +194,7 @@ export function WelcomeScreen({ onStart }: { onStart: () => void }) {
 
         <View style={{ paddingHorizontal: 24, gap: 10, marginTop: 32 }}>
           <Button size="lg" style={{ width: '100%' }} onPress={onStart}>
-            Começar
+            Oi, Brotinho
           </Button>
           <Pressable
             accessibilityRole="button"
