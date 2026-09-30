@@ -1,0 +1,207 @@
+import type { Mood } from '../theme/tokens';
+
+/**
+ * O que o broto diz, e quando.
+ *
+ * ## Por que um arquivo só
+ *
+ * Porque é uma voz só. Espalhadas pelas telas, as falas viravam quinze vozes
+ * ligeiramente diferentes — foi o que aconteceu com o balão antes de
+ * `BalaoDoBroto` existir, e o remédio é o mesmo: uma forma, um lugar.
+ *
+ * ## As regras da voz
+ *
+ * 1. **Primeira pessoa, sempre.** Quem fala é o broto, não o app. "Respira
+ *    comigo?", nunca "Faça uma respiração".
+ * 2. **Sem emoji.** A expressão está no rosto dele, que é desenhado.
+ * 3. **Nada do que a pessoa escreveu.** O nome dela entra; o diário, nunca.
+ * 4. **Curto.** O balão tem 170 de largura e não rola. Uma fala que não cabe
+ *    em três linhas é um parágrafo disfarçado.
+ * 5. **Nunca cobra.** Ele não sabe que você sumiu, não conta quantos dias
+ *    faltam para nada que dependa de esforço, e não se decepciona.
+ *
+ * ## Por que ele repete quando tocam nele
+ *
+ * A tela inicial tem quatro falas em rodízio, e tocar no broto passa para a
+ * seguinte. É o único lugar do app onde tocar em alguma coisa não leva a lugar
+ * nenhum — e é de propósito: é o gesto de fazer carinho no bicho, que não tem
+ * função e é metade do motivo de ter um bicho.
+ */
+
+export type HoraDoDia = 'manha' | 'tarde' | 'noite';
+
+/**
+ * A hora do dia da **cena** — três faixas, não quatro.
+ *
+ * `saudacao.ts` tem quatro, com madrugada à parte, porque ali a diferença
+ * importa: quem abre o app às três da manhã precisa ouvir outra coisa. Aqui a
+ * pergunta é se o céu tem sol ou lua, e a madrugada é noite.
+ */
+export function horaDaCena(agora: Date): HoraDoDia {
+  const h = agora.getHours();
+  if (h >= 5 && h < 12) return 'manha';
+  if (h < 18) return 'tarde';
+  return 'noite';
+}
+
+/** De noite o céu escurece e o broto cochila. Vale de dia também na madrugada. */
+export function ehNoite(agora: Date): boolean {
+  return horaDaCena(agora) === 'noite';
+}
+
+const SAUDACAO: Record<HoraDoDia, (nome: string) => string> = {
+  manha: (nome) => `Bom dia, ${nome}. Acordei me espreguiçando.`,
+  tarde: () => 'Boa tarde. Já bebeu água hoje? Eu já.',
+  noite: () => 'Está ficando tarde. Vamos desacelerar juntos?',
+};
+
+const SOBRE_O_HUMOR: Record<Mood, string> = {
+  feliz: 'Adoro quando você está assim. Até minhas folhas brilham.',
+  leve: 'Hoje o vento está gostoso aqui.',
+  ansioso: 'Percebi que o dia está pesado. Respira comigo?',
+  cansado: 'Vamos com calma hoje. Eu também estou devagar.',
+  triste: 'Estou aqui do seu lado.',
+  neutro: 'Seja como for o dia, eu fico por aqui.',
+};
+
+/**
+ * As quatro falas da tela inicial e da aba do broto, em rodízio.
+ *
+ * A terceira menciona folhas que faltam, e é o único número da lista. Ele pode
+ * aparecer porque não depende de esforço nenhum: cada prática, cada registro e
+ * cada pensamento compostado vale uma, e a contagem nunca desce.
+ */
+export function falasDaCasa({
+  nome,
+  humor,
+  hora,
+  folhasQueFaltam,
+}: {
+  nome: string;
+  humor: Mood;
+  hora: HoraDoDia;
+  folhasQueFaltam: number;
+}): string[] {
+  return [
+    SAUDACAO[hora](nome),
+    SOBRE_O_HUMOR[humor],
+    folhasQueFaltam > 0
+      ? `Faltam ${folhasQueFaltam} ${folhasQueFaltam === 1 ? 'folha' : 'folhas'} para eu crescer.`
+      : 'Já estou no meu tamanho. Agora é só companhia.',
+    'Me toca de novo que eu conto outra coisa.',
+  ];
+}
+
+/** A primeira fala de todas, na tela de boas-vindas. */
+export const NA_CHEGADA = 'Oi! Que bom que você chegou.';
+
+/** O que ele diz em cada passo do onboarding que tem balão. */
+export const NO_ONBOARDING = {
+  nome: 'Como posso te chamar?',
+  nomeDoBroto: (nome: string) => `Prazer, ${nome || 'você'}. E eu, como me chamo?`,
+  humor: 'Pode escolher o que mais parece com você.',
+  humorEscolhido: {
+    feliz: 'Que bom. Vamos cuidar para isso durar.',
+    leve: 'Leveza é um ótimo lugar para começar.',
+    ansioso: 'Obrigado por contar. Vamos respirar juntos, sem pressa.',
+    cansado: 'Então vamos devagar. Eu também adoro descansar.',
+    triste: 'Sinto muito. Estou aqui com você.',
+    neutro: 'Tudo bem não saber. A gente descobre junto.',
+  } satisfies Record<Mood, string>,
+};
+
+/**
+ * Uma fala por tema de prática, dita no alto da tela do tema.
+ *
+ * Cada uma é sobre **ele**, não sobre a pessoa — é o que evita que o balão
+ * vire um segundo subtítulo. Ele conta o que aquilo tem a ver com a vida de um
+ * broto, e quem lê faz a ponte sozinho.
+ */
+export const NO_TEMA: Record<string, string> = {
+  ansiedade: 'Essa respiração me ajuda quando fico agitado.',
+  estresse: 'Solta os ombros comigo?',
+  raiva: 'Pode sacudir. Minhas folhas aguentam.',
+  insonia: 'Bocejo só de pensar nisso.',
+  tristeza: 'Posso ficar aqui do seu lado?',
+  luto: 'Eu lembro de tudo que me regou.',
+  solidao: 'Eu não saio daqui. Estou plantado.',
+  procrastinacao: 'Só dois minutinhos. Topa?',
+  foco: 'Uma coisa de cada vez.',
+  autoestima: 'Você é importante para mim.',
+  culpa: 'Eu também cresço meio torto às vezes.',
+  comparacao: 'Cada planta tem o tempo dela. Eu demorei.',
+  gratidao: 'Sou grato por você cuidar de mim.',
+};
+
+/** O que ele diz enquanto acompanha uma respiração. */
+export const NA_RESPIRACAO = {
+  inspira: 'Enche a barriga de ar, devagar.',
+  segura: 'Segura comigo...',
+  solta: 'Agora solta, bem devagarinho.',
+  pausado: 'Estou te esperando.',
+};
+
+/** O que ele diz entre os passos de uma prática escrita ou de corpo. */
+export const NOS_PASSOS = [
+  'Sem pressa. Estou aqui.',
+  'Isso. Pode levar o tempo que precisar.',
+  'Última. Você está indo muito bem.',
+];
+
+/** Depois de terminar uma prática. */
+export function noFim({ cresceu }: { cresceu: boolean }): string {
+  return cresceu ? 'Olha! Eu cresci.' : 'Ganhei uma folha nova.';
+}
+
+/** No diário, conforme a pessoa escreve. */
+export function noDiario(rascunho: string): string {
+  const palavras = rascunho.trim() ? rascunho.trim().split(/\s+/).length : 0;
+  if (palavras > 12) return 'Estou lendo com carinho. Continua...';
+  if (palavras > 0) return 'Isso, pode ir escrevendo.';
+  return 'O que ficou com você hoje?';
+}
+
+/** Na Composta: a abertura, o meio e o fim. */
+export const NA_COMPOSTA = {
+  convite: 'Me dá esse pensamento. Eu transformo em adubo.',
+  fim: 'Obrigado pelo adubo. Ganhei uma folha.',
+};
+
+/** O que ele diz enquanto o pensamento é repetido. */
+export function naComposta(repeticoes: number): string {
+  if (repeticoes === 0) return 'Estou ouvindo. Pode começar.';
+  if (repeticoes < 5) return 'Isso, continua.';
+  if (repeticoes < 9) return 'Está virando só som...';
+  return 'Adubo fresquinho.';
+}
+
+/** As quatro falas do jardim, em rodízio como as da casa. */
+export const NO_JARDIM = [
+  'Olha como eu cresci com você.',
+  'Mais uma folha e eu mudo de fase.',
+  'Cada cuidado seu vira raiz aqui.',
+  'Estou com saudade do diário, sabia?',
+];
+
+/** Todas as falas fixas, para o conferidor ler sem executar o app. */
+export const TODAS_AS_FALAS: string[] = [
+  NA_CHEGADA,
+  NO_ONBOARDING.nome,
+  NO_ONBOARDING.humor,
+  ...Object.values(NO_ONBOARDING.humorEscolhido),
+  ...Object.values(SOBRE_O_HUMOR),
+  ...Object.values(NO_TEMA),
+  ...Object.values(NA_RESPIRACAO),
+  ...NOS_PASSOS,
+  ...Object.values(NA_COMPOSTA),
+  ...NO_JARDIM,
+  noFim({ cresceu: true }),
+  noFim({ cresceu: false }),
+  noDiario(''),
+  noDiario('uma palavra'),
+  noDiario('uma frase bem comprida que passa de doze palavras ao todo para valer o outro caso'),
+  naComposta(0),
+  naComposta(3),
+  naComposta(7),
+  naComposta(12),
+];

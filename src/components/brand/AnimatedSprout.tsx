@@ -2,8 +2,25 @@ import React, { useEffect, useRef, useState } from 'react';
 import { AccessibilityInfo, Animated, Easing, View } from 'react-native';
 
 import { type Mood } from '../../theme';
-import { caixaDoMascote, medidasDoMascote } from './geometriaDoBroto';
-import { Sprout, type Decoration, type SproutStage } from './Sprout';
+import { ArDoBroto } from './ArDoBroto';
+import {
+  BULB_R,
+  CX,
+  LEAVES_BY_STAGE,
+  POSES,
+  STEM_TOP_Y,
+  noQuadro,
+  quadroDoBroto,
+  type MexeAsFolhas,
+  type Pose,
+} from './geometriaDoBroto';
+import {
+  FolhaSolta,
+  LADO_DA_FOLHA_SOLTA,
+  Sprout,
+  type Decoration,
+  type SproutStage,
+} from './Sprout';
 
 /**
  * O broto reagindo à troca de humor: a planta dá uma balançada, como folha
@@ -74,6 +91,34 @@ const SWAY_STEP_MS = 110;
 const BAMBOLEIO_GRAUS = 1.2;
 const BAMBOLEIO_MS = 4000;
 
+/** Uma lista vazia, uma vez só — ver a nota homônima em `Sprout`. */
+const VAZIO: number[] = [];
+
+/**
+ * Quais folhas da tabela do estágio entram no movimento de uma pose.
+ *
+ * As tabelas põem as folhas de baixo primeiro, nos índices 0 e 1, e as de cima
+ * depois. Acenar é com a da frente; espreguiçar e comemorar são com as duas de
+ * baixo, uma para cada lado.
+ */
+function folhasDaPose(quais: MexeAsFolhas['quais']): number[] {
+  return quais === 'primeira' ? [0] : [0, 1];
+}
+
+/**
+ * O giro de uma folha ao longo de um ciclo, em graus.
+ *
+ * `vaievem` é o aceno: duas idas por ciclo, porque uma ida só lê como folha
+ * empurrada pelo vento em vez de cumprimento. Ver `POSES`.
+ */
+function giroDaFolha(folhas: MexeAsFolhas, indice: number) {
+  const sentido = indice === 0 ? -1 : 1;
+  const g = folhas.graus * sentido;
+  return folhas.vaievem
+    ? { entradas: [0, 0.25, 0.5, 0.75, 1], saidas: [0, g, -g * 0.14, g, 0] }
+    : { entradas: [0, 0.5, 1], saidas: [0, g, 0] };
+}
+
 type Props = {
   mood: Mood;
   stage?: SproutStage;
@@ -90,6 +135,16 @@ type Props = {
   swayOn?: string | number | null;
   /** A brisa contínua. Como a respiração, só no broto grande de tela parada. */
   bamboleia?: boolean;
+  /**
+   * O que ele está fazendo — ver `POSES`, em `geometriaDoBroto`.
+   *
+   * A pose traz o rosto (que o `Sprout` desenha) e o movimento (que é daqui):
+   * a folha que acena, o pulo de quem comemora, o balanço lento de quem dorme
+   * e o que flutua em volta.
+   */
+  pose?: Pose;
+  /** Sem vaso: o broto plantado direto na terra das cenas. */
+  showPot?: boolean;
 };
 
 export function AnimatedSprout({
@@ -101,6 +156,8 @@ export function AnimatedSprout({
   breathe = false,
   swayOn = null,
   bamboleia = false,
+  pose = 'parado',
+  showPot = true,
 }: Props) {
   const sway = useRef(new Animated.Value(0)).current;
   const breath = useRef(new Animated.Value(0)).current;
@@ -113,6 +170,14 @@ export function AnimatedSprout({
     toque **enquanto** continua ao vento.
   */
   const brisa = useRef(new Animated.Value(0)).current;
+  /*
+    O ciclo da pose: um valor só, de 0 a 1, para a folha e para o pulo.
+
+    Os dois movimentos de uma pose são o mesmo movimento visto de dois lugares
+    — o broto sobe **enquanto** as folhas batem —, e dois valores separados
+    dariam a eles chance de sair de fase depois de alguns minutos rodando.
+  */
+  const cicloDaPose = useRef(new Animated.Value(0)).current;
 
   const [reduceMotion, setReduceMotion] = useState(false);
   useEffect(() => {
@@ -168,8 +233,46 @@ export function AnimatedSprout({
     return () => laco.stop();
   }, [breathe, reduceMotion]);
 
+  const p = POSES[pose] ?? POSES.parado;
+  const balancoDaPose = p.balanco ?? null;
+  const grausDoBalanco = balancoDaPose?.graus ?? BAMBOLEIO_GRAUS;
+  const msDoBalanco = balancoDaPose?.ms ?? BAMBOLEIO_MS;
+  /*
+    A pose que tem balanço próprio dispensa o pedido de brisa.
+
+    Quem dorme pende devagar para um lado e volta — é o mesmo mecanismo da
+    brisa com outros números, e não faz sentido a tela ter de pedir as duas
+    coisas. `bamboleia` continua existindo para as poses que não trazem
+    balanço nenhum.
+  */
+  const querBalanco = bamboleia || balancoDaPose !== null;
+
+  const folhasDaAnimacao = p.folhas ? folhasDaPose(p.folhas.quais) : VAZIO;
+  const temCicloDePose = (p.folhas || p.pulo) && !reduceMotion;
+
   useEffect(() => {
-    if (!bamboleia || reduceMotion) {
+    if (!temCicloDePose) {
+      cicloDaPose.setValue(0);
+      return;
+    }
+    const ms = p.folhas?.ms ?? p.pulo?.ms ?? 1000;
+    cicloDaPose.setValue(0);
+    const laco = Animated.loop(
+      Animated.timing(cicloDaPose, {
+        toValue: 1,
+        duration: ms,
+        easing: Easing.inOut(Easing.sin),
+        useNativeDriver: true,
+        /* Decorativo e infinito: fora da fila do `InteractionManager`. */
+        isInteraction: false,
+      }),
+    );
+    laco.start();
+    return () => laco.stop();
+  }, [temCicloDePose, pose]);
+
+  useEffect(() => {
+    if (!querBalanco || reduceMotion) {
       brisa.setValue(0);
       return;
     }
@@ -181,9 +284,11 @@ export function AnimatedSprout({
     const meia = (para: number) =>
       Animated.timing(brisa, {
         toValue: para,
-        duration: BAMBOLEIO_MS / 2,
+        duration: msDoBalanco / 2,
         easing: Easing.inOut(Easing.sin),
         useNativeDriver: true,
+        /* Decorativo e infinito: fora da fila do `InteractionManager`. */
+        isInteraction: false,
       });
     const laco = Animated.loop(Animated.sequence([meia(1), meia(0)]));
     const id = setTimeout(() => laco.start(), 500);
@@ -191,7 +296,7 @@ export function AnimatedSprout({
       clearTimeout(id);
       laco.stop();
     };
-  }, [bamboleia, reduceMotion]);
+  }, [querBalanco, msDoBalanco, reduceMotion]);
 
   /** Guarda o valor já visto, para não balançar na montagem. */
   const swayVisto = useRef(swayOn);
@@ -232,7 +337,10 @@ export function AnimatedSprout({
     vazia acima do broto, e ele descia para o meio da tela. Encolhendo a
     moldura junto, o broto sobe e continua do mesmo tamanho.
   */
-  const quadro = medidasDoMascote(caixaDoMascote(stage, decorations.length > 0), size);
+  const quadro = quadroDoBroto(stage, size, {
+    showPot,
+    temEnfeite: decorations.length > 0,
+  });
 
   const rotate = sway.interpolate({
     inputRange: SWAY.map((_, i) => i),
@@ -241,10 +349,109 @@ export function AnimatedSprout({
 
   const scale = breath.interpolate({ inputRange: [0, 1], outputRange: [1, BREATH_SCALE] });
 
+  /*
+    O balanço de quem dorme pende para um lado só.
+
+    A brisa vai de -1,2° a +1,2° porque é vento: ele empurra nas duas direções.
+    Quem dorme não é empurrado, é quem pende — sai de zero, cai um pouco, e
+    volta. Por isso a faixa começa em zero quando a pose traz balanço próprio.
+  */
   const inclinacao = brisa.interpolate({
     inputRange: [0, 1],
-    outputRange: [`-${BAMBOLEIO_GRAUS}deg`, `${BAMBOLEIO_GRAUS}deg`],
+    outputRange: balancoDaPose
+      ? ['0deg', `${grausDoBalanco}deg`]
+      : [`-${grausDoBalanco}deg`, `${grausDoBalanco}deg`],
   });
+
+  /* O pulo de quem comemora, em pixels: a altura vem em unidades de desenho. */
+  const pulo = p.pulo
+    ? cicloDaPose.interpolate({
+        inputRange: [0, 0.5, 1],
+        outputRange: [0, -p.pulo.altura * quadro.escala, 0],
+      })
+    : null;
+
+  const centroDoBulbo = noQuadro(quadro, CX, STEM_TOP_Y[stage] - 4);
+  /* O desenho é mais estreito que a moldura, e fica centrado dentro dela. */
+  const recuo = (size - quadro.largura) / 2;
+
+  /**
+   * O corpo: uma passada só, ou três com a folha animada no meio.
+   *
+   * Quando nenhuma folha se mexe não há por que abrir o desenho em camadas —
+   * são dois SVGs a mais para nada. A pose que mexe numa folha precisa dela
+   * **entre** o corpo e a cabeça, porque é por trás da cabeça que ela passa.
+   */
+  const corpo =
+    folhasDaAnimacao.length === 0 ? (
+      <Sprout
+        mood={mood}
+        stage={stage}
+        size={size}
+        decorations={decorations}
+        parte="planta"
+        pose={pose}
+        showPot={showPot}
+      />
+    ) : (
+      <View style={{ width: quadro.largura, height: quadro.altura }}>
+        <Sprout
+          mood={mood}
+          stage={stage}
+          size={size}
+          decorations={decorations}
+          parte="atras"
+          pose={pose}
+          showPot={showPot}
+          folhasSoltas={folhasDaAnimacao}
+        />
+        {folhasDaAnimacao.map((indice) => {
+          const pe = noQuadro(quadro, LEAVES_BY_STAGE[stage][indice].x, LEAVES_BY_STAGE[stage][indice].y);
+          const lado = LADO_DA_FOLHA_SOLTA * quadro.escala;
+          const giro = giroDaFolha(p.folhas as MexeAsFolhas, indice);
+          return (
+            <Animated.View
+              key={indice}
+              style={{
+                position: 'absolute',
+                left: pe.x - lado / 2,
+                top: pe.y - lado / 2,
+                width: lado,
+                height: lado,
+                /*
+                  O pé da folha está no centro deste quadro, que é a origem
+                  padrão de rotação de uma `View` — é por isso que o quadro é
+                  quadrado e centrado nela. Ver `FolhaSolta`.
+                */
+                transform: [
+                  {
+                    rotate: reduceMotion
+                      ? '0deg'
+                      : cicloDaPose.interpolate({
+                          inputRange: giro.entradas,
+                          outputRange: giro.saidas.map((g) => `${g}deg`),
+                        }),
+                  },
+                ],
+              }}
+            >
+              <FolhaSolta stage={stage} indice={indice} escala={quadro.escala} />
+            </Animated.View>
+          );
+        })}
+        <View style={{ position: 'absolute', left: 0, top: 0 }}>
+          <Sprout
+            mood={mood}
+            stage={stage}
+            size={size}
+            decorations={decorations}
+            parte="cabeca"
+            pose={pose}
+            showPot={showPot}
+          />
+        </View>
+      </View>
+    );
 
   return (
     <View style={{ width: size, height: quadro.altura }}>
@@ -258,11 +465,13 @@ export function AnimatedSprout({
         As duas passadas usam a mesma `viewBox` e o mesmo tamanho, então se
         sobrepõem exatamente — não há posição para acertar à mão.
       */}
-      <View
-        style={{ position: 'absolute', width: size, alignItems: 'center', pointerEvents: 'none' }}
-      >
-        <Sprout mood={mood} stage={stage} size={size} decorations={decorations} parte="sombra" />
-      </View>
+      {showPot && (
+        <View
+          style={{ position: 'absolute', width: size, alignItems: 'center', pointerEvents: 'none' }}
+        >
+          <Sprout mood={mood} stage={stage} size={size} decorations={decorations} parte="sombra" />
+        </View>
+      )}
 
       <Animated.View
         style={{
@@ -286,17 +495,29 @@ export function AnimatedSprout({
           */
           transformOrigin: '50% 88%',
           // Girar e crescer a partir do pé: o vaso fica parado no chão.
-          transform: [{ rotate }, { rotate: inclinacao }, { scale }],
+          transform: pulo
+            ? [{ translateY: pulo }, { rotate }, { rotate: inclinacao }, { scale }]
+            : [{ rotate }, { rotate: inclinacao }, { scale }],
         }}
       >
-        <Sprout
-          mood={mood}
-          stage={stage}
-          size={size}
-          decorations={decorations}
-          parte="planta"
-        />
+        {corpo}
       </Animated.View>
+
+      {/*
+        O que flutua em volta fica **fora** do giro, e é de propósito.
+
+        Os zês saem da cabeça de quem dorme, mas sobem retos: presos ao grupo
+        que balança, eles iriam junto de um lado para o outro, como se o sono
+        também pendesse. Os brilhos, pelo mesmo motivo, não pulam com o broto.
+      */}
+      {p.ar && (
+        <ArDoBroto
+          ar={p.ar}
+          centro={{ x: recuo + centroDoBulbo.x, y: centroDoBulbo.y }}
+          raio={BULB_R[stage]}
+          escala={quadro.escala}
+        />
+      )}
     </View>
   );
 }

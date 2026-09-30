@@ -701,6 +701,70 @@ const tintsDosTemasEscuros: Record<TintDoTema, string> = {
 };
 
 /** Os dois temas, para o provedor escolher e para o teste de contraste medir. */
+/**
+ * As cores do **lugar** onde o broto está: céu, morro, nuvem, terra.
+ *
+ * ## Por que não saem da paleta
+ *
+ * A cena é uma paisagem, e paisagem tem camadas de distância. O morro longe e
+ * a nuvem são a mesma coisa nos dois temas — *o que está mais claro que o céu*
+ * —, e no claro isso é branco. No escuro, branco vira holofote: a nuvem
+ * passaria a ser o objeto mais brilhante da tela, mais que o broto. Então os
+ * dois trocam por cinzas de céu noturno, que continuam sendo "mais claro que o
+ * fundo" sem acender.
+ *
+ * ## `noite` não é o mesmo que tema escuro
+ *
+ * São dois eixos. `noite` é a **hora do dia** — o céu da tela inicial escurece
+ * às oito da noite mesmo com o app no tema claro, porque é a hora da pessoa,
+ * não a preferência dela. O tema decide as cores; a hora decide se tem lua ou
+ * sol. Uma cena de noite no tema escuro escurece duas vezes, e é por isso que
+ * o véu de noite do escuro é mais fraco que o do claro.
+ */
+export type CoresDaCena = {
+  /** A nuvem, e o morro de trás: as duas camadas mais claras que o céu. */
+  nuvem: string;
+  morro: string;
+  /** As estrelas. */
+  estrela: string;
+  /** O véu que cai sobre o céu depois do pôr do sol. */
+  noite: string;
+  /** A opacidade desse véu. */
+  noiteForca: number;
+  /** O chão claro, quando a cena não é de terra. */
+  chao: string;
+  /** O clarão atrás do broto, nos cartões. */
+  brilho: string;
+};
+
+const cenaClara: CoresDaCena = {
+  nuvem: '#FFFFFF',
+  morro: '#FFFFFF',
+  estrela: '#FFFFFF',
+  noite: palette.lavender300,
+  noiteForca: 0.35,
+  chao: palette.cream100,
+  brilho: 'rgba(255,255,255,0.6)',
+};
+
+const cenaEscura: CoresDaCena = {
+  nuvem: '#3F4650',
+  morro: '#4A4F58',
+  estrela: '#FFFFFF',
+  /*
+    Um roxo quase preto, e não o lavanda do tema claro.
+
+    No claro o véu de noite é lavanda por cima de um pastel: ele tira a luz do
+    céu sem tirar a cor. No escuro o céu já é escuro, e o mesmo lavanda o
+    **clarearia**. Aqui ele precisa continuar escurecendo, e mais fraco, porque
+    o tema já escureceu uma vez.
+  */
+  noite: 'rgba(20,16,40,1)',
+  noiteForca: 0.5,
+  chao: 'rgba(255,255,255,0.06)',
+  brilho: 'rgba(255,255,255,0.18)',
+};
+
 export const TEMAS = {
   claro: {
     palette,
@@ -711,6 +775,7 @@ export const TEMAS = {
     tintsDosTemas,
     vidros: vidros.claro,
     botaoPrimario: botaoPrimario.claro,
+    cena: cenaClara,
   },
   escuro: {
     palette: paletteEscura,
@@ -721,6 +786,7 @@ export const TEMAS = {
     tintsDosTemas: tintsDosTemasEscuros,
     vidros: vidros.escuro,
     botaoPrimario: botaoPrimario.escuro,
+    cena: cenaEscura,
   },
 } as const;
 

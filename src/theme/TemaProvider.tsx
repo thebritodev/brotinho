@@ -4,6 +4,7 @@ import { useColorScheme } from 'react-native';
 import {
   TEMAS,
   type Cores,
+  type CoresDaCena,
   type Palette,
   type PreferenciaDeTema,
   type Sombra,
@@ -56,6 +57,8 @@ export type ConteudoDoTema = {
   tintsDosTemas: Record<TintDoTema, string>;
   /** As superfícies translúcidas do redesenho — ver `vidros` em `tokens`. */
   vidros: { cartao: Vidro; destaque: Vidro };
+  /** As cores do lugar onde o broto esta -- ver `CoresDaCena`, em `tokens`. */
+  cena: CoresDaCena;
   /** O gradiente e a sombra do botão principal — ver `botaoPrimario`. */
   botaoPrimario: Vidro & { sombra: Sombra };
 };
@@ -83,6 +86,7 @@ const TemaContext = createContext<ConteudoDoTema>({
   tintsDosTemas: TEMAS.claro.tintsDosTemas,
   vidros: TEMAS.claro.vidros,
   botaoPrimario: TEMAS.claro.botaoPrimario,
+  cena: TEMAS.claro.cena,
 });
 
 export function TemaProvider({
@@ -106,6 +110,7 @@ export function TemaProvider({
       tintsDosTemas: TEMAS[tema].tintsDosTemas,
       vidros: TEMAS[tema].vidros,
       botaoPrimario: TEMAS[tema].botaoPrimario,
+      cena: TEMAS[tema].cena,
     }),
     [tema],
   );

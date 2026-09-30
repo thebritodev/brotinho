@@ -1,7 +1,8 @@
-import React from 'react';
-import { StyleProp, View, ViewStyle } from 'react-native';
+import React, { useEffect, useRef } from 'react';
+import { Animated, Easing, StyleProp, View, ViewStyle } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
 
+import { useMenosMovimento } from '../../hooks/useMenosMovimento';
 import { radius, useTema } from '../../theme';
 
 /**
@@ -32,9 +33,18 @@ import { radius, useTema } from '../../theme';
 const BICO_ALTURA = 14;
 const BICO_LARGURA = 26;
 
-type Lado = 'baixo' | 'esquerda';
+type Lado = 'baixo' | 'esquerda' | 'direita';
 
 type Tom = 'superficie' | 'suave';
+
+/**
+ * A entrada do balão: ele **pula** para dentro, não aparece.
+ *
+ * É a diferença entre um cartão que carregou e alguém que abriu a boca. A
+ * curva passa um pouco de 1 na volta — a ponta de elástico que faz o gesto ler
+ * como fala em vez de transição.
+ */
+const POP_MS = 400;
 
 type Props = {
   children: React.ReactNode;
@@ -44,6 +54,8 @@ type Props = {
    * `baixo` quando ele está embaixo do balão, que é o caso do onboarding e da
    * saudação da tela inicial. `esquerda` quando ele está ao lado, que é o caso
    * dos cartões em que o desenho pequeno divide a linha com o texto.
+   * `direita` é o espelho: o balão à esquerda e o broto à direita, que é como
+   * ele fica nas cenas em que a planta nasce do lado direito da tela.
    */
   lado?: Lado;
   /**
@@ -53,11 +65,54 @@ type Props = {
    */
   tom?: Tom;
   style?: StyleProp<ViewStyle>;
+  /**
+   * Quando este valor muda, o balão entra de novo.
+   *
+   * Serve para o rodízio de falas: tocar no broto troca o texto, e sem isso a
+   * troca seria uma substituição silenciosa de string — o balão ficaria parado
+   * com outra frase dentro, que é exatamente o contrário de alguém falando.
+   *
+   * Quem não passa nada ganha a entrada só na montagem.
+   */
+  apareceEm?: string | number;
 };
 
-export function BalaoDoBroto({ children, lado = 'baixo', tom = 'superficie', style }: Props) {
+export function BalaoDoBroto({
+  children,
+  lado = 'baixo',
+  tom = 'superficie',
+  style,
+  apareceEm,
+}: Props) {
   const { colors, shadows } = useTema();
+  const menosMovimento = useMenosMovimento();
   const fundo = tom === 'suave' ? colors.primarySoft : colors.surface;
+
+  const pop = useRef(new Animated.Value(menosMovimento ? 1 : 0)).current;
+
+  useEffect(() => {
+    if (menosMovimento) {
+      pop.setValue(1);
+      return;
+    }
+    pop.setValue(0);
+    const a = Animated.timing(pop, {
+      toValue: 1,
+      duration: POP_MS,
+      easing: Easing.bezier(0.2, 0.9, 0.3, 1.2),
+      useNativeDriver: true,
+    });
+    a.start();
+    return () => a.stop();
+  }, [apareceEm, menosMovimento]);
+
+  const entrada = {
+    opacity: pop,
+    transform: [
+      { translateY: pop.interpolate({ inputRange: [0, 1], outputRange: [8, 0] }) },
+      { scale: pop.interpolate({ inputRange: [0, 1], outputRange: [0.94, 1] }) },
+    ],
+  };
 
   const corpo = (
     <View
@@ -76,29 +131,40 @@ export function BalaoDoBroto({ children, lado = 'baixo', tom = 'superficie', sty
     </View>
   );
 
-  if (lado === 'esquerda') {
+  /* O bico sobrepõe um pixel: sem isso o antisserrilhado deixa um fio do
+     fundo aparecendo entre ele e o balão. */
+  const bicoAoLado = (aponta: 'esquerda' | 'direita') => (
+    <Svg
+      width={BICO_ALTURA}
+      height={BICO_LARGURA}
+      viewBox={`0 0 ${BICO_ALTURA} ${BICO_LARGURA}`}
+      style={aponta === 'esquerda' ? { marginRight: -1 } : { marginLeft: -1 }}
+    >
+      <Path
+        d={
+          aponta === 'esquerda'
+            ? `M${BICO_ALTURA} 0 L0 ${BICO_LARGURA / 2} L${BICO_ALTURA} ${BICO_LARGURA} Z`
+            : `M0 0 L${BICO_ALTURA} ${BICO_LARGURA / 2} L0 ${BICO_LARGURA} Z`
+        }
+        fill={fundo}
+      />
+    </Svg>
+  );
+
+  if (lado === 'esquerda' || lado === 'direita') {
     return (
-      <View style={[{ flexDirection: 'row', alignItems: 'center' }, style]}>
-        {/* O bico sobrepõe um pixel: sem isso o antisserrilhado deixa um fio do
-            fundo aparecendo entre ele e o balão. */}
-        <Svg
-          width={BICO_ALTURA}
-          height={BICO_LARGURA}
-          viewBox={`0 0 ${BICO_ALTURA} ${BICO_LARGURA}`}
-          style={{ marginRight: -1 }}
-        >
-          <Path
-            d={`M${BICO_ALTURA} 0 L0 ${BICO_LARGURA / 2} L${BICO_ALTURA} ${BICO_LARGURA} Z`}
-            fill={fundo}
-          />
-        </Svg>
+      <Animated.View
+        style={[{ flexDirection: 'row', alignItems: 'center' }, entrada, style]}
+      >
+        {lado === 'esquerda' && bicoAoLado('esquerda')}
         {corpo}
-      </View>
+        {lado === 'direita' && bicoAoLado('direita')}
+      </Animated.View>
     );
   }
 
   return (
-    <View style={[{ alignItems: 'center' }, style]}>
+    <Animated.View style={[{ alignItems: 'center' }, entrada, style]}>
       <View style={{ width: '100%', flexDirection: 'row' }}>{corpo}</View>
       <Svg
         width={BICO_LARGURA}
@@ -108,6 +174,6 @@ export function BalaoDoBroto({ children, lado = 'baixo', tom = 'superficie', sty
       >
         <Path d={`M0 0 L${BICO_LARGURA / 2} ${BICO_ALTURA} L${BICO_LARGURA} 0 Z`} fill={fundo} />
       </Svg>
-    </View>
+    </Animated.View>
   );
 }

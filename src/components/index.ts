@@ -8,6 +8,8 @@ export { Input } from './core/Input';
 export { Switch } from './core/Switch';
 
 export { AnimatedSprout } from './brand/AnimatedSprout';
+export { ArDoBroto } from './brand/ArDoBroto';
+export { Cena, LINHA_DO_CHAO, type ChaoDaCena } from './brand/Cena';
 export { AskingSprout } from './brand/AskingSprout';
 export { BrotinhoMark, MARK_DISCO, MARK_TRACO } from './brand/BrotinhoMark';
 export { GrowingSprout } from './brand/GrowingSprout';
@@ -53,7 +55,7 @@ export { MoodFace } from './brand/MoodFace';
 export { MoodSelector, MOODS } from './brand/MoodSelector';
 export { PalavraDoHumor } from './brand/PalavraDoHumor';
 export { PracticeTopicCard } from './brand/PracticeTopicCard';
-export { Sprout, ehEnfeite, type Decoration, type SproutStage } from './brand/Sprout';
+export { Sprout, ehEnfeite, type Decoration, type Pose, type SproutStage } from './brand/Sprout';
 export { ValueBadge, VALUES, type ValueKey } from './brand/ValueBadge';
 export { WindowScene } from './brand/WindowScene';
 

@@ -19,7 +19,10 @@ import {
   type Decoration,
   ehEnfeite,
   LEAVES_BY_STAGE,
+  OLHOS_DE_POSE,
+  POSES,
   POT_TOP_Y,
+  type Pose,
   type SproutStage,
   STEM_TOP_Y,
   TRACO_DA_FOLHA,
@@ -30,7 +33,7 @@ import {
 } from './geometriaDoBroto';
 
 export { ehEnfeite };
-export type { Decoration, SproutStage };
+export type { Decoration, Pose, SproutStage };
 
 /**
  * Os três gradientes que dão volume ao broto.
@@ -87,8 +90,47 @@ function Gradientes({ id }: { id: string }) {
   );
 }
 
-function Face({ mood, cx, cy }: { mood: Mood; cx: number; cy: number }) {
+/**
+ * A boca aberta de quem comemora, e a boca redonda de quem dorme.
+ *
+ * São as duas formas que não cabem na tabela de caminhos: uma é preenchida em
+ * vez de traçada, a outra é uma elipse. Ficam aqui, e não em `POSES`, porque
+ * `POSES` descreve o que o broto faz — desenhar é trabalho deste arquivo.
+ */
+const BOCA_ABERTA = 'M -8 5 Q 0 16 8 5 Z';
+
+/**
+ * A lista vazia, uma vez só.
+ *
+ * `folhasSoltas = []` no valor padrão cria um array novo a cada render, e o
+ * `Sprout` é memoizado por ninguém: bastava isso para ele redesenhar a cada
+ * quadro da tela inteira.
+ */
+const VAZIO: number[] = [];
+
+function Face({
+  mood,
+  pose = 'parado',
+  cx,
+  cy,
+}: {
+  mood: Mood;
+  pose?: Pose;
+  cx: number;
+  cy: number;
+}) {
   const f = CARAS[mood] ?? CARAS.neutro;
+  /*
+    A pose sobrepõe o humor peça por peça, e não em bloco.
+
+    Trocar o rosto inteiro pelo da pose apagaria o humor: quem está ansioso tem
+    o olho um ponto maior, e quem pensa continua ansioso enquanto pensa. Cada
+    campo que a pose não traz deixa o do humor passar.
+  */
+  const p = POSES[pose] ?? POSES.parado;
+  const olho = p.olho ? OLHOS_DE_POSE[p.olho] : f.eye;
+  const dx = p.olhar?.x ?? 0;
+  const dy = p.olhar?.y ?? 0;
 
   /*
     Não há mais caso especial para o `feliz`.
@@ -98,12 +140,35 @@ function Face({ mood, cx, cy }: { mood: Mood; cx: number; cy: number }) {
     dela — o tipo de sobra que faz uma mudança parecer que não pegou.
   */
   const eye = (x: number) =>
-    f.eye === 'circle' ? (
-      <Circle cx={cx + x} cy={cy} r={f.r} fill={tracos.contorno} />
+    olho === 'circle' ? (
+      <Circle cx={cx + x + dx} cy={cy + dy} r={f.r} fill={tracos.contorno} />
     ) : (
       <Path
-        d={f.eye}
-        transform={`translate(${cx + x} ${cy})${x < 0 ? '' : ' scale(-1,1)'}`}
+        d={olho}
+        transform={`translate(${cx + x + dx} ${cy + dy})${x < 0 ? '' : ' scale(-1,1)'}`}
+        stroke={tracos.contorno}
+        strokeWidth={2.4}
+        strokeLinecap="round"
+        fill="none"
+      />
+    );
+
+  const boca =
+    p.boca === 'aberta' ? (
+      <Path
+        d={BOCA_ABERTA}
+        transform={`translate(${cx} ${cy})`}
+        fill={tracos.contorno}
+        stroke={tracos.contorno}
+        strokeWidth={2}
+        strokeLinejoin="round"
+      />
+    ) : p.boca === 'ronco' ? (
+      <Ellipse cx={cx} cy={cy + 9} rx={2.6} ry={3} fill={tracos.contorno} />
+    ) : (
+      <Path
+        d={typeof p.boca === 'string' ? p.boca : f.mouth}
+        transform={`translate(${cx} ${cy})`}
         stroke={tracos.contorno}
         strokeWidth={2.4}
         strokeLinecap="round"
@@ -128,20 +193,13 @@ function Face({ mood, cx, cy }: { mood: Mood; cx: number; cy: number }) {
         espelhado: reflexo aponta para a fonte de luz, e a luz do desenho vem
         de um lugar só. Espelhar daria dois olhos de vidro olhando para fora.
       */}
-      {f.eye === 'circle' && (
+      {olho === 'circle' && (
         <G fill="#FFFFFF" opacity={0.8}>
-          <Circle cx={cx - 8.2} cy={cy - 3} r={0.9} />
-          <Circle cx={cx + 9.8} cy={cy - 3} r={0.9} />
+          <Circle cx={cx - 8.2 + dx} cy={cy - 3 + dy} r={0.9} />
+          <Circle cx={cx + 9.8 + dx} cy={cy - 3 + dy} r={0.9} />
         </G>
       )}
-      <Path
-        d={f.mouth}
-        transform={`translate(${cx} ${cy})`}
-        stroke={tracos.contorno}
-        strokeWidth={2.4}
-        strokeLinecap="round"
-        fill="none"
-      />
+      {boca}
       {/*
         As bochechas.
 
@@ -151,11 +209,16 @@ function Face({ mood, cx, cy }: { mood: Mood; cx: number; cy: number }) {
 
         Ficam em `±16`, fora do raio dos olhos e dentro do bulbo mesmo no
         estágio 1, onde ele tem 20 de raio.
+
+        **Somem em quem dorme**, e só ali. Cor de bochecha é sangue subindo à
+        pele; num rosto adormecido ela lê como febre.
       */}
-      <G fill={tracos.bochecha} opacity={0.3}>
-        <Ellipse cx={cx - 16} cy={cy + 4} rx={4.4} ry={3} />
-        <Ellipse cx={cx + 16} cy={cy + 4} rx={4.4} ry={3} />
-      </G>
+      {p.bochecha !== false && (
+        <G fill={tracos.bochecha} opacity={0.3}>
+          <Ellipse cx={cx - 16} cy={cy + 4} rx={4.4} ry={3} />
+          <Ellipse cx={cx + 16} cy={cy + 4} rx={4.4} ry={3} />
+        </G>
+      )}
     </G>
   );
 }
@@ -237,6 +300,95 @@ function Leaf({
     </G>
   );
 }
+
+/**
+ * O alcance de uma folha a partir do próprio pé, em unidades de desenho.
+ *
+ * O casco da folha vai de -44 a 0 em x e de -26 a 16 em y, e ela gira em volta
+ * do pé — então o círculo que a contém em qualquer ângulo tem o raio do ponto
+ * mais distante do casco. Com a metade do traço e uma folga, 48.
+ */
+const ALCANCE_DA_FOLHA = 48;
+
+/**
+ * Uma folha sozinha, no seu próprio quadro, com o pé no centro.
+ *
+ * É a folha que `AnimatedSprout` gira. Centrar o quadro no pé é o que permite
+ * girá-la com um `transform` de `View` comum: a origem padrão de rotação de
+ * uma `View` é o centro dela, e o centro dela é exatamente o ponto em volta do
+ * qual a folha já girava dentro do SVG.
+ */
+export function FolhaSolta({
+  stage,
+  indice,
+  /** A escala do desenho na tela: quantos pixels vale uma unidade. */
+  escala,
+}: {
+  stage: SproutStage;
+  indice: number;
+  escala: number;
+}) {
+  const idDoGradiente = useId().replace(/[^a-zA-Z0-9]/g, '');
+  const folha = LEAVES_BY_STAGE[stage][indice];
+  if (!folha) return null;
+
+  const lado = ALCANCE_DA_FOLHA * 2;
+  const voltadaParaALuz = Math.cos(((folha.rotate + 90) * Math.PI) / 180) <= 0;
+
+  return (
+    <Svg
+      viewBox={`${-ALCANCE_DA_FOLHA} ${-ALCANCE_DA_FOLHA} ${lado} ${lado}`}
+      width={lado * escala}
+      height={lado * escala}
+    >
+      <Gradientes id={idDoGradiente} />
+      <Leaf
+        x={0}
+        y={0}
+        rotate={folha.rotate}
+        scale={folha.scale}
+        gradiente={`folha-${idDoGradiente}`}
+        iluminada={voltadaParaALuz}
+      />
+    </Svg>
+  );
+}
+
+/**
+ * Onde o pé de uma folha cai na tela, em pixels, dentro do quadro do broto.
+ *
+ * Quem posiciona a folha solta precisa deste ponto, e ele não é adivinhável
+ * de fora: depende da `viewBox` que o `Sprout` escolheu, que depende do
+ * estágio e de haver ou não vaso e enfeite.
+ */
+export function peDaFolhaNaTela({
+  stage,
+  indice,
+  caixa,
+  largura,
+  altura,
+}: {
+  stage: SproutStage;
+  indice: number;
+  caixa: { x: number; y: number; largura: number; altura: number };
+  largura: number;
+  altura: number;
+}) {
+  const folha = LEAVES_BY_STAGE[stage][indice];
+  if (!folha) return { x: 0, y: 0 };
+  return {
+    x: ((folha.x - caixa.x) / caixa.largura) * largura,
+    y: ((folha.y - caixa.y) / caixa.altura) * altura,
+  };
+}
+
+/** Quantos pixels vale uma unidade de desenho, num quadro já medido. */
+export function escalaDoQuadro(caixaLargura: number, largura: number) {
+  return largura / caixaLargura;
+}
+
+/** O lado do quadro de uma folha solta, em unidades de desenho. */
+export const LADO_DA_FOLHA_SOLTA = ALCANCE_DA_FOLHA * 2;
 
 function Decorations({ list, cx, cy }: { list: Decoration[]; cx: number; cy: number }) {
   const { palette } = useTema();
@@ -328,7 +480,7 @@ function Decorations({ list, cx, cy }: { list: Decoration[]; cx: number; cy: num
  * tamanho, então se sobrepõem exatamente sem ninguém precisar recalcular onde
  * fica a base do vaso.
  */
-export type ParteDoBroto = 'tudo' | 'planta' | 'sombra';
+export type ParteDoBroto = 'tudo' | 'planta' | 'sombra' | 'atras' | 'cabeca';
 
 type Props = {
   mood?: Mood;
@@ -337,6 +489,19 @@ type Props = {
   size?: number;
   showPot?: boolean;
   parte?: ParteDoBroto;
+  /**
+   * O que ele está fazendo — ver `POSES`, em `geometriaDoBroto`.
+   *
+   * Aqui só entra o que é parado: rosto, olhar, bochecha. O que se move —
+   * folha que acena, pulo, zês subindo — é de `AnimatedSprout`, que é quem
+   * tem valores animados.
+   */
+  pose?: Pose;
+  /**
+   * As folhas que este desenho **não** deve desenhar, por índice na tabela do
+   * estágio. Quem as tira é quem vai desenhá-las por fora, animadas.
+   */
+  folhasSoltas?: number[];
 };
 
 /**
@@ -350,6 +515,8 @@ export function Sprout({
   size = 160,
   showPot = true,
   parte = 'tudo',
+  pose = 'parado',
+  folhasSoltas = VAZIO,
 }: Props) {
   /* Um sufixo por instância — ver `Gradientes`. */
   const idDoGradiente = useId().replace(/[^a-zA-Z0-9]/g, '');
@@ -383,6 +550,28 @@ export function Sprout({
     usar a caixa fechada em volta de planta e vaso. Mesmo espaço na tela, cerca
     de um terço a mais de desenho.
   */
+  /*
+    Cinco passadas, e as duas novas existem para a folha que se mexe.
+
+    As poses que mexem numa folha — acenar, espreguiçar, comemorar — não podem
+    animá-la dentro deste SVG: `Animated` entrega valor novo chamando
+    `setNativeProps`, que os nós do `react-native-svg` não implementam no
+    `react-native-web`. A animação rodaria no aparelho e ficaria parada na
+    única superfície onde dá para conferir (ver a nota em `desenhosDosTemas`).
+
+    A saída é desenhar a folha solta **fora** do SVG, numa `Animated.View` que
+    gira com `transform` comum — igual em toda plataforma, no driver nativo. Só
+    que a folha passa **atrás** da cabeça, então o desenho precisa abrir no
+    meio: `atras` é vaso, haste e as folhas que ficaram; `cabeca` é o bulbo, o
+    rosto e os enfeites. Quem empilha as três põe a folha animada entre elas.
+
+    As passadas usam a mesma `viewBox` e o mesmo tamanho, então se sobrepõem
+    exatamente — é o mesmo truque que a sombra já usava.
+  */
+  const desenhaSombra = showPot && (parte === 'tudo' || parte === 'sombra');
+  const desenhaCorpo = parte !== 'sombra' && parte !== 'cabeca';
+  const desenhaCabeca = parte !== 'sombra' && parte !== 'atras';
+
   const temEnfeite = decorations.length > 0;
   const caixa = showPot
     ? caixaDoMascote(stage, temEnfeite)
@@ -436,7 +625,7 @@ export function Sprout({
         Sai numa passada própria (`parte`) para poder ficar parada enquanto a
         planta balança.
       */}
-      {showPot && parte !== 'planta' && (
+      {desenhaSombra && (
         <G>
           {/*
             Duas sombras, e é assim no documento.
@@ -456,7 +645,7 @@ export function Sprout({
         </G>
       )}
 
-      {parte === 'sombra' ? null : (
+      {desenhaCorpo && (
         <>
       {showPot && (
         <G>
@@ -546,6 +735,7 @@ export function Sprout({
         mudarem.
       */}
       {LEAVES_BY_STAGE[stage].map((l, i) => {
+        if (folhasSoltas.includes(i)) return null;
         const voltadaParaALuz = Math.cos(((l.rotate + 90) * Math.PI) / 180) <= 0;
         return (
           <Leaf
@@ -556,7 +746,11 @@ export function Sprout({
           />
         );
       })}
+        </>
+      )}
 
+      {desenhaCabeca && (
+        <>
       <Circle
         cx={CX}
         cy={stemTopY - 4}
@@ -585,7 +779,7 @@ export function Sprout({
         fill="none"
       />
 
-      <Face mood={mood} cx={CX} cy={stemTopY - 4} />
+      <Face mood={mood} pose={pose} cx={CX} cy={stemTopY - 4} />
       <Decorations list={decorations} cx={CX} cy={stemTopY - 4} />
         </>
       )}

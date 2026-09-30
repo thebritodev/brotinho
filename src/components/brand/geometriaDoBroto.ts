@@ -82,6 +82,190 @@ export const CARAS: Record<Mood, Cara> = {
   neutro: { eye: 'circle', r: 2.4, mouth: 'M -7 7 L 7 7' },
 };
 
+/**
+ * As poses — o que o broto está **fazendo**, por cima do que ele está sentindo.
+ *
+ * Humor e pose são dois eixos, e é de propósito que sejam dois. `mood` é o que
+ * a pessoa disse que está sentindo, e é ela quem o define; `pose` é o que o
+ * broto faz naquela tela, e é a tela quem define. Um broto pode estar triste e
+ * ainda assim acenar quando a pessoa chega, e essa combinação é a que dá
+ * personagem em vez de termômetro.
+ *
+ * ## Por que a tabela mora aqui, e não em cada tela
+ *
+ * Pela mesma razão que `CARAS` mora aqui: havia duas descrições do mesmo rosto
+ * e elas divergiram. Uma pose descrita na tela onde é usada é uma pose que só
+ * existe ali — e a de acenar aparece em três telas.
+ *
+ * ## O que cada campo decide
+ *
+ * O rosto é composto: a pose sobrepõe o que quiser do humor e deixa o resto
+ * passar. `dorme` fecha os olhos seja qual for o humor, mas `pensa` só muda a
+ * boca e para onde os olhos olham — quem está ansioso continua com o olho
+ * maior.
+ */
+export type Pose =
+  | 'parado'
+  | 'acena'
+  | 'espreguica'
+  | 'pensa'
+  | 'calmo'
+  | 'dorme'
+  | 'comemora';
+
+/** O olho que a pose impõe, quando impõe algum. */
+export type OlhoDePose = 'fechado' | 'feliz' | 'cansado';
+
+/**
+ * A boca que a pose impõe.
+ *
+ * `'aberta'` e `'ronco'` não são caminhos: a primeira é preenchida e a segunda
+ * é uma elipse que pulsa. As duas são desenhadas à parte, no `Sprout`.
+ */
+export type BocaDePose = string | 'aberta' | 'ronco';
+
+export type Balanco = { graus: number; ms: number };
+
+export type MexeAsFolhas = {
+  /** Quais folhas da tabela do estágio entram no movimento. */
+  quais: 'primeira' | 'as duas de baixo';
+  /** A amplitude, em graus. A segunda folha vai para o outro lado. */
+  graus: number;
+  /** O ciclo inteiro, ida e volta. */
+  ms: number;
+  /** `acena` vai e volta duas vezes por ciclo; as outras, uma. */
+  vaievem?: boolean;
+};
+
+export type DescricaoDaPose = {
+  olho?: OlhoDePose;
+  boca?: BocaDePose;
+  /** Para onde a carinha olha, nas unidades do desenho. */
+  olhar?: { x: number; y: number };
+  /** Força a bochecha a aparecer — ou a sumir, em quem dorme. */
+  bochecha?: boolean;
+  /** O que flutua em volta: o sono ou a festa. */
+  ar?: 'zzz' | 'brilhos';
+  folhas?: MexeAsFolhas;
+  /** Um pulo, em unidades de desenho. */
+  pulo?: { altura: number; ms: number };
+  /** O bamboleio próprio da pose. Quando falta, vale a brisa de sempre. */
+  balanco?: Balanco;
+};
+
+/**
+ * Os arcos de olho das poses.
+ *
+ * Valem nas mesmas unidades de `CARAS`: centradas no olho, num bulbo de raio
+ * 27. `fechado` é uma pálpebra caída — a curva desce; `feliz` é a mesma curva
+ * ao contrário. `cansado` é a reta que o humor de mesmo nome já usava, e está
+ * repetida aqui de propósito: a pose de dormir não deve depender de qual humor
+ * a pessoa marcou.
+ */
+export const OLHOS_DE_POSE: Record<OlhoDePose, string> = {
+  fechado: 'M -5.5 -1 Q 0 4 5.5 -1',
+  feliz: 'M -5.5 1.5 Q 0 -5.5 5.5 1.5',
+  cansado: 'M -5 0 L 5 0',
+};
+
+export const POSES: Record<Pose, DescricaoDaPose> = {
+  /** O padrão: o broto só existindo. A brisa de `AnimatedSprout` basta. */
+  parado: {},
+  /**
+   * Acenar com a folha da frente.
+   *
+   * Duas idas por ciclo, e não uma: um aceno de uma ida só lê como a folha
+   * tendo sido empurrada pelo vento. O que faz virar cumprimento é repetir.
+   */
+  acena: {
+    bochecha: true,
+    folhas: { quais: 'primeira', graus: 28, ms: 1600, vaievem: true },
+  },
+  /** Espreguiçar: as duas folhas de baixo abrem para fora, devagar. */
+  espreguica: {
+    olho: 'feliz',
+    bochecha: true,
+    folhas: { quais: 'as duas de baixo', graus: 16, ms: 3400 },
+  },
+  /**
+   * Pensar: olha para cima e para o lado, com a boca torta.
+   *
+   * O olhar é a parte que importa. Boca torta sozinha lê como dúvida sobre
+   * alguma coisa na tela; com os olhos fora do eixo, lê como estar longe.
+   */
+  pensa: {
+    boca: 'M -4 8 Q 1 6 5 9',
+    olhar: { x: 2, y: -3 },
+  },
+  /** Calmo: olhos fechados e um sorriso mínimo. É a pose de quem respira. */
+  calmo: {
+    olho: 'fechado',
+    boca: 'M -6 7 Q 0 10.5 6 7',
+  },
+  /**
+   * Dormir: olhos fechados, boca redonda que pulsa, e os zês.
+   *
+   * Sem bochecha — a cor da bochecha é sangue subindo, e quem dorme não cora.
+   * O balanço é mais lento e só para um lado, como quem pende.
+   */
+  dorme: {
+    olho: 'fechado',
+    boca: 'ronco',
+    bochecha: false,
+    ar: 'zzz',
+    balanco: { graus: 2, ms: 7000 },
+  },
+  /** Comemorar: boca aberta, pulo curto, folhas batendo e brilhos em volta. */
+  comemora: {
+    olho: 'feliz',
+    boca: 'aberta',
+    bochecha: true,
+    ar: 'brilhos',
+    folhas: { quais: 'as duas de baixo', graus: 22, ms: 700 },
+    pulo: { altura: 16, ms: 700 },
+  },
+};
+
+/**
+ * Onde ficam os zês e os brilhos, em volta da carinha.
+ *
+ * São deslocamentos a partir do centro do bulbo, em unidades do desenho, e
+ * quem os posiciona na tela é `ArDoBroto` — fora do SVG, porque ali cada um
+ * pode ser uma `View` animada pelo driver nativo em vez de um `<animate>` que
+ * o `react-native-svg` não roda.
+ *
+ * O raio do bulbo entra na conta em quem chama: o estágio 1 tem 20 de raio e o
+ * 3 tem 33, e um deslocamento fixo grudaria os zês na cabeça do menor.
+ */
+export type LugarNoAr = {
+  /** `x = r * raio + solto`, a partir do centro do bulbo. */
+  x: { raio: number; solto: number };
+  y: { raio: number; solto: number };
+  escala: number;
+};
+
+export const AR_DO_BROTO: { zzz: LugarNoAr[]; brilhos: LugarNoAr[] } = {
+  /** Três zês subindo na diagonal, cada um maior que o anterior. */
+  zzz: [
+    { x: { raio: 1, solto: 6 }, y: { raio: -1, solto: 4 }, escala: 1 },
+    { x: { raio: 1, solto: 15 }, y: { raio: -1, solto: -8 }, escala: 1.25 },
+    { x: { raio: 1, solto: 24 }, y: { raio: -1, solto: -20 }, escala: 1.5 },
+  ],
+  /** Cinco brilhos em volta, em tamanhos diferentes para não virar coroa. */
+  brilhos: [
+    { x: { raio: -1, solto: -22 }, y: { raio: -1, solto: 2 }, escala: 1 },
+    { x: { raio: 1, solto: 20 }, y: { raio: -1, solto: -8 }, escala: 1.2 },
+    { x: { raio: 1, solto: 30 }, y: { raio: 0, solto: 6 }, escala: 0.7 },
+    { x: { raio: -1, solto: -30 }, y: { raio: 0, solto: 14 }, escala: 0.8 },
+    { x: { raio: 0, solto: -8 }, y: { raio: -1, solto: -22 }, escala: 0.6 },
+  ],
+};
+
+/** Onde um lugar no ar cai, em unidades de desenho, para um bulbo de raio `r`. */
+export function noAr(l: LugarNoAr, r: number) {
+  return { x: l.x.raio * r + l.x.solto, y: l.y.raio * r + l.y.solto };
+}
+
 /** O eixo do broto. Tudo é desenhado simétrico em volta dele. */
 export const CX = 100;
 
@@ -320,6 +504,40 @@ export function caixaDoMascote(stage: SproutStage, temEnfeite: boolean): Caixa {
 export function medidasDoMascote(caixa: Caixa, size: number) {
   const escala = size / LARGURA_DE_REFERENCIA;
   return { largura: caixa.largura * escala, altura: caixa.altura * escala };
+}
+
+/**
+ * O quadro do broto: a caixa escolhida e o tamanho dela na tela.
+ *
+ * As duas regras de quadro — a do mascote, de escala fixa, e a do broto dos
+ * cartões, que preenche o espaço — estavam escritas duas vezes: uma no
+ * `Sprout`, que desenha, e outra no `AnimatedSprout`, que reserva o espaço.
+ * Enquanto ninguém precisava de mais nada, duas cópias passavam; quando a
+ * folha que acena passou a ser posicionada por fora do SVG, a conta virou
+ * três, e a terceira precisa cair exatamente em cima das outras duas.
+ */
+export function quadroDoBroto(
+  stage: SproutStage,
+  size: number,
+  { showPot = true, temEnfeite = false }: { showPot?: boolean; temEnfeite?: boolean } = {},
+) {
+  const caixa = showPot ? caixaDoMascote(stage, temEnfeite) : caixaDaPlanta(stage, temEnfeite);
+  const { largura, altura } = showPot
+    ? medidasDoMascote(caixa, size)
+    : { altura: size * 1.12, largura: size * 1.12 * (caixa.largura / caixa.altura) };
+  return { caixa, largura, altura, escala: largura / caixa.largura };
+}
+
+/** Onde um ponto do desenho cai dentro de um quadro já medido, em pixels. */
+export function noQuadro(
+  quadro: { caixa: Caixa; largura: number; altura: number },
+  x: number,
+  y: number,
+) {
+  return {
+    x: ((x - quadro.caixa.x) / quadro.caixa.largura) * quadro.largura,
+    y: ((y - quadro.caixa.y) / quadro.caixa.altura) * quadro.altura,
+  };
 }
 
 /**
