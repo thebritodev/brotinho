@@ -74,6 +74,14 @@ const RIGHT: SideTab = { key: 'perfil', label: 'Perfil', icon: 'user' };
 type Props = {
   active?: TabKey;
   onChange?: (tab: TabKey) => void;
+  /**
+   * Onde o dedo encostou, em pixels da tela — para a explosao sair dali.
+   *
+   * A barra mede e entrega; quem desenha e quem empilha as telas, porque a
+   * explosao precisa ficar **por cima** da troca de tela, e daqui ela ficaria
+   * presa dentro da barra. Ver `ExplosaoDaAba`.
+   */
+  aoTocar?: (tab: TabKey, onde: { x: number; y: number }) => void;
 };
 
 /**
@@ -176,7 +184,7 @@ function balancar(valor: Animated.Value, duracao: number) {
  * `accessibilityLabel` são obrigatórios, senão quem usa leitor de tela fica
  * sem nada para ouvir.
  */
-export function BottomNav({ active = 'home', onChange }: Props) {
+export function BottomNav({ active = 'home', onChange, aoTocar }: Props) {
   const { colors, palette, shadows } = useTema();
   const insets = useSafeAreaInsets();
 
@@ -278,10 +286,15 @@ export function BottomNav({ active = 'home', onChange }: Props) {
         accessibilityRole="tab"
         accessibilityLabel={t.label}
         accessibilityState={{ selected: ativa }}
-        onPress={() => {
+        onPress={(e) => {
           /* O perfil responde ao toque, inclusive quando já está aberto: é
              confirmação do gesto, não anúncio de destino novo. */
           if (!doBroto && !menosMovimento) balancar(tranco, 420);
+          /*
+            `pageX`/`pageY` e a posicao na tela, e nao no botao. E a mesma
+            coordenada em que a explosao e desenhada, duas camadas acima.
+          */
+          aoTocar?.(t.key, { x: e.nativeEvent.pageX, y: e.nativeEvent.pageY });
           onChange?.(t.key);
         }}
         style={{ flex: 1, alignItems: 'center', justifyContent: 'center', minHeight: 48, gap: 3 }}
@@ -428,7 +441,10 @@ export function BottomNav({ active = 'home', onChange }: Props) {
           accessibilityRole="tab"
           accessibilityLabel="Início"
           accessibilityState={{ selected: active === 'home' }}
-          onPress={() => onChange?.('home')}
+          onPress={(e) => {
+            aoTocar?.('home', { x: e.nativeEvent.pageX, y: e.nativeEvent.pageY });
+            onChange?.('home');
+          }}
           style={({ pressed }) => ({
             width: CENTER_SIZE,
             height: CENTER_SIZE,
