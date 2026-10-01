@@ -1,12 +1,23 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { Platform, View } from 'react-native';
+import {
+  Modal,
+  Platform,
+  Pressable,
+  StyleSheet,
+  Text,
+  useWindowDimensions,
+  View,
+} from 'react-native';
 import type Svg from 'react-native-svg';
 
 import {
   compartilharFrase,
   type ResultadoDoCompartilhar,
 } from '../../services/compartilharFrase';
+import { fonts, radius, useTema } from '../../theme';
+import { Button } from '../core/Button';
 import { CardDoStory, STORY } from './CardDoStory';
+import { ESTILOS_DO_STORY, ESTILO_PADRAO, type EstiloDoStory } from './estilosDoStory';
 
 /**
  * Monta o card do story fora da tela, fotografa e entrega ao sistema.
@@ -75,6 +86,17 @@ export function useCompartilharFrase() {
   /** A frase que está sendo virada em imagem agora; `null` quando não há. */
   const [pedido, setPedido] = useState<string | null>(null);
   const [aviso, setAviso] = useState<string | null>(null);
+  /**
+   * A frase que está esperando a pessoa escolher o fundo.
+   *
+   * Entre tocar em "compartilhar" e a folha do sistema abrir havia zero
+   * decisão: o card saía do jeito que saía, e a pessoa só descobria qual era
+   * depois de o Instagram já estar aberto. A escolha entra aqui, antes — com
+   * a prévia do que vai sair, que é a outra metade: postar uma frase é postar
+   * algo sobre o próprio dia, e ninguém posta no escuro.
+   */
+  const [escolhendo, setEscolhendo] = useState<string | null>(null);
+  const [estilo, setEstilo] = useState<EstiloDoStory>(ESTILO_PADRAO);
 
   useEffect(() => {
     if (pedido === null) return;
@@ -104,9 +126,16 @@ export function useCompartilharFrase() {
 
   const compartilhar = useCallback((texto: string) => {
     setAviso(null);
+    setEscolhendo(texto);
+  }, []);
+
+  const confirmar = useCallback(() => {
+    const texto = escolhendo;
+    setEscolhendo(null);
+    if (!texto) return;
     // Sem capturar duas vezes se a pessoa tocar de novo enquanto trabalha.
     setPedido((atual) => atual ?? texto);
-  }, []);
+  }, [escolhendo]);
 
   const palco =
     pedido === null || Platform.OS === 'web' ? null : (
@@ -121,9 +150,169 @@ export function useCompartilharFrase() {
         accessibilityElementsHidden
         importantForAccessibility="no-hide-descendants"
       >
-        <CardDoStory ref={alvo} texto={pedido} />
+        <CardDoStory ref={alvo} texto={pedido} estilo={estilo} />
       </View>
     );
 
-  return { palco, compartilhar, compartilhando: pedido !== null, aviso };
+  const folha = (
+    <FolhaDeEscolha
+      texto={escolhendo}
+      estilo={estilo}
+      aoEscolher={setEstilo}
+      aoConfirmar={confirmar}
+      aoFechar={() => setEscolhendo(null)}
+    />
+  );
+
+  return {
+    palco,
+    folha,
+    compartilhar,
+    compartilhando: pedido !== null,
+    aviso,
+  };
+}
+
+/**
+ * A folha que abre antes de compartilhar: a prévia e os quatro fundos.
+ *
+ * ## Por que a prévia é o card de verdade, encolhido
+ *
+ * Porque um retângulo colorido com a frase dentro mentiria sobre o resultado —
+ * o card tem grão, manchas, vinheta, as folhas sangrando e a aspa gigante, e é
+ * o conjunto disso que faz alguém querer postar. Encolhido por `scale`, é o
+ * mesmo desenho que vai virar arquivo, com os mesmos pixels proporcionais.
+ *
+ * ## O que não está aqui, e por quê
+ *
+ * "Salvar imagem" e "Copiar texto", que o documento desenha. Os dois pedem
+ * módulos nativos que este app não tem — galeria e área de transferência —, e
+ * módulo nativo novo quer dizer build nova e revisão de loja. A folha do
+ * sistema que o botão abre já oferece salvar e copiar em todo aparelho
+ * moderno, pela interface que a pessoa conhece.
+ */
+function FolhaDeEscolha({
+  texto,
+  estilo,
+  aoEscolher,
+  aoConfirmar,
+  aoFechar,
+}: {
+  texto: string | null;
+  estilo: EstiloDoStory;
+  aoEscolher: (e: EstiloDoStory) => void;
+  aoConfirmar: () => void;
+  aoFechar: () => void;
+}) {
+  const { colors, palette, shadows } = useTema();
+  const { width, height } = useWindowDimensions();
+
+  if (texto === null) return null;
+
+  /* A prévia cabe na metade de cima da tela, sem passar da largura dela. */
+  const alturaDaPrevia = Math.min(height * 0.42, 380);
+  const escala = Math.min(alturaDaPrevia / STORY.altura, (width - 120) / STORY.largura);
+
+  return (
+    <Modal visible transparent animationType="fade" onRequestClose={aoFechar}>
+      <View style={{ flex: 1, justifyContent: 'flex-end' }}>
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel="Fechar"
+          onPress={aoFechar}
+          style={[StyleSheet.absoluteFill, { backgroundColor: 'rgba(58,54,48,0.55)' }]}
+        />
+        <View
+          style={{
+            backgroundColor: colors.bg,
+            borderTopLeftRadius: radius.xl,
+            borderTopRightRadius: radius.xl,
+            padding: 22,
+            paddingBottom: 30,
+            gap: 18,
+            alignItems: 'center',
+          }}
+        >
+          <Text
+            style={{
+              fontFamily: fonts.display.bold,
+              fontSize: 20,
+              color: colors.textPrimary,
+              alignSelf: 'flex-start',
+            }}
+          >
+            Compartilhar a frase
+          </Text>
+
+          <View
+            style={{
+              width: STORY.largura * escala,
+              height: STORY.altura * escala,
+              borderRadius: radius.lg,
+              overflow: 'hidden',
+              ...shadows.md,
+            }}
+          >
+            <View
+              style={{
+                width: STORY.largura,
+                height: STORY.altura,
+                transform: [{ scale: escala }],
+                transformOrigin: 'top left',
+              }}
+            >
+              <CardDoStory texto={texto} estilo={estilo} />
+            </View>
+          </View>
+
+          <View style={{ flexDirection: 'row', gap: 16 }}>
+            {ESTILOS_DO_STORY.map((e) => {
+              const escolhido = e.chave === estilo.chave;
+              return (
+                <Pressable
+                  key={e.chave}
+                  accessibilityRole="button"
+                  accessibilityLabel={e.rotulo}
+                  accessibilityState={{ selected: escolhido }}
+                  onPress={() => aoEscolher(e)}
+                  style={{ alignItems: 'center', gap: 6 }}
+                >
+                  <View
+                    style={{
+                      width: 40,
+                      height: 40,
+                      borderRadius: 20,
+                      backgroundColor: e.fundo,
+                      borderWidth: escolhido ? 3 : 1.5,
+                      borderColor: escolhido ? colors.primary : colors.border,
+                    }}
+                  />
+                  <Text
+                    style={{
+                      fontFamily: fonts.body.bold,
+                      fontSize: 12,
+                      color: escolhido ? colors.primaryStrong : palette.brown400,
+                    }}
+                  >
+                    {e.rotulo}
+                  </Text>
+                </Pressable>
+              );
+            })}
+          </View>
+
+          <Button variant="primary" style={{ width: '100%' }} onPress={aoConfirmar}>
+            Compartilhar
+          </Button>
+          <Pressable accessibilityRole="button" onPress={aoFechar} style={{ padding: 6 }}>
+            <Text
+              style={{ fontFamily: fonts.body.bold, fontSize: 15, color: palette.brown400 }}
+            >
+              Agora não
+            </Text>
+          </Pressable>
+        </View>
+      </View>
+    </Modal>
+  );
 }

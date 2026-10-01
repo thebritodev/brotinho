@@ -12,6 +12,7 @@ import Svg, {
 
 import { entreAspas } from '../../data/conselhos';
 import { fonts } from '../../theme';
+import { ESTILO_PADRAO, type EstiloDoStory } from './estilosDoStory';
 import { corpoDaFrase, linhasDaFrase } from './quebraDeLinha';
 import { graosDoCard, MANCHAS } from './texturaDoCard';
 
@@ -78,11 +79,14 @@ import { graosDoCard, MANCHAS } from './texturaDoCard';
 
 export const STORY = { largura: 1080, altura: 1920 };
 
-/* Cores fixas: isto vira arquivo e sai do aparelho, então não segue o tema de
-   quem exportou. Uma frase postada de noite não pode sair diferente da mesma
-   frase postada de dia. */
-const FUNDO = '#2E4A3B';
-const TINTA = '#FBF6EC';
+/*
+  As cores saíram daqui e viraram quatro estilos — ver `estilosDoStory`.
+
+  A regra não mudou: são valores fixos, e não seguem o tema de quem exportou.
+  Isto vira arquivo e sai do aparelho; uma frase postada de noite não pode sair
+  diferente da mesma frase postada de dia, e quem recebe não tem tema nenhum.
+  O que mudou é que agora quem escolhe é a pessoa, entre quatro.
+*/
 
 const ENTRELINHA = 1.42;
 
@@ -98,10 +102,12 @@ const SEGURO = { topo: 260, base: 270 };
 /** A folha da marca, emprestada como silhueta gigante do fundo. */
 const FOLHA = 'M0 0 C -6 -14 -18 -26 -32 -24 C -42 -22 -44 -6 -34 4 C -22 16 -8 12 0 0 Z';
 
-export const CardDoStory = React.forwardRef<Svg, { texto: string }>(function CardDoStory(
-  { texto },
-  ref,
-) {
+export const CardDoStory = React.forwardRef<
+  Svg,
+  { texto: string; estilo?: EstiloDoStory }
+>(function CardDoStory({ texto, estilo = ESTILO_PADRAO }, ref) {
+  const FUNDO = estilo.fundo;
+  const TINTA = estilo.tinta;
   /* Id por instância: `url(#...)` não tem escopo em SVG. */
   const id = useId().replace(/[^a-zA-Z0-9]/g, '');
 
@@ -141,8 +147,8 @@ export const CardDoStory = React.forwardRef<Svg, { texto: string }>(function Car
         </RadialGradient>
         {/* A vinheta é o inverso: transparente no meio, fechando nas bordas. */}
         <RadialGradient id={`vinheta-${id}`} cx="50%" cy="50%" r="72%">
-          <Stop offset="0.45" stopColor="#000000" stopOpacity={0} />
-          <Stop offset="1" stopColor="#000000" stopOpacity={0.34} />
+          <Stop offset="0.45" stopColor={estilo.vinheta} stopOpacity={0} />
+          <Stop offset="1" stopColor={estilo.vinheta} stopOpacity={0.34} />
         </RadialGradient>
       </Defs>
 

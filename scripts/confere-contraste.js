@@ -175,6 +175,28 @@ function razao(frente, fundo) {
   if (!humorJs) throw new Error('nao achei ceuDoHumor.js na saida do tsc');
   const ceuDoHumor = require(humorJs);
 
+  /*
+    Os quatro fundos do card do story.
+
+    Este e o unico desenho do app que **sai do aparelho**, e a frase nele e
+    lida em miniatura num feed — o pior caso de legibilidade que existe aqui.
+    Por isso o piso e o de texto comum, e nao o de texto grande: 3:1 passaria
+    no tamanho em que o card e feito e falharia no tamanho em que ele e visto.
+  */
+  const saidaDosEstilos = pastaTemporaria('estilos-do-story');
+  execFileSync(
+    process.execPath,
+    [
+      tsc, '--outDir', saidaDosEstilos, '--module', 'commonjs', '--target', 'es2020',
+      '--moduleResolution', 'node', '--strict', '--skipLibCheck',
+      path.join(RAIZ, 'src', 'components', 'brand', 'estilosDoStory.ts'),
+    ],
+    { stdio: 'inherit', cwd: RAIZ },
+  );
+  const estilosJs = procura(saidaDosEstilos, 'estilosDoStory.js');
+  if (!estilosJs) throw new Error('nao achei estilosDoStory.js na saida do tsc');
+  const estilosDoStory = require(estilosJs);
+
   let falhas = 0;
   const linha = (nome, frente, fundo, piso) => {
     const r = razao(frente, fundo);
@@ -280,6 +302,11 @@ function razao(frente, fundo) {
     humor novo entrar na paleta, ele cai aqui sozinho: a lista vem de
     `todosOsCeus`, que percorre os humores de verdade.
   */
+  console.log('\n— a frase sobre os quatro fundos do story —');
+  for (const e of estilosDoStory.ESTILOS_DO_STORY) {
+    linha(`frase no fundo "${e.rotulo}"`, e.tinta, e.fundo, AA_TEXTO);
+  }
+
   console.log('\n— texto sobre os céus de humor —');
   const ceus = ceuDoHumor.todosOsCeus();
   for (const c of ceus) {

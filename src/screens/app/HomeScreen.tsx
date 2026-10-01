@@ -903,6 +903,7 @@ export function HomeScreen({
 
       {/* O card do story, montado fora da tela só enquanto está sendo fotografado. */}
       {story.palco}
+      {story.folha}
     </View>
   );
 }

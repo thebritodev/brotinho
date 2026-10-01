@@ -180,6 +180,7 @@ export function ConselhosGuardadosScreen({ onBack }: { onBack: () => void }) {
 
       {/* O card do story, fora da tela, só enquanto está sendo fotografado. */}
       {story.palco}
+      {story.folha}
     </View>
   );
 }
