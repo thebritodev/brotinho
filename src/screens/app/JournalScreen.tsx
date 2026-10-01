@@ -23,7 +23,11 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import {
   AjudaAgora,
+  AnimatedSprout,
+  BalaoDoBroto,
   Button,
+  Cena,
+  CRISTA_DO_MORRO,
   MoodSelector,
   HumorComPalavra,
   Icon,
@@ -38,9 +42,10 @@ import { useAppState } from '../../state/AppStateProvider';
 import type { OrigemDoRegistro } from '../../state/types';
 import { descartarRascunho, loadRascunho, saveRascunho } from '../../storage/appStorage';
 import { comecoDoDia } from '../../data/comecos';
+import { noDiario } from '../../data/falasDoBroto';
 import { respostaAoRegistro } from '../../data/resposta';
 import { sugestaoParaOHumor, type Sugestao } from '../../data/sugestao';
-import { dayKey, normalize } from '../../state/derived';
+import { dayKey, normalize, sproutStage } from '../../state/derived';
 import { borderWidth, fonts, type Mood, radius, useTema } from '../../theme';
 import { PAUTA, PAUTA_EM_SP, RuledPaper } from './RuledPaper';
 import { SwipeableEntry } from './SwipeableEntry';
@@ -188,7 +193,16 @@ export function JournalScreen({
   const insets = useSafeAreaInsets();
   const { data, addJournalEntry, updateJournalEntry, removeJournalEntry, setTodayMood } =
     useAppState();
-  const { width: larguraDaTela } = useWindowDimensions();
+  const { width: larguraDaTela, height: alturaDaTela } = useWindowDimensions();
+  /*
+    A faixa do broto e curta de proposito.
+
+    Esta e a unica tela do app em que o espaco de baixo vale mais que o de
+    cima, porque o de baixo e a folha. Um quinto da tela da para ele caber
+    inteiro e deixar a folha comecar acima da dobra.
+  */
+  const alturaDaCenaDoDiario = Math.max(130, Math.min(alturaDaTela * 0.17, 175));
+  const estagioDoDiario = sproutStage(data);
 
   const [text, setText] = useState('');
 
@@ -547,6 +561,72 @@ export function JournalScreen({
         showsVerticalScrollIndicator={false}
         keyboardShouldPersistTaps="handled"
       >
+        {/*
+          O broto esperando o que ela vai escrever.
+
+          A faixa e curta de proposito: esta e a unica tela do app em que o
+          espaco de baixo vale mais que o de cima, porque o de baixo e a folha.
+          Ela existe para a pessoa nao escrever para uma caixa de texto — o que
+          ele diz muda conforme ela escreve, e e a unica confirmacao de que
+          alguem esta do outro lado. Ninguem mais vai ler; e por isso que ter
+          alguem ali importa.
+        */}
+        <View style={{ marginHorizontal: -20, height: alturaDaCenaDoDiario }}>
+          <Cena
+            largura={larguraDaTela}
+            altura={alturaDaCenaDoDiario}
+            ceu={palette.amber100}
+            semAstro
+            nuvens={false}
+            chao="grama"
+          />
+          <View
+            style={{
+              position: 'absolute',
+              left: 16,
+              /*
+                Mais fundo que a crista, e nao em cima dela.
+
+                Numa faixa curta, deixar o vaso pousado na crista empurra o
+                desenho para o alto e sobra uma tira de morro embaixo que tem
+                exatamente a cor da pagina — le como vazio, nao como chao. Com
+                o vaso dentro da encosta, a faixa acaba onde o desenho acaba.
+              */
+              bottom: 14,
+              width: alturaDaCenaDoDiario * 0.72,
+              alignItems: 'center',
+            }}
+          >
+            <AnimatedSprout
+              mood="leve"
+              stage={estagioDoDiario}
+              size={Math.round(alturaDaCenaDoDiario * 0.64)}
+              pose={text.trim() ? 'parado' : 'pensa'}
+            />
+          </View>
+          <BalaoDoBroto
+            lado="esquerda"
+            apareceEm={noDiario(text)}
+            style={{
+              position: 'absolute',
+              right: 16,
+              top: alturaDaCenaDoDiario * 0.12,
+              maxWidth: 175,
+            }}
+          >
+            <Text
+              style={{
+                fontFamily: fonts.body.bold,
+                fontSize: 14.5,
+                lineHeight: 14.5 * 1.35,
+                color: colors.textPrimary,
+              }}
+            >
+              {noDiario(text)}
+            </Text>
+          </BalaoDoBroto>
+        </View>
+
         <Text style={{ color: colors.textPrimary, fontFamily: fonts.display.semiBold, fontSize: 19 }}>{comeco}</Text>
 
         {/* Folha em uso. A folha que acabou de ser salva vira por cima dela. */}

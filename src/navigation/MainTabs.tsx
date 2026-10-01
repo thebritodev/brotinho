@@ -225,7 +225,7 @@ export function MainTabs() {
       case 'lembretes':
         return <RemindersScreen onBack={closeSub} />;
       case 'jardim':
-        return <GardenScreen onBack={closeSub} />;
+        return <GardenScreen onBack={closeSub} aoAbrir={setSub} />;
       case 'conselhos':
         return <ConselhosGuardadosScreen onBack={closeSub} />;
       case 'diario':
