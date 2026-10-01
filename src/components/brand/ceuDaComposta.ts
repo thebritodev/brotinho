@@ -84,3 +84,19 @@ export const TEXTO_NO_CEU_FRACO = '#5B5548';
  * uma pastilha que não existe.
  */
 export const VIDRO_NO_CEU = 'rgba(255,255,255,0.75)';
+
+/**
+ * O fundo do balão de fala do broto, quando ele fala de dentro da paisagem.
+ *
+ * É o mesmo branco que `colors.surface` tem no tema claro — a diferença é que
+ * este não anoitece. O balão da tela inicial fica sobre o céu, e o que está
+ * escrito nele é `TEXTO_NO_CEU`, que é fixo e escuro pela regra de cima. Um
+ * balão que seguisse o tema viraria quase preto à noite com texto quase preto
+ * dentro: a fala existe, ocupa espaço, e não dá para ler.
+ *
+ * A outra saída seria escrever com `colors.textPrimary` e deixar o balão
+ * seguir o tema. Ela resolve este balão e quebra a regra: o resto da faixa
+ * continua fixo, e teríamos uma única caixa anoitecendo no meio de uma
+ * paisagem que não anoitece.
+ */
+export const BALAO_NO_CEU = '#FFFFFF';

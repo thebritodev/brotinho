@@ -798,6 +798,11 @@ export function FaixaDaComposta({
         é cor fixa: no escuro, `textPrimary` seria creme sobre céu claro. Ver
         `ceuDaComposta`.
 
+        E por isso o balão também: `tom="noCeu"` é o branco que não anoitece.
+        Com o tom normal ele vira `colors.surface` — quase preto à noite —, e
+        o texto fixo escuro desaparece dentro dele. Era o único lugar da faixa
+        em que a regra do céu valia para a letra e não valia para o fundo.
+
         A largura máxima é a distância até o broto, menos uma folga — escrita
         como conta e não como número, porque a coluna dele é uma fração da
         tela e muda de aparelho para aparelho.
@@ -805,6 +810,7 @@ export function FaixaDaComposta({
       {!!fala && (
         <BalaoDoBroto
           lado="direita"
+          tom="noCeu"
           apareceEm={fala}
           style={{
             position: 'absolute',

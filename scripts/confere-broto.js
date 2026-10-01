@@ -282,6 +282,81 @@ async function main() {
       );
     }
   }
+
+  // --- E. a boca arqueia para o lado certo -----------------------------
+  /*
+    Numa tela o y cresce para baixo, e e por isso que esta conferencia
+    existe: a boca de sorriso e a de tristeza tem a mesma forma escrita, e o
+    que as separa e o **sinal** de um numero no meio do `d`. Trocado, o
+    arquivo continua valido, o tipo fecha, o SVG desenha — e o broto fica de
+    cara triste.
+
+    Ja aconteceu. A pose `pensa` nasceu com `Q 1 6` entre pontas em 8 e 9: o
+    controle acima das pontas arqueia para cima, que e exatamente a boca do
+    `triste`. O broto pensava de cara triste no guia dos passos, no diario em
+    branco, em dois cartoes do onboarding e em tres temas.
+
+    E nao e so feiura. A regra do personagem e que ele nao espelha o estado de
+    quem esta ali — um broto triste na tela de quem veio atravessar a tristeza
+    deixa a pessoa sozinha nela. So o humor `triste` pode ter boca para baixo,
+    porque ali a cara e o proprio assunto.
+  */
+  const arco = (d) => {
+    const n = numeros(d);
+    if (n.length < 6) return null;
+    const [x0, y0, cx1, cy1, x1, y1] = n;
+    void x0;
+    void cx1;
+    void x1;
+    /* O ponto do meio de uma quadratica: um quarto, metade, um quarto. */
+    const meio = 0.25 * y0 + 0.5 * cy1 + 0.25 * y1;
+    return meio - (y0 + y1) / 2;
+  };
+
+  /*
+    `para baixo` e o meio mais fundo que as pontas — sorriso. `para cima` e o
+    contrario. `reta` e a boca do cansado e a do neutro, que nao tem Q.
+  */
+  const ESPERADO = {
+    feliz: 'para baixo',
+    leve: 'para baixo',
+    ansioso: 'ondulada',
+    triste: 'para cima',
+    cansado: 'reta',
+    neutro: 'reta',
+  };
+
+  for (const [humor, esperado] of Object.entries(ESPERADO)) {
+    const d = g.CARAS[humor].mouth;
+    const temQ = /Q/.test(d);
+    if (esperado === 'reta') {
+      confere(`a boca do humor ${humor} é uma reta`, !temQ, d);
+      continue;
+    }
+    if (esperado === 'ondulada') {
+      /* Duas curvas, uma para cada lado: o zigue-zague do ansioso. */
+      confere(`a boca do humor ${humor} tem as duas curvas`, (d.match(/Q/g) || []).length === 2, d);
+      continue;
+    }
+    const a = arco(d);
+    const ok = esperado === 'para baixo' ? a > 0.3 : a < -0.3;
+    confere(`a boca do humor ${humor} arqueia ${esperado}`, ok, `${a?.toFixed(2)}`);
+  }
+
+  /*
+    Nenhuma pose pode impor boca para cima. As poses sao o que ele **faz**, e
+    nenhuma das sete e "estar mal" — quem decide isso e o humor.
+  */
+  for (const [nome, pose] of Object.entries(g.POSES)) {
+    const d = pose.boca;
+    if (typeof d !== 'string' || d === 'aberta' || d === 'ronco') continue;
+    const a = arco(d);
+    confere(
+      `a boca da pose ${nome} não é a do triste`,
+      a !== null && a > -0.3,
+      `${a === null ? '?' : a.toFixed(2)} · ${d}`,
+    );
+  }
 }
 
 main()

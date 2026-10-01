@@ -130,6 +130,22 @@ confere(
   !/color: colors\.textPrimary,/.test(faixa),
   'alguma coisa desta faixa voltou a escrever com `colors.textPrimary`: sobre o céu claro, no escuro, isso é creme sobre creme',
 );
+/*
+  O balão de fala é o caso em que a regra escorrega para o **fundo**.
+
+  A letra já era fixa, e por isso ninguém olhava duas vezes: o `BalaoDoBroto`
+  se pinta com `colors.surface`, que no escuro é quase preto. Resultado: texto
+  quase preto dentro de uma caixa quase preta, em cima de um céu claro. O
+  `tom="noCeu"` é o branco que não anoitece — ver `BALAO_NO_CEU`.
+*/
+confere(
+  'FaixaDaComposta',
+  /* Dentro da abertura da tag, e não em qualquer lugar do arquivo: o
+     comentário logo acima dela cita o nome do tom, e um `includes` solto
+     passaria com o comentário e a propriedade apagada. */
+  !/<BalaoDoBroto/.test(faixa) || /<BalaoDoBroto[^>]*tom="noCeu"/.test(faixa),
+  'o balão de fala do broto perdeu o `tom="noCeu"`: no escuro ele fica preto com o texto fixo escuro dentro',
+);
 
 /* ---------- 3. O cabeçalho mora dentro do céu ---------- */
 

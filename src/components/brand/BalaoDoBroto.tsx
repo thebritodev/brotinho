@@ -4,6 +4,7 @@ import Svg, { Path } from 'react-native-svg';
 
 import { useMenosMovimento } from '../../hooks/useMenosMovimento';
 import { radius, useTema } from '../../theme';
+import { BALAO_NO_CEU } from './ceuDaComposta';
 
 /**
  * BalaoDoBroto — a caixa com bico, para tudo que o broto diz.
@@ -35,7 +36,7 @@ const BICO_LARGURA = 26;
 
 type Lado = 'baixo' | 'esquerda' | 'direita';
 
-type Tom = 'superficie' | 'suave';
+type Tom = 'superficie' | 'suave' | 'noCeu';
 
 /**
  * A entrada do balão: ele **pula** para dentro, não aparece.
@@ -62,6 +63,11 @@ type Props = {
    * `superficie` é o balão branco sobre o fundo creme — a fala em destaque.
    * `suave` é o verde claro dos cartões, para quando ele comenta algo em vez
    * de perguntar.
+   *
+   * `noCeu` é o `superficie` que não anoitece, para quando o balão fica em
+   * cima da paisagem da tela inicial. Ali o céu é fixo e o texto é fixo
+   * (`TEXTO_NO_CEU`); um balão que seguisse o tema ficaria quase preto com
+   * texto quase preto dentro. Ver `BALAO_NO_CEU`.
    */
   tom?: Tom;
   style?: StyleProp<ViewStyle>;
@@ -86,7 +92,8 @@ export function BalaoDoBroto({
 }: Props) {
   const { colors, shadows } = useTema();
   const menosMovimento = useMenosMovimento();
-  const fundo = tom === 'suave' ? colors.primarySoft : colors.surface;
+  const fundo =
+    tom === 'suave' ? colors.primarySoft : tom === 'noCeu' ? BALAO_NO_CEU : colors.surface;
 
   const pop = useRef(new Animated.Value(menosMovimento ? 1 : 0)).current;
 
@@ -124,7 +131,7 @@ export function BalaoDoBroto({
           paddingVertical: 12,
           paddingHorizontal: 16,
         },
-        tom === 'superficie' ? shadows.sm : null,
+        tom === 'suave' ? null : shadows.sm,
       ]}
     >
       {children}

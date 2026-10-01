@@ -192,9 +192,25 @@ export const POSES: Record<Pose, DescricaoDaPose> = {
    *
    * O olhar é a parte que importa. Boca torta sozinha lê como dúvida sobre
    * alguma coisa na tela; com os olhos fora do eixo, lê como estar longe.
+   *
+   * ## A torta tem de subir, não descer
+   *
+   * A primeira versão era `M -4 8 Q 1 6 5 9`, e o ponto de controle acima das
+   * pontas faz a curva arquear **para cima** — que em tela, onde o y cresce
+   * para baixo, é a boca do `triste`. O broto ficava de cara triste em sete
+   * lugares: o guia dos passos, o diário em branco, dois cartões do
+   * onboarding e três temas.
+   *
+   * E não é um erro só de desenho. A regra do personagem é que ele não
+   * espelha o estado de quem está ali — um broto triste na tela de quem veio
+   * atravessar a tristeza deixa a pessoa sozinha nela. Pensar é olhar para
+   * longe, não é estar mal.
+   *
+   * A boca de agora é quase uma linha, subindo um pouco à direita: o canto
+   * levantado de quem está considerando alguma coisa.
    */
   pensa: {
-    boca: 'M -4 8 Q 1 6 5 9',
+    boca: 'M -5 8.5 Q 0 9.6 5 7',
     olhar: { x: 2, y: -3 },
   },
   /** Calmo: olhos fechados e um sorriso mínimo. É a pose de quem respira. */

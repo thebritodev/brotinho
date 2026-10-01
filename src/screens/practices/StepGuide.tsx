@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Pressable, Text, View } from 'react-native';
 
 import { AnimatedSprout, BalaoDoBroto, Button } from '../../components';
+import { POR_TRAS_DA_BARRA } from '../../components/navigation/BottomNav';
 import { NOS_PASSOS } from '../../data/falasDoBroto';
 import { calar, falar } from '../../services/voz';
 import { useAppState } from '../../state/AppStateProvider';
@@ -179,7 +180,20 @@ export function StepGuide({ steps, onDone, onCancel, tom }: Props) {
       e o tom do tema, e fica parada. Uma cor que mudasse a cada toque
       transformaria a tela num semaforo.
     */
-    <View style={{ flex: 1, padding: 24, gap: 18, backgroundColor: tom ?? colors.bg }}>
+    /*
+      A folga de baixo é maior que as outras: a barra das abas sobe por cima
+      da tela o tanto do canto arredondado dela, e sem isso o "Parar" termina
+      escondido atrás dessa curva. Ver `POR_TRAS_DA_BARRA`.
+    */
+    <View
+      style={{
+        flex: 1,
+        padding: 24,
+        paddingBottom: 24 + POR_TRAS_DA_BARRA,
+        gap: 18,
+        backgroundColor: tom ?? colors.bg,
+      }}
+    >
       {/* Trilha de progresso: um traço por etapa. */}
       <View style={{ flexDirection: 'row', gap: 6 }}>
         {steps.map((s, i) => (

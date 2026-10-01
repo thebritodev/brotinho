@@ -5,6 +5,7 @@ import { Animated, Easing, Text, View } from 'react-native';
 import Svg, { Circle } from 'react-native-svg';
 
 import { BalaoDoBroto, Button, Sprout } from '../../components';
+import { POR_TRAS_DA_BARRA } from '../../components/navigation/BottomNav';
 import { NA_RESPIRACAO } from '../../data/falasDoBroto';
 import type { BreathingPhase } from '../../data/practices';
 import { toqueMedio } from '../../services/toque';
@@ -47,7 +48,7 @@ type Props = {
 };
 
 export function BreathingGuide({ phases, cycles, onDone, onCancel }: Props) {
-  const { colors, palette } = useTema();
+  const { colors, palette, tema } = useTema();
   const { data } = useAppState();
   const comSom = data.settings.somDaRespiracao;
 
@@ -164,6 +165,21 @@ export function BreathingGuide({ phases, cycles, onDone, onCancel }: Props) {
     out: palette.green100,
   };
 
+  /*
+    O disco onde o broto respira, e os dois fios em volta dele.
+
+    Eram `colors.surface` — branco no claro, e no escuro o marrom quase preto
+    das superficies. Sobre o ceu da fase, que no escuro e um azul medio, isso
+    virava um buraco preto no meio da tela com o broto dentro.
+
+    A superficie aqui nao e um cartao pousado no fundo do app: e um disco
+    **aceso** dentro de um ceu colorido. No escuro, quem faz esse papel e o
+    branco translucido — a mesma ideia do `vidros.cartao`, com mais corpo,
+    porque este disco e o que a pessoa olha por dois minutos seguidos.
+  */
+  const DISCO = tema === 'escuro' ? 'rgba(255,255,255,0.16)' : colors.surface;
+  const FIO = tema === 'escuro' ? 'rgba(255,255,255,0.3)' : colors.surface;
+
   /* Quanto do exercício inteiro já passou — o anel em volta do círculo. */
   const totalDeSegundos = phases.reduce((n, f) => n + f.seconds, 0) * cycles;
   const jaPassou =
@@ -180,6 +196,9 @@ export function BreathingGuide({ phases, cycles, onDone, onCancel }: Props) {
         justifyContent: 'center',
         gap: 24,
         padding: 24,
+        /* Ver `StepGuide`: a barra das abas sobe por cima da tela o tanto do
+           canto arredondado dela, e o "Parar" fica atrás da curva. */
+        paddingBottom: 24 + POR_TRAS_DA_BARRA,
         backgroundColor: CEU_DA_FASE[phase.motion] ?? colors.bg,
       }}
     >
@@ -228,7 +247,7 @@ export function BreathingGuide({ phases, cycles, onDone, onCancel }: Props) {
               cy={120}
               r={RAIO_DO_ANEL}
               fill="none"
-              stroke={colors.surface}
+              stroke={FIO}
               strokeWidth={6}
               opacity={0.7}
             />
@@ -254,7 +273,7 @@ export function BreathingGuide({ phases, cycles, onDone, onCancel }: Props) {
             height: 220,
             borderRadius: 110,
             borderWidth: 2,
-            borderColor: colors.surface,
+            borderColor: FIO,
             opacity: 0.6,
           }}
         />
@@ -263,7 +282,7 @@ export function BreathingGuide({ phases, cycles, onDone, onCancel }: Props) {
             width: 220,
             height: 220,
             borderRadius: 110,
-            backgroundColor: colors.surface,
+            backgroundColor: DISCO,
             alignItems: 'center',
             justifyContent: 'center',
             gap: 2,
