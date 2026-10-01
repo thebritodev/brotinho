@@ -222,6 +222,16 @@ export function naComposta(repeticoes: number): string {
   return 'Adubo fresquinho.';
 }
 
+/**
+ * Nas frases guardadas, quando ainda não há nenhuma.
+ *
+ * É a única tela do app em que o vazio é o estado **normal** de quem acabou
+ * de chegar: guardar uma frase exige ter desenterrado uma, gostado dela e
+ * tocado no coração. O texto da tela explica o que fazer; esta fala existe
+ * para o lugar não parecer quebrado enquanto isso não acontece.
+ */
+export const NAS_GUARDADAS_VAZIO = 'Ainda não tem nenhuma aqui. Eu aviso quando achar uma boa.';
+
 /** As quatro falas do jardim, em rodízio como as da casa. */
 export const NO_JARDIM = [
   'Olha como eu cresci com você.',
@@ -242,6 +252,7 @@ export const TODAS_AS_FALAS: string[] = [
   ...NOS_PASSOS,
   ...Object.values(NA_COMPOSTA),
   ...NO_JARDIM,
+  NAS_GUARDADAS_VAZIO,
   noFim({ cresceu: true }),
   noFim({ cresceu: false }),
   noDiario(''),

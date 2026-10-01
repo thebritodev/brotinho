@@ -8,6 +8,7 @@ import { useAppState } from '../../state/AppStateProvider';
 import { daysCaredFor } from '../../state/derived';
 import { fonts, radius, useTema } from '../../theme';
 import { OptionList, TimeField } from '../onboarding/parts';
+import { POR_TRAS_DA_BARRA } from '../../components/navigation/BottomNav';
 
 /** Campos que se editam escolhendo de uma lista. */
 type Campo = 'checkin' | 'tentou' | 'idade' | 'genero' | 'canal';
@@ -98,7 +99,11 @@ export function MyDataScreen({ onBack }: { onBack: () => void }) {
       <TopBar title="Meus dados" onBack={onBack} />
 
       <ScrollView
-        contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 32, gap: 20 }}
+        contentContainerStyle={{
+          paddingHorizontal: 20,
+          paddingBottom: 32 + POR_TRAS_DA_BARRA,
+          gap: 20,
+        }}
         showsVerticalScrollIndicator={false}
       >
         <Text

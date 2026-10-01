@@ -7,6 +7,7 @@ import { AnimatedSprout, Icon, TopBar } from '../../components';
 import { ABOUT, OPEN_SOURCE } from '../../data/about';
 import { CONTATO, OPERADOR } from '../../data/privacyPolicy';
 import { fonts, radius, useTema } from '../../theme';
+import { POR_TRAS_DA_BARRA } from '../../components/navigation/BottomNav';
 
 /** Vem do app.json, então nunca fica defasada em relação ao que foi publicado. */
 export const APP_VERSION = Constants.expoConfig?.version ?? '—';
@@ -25,7 +26,11 @@ export function AboutScreen({ onBack, onOpenPolicy }: Props) {
       <TopBar title="Sobre o Brotinho" onBack={onBack} />
 
       <ScrollView
-        contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 40, gap: 24 }}
+        contentContainerStyle={{
+          paddingHorizontal: 20,
+          paddingBottom: 40 + POR_TRAS_DA_BARRA,
+          gap: 24,
+        }}
         showsVerticalScrollIndicator={false}
       >
         <View style={{ alignItems: 'center', gap: 12, paddingTop: 4 }}>

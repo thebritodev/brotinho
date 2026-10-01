@@ -23,6 +23,7 @@ import { nomeDoBroto, sproutStage, vezesPorPratica } from '../../state/derived';
 import { fonts, radius, useTema } from '../../theme';
 import { BreathingGuide } from './BreathingGuide';
 import { StepGuide } from './StepGuide';
+import { POR_TRAS_DA_BARRA } from '../../components/navigation/BottomNav';
 
 type Props = {
   practice: Practice;
@@ -169,7 +170,7 @@ export function PracticeDetailScreen({
       <ScreenTransition transitionKey="fim" ordem={PASSOS_DA_PRATICA}>
       <ScrollView
         style={{ flex: 1, backgroundColor: colors.bg }}
-        contentContainerStyle={{ flexGrow: 1, paddingBottom: 28 }}
+        contentContainerStyle={{ flexGrow: 1, paddingBottom: 28 + POR_TRAS_DA_BARRA }}
         showsVerticalScrollIndicator={false}
       >
         {/*
@@ -296,7 +297,11 @@ export function PracticeDetailScreen({
       <TopBar title={practice.title} onBack={onBack} />
 
       <ScrollView
-        contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 32, gap: 22 }}
+        contentContainerStyle={{
+          paddingHorizontal: 20,
+          paddingBottom: 32 + POR_TRAS_DA_BARRA,
+          gap: 22,
+        }}
         showsVerticalScrollIndicator={false}
       >
         <View

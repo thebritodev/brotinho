@@ -8,6 +8,7 @@ import {
   Icon,
   ScreenTransition,
   Sprout,
+  RotuloDeSecao,
   Switch,
   TopBar,
   TrazerDeVolta,
@@ -153,6 +154,18 @@ export function PrivacyScreen({ onBack }: { onBack: () => void }) {
           </Text>
         </View>
 
+        {/*
+          Os rótulos de seção chegaram aqui depois das outras telas de ajuste,
+          e por isso: lado a lado, as Configurações e os Meus dados tinham a
+          varredura em maiúsculas pequenas e esta tela tinha uma pilha de
+          cartões sem nome. Ninguém nota uma por vez; no conjunto, leem como
+          dois aplicativos. É a razão pela qual `RotuloDeSecao` existe.
+
+          Os quatro nomes seguem o que a pessoa vem fazer, e não o que o
+          código agrupa: fechar o app, ler a promessa, levar os dados embora,
+          apagar tudo.
+        */}
+        <RotuloDeSecao style={{ marginBottom: -8 }}>Proteção</RotuloDeSecao>
         <Card>
           <View style={{ gap: 18 }}>
             <PrivRow icon="lock" label="Bloqueio do app" hint="Pedir biometria ou senha ao abrir">
@@ -176,6 +189,7 @@ export function PrivacyScreen({ onBack }: { onBack: () => void }) {
           </View>
         </Card>
 
+        <RotuloDeSecao style={{ marginBottom: -8 }}>A política</RotuloDeSecao>
         <Card>
           <View style={{ gap: 18 }}>
             <PrivRow
@@ -190,6 +204,7 @@ export function PrivacyScreen({ onBack }: { onBack: () => void }) {
 
         {/* Vem antes do apagar de propósito: a ordem sugere levar a cópia
             embora primeiro, e só então apagar, se for isso que a pessoa quer. */}
+        <RotuloDeSecao style={{ marginBottom: -8 }}>Levar embora</RotuloDeSecao>
         <Card onPress={exportando ? undefined : () => void baixar(true)} label="Baixar meus dados">
           <Text
             style={{
@@ -271,6 +286,7 @@ export function PrivacyScreen({ onBack }: { onBack: () => void }) {
             coisas acontecem na vida de quem troca de celular. */}
         <TrazerDeVolta aparencia="cartao" />
 
+        <RotuloDeSecao style={{ marginBottom: -8 }}>Apagar</RotuloDeSecao>
         <Card
           onPress={() => setConfirmandoExclusao(true)}
           label="Apagar meus dados"

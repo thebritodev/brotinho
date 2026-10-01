@@ -11,6 +11,7 @@ import {
   PRIVACY_POLICY,
 } from '../../data/privacyPolicy';
 import { fonts, radius, useTema } from '../../theme';
+import { POR_TRAS_DA_BARRA } from '../../components/navigation/BottomNav';
 
 export function PrivacyPolicyScreen({ onBack }: { onBack: () => void }) {
   const { colors, palette } = useTema();
@@ -21,7 +22,11 @@ export function PrivacyPolicyScreen({ onBack }: { onBack: () => void }) {
       <TopBar title="Política de privacidade" onBack={onBack} />
 
       <ScrollView
-        contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 40, gap: 24 }}
+        contentContainerStyle={{
+          paddingHorizontal: 20,
+          paddingBottom: 40 + POR_TRAS_DA_BARRA,
+          gap: 24,
+        }}
         showsVerticalScrollIndicator={false}
       >
         <View

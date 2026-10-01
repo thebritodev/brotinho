@@ -1,13 +1,28 @@
-import React, { useId } from 'react';
-import { Pressable, ScrollView, Text, View } from 'react-native';
+import React from 'react';
+import { Pressable, ScrollView, Text, useWindowDimensions, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import Svg, { Defs, Ellipse, Path, RadialGradient, Stop } from 'react-native-svg';
-
-import { Card, Icon, TopBar, useCompartilharFrase } from '../../components';
+import {
+  AnimatedSprout,
+  BalaoDoBroto,
+  Card,
+  Cena,
+  Icon,
+  TopBar,
+  useCompartilharFrase,
+} from '../../components';
 import { CONSELHOS, entreAspas } from '../../data/conselhos';
+import { NAS_GUARDADAS_VAZIO, ehNoite } from '../../data/falasDoBroto';
 import { useAppState } from '../../state/AppStateProvider';
-import { fonts, tracos, useTema } from '../../theme';
+import { TEXTO_NO_CEU } from '../../components/brand/ceuDaComposta';
+import { fonts, useTema } from '../../theme';
+import { CRISTA_DO_MORRO } from '../../components/brand/Cena';
+import {
+  CX,
+  POT_TOP_Y,
+  noQuadro,
+  quadroDoBroto,
+} from '../../components/brand/geometriaDoBroto';
 import { POR_TRAS_DA_BARRA } from '../../components/navigation/BottomNav';
 
 /**
@@ -30,6 +45,7 @@ import { POR_TRAS_DA_BARRA } from '../../components/navigation/BottomNav';
 export function ConselhosGuardadosScreen({ onBack }: { onBack: () => void }) {
   const { colors, shadows } = useTema();
   const insets = useSafeAreaInsets();
+  const { width: largura } = useWindowDimensions();
   const { data, guardarConselho } = useAppState();
   const story = useCompartilharFrase();
 
@@ -56,9 +72,18 @@ export function ConselhosGuardadosScreen({ onBack }: { onBack: () => void }) {
         showsVerticalScrollIndicator={false}
       >
         {guardadas.length === 0 ? (
-          <View style={{ alignItems: 'center', gap: 18, marginTop: 40 }}>
-            {/* Um canteiro fechado: nada foi desenterrado ainda. */}
-            <CanteiroVazio />
+          <View style={{ alignItems: 'center', gap: 18, marginTop: 8 }}>
+            {/*
+              O vazio era uma elipse de terra, e sozinha ela não dizia nada —
+              no tema escuro virava literalmente uma mancha cinza no meio de
+              uma tela preta. O que faltava é o que falta em qualquer tela
+              vazia: alguém dizendo que o vazio é normal.
+
+              O broto espera numa cena como a dos lembretes. Ele não está
+              triste por não ter frase guardada; está de olho, que é o que a
+              fala promete.
+            */}
+            <VazioComBroto largura={largura} />
             <Text
               style={{
                 fontFamily: fonts.body.regular,
@@ -186,34 +211,100 @@ export function ConselhosGuardadosScreen({ onBack }: { onBack: () => void }) {
 }
 
 /**
- * O canteiro intacto do estado vazio.
+ * O estado vazio: o broto num canteiro onde ainda não nasceu nada.
  *
- * Mesma linguagem do cartão da Home — terra com luz em cima e sombra embaixo —,
- * só que sem a saliência: aqui nada empurra por baixo, porque a pessoa ainda
- * não guardou nada. O desenho diz o que a frase diz, e diz antes dela.
+ * ## Por que a cena, e não só o desenho
+ *
+ * O canteiro de antes era uma elipse de terra com um fio de luz em cima. Ela
+ * dizia "aqui não tem nada" e parava aí — e no tema escuro nem isso, porque
+ * um marrom claro recortado num fundo quase preto lê como erro de
+ * carregamento, não como canteiro.
+ *
+ * A cena é a mesma dos Lembretes: céu, morro e grama, com o broto em pé. O
+ * que muda é a pose — ali ele dorme, aqui ele acena —, e é a pose que faz o
+ * vazio virar espera em vez de ausência.
+ *
+ * ## Por que o céu é o de um dia leve
+ *
+ * Porque esta tela não sabe o humor de hoje e não deve saber: ela é a
+ * estante de frases, não o registro do dia. Um céu que anoitecesse com o
+ * relógio tiraria a única coisa que a cena precisa dizer, que é "ainda dá
+ * tempo".
  */
-function CanteiroVazio() {
-  const { palette } = useTema();
-  /* Id por instância: `url(#...)` não tem escopo — a regra está no `Sprout`. */
-  const id = useId().replace(/[^a-zA-Z0-9]/g, '');
+/** O broto desta cena, em pixels. */
+const TAMANHO_DO_BROTO = 112;
+
+function VazioComBroto({ largura }: { largura: number }) {
+  /* Sangra os 20 de recuo da lista: a paisagem vai de ponta a ponta. */
+  const altura = 200;
+
+  /*
+    O broto à direita e o balão à esquerda, como na faixa da tela inicial.
+
+    Centrado, ele ficava debaixo do próprio balão — e um balão em cima da
+    cabeça de quem fala é a única posição em que o bico deixa de apontar para
+    alguém. Com ele de lado, o bico aponta de volta e a frase tem para onde
+    crescer.
+  */
+  const xDoBroto = largura * 0.72;
+  /*
+    O pé da haste pousa na crista do morro, e não no fim da faixa.
+
+    É a mesma conta da faixa da tela inicial: `noQuadro` diz onde, dentro do
+    quadro do desenho, cai o ponto em que a planta encosta no chão — as folhas
+    descem abaixo dele. Ancorar pelo fim da caixa deixava o broto enterrado até
+    as folhas, porque o morro sobe no meio da cena.
+  */
+  const quadro = quadroDoBroto(2, TAMANHO_DO_BROTO, { showPot: false });
+  const pe = noQuadro(quadro, CX, POT_TOP_Y);
+  const chao = altura - CRISTA_DO_MORRO.grama;
   return (
-    <Svg viewBox="0 0 140 80" width={140} height={80}>
-      <Defs>
-        <RadialGradient id={`vazio-sombra-${id}`} cx="50%" cy="50%" r="50%">
-          <Stop offset="0" stopColor={tracos.contorno} stopOpacity={0.2} />
-          <Stop offset="1" stopColor={tracos.contorno} stopOpacity={0} />
-        </RadialGradient>
-      </Defs>
-      <Ellipse cx={70} cy={64} rx={62} ry={10} fill={`url(#vazio-sombra-${id})`} />
-      <Ellipse cx={70} cy={54} rx={54} ry={17} fill={palette.brown200} />
-      <Path
-        d="M22 50 Q70 35 118 50"
-        stroke={palette.brown100}
-        strokeWidth={2}
-        strokeLinecap="round"
-        fill="none"
-        opacity={0.8}
+    <View style={{ width: largura, height: altura, marginHorizontal: -20 }}>
+      <Cena
+        largura={largura}
+        altura={altura}
+        humor="leve"
+        noite={ehNoite(new Date())}
+        chao="grama"
+        capim
+        xDoBroto={xDoBroto}
       />
-    </Svg>
+      <View
+        style={{
+          position: 'absolute',
+          left: xDoBroto - quadro.largura / 2,
+          top: chao - pe.y,
+        }}
+      >
+        <AnimatedSprout
+          mood="leve"
+          stage={2}
+          size={TAMANHO_DO_BROTO}
+          pose="acena"
+          showPot={false}
+        />
+      </View>
+      <BalaoDoBroto
+        lado="direita"
+        tom="noCeu"
+        style={{
+          position: 'absolute',
+          left: 20,
+          top: chao - pe.y + 10,
+          maxWidth: Math.max(140, xDoBroto - quadro.largura / 2 - 36),
+        }}
+      >
+        <Text
+          style={{
+            fontFamily: fonts.body.bold,
+            fontSize: 14,
+            lineHeight: 14 * 1.35,
+            color: TEXTO_NO_CEU,
+          }}
+        >
+          {NAS_GUARDADAS_VAZIO}
+        </Text>
+      </BalaoDoBroto>
+    </View>
   );
 }

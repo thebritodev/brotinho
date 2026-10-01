@@ -7,6 +7,7 @@ import { MAX_VALUES, VALORES } from '../../data/onboarding';
 import { useAppState } from '../../state/AppStateProvider';
 import { dayKey, sproutStage } from '../../state/derived';
 import { fonts, radius, useTema } from '../../theme';
+import { POR_TRAS_DA_BARRA } from '../../components/navigation/BottomNav';
 
 /**
  * Os valores que a pessoa escolheu no onboarding — o que ela quer viver mais.
@@ -39,7 +40,11 @@ export function MyValuesScreen({ onBack }: { onBack: () => void }) {
       <TopBar title="Meus valores pessoais" onBack={onBack} />
 
       <ScrollView
-        contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 32, gap: 20 }}
+        contentContainerStyle={{
+          paddingHorizontal: 20,
+          paddingBottom: 32 + POR_TRAS_DA_BARRA,
+          gap: 20,
+        }}
         showsVerticalScrollIndicator={false}
       >
         <View style={{ alignItems: 'center', gap: 14 }}>
