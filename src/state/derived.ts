@@ -1053,3 +1053,124 @@ export function praticasRecentes(data: AppData, quantas = 6): PraticaVisitada[] 
     .sort((a, b) => b.quando - a.quando)
     .slice(0, quantas);
 }
+
+// --- O resumo de um período ----------------------------------------------
+
+/** O que a repesagem pode ter devolvido — ver `Compost`. */
+export type Repesagem = 'menos' | 'igual' | 'mais';
+
+/** Os dois períodos que o resumo oferece. */
+export type PeriodoDoResumo = 7 | 30;
+
+export type ResumoDoPeriodo = {
+  /** O intervalo escrito, para o cabeçalho: "22 a 28 set". */
+  intervalo: string;
+  /** Quanto de cada humor, em por cento, do mais frequente ao menos. */
+  humores: { mood: Mood; pct: number; dias: number }[];
+  /** As palavras mais usadas para nomear o humor, com quantas vezes. */
+  palavras: { palavra: string; n: number }[];
+  registros: number;
+  praticas: number;
+  compostas: number;
+  /** A prática mais feita no período, se houve alguma. */
+  praticaMaisFeita: string | null;
+  /** Os pensamentos compostados no período, do mais recente ao mais antigo. */
+  pensamentos: { texto: string; quando: string; peso: Repesagem | null }[];
+};
+
+const MES_CURTO = [
+  'jan', 'fev', 'mar', 'abr', 'mai', 'jun',
+  'jul', 'ago', 'set', 'out', 'nov', 'dez',
+];
+
+/**
+ * Tudo o que o resumo mostra de um período, numa conta só.
+ *
+ * ## Por que numa função, e não em cinco
+ *
+ * Porque todas elas precisam do **mesmo corte de datas**, e um corte feito
+ * duas vezes é um corte que pode divergir — o tipo de defeito que produz um
+ * resumo dizendo "5 registros" ao lado de uma lista com 4. O período entra
+ * uma vez e sai tudo coerente.
+ *
+ * ## Por que por cento sobre os dias **com registro**
+ *
+ * E não sobre os dias do período. Quem registrou dois dias numa semana não
+ * esteve "71% sem humor": esteve ansioso metade e leve a outra metade das
+ * vezes em que parou para dizer. A ausência de registro não é um estado
+ * emocional, e somá-la à distribuição inventaria um.
+ *
+ * `agora` é parâmetro para o teste não depender do dia em que rodar.
+ */
+export function resumoDoPeriodo(
+  data: AppData,
+  dias: PeriodoDoResumo,
+  agora: Date = new Date(),
+): ResumoDoPeriodo {
+  const fim = new Date(agora);
+  const inicio = new Date(agora);
+  inicio.setDate(fim.getDate() - (dias - 1));
+  const chaveInicio = dayKey(inicio);
+  const chaveFim = dayKey(fim);
+  const desde = inicio.getTime();
+
+  const comoSeEscreve = (d: Date) => `${d.getDate()} ${MES_CURTO[d.getMonth()]}`;
+  const intervalo =
+    inicio.getMonth() === fim.getMonth()
+      ? `${inicio.getDate()} a ${comoSeEscreve(fim)}`
+      : `${comoSeEscreve(inicio)} a ${comoSeEscreve(fim)}`;
+
+  const noPeriodo = data.moodHistory.filter(
+    (m) => m.date >= chaveInicio && m.date <= chaveFim,
+  );
+
+  const porHumor = new Map<Mood, number>();
+  const porPalavra = new Map<string, number>();
+  for (const m of noPeriodo) {
+    porHumor.set(m.mood, (porHumor.get(m.mood) ?? 0) + 1);
+    if (m.palavra) porPalavra.set(m.palavra, (porPalavra.get(m.palavra) ?? 0) + 1);
+  }
+  const total = noPeriodo.length || 1;
+
+  const humores = [...porHumor.entries()]
+    .map(([mood, n]) => ({ mood, dias: n, pct: Math.round((n / total) * 100) }))
+    .sort((a, b) => b.dias - a.dias);
+
+  const palavras = [...porPalavra.entries()]
+    .map(([palavra, n]) => ({ palavra, n }))
+    .sort((a, b) => b.n - a.n)
+    .slice(0, 5);
+
+  const praticasNoPeriodo = data.practicesDone.filter((p) => p && p.at >= desde);
+  const porPratica = new Map<string, number>();
+  for (const p of praticasNoPeriodo) {
+    porPratica.set(p.practice, (porPratica.get(p.practice) ?? 0) + 1);
+  }
+  const maisFeita = [...porPratica.entries()].sort((a, b) => b[1] - a[1])[0];
+
+  const compostasNoPeriodo = data.composts.filter((c) => c.createdAt >= desde);
+
+  return {
+    intervalo,
+    humores,
+    palavras,
+    registros: data.journal.filter((e) => e.createdAt >= desde).length,
+    praticas: praticasNoPeriodo.length,
+    compostas: compostasNoPeriodo.length,
+    praticaMaisFeita: maisFeita ? maisFeita[0] : null,
+    pensamentos: compostasNoPeriodo
+      .slice()
+      .sort((a, b) => b.createdAt - a.createdAt)
+      .slice(0, 4)
+      .map((c) => ({
+        texto: c.thought,
+        quando: comoSeEscreve(new Date(c.createdAt)),
+        /*
+          O peso é o que a repesagem devolveu, e pode não existir: a pergunta
+          só é feita uma semana depois, e a pessoa pode ter dispensado sem
+          responder. Ver `Compost`.
+        */
+        peso: c.peso?.resposta ?? null,
+      })),
+  };
+}
