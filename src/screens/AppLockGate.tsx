@@ -1,8 +1,16 @@
 import * as LocalAuthentication from 'expo-local-authentication';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { AppState, Platform, Pressable, StyleSheet, Text, View } from 'react-native';
+import {
+  AppState,
+  Platform,
+  Pressable,
+  StyleSheet,
+  Text,
+  useWindowDimensions,
+  View,
+} from 'react-native';
 
-import { Button, Sprout } from '../components';
+import { AnimatedSprout, Button, Cena } from '../components';
 import {
   aoFecharJanelaDoSistema,
   janelaDoSistema,
@@ -18,6 +26,7 @@ import { fonts, useTema } from '../theme';
  */
 export function AppLockGate({ children }: { children: React.ReactNode }) {
   const { colors } = useTema();
+  const { width: largura, height: altura } = useWindowDimensions();
   const { data, hydrated } = useAppState();
   const enabled = data.settings.appLock && data.profile.onboarded && Platform.OS !== 'web';
 
@@ -178,7 +187,22 @@ export function AppLockGate({ children }: { children: React.ReactNode }) {
         },
       ]}
     >
-      <Sprout mood="neutro" stage={2} size={140} />
+      {/*
+        A cena atras, e a camada continua opaca.
+
+        O retangulo de ceu cobre a tela inteira — e isso importa aqui mais que
+        em qualquer outro lugar: por tras desta camada esta o diario aberto. A
+        cena nao e enfeite; e o que mantem a promessa de que nada aparece.
+
+        E de noite porque e o que a tela faz: ela fecha o dia. O broto fica de
+        olhos fechados, esperando, e nao vigiando — guardar o diario de alguem
+        nao e postura de segurancа.
+      */}
+      <View style={StyleSheet.absoluteFill} pointerEvents="none">
+        <Cena largura={largura} altura={altura} humor="cansado" noite chao="nenhum" />
+      </View>
+
+      <AnimatedSprout mood="leve" stage={2} size={140} pose="calmo" />
       <Text
         style={{
           fontFamily: fonts.display.bold,
