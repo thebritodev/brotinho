@@ -70,58 +70,66 @@ if (temas.length !== 13) {
   console.log(`  FALHA o mapa tem ${temas.length} cenas, e os temas são 13`);
 }
 
-/* ---------- Os temas que já viraram cenário ---------- */
+/* ---------- A arte dos treze temas ---------- */
 
 /*
-  As treze estão sendo refeitas uma a uma, de objeto para lugar, em
-  `cenariosDosTemas`. O que vale lá vale igual: cena parada não quebra nada, ela
-  só deixa de responder ao toque e ninguém repara.
+  As cenas de paisagem sairam; no lugar entrou um objeto por tema, no estilo do
+  documento de redesenho — ver `artesDosTemas`. O que este bloco guarda e o que
+  importa continuar sendo verdade:
 
-  E vale uma regra a mais, que é o que deixa a travessia acontecer sem a grade
-  desalinhar: a caixa de um cartão com cenário tem de medir exatamente o mesmo
-  que a de um cartão com objeto. Enquanto as duas formas convivem numa fileira,
-  é essa soma que segura as fileiras batendo.
+  1. **Os treze temas tem arte.** Um tema sem arte cai no icone de recuo, que e
+     legivel mas quebra a grade: doze cartoes com objeto e um com um icone
+     pequeno no canto le como cartao que nao carregou.
+  2. **Toda arte se mexe no toque.** E a unica animacao que elas tem: o
+     documento punha um laco infinito em cada uma, e treze lacos rodando num
+     carrossel e o que faz uma lista engasgar ao rolar. Arte parada nao quebra
+     nada — ela so deixa de responder, e ninguem repara.
 */
-const ARQ_CENARIOS = path.join(RAIZ, 'src', 'components', 'brand', 'cenariosDosTemas.tsx');
-const cenarios = fs.readFileSync(ARQ_CENARIOS, 'utf8');
-const mapaDeCenarios = cenarios.match(/const CENARIOS[^{]*\{([\s\S]*?)\n\};/);
-if (!mapaDeCenarios) {
+const ARQ_ARTES = path.join(RAIZ, 'src', 'components', 'brand', 'artesDosTemas.tsx');
+const artes = fs.readFileSync(ARQ_ARTES, 'utf8');
+const mapaDeArtes = artes.match(/const ARTES[^{]*\{([\s\S]*?)\n\};/);
+if (!mapaDeArtes) {
   falhas += 1;
-  console.log('  FALHA não achei o mapa CENARIOS em cenariosDosTemas.tsx');
+  console.log('  FALHA nao achei o mapa ARTES em artesDosTemas.tsx');
 } else {
-  const pares = [...mapaDeCenarios[1].matchAll(/^\s+([a-z]+):\s*(\w+),/gm)];
-  console.log(`\n— os temas que já viraram cenário: ${pares.length} —\n`);
+  const pares = [...mapaDeArtes[1].matchAll(/^\s+([a-z]+):\s*(\w+),/gm)];
+  console.log(`\n— a arte dos temas: ${pares.length} —\n`);
+
+  if (pares.length !== temas.length) {
+    falhas += 1;
+    console.log(
+      `  FALHA a arte cobre ${pares.length} temas, e os temas sao ${temas.length}`,
+    );
+  }
+
+  /* `temas` guarda pares {tema, cena}; aqui so interessa a chave. */
+  const comArte = new Set(pares.map(([, tema]) => tema));
+  for (const { tema } of temas) {
+    if (!comArte.has(tema)) {
+      falhas += 1;
+      console.log(`  FALHA ${tema}: nao tem arte`);
+    }
+  }
+
   for (const [, tema, funcao] of pares) {
-    const inicio = cenarios.indexOf(`function ${funcao}(`);
+    const inicio = artes.indexOf(`function ${funcao}(`);
     if (inicio < 0) {
       falhas += 1;
-      console.log(`  FALHA ${tema}: não achei a função ${funcao}`);
+      console.log(`  FALHA ${tema}: nao achei a funcao ${funcao}`);
       continue;
     }
-    const proxima = cenarios.slice(inicio + 1).search(/\nfunction [A-Z]|\nconst CENARIOS/);
-    const corpo = cenarios.slice(inicio, proxima < 0 ? undefined : inicio + 1 + proxima);
+    const proxima = artes.slice(inicio + 1).search(/\nfunction [A-Z]|\nconst ARTES/);
+    const corpo = artes.slice(inicio, proxima < 0 ? undefined : inicio + 1 + proxima);
     const usos = (corpo.match(/curva\(p[,)]/g) || []).length;
     if (usos === 0) {
       falhas += 1;
-      console.log(`  FALHA ${tema}: a cena não usa o passo — ela não se mexe no toque`);
+      console.log(`  FALHA ${tema}: a arte nao usa o passo — ela nao se mexe no toque`);
     } else {
       console.log(`  ok    ${tema.padEnd(16)} ${usos} uso(s) do passo`);
     }
   }
-
-  /*
-    Nada atravessa a borda de um cartão com cenário: ele é uma janela, e o que
-    se vê por ela acaba nela. Um desenho irmão pendurado embaixo do cartão é
-    justamente o que foi tirado — ele lia como sobra, e não como "apoiado na
-    tela".
-  */
-  if (/SobraDoCenario/.test(cenarios)) {
-    falhas += 1;
-    console.log('  FALHA voltou a existir desenho fora da janela — o cenário tem de caber no cartão');
-  }
 }
 
-/* A soma das duas caixas, lida do próprio cartão. */
 const ARQ_CARTAO = path.join(RAIZ, 'src', 'components', 'brand', 'PracticeTopicCard.tsx');
 const cartao = fs.readFileSync(ARQ_CARTAO, 'utf8');
 const numero = (nome) => {

@@ -4,8 +4,7 @@ import { Pressable, StyleProp, Text, View, ViewStyle } from 'react-native';
 import { useToqueAnimado } from '../../hooks/useToqueAnimado';
 import { fonts, radius, useTema } from '../../theme';
 import { Icon, type IconName } from '../core/Icon';
-import { CenarioDoTema, ehTemaComCenario, peDoTituloNaCena } from './cenariosDosTemas';
-import { DesenhoDoTema, ehTemaDesenhado } from './desenhosDosTemas';
+import { ArteDoTema, ehTemaComArte } from './artesDosTemas';
 
 type Props = {
   title: string;
@@ -19,7 +18,7 @@ type Props = {
    */
   subtitle?: string;
   icon: IconName;
-  /** A chave do tema, que escolhe a cena desenhada — ver `desenhosDosTemas`. */
+  /** A chave do tema, que escolhe a arte do cartão — ver `artesDosTemas`. */
   chave?: string;
   tint: string;
   onPress?: () => void;
@@ -149,7 +148,7 @@ export function PracticeTopicCard({
   /*
     A cena do tema se mexe antes de a tela abrir — ver `useToqueAnimado`.
     `passo` vai de 0 a 1 e quem o interpreta é cada desenho, em
-    `desenhosDosTemas`. Aqui não se decide nada sobre o movimento.
+    `artesDosTemas`. Aqui não se decide nada sobre o movimento.
   */
   const { p: passo, tocar } = useToqueAnimado(onPress);
 
@@ -172,7 +171,7 @@ export function PracticeTopicCard({
       A caixa é alta o bastante para os dois: na fileira que anda, todos os
       cartões nascem do mesmo topo, e o mais alto decide a altura dela.
     */
-    const comCenario = ehTemaComCenario(chave ?? '') && !!largura;
+    const comCenario = ehTemaComArte(chave ?? '') && !!largura;
     const alturaDoCartao = comCenario ? altura ?? ALTURA_COM_CENARIO : ALTURA_NA_GRADE;
     const alturaDaCaixa = Math.max(
       ALTURA_NA_GRADE + SOBRA_DO_DESENHO,
@@ -201,15 +200,14 @@ export function PracticeTopicCard({
           {/*
             O cenário vem **antes** do título, e é o que o põe por baixo dele.
             O alto do cartão é o tom do grupo quase chapado, então o texto pousa
-            nele sem disputar com a paisagem. Ver `cenariosDosTemas`.
+            nele sem disputar com o objeto. Ver `artesDosTemas`.
           */}
           {comCenario ? (
             <View style={{ position: 'absolute', left: 0, top: 0 }} pointerEvents="none">
-              <CenarioDoTema
+              <ArteDoTema
                 tema={chave ?? ''}
                 largura={largura ?? 0}
                 altura={alturaDoCartao}
-                tom={tint}
                 passo={passo}
               />
             </View>
@@ -226,13 +224,17 @@ export function PracticeTopicCard({
             sobe, e os dois ficam à mesma distância do horizonte. O que varia
             vira o céu vazio acima do texto, que é onde ninguém repara.
           */}
-          <View
-            style={
-              comCenario
-                ? { height: peDoTituloNaCena(alturaDoCartao) - 13, justifyContent: 'flex-end' }
-                : undefined
-            }
-          >
+          {/*
+            Com arte, o titulo fica preso no **topo**, e nao acima de um
+            horizonte.
+
+            O horizonte era do tempo das cenas de paisagem: o texto precisava
+            cair sempre na mesma linha do ceu, e para isso era preso pelo pe. A
+            arte nova nao tem horizonte — tem um objeto no meio-baixo do cartao
+            e tom chapado em cima. O titulo volta a ser o que era: a primeira
+            coisa do cartao, no canto de cima.
+          */}
+          <View>
             <Text
               numberOfLines={2}
               style={{
@@ -270,20 +272,14 @@ export function PracticeTopicCard({
           `RESPIRO_DO_CENARIO`.
         */}
         {comCenario ? null : (
+          /* Tema novo, ainda sem arte: o ícone de traço segura o lugar. */
           <View
             accessibilityElementsHidden
             importantForAccessibility="no-hide-descendants"
             pointerEvents="none"
-            style={{ position: 'absolute', right: 0, bottom: 0 }}
+            style={{ position: 'absolute', right: 0, bottom: 0, padding: 26 }}
           >
-            {ehTemaDesenhado(chave ?? '') ? (
-              <DesenhoDoTema tema={chave ?? ''} size={TAMANHO_DO_DESENHO} passo={passo} />
-            ) : (
-              /* Tema novo, ainda sem cena: o ícone de traço segura o lugar. */
-              <View style={{ padding: 26 }}>
-                <Icon name={icon} size={58} color={palette.brown900} />
-              </View>
-            )}
+            <Icon name={icon} size={58} color={palette.brown900} />
           </View>
         )}
       </View>
@@ -320,14 +316,14 @@ export function PracticeTopicCard({
         }}
       >
         {/*
-          A cena do tema, com o ícone de traço como recuo.
+          Na linha pequena, o ícone de traço — e não a arte do tema.
 
-          O desenho é o que se lê primeiro, e ele existe para os treze temas —
-          ver `desenhosDosTemas`. O `Icon` fica para um tema novo que ainda não
-          tenha cena: melhor um ícone genérico do que um quadrado vazio.
+          A arte é um objeto grande desenhado para 176 por 140; metida num
+          quadrado de 40, ela entra recortada pelo `slice` e vira um pedaço de
+          coisa. O ícone foi desenhado para este tamanho, e é o que mantém a
+          linha legível. O cartão grande é onde a arte tem o espaço dela.
         */}
-        <DesenhoDoTema tema={chave ?? ''} size={40} passo={passo} />
-        {!ehTemaDesenhado(chave ?? '') && <Icon name={icon} size={26} color={palette.brown900} />}
+        <Icon name={icon} size={26} color={palette.brown900} />
       </View>
       <View style={{ flex: 1, gap: 3 }}>
         <Text style={{ fontFamily: fonts.body.extraBold, fontSize: 16, color: palette.brown900 }}>

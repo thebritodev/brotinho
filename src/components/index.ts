@@ -70,7 +70,7 @@ export {
   alturaDoCartaoDoTema,
   larguraDoCartaoDoTema,
 } from './brand/CarrosselDeTemas';
-export { horizonteDaCena, peDoTituloNaCena } from './brand/cenariosDosTemas';
+export { ArteDoTema, TEMAS_COM_ARTE, ehTemaComArte } from './brand/artesDosTemas';
 export {
   CamadaEmpilhada,
   ProvedorDeCobertura,
