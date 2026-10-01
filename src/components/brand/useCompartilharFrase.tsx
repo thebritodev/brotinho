@@ -1,21 +1,13 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import {
-  Modal,
-  Platform,
-  Pressable,
-  StyleSheet,
-  Text,
-  useWindowDimensions,
-  View,
-} from 'react-native';
-import type Svg from 'react-native-svg';
+import { Modal, Platform, Pressable, Text, useWindowDimensions, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import Svg, { Circle, Path, Rect } from 'react-native-svg';
 
 import {
   compartilharFrase,
   type ResultadoDoCompartilhar,
 } from '../../services/compartilharFrase';
-import { fonts, radius, useTema } from '../../theme';
-import { Button } from '../core/Button';
+import { fonts } from '../../theme';
 import { CardDoStory, STORY } from './CardDoStory';
 import { ESTILOS_DO_STORY, ESTILO_PADRAO, type EstiloDoStory } from './estilosDoStory';
 
@@ -155,7 +147,7 @@ export function useCompartilharFrase() {
     );
 
   const folha = (
-    <FolhaDeEscolha
+    <TelaDoStory
       texto={escolhendo}
       estilo={estilo}
       aoEscolher={setEstilo}
@@ -174,7 +166,26 @@ export function useCompartilharFrase() {
 }
 
 /**
- * A folha que abre antes de compartilhar: a prévia e os quatro fundos.
+ * A tela de compartilhar: a prévia do card, os fundos e o botão.
+ *
+ * ## Por que é tela, e não a folha que subia de baixo
+ *
+ * Porque o que acontece aqui é uma **composição**, e não uma confirmação. A
+ * folha anterior cabia metade da prévia e empurrava os fundos para a beirada:
+ * a pessoa escolhia o fundo olhando um recorte do resultado. Em tela cheia o
+ * card inteiro aparece, na proporção em que vai sair, e trocar de fundo mostra
+ * a troca no card de verdade — que é a coisa que a decisão depende.
+ *
+ * É também o que o documento desenha, e pela mesma razão: a tela é escura e
+ * fixa, como o editor de qualquer aplicativo de foto, para o olho medir o card
+ * contra um fundo neutro em vez de contra o creme do app.
+ *
+ * ## Por que o fundo não segue o tema
+ *
+ * Porque ele é o **estúdio**, não o aplicativo. No tema claro, um card de
+ * fundo creme sobre o creme do app desapareceria dentro da tela, e a pessoa
+ * escolheria o fundo "Terra" sem nunca ver onde ele termina. Escuro nos dois
+ * temas, qualquer um dos fundos recorta.
  *
  * ## Por que a prévia é o card de verdade, encolhido
  *
@@ -183,15 +194,26 @@ export function useCompartilharFrase() {
  * o conjunto disso que faz alguém querer postar. Encolhido por `scale`, é o
  * mesmo desenho que vai virar arquivo, com os mesmos pixels proporcionais.
  *
- * ## O que não está aqui, e por quê
+ * ## O que o documento tem e esta tela não, e por quê
  *
- * "Salvar imagem" e "Copiar texto", que o documento desenha. Os dois pedem
- * módulos nativos que este app não tem — galeria e área de transferência —, e
- * módulo nativo novo quer dizer build nova e revisão de loja. A folha do
- * sistema que o botão abre já oferece salvar e copiar em todo aparelho
- * moderno, pela interface que a pessoa conhece.
+ * "Salvar imagem" e "Copiar texto". Os dois pedem módulo nativo que este app
+ * não carrega — galeria e área de transferência —, e módulo nativo novo quer
+ * dizer dependência nova, build nova e permissão a mais na ficha da loja. Um
+ * botão desenhado que não faz nada seria pior do que a ausência dele: a folha
+ * do sistema que "Postar nos stories" abre já oferece salvar e copiar em todo
+ * aparelho moderno, pela interface que a pessoa já conhece.
  */
-function FolhaDeEscolha({
+
+/** O estúdio é escuro nos dois temas. Ver a nota acima. */
+const ESTUDIO = {
+  fundo: '#2B2824',
+  tinta: '#FBF6EC',
+  /* O vidro dos botões secundários: branco fraco, como no documento. */
+  vidro: 'rgba(251,246,236,0.12)',
+  contorno: 'rgba(251,246,236,0.25)',
+};
+
+function TelaDoStory({
   texto,
   estilo,
   aoEscolher,
@@ -204,78 +226,116 @@ function FolhaDeEscolha({
   aoConfirmar: () => void;
   aoFechar: () => void;
 }) {
-  const { colors, palette, shadows } = useTema();
   const { width, height } = useWindowDimensions();
+  const insets = useSafeAreaInsets();
 
   if (texto === null) return null;
 
-  /* A prévia cabe na metade de cima da tela, sem passar da largura dela. */
-  const alturaDaPrevia = Math.min(height * 0.42, 380);
-  const escala = Math.min(alturaDaPrevia / STORY.altura, (width - 120) / STORY.largura);
+  /*
+    A prévia ocupa o que sobra entre o cabeçalho e os botões, sem passar da
+    largura da tela. Os números são as alturas reservadas: cabeçalho, linha de
+    fundos e rodapé com o botão.
+  */
+  const reservado = insets.top + 44 + 20 + 76 + 20 + 52 + insets.bottom + 48;
+  const alturaLivre = Math.max(220, height - reservado);
+  const escala = Math.min(alturaLivre / STORY.altura, (width - 110) / STORY.largura);
 
   return (
-    <Modal visible transparent animationType="fade" onRequestClose={aoFechar}>
-      <View style={{ flex: 1, justifyContent: 'flex-end' }}>
-        <Pressable
-          accessibilityRole="button"
-          accessibilityLabel="Fechar"
-          onPress={aoFechar}
-          style={[StyleSheet.absoluteFill, { backgroundColor: 'rgba(58,54,48,0.55)' }]}
-        />
+    <Modal visible transparent={false} animationType="slide" onRequestClose={aoFechar}>
+      <View
+        style={{
+          flex: 1,
+          backgroundColor: ESTUDIO.fundo,
+          paddingTop: insets.top + 10,
+          paddingBottom: insets.bottom + 16,
+          paddingHorizontal: 24,
+          alignItems: 'center',
+          gap: 18,
+        }}
+      >
+        <View style={{ alignSelf: 'stretch', flexDirection: 'row', alignItems: 'center', gap: 12 }}>
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel="Fechar"
+            onPress={aoFechar}
+            style={({ pressed }) => ({
+              width: 44,
+              height: 44,
+              borderRadius: 22,
+              backgroundColor: ESTUDIO.vidro,
+              alignItems: 'center',
+              justifyContent: 'center',
+              opacity: pressed ? 0.6 : 1,
+            })}
+          >
+            <Svg width={18} height={18} viewBox="0 0 24 24">
+              <Path
+                d="M6 6 L18 18 M18 6 L6 18"
+                stroke={ESTUDIO.tinta}
+                strokeWidth={2.6}
+                strokeLinecap="round"
+                fill="none"
+              />
+            </Svg>
+          </Pressable>
+          <Text style={{ fontFamily: fonts.display.bold, fontSize: 20, color: ESTUDIO.tinta }}>
+            Compartilhar frase
+          </Text>
+        </View>
+
         <View
+          accessibilityElementsHidden
+          importantForAccessibility="no-hide-descendants"
           style={{
-            backgroundColor: colors.bg,
-            borderTopLeftRadius: radius.xl,
-            borderTopRightRadius: radius.xl,
-            padding: 22,
-            paddingBottom: 30,
-            gap: 18,
-            alignItems: 'center',
+            width: STORY.largura * escala,
+            height: STORY.altura * escala,
+            borderRadius: 18,
+            overflow: 'hidden',
           }}
         >
-          <Text
-            style={{
-              fontFamily: fonts.display.bold,
-              fontSize: 20,
-              color: colors.textPrimary,
-              alignSelf: 'flex-start',
-            }}
-          >
-            Compartilhar a frase
-          </Text>
-
           <View
             style={{
-              width: STORY.largura * escala,
-              height: STORY.altura * escala,
-              borderRadius: radius.lg,
-              overflow: 'hidden',
-              ...shadows.md,
+              width: STORY.largura,
+              height: STORY.altura,
+              transform: [{ scale: escala }],
+              transformOrigin: 'top left',
             }}
           >
-            <View
-              style={{
-                width: STORY.largura,
-                height: STORY.altura,
-                transform: [{ scale: escala }],
-                transformOrigin: 'top left',
-              }}
-            >
-              <CardDoStory texto={texto} estilo={estilo} />
-            </View>
+            <CardDoStory texto={texto} estilo={estilo} />
           </View>
+        </View>
 
-          <View style={{ flexDirection: 'row', gap: 16 }}>
-            {ESTILOS_DO_STORY.map((e) => {
-              const escolhido = e.chave === estilo.chave;
-              return (
-                <Pressable
-                  key={e.chave}
-                  accessibilityRole="button"
-                  accessibilityLabel={e.rotulo}
-                  accessibilityState={{ selected: escolhido }}
-                  onPress={() => aoEscolher(e)}
-                  style={{ alignItems: 'center', gap: 6 }}
+        <View style={{ flexDirection: 'row', gap: 12 }}>
+          {ESTILOS_DO_STORY.map((e) => {
+            const escolhido = e.chave === estilo.chave;
+            return (
+              <Pressable
+                key={e.chave}
+                accessibilityRole="button"
+                accessibilityLabel={e.rotulo}
+                accessibilityState={{ selected: escolhido }}
+                onPress={() => aoEscolher(e)}
+                style={{ alignItems: 'center', gap: 6 }}
+              >
+                {/*
+                  O anel fica **fora** do círculo, com uma folga escura no
+                  meio: encostado, ele lê como borda do próprio fundo — e o
+                  fundo "Terra" é creme, então a borda sumiria dentro dele.
+
+                  São duas `View`, e não `outline`: `outlineWidth` só existe
+                  nas versões recentes do React Native e não desenha em todas
+                  as superfícies. Duas caixas concêntricas desenham em todas.
+                */}
+                <View
+                  style={{
+                    width: 48,
+                    height: 48,
+                    borderRadius: 24,
+                    borderWidth: 2,
+                    borderColor: escolhido ? '#A8CDB6' : 'transparent',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                  }}
                 >
                   <View
                     style={{
@@ -283,34 +343,94 @@ function FolhaDeEscolha({
                       height: 40,
                       borderRadius: 20,
                       backgroundColor: e.fundo,
-                      borderWidth: escolhido ? 3 : 1.5,
-                      borderColor: escolhido ? colors.primary : colors.border,
+                      borderWidth: 2,
+                      borderColor: ESTUDIO.fundo,
                     }}
                   />
-                  <Text
-                    style={{
-                      fontFamily: fonts.body.bold,
-                      fontSize: 12,
-                      color: escolhido ? colors.primaryStrong : palette.brown400,
-                    }}
-                  >
-                    {e.rotulo}
-                  </Text>
-                </Pressable>
-              );
-            })}
-          </View>
+                </View>
+                <Text
+                  style={{
+                    fontFamily: fonts.body.bold,
+                    fontSize: 12,
+                    color: ESTUDIO.tinta,
+                    opacity: escolhido ? 1 : 0.7,
+                  }}
+                >
+                  {e.rotulo}
+                </Text>
+              </Pressable>
+            );
+          })}
+        </View>
 
-          <Button variant="primary" style={{ width: '100%' }} onPress={aoConfirmar}>
-            Compartilhar
-          </Button>
-          <Pressable accessibilityRole="button" onPress={aoFechar} style={{ padding: 6 }}>
+        <View style={{ alignSelf: 'stretch', marginTop: 'auto', gap: 10 }}>
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel="Postar nos stories"
+            onPress={aoConfirmar}
+            style={({ pressed }) => ({
+              height: 52,
+              borderRadius: 12,
+              backgroundColor: '#5B8A72',
+              flexDirection: 'row',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: 10,
+              transform: [{ scale: pressed ? 0.97 : 1 }],
+            })}
+          >
+            {/* O quadrado de cantos redondos com um círculo no meio: o ícone
+                genérico de câmera que todo aplicativo de story usa. Não é a
+                marca de nenhum deles — e não pode ser. */}
+            <Svg width={20} height={20} viewBox="0 0 24 24">
+              <Rect
+                x={4}
+                y={4}
+                width={16}
+                height={16}
+                rx={5}
+                stroke={ESTUDIO.tinta}
+                strokeWidth={2.2}
+                fill="none"
+              />
+              <Circle cx={12} cy={12} r={3.6} stroke={ESTUDIO.tinta} strokeWidth={2.2} fill="none" />
+            </Svg>
+            <Text style={{ fontFamily: fonts.body.bold, fontSize: 17, color: ESTUDIO.tinta }}>
+              Postar nos stories
+            </Text>
+          </Pressable>
+
+          <Pressable
+            accessibilityRole="button"
+            onPress={aoFechar}
+            style={({ pressed }) => ({
+              height: 46,
+              borderRadius: 10,
+              borderWidth: 2,
+              borderColor: ESTUDIO.contorno,
+              alignItems: 'center',
+              justifyContent: 'center',
+              opacity: pressed ? 0.6 : 1,
+            })}
+          >
             <Text
-              style={{ fontFamily: fonts.body.bold, fontSize: 15, color: palette.brown400 }}
+              style={{ fontFamily: fonts.body.bold, fontSize: 15, color: ESTUDIO.tinta }}
             >
               Agora não
             </Text>
           </Pressable>
+
+          <Text
+            style={{
+              textAlign: 'center',
+              fontFamily: fonts.body.regular,
+              fontSize: 13,
+              color: ESTUDIO.tinta,
+              opacity: 0.6,
+            }}
+          >
+            Só você decide o que é compartilhado.
+          </Text>
         </View>
       </View>
     </Modal>

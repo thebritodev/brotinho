@@ -182,10 +182,16 @@ const AFUNDA = 18;
  * atravessava tudo em dois segundos e três décimos — rápido demais para uma
  * coisa que está ali para ser lida.
  *
- * A 57 ela leva três segundos e dois décimos. É o tempo de ler uma palavra
- * sem pressa, que era a intenção desde o começo.
+ * A 57 ela levava três segundos e dois décimos, e Pedro ainda pediu mais
+ * devagar depois de ver no aparelho. Tem razão: três segundos é o tempo de
+ * **ler** a palavra, e não é disso que a cena trata. A palavra não está ali
+ * para ser lida uma vez — ela está caindo, e o que a faixa mostra é um
+ * pensamento afundando na terra. Isso é lento.
+ *
+ * A 38 ela leva quase cinco segundos na queda de hoje. É devagar o bastante
+ * para o movimento ler como peso descendo, e não como legenda passando.
  */
-const VELOCIDADE = 57;
+const VELOCIDADE = 38;
 
 /*
   O atraso entre as palavras e a coluna de cada uma saíram daqui: eram duas
@@ -533,7 +539,13 @@ export function FaixaDaComposta({
             ))}
           </Defs>
 
-          <Rect x={0} y={0} width={largura} height={crista + 4} fill={`url(#ceu-${id})`} />
+          {/*
+            O céu passa quatro pontos de cada lado, pelo mesmo motivo que o
+            morro da `Cena` passa: a borda exata cai no meio de uma coluna de
+            pixel no aparelho, e meio pixel de céu sobre transparente vira um
+            fio escuro colado na lateral. O `viewBox` recorta a sobra.
+          */}
+          <Rect x={-4} y={0} width={largura + 8} height={crista + 4} fill={`url(#ceu-${id})`} />
 
           {/* O tempo nublado, atrás de tudo: os morros passam por cima delas. */}
           {NUVENS.map((n, i) => (

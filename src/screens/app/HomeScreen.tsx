@@ -298,8 +298,20 @@ export function HomeScreen({
     Com 0,46 e teto de 190 a queda fica em cento e setenta e nove pontos num
     aparelho de 390 — ainda uma vez e meia o que o cartão antigo dava, e sem
     o véu comendo o fim dela.
+
+    E depois subiu de novo, para 0,62 com teto de 250, porque Pedro viu no
+    aparelho e pediu "muito mais espaço entre o solo e o topo da tela". A
+    queda **é** esse espaço: ela é o céu aberto entre o cabeçalho e a crista
+    da terra. Num aparelho de 390 ela passa de 164 para 242 pontos, e o céu
+    inteiro — topo, cabeçalho e queda — vai de uns 260 para uns 338, que é
+    pouco menos de dois quintos da tela.
+
+    O preço é o que a nota de cima descreve: o carrossel deixa de espiar
+    embaixo na primeira dobra dos aparelhos curtos. É uma troca, e foi
+    escolhida: a paisagem é a primeira coisa que a pessoa vê, e apertada ela
+    não é paisagem nenhuma. Quem rola uma vez encontra o resto.
   */
-  const quedaDaFaixa = Math.round(Math.min(largura * 0.42, 172));
+  const quedaDaFaixa = Math.round(Math.min(largura * 0.62, 250));
   /*
     A faixa da Composta não termina mais nela: a terra emenda na da Frase.
 

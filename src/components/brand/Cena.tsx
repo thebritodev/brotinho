@@ -126,6 +126,15 @@ type Props = {
   ceu?: string;
   /** Depois do pôr do sol: véu, estrelas e lua no lugar do sol. */
   noite?: boolean;
+  /**
+   * A hora do dia, quando a cena é a de agora.
+   *
+   * Quem passa isto não precisa passar `noite`: noite **é** uma das três
+   * horas. Fica separado porque há cenas que forçam a noite sem serem agora —
+   * o cartão do tema "Dormir melhor", a espera dos lembretes —, e ali a
+   * pergunta não é que horas são.
+   */
+  hora?: 'manha' | 'tarde' | 'noite';
   /** Sem sol nem lua, quando o alto da cena é ocupado por outra coisa. */
   semAstro?: boolean;
   nuvens?: boolean;
@@ -142,6 +151,7 @@ export function Cena({
   humor = 'neutro',
   ceu,
   noite = false,
+  hora,
   semAstro = false,
   nuvens = true,
   chao = 'grama',
@@ -154,18 +164,45 @@ export function Cena({
   const k = largura / LARGURA_DE_REFERENCIA;
   const corDoCeu = ceu ?? moodColorsFundo[humor];
   const sx = xDoBroto ?? largura / 2;
+  /* A hora manda, quando vem; sem ela vale o `noite` de quem chamou. */
+  const ehNoite = hora ? hora === 'noite' : noite;
+  const ehManha = hora === 'manha';
 
   return (
-    <View style={{ width: largura, height: altura, overflow: 'hidden' }} pointerEvents="none">
+    /*
+      O fundo também é pintado na `View`, e não só no `Rect` de dentro.
+
+      É a mesma história do `SOBRA_DO_MORRO`, um nível acima: se o `Svg` ficar
+      um fio mais estreito que a `View` por arredondamento de densidade, a
+      coluna que sobra não é creme — é transparente, e no Android transparente
+      sobre nada é preto. Pintando a `View` com a cor do céu, o pior caso vira
+      uma coluna de céu, que ninguém enxerga.
+    */
+    <View
+      style={{ width: largura, height: altura, overflow: 'hidden', backgroundColor: corDoCeu }}
+      pointerEvents="none"
+    >
       <Svg width={largura} height={altura} viewBox={`0 0 ${largura} ${altura}`}>
         <Rect x={0} y={0} width={largura} height={altura} fill={corDoCeu} />
 
-        {noite && (
+        {ehManha && (
+          /* O dourado da manhã, por cima do pastel do humor. Ver `cena.manha`. */
+          <Rect
+            x={-4}
+            y={0}
+            width={largura + 8}
+            height={altura}
+            fill={cena.manha}
+            opacity={cena.manhaForca}
+          />
+        )}
+
+        {ehNoite && (
           <>
             <Rect
-              x={0}
+              x={-4}
               y={0}
-              width={largura}
+              width={largura + 8}
               height={altura}
               fill={cena.noite}
               opacity={cena.noiteForca}
@@ -227,11 +264,11 @@ export function Cena({
         )}
       </Svg>
 
-      {!noite && !semAstro && (
+      {!ehNoite && !semAstro && (
         <Sol x={ASTRO.x * k} y={ASTRO.y} k={k} parado={menosMovimento} />
       )}
 
-      {noite &&
+      {ehNoite &&
         ESTRELAS.map(([x, y], i) => (
           <Estrela key={i} x={x * k} y={y} cor={cena.estrela} indice={i} parado={menosMovimento} />
         ))}
@@ -254,6 +291,28 @@ export function Cena({
 }
 
 /**
+ * Quanto cada morro passa das bordas da cena, em pontos.
+ *
+ * ## A faixa preta
+ *
+ * O morro começava exatamente em `x = 0` e terminava exatamente em
+ * `x = largura`. No navegador isso é exato; no aparelho não é — a densidade da
+ * tela quase nunca é um número inteiro, e a coluna de pixels da borda fica
+ * **meio coberta**. O antisserrilhado resolve misturando a cor do morro com o
+ * que estiver atrás, e atrás do SVG não há nada: a mistura é com transparente,
+ * que o Android compõe sobre preto.
+ *
+ * O resultado é um fio escuro de um pixel colado na borda esquerda e na
+ * direita, da altura do morro. Pedro descreveu como "uma faixa preta atrás do
+ * solo, no canto esquerdo e direito", e é exatamente isso.
+ *
+ * Quatro pontos de sobra põem a borda da curva fora da tela, onde não há
+ * coluna de pixel para dividir. O `viewBox` continua o mesmo: o que passa é
+ * recortado, e recorte não tem meio-tom.
+ */
+const SOBRA_DO_MORRO = 4;
+
+/**
  * Um morro: uma curva que atravessa a cena e fecha embaixo.
  *
  * Os quatro números são alturas medidas **do fim da cena para cima** — é assim
@@ -268,10 +327,12 @@ function morro(
   controleDir: number,
   fim: number,
 ) {
+  const e = -SOBRA_DO_MORRO;
+  const d = largura + SOBRA_DO_MORRO;
   return (
-    `M 0 ${altura - inicio} `
+    `M ${e} ${altura - inicio} `
     + `C ${largura * 0.3} ${altura - controleEsq} ${largura * 0.7} ${altura - controleDir} `
-    + `${largura} ${altura - fim} L ${largura} ${altura} L 0 ${altura} Z`
+    + `${d} ${altura - fim} L ${d} ${altura + SOBRA_DO_MORRO} L ${e} ${altura + SOBRA_DO_MORRO} Z`
   );
 }
 

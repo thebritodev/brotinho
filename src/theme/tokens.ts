@@ -731,6 +731,21 @@ export type CoresDaCena = {
   noite: string;
   /** A opacidade desse véu. */
   noiteForca: number;
+  /**
+   * O véu de **manhã**, e por que ele existe.
+   *
+   * O céu tinha duas horas: dia e noite. Dia era o pastel do humor, cru, das
+   * cinco da manhã às seis da tarde — treze horas com exatamente a mesma cor.
+   * O documento promete um cenário "que muda com o seu humor **e a hora do
+   * dia**", e metade dessa promessa não estava de pé.
+   *
+   * Manhã é a luz dourada e baixa de quem acabou de acordar; a tarde é a luz
+   * branca e neutra, que é o pastel do humor sem véu nenhum. Com os dois, as
+   * três horas do `horaDaCena` ficam diferentes entre si sem que nenhuma
+   * deixe de ser o humor do dia.
+   */
+  manha: string;
+  manhaForca: number;
   /** O chão claro, quando a cena não é de terra. */
   chao: string;
   /** O clarão atrás do broto, nos cartões. */
@@ -743,6 +758,8 @@ const cenaClara: CoresDaCena = {
   estrela: '#FFFFFF',
   noite: palette.lavender300,
   noiteForca: 0.35,
+  manha: palette.yellow300,
+  manhaForca: 0.22,
   chao: palette.cream100,
   brilho: 'rgba(255,255,255,0.6)',
 };
@@ -761,6 +778,13 @@ const cenaEscura: CoresDaCena = {
   */
   noite: 'rgba(20,16,40,1)',
   noiteForca: 0.5,
+  /*
+    No escuro a manhã clareia menos, pela mesma razão que a noite escurece
+    menos: o tema já moveu o céu uma vez, e o mesmo dourado de 22% sobre um
+    fundo escuro vira um filtro sépia em vez de luz de amanhecer.
+  */
+  manha: palette.yellow300,
+  manhaForca: 0.12,
   chao: 'rgba(255,255,255,0.06)',
   brilho: 'rgba(255,255,255,0.18)',
 };

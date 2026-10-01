@@ -17,7 +17,7 @@ import { useMenosMovimento } from '../../hooks/useMenosMovimento';
 import { lacoQueSoVai } from '../laco';
 import { fonts } from '../../theme';
 import { palette, tracos } from '../../theme/tokens';
-import { DesenhoDoTema } from './desenhosDosTemas';
+import { ArteDoTema, ehTemaComArte } from './artesDosTemas';
 import { curva, desloca, estica, gira } from './movimentoDaCena';
 import { BRASA, TERRA, TERRA_CLARA, TERRA_FUNDA, TERRA_SOMBRA } from './terraDoCanteiro';
 
@@ -150,14 +150,14 @@ function Folha({
 /**
  * Prática de hoje — a cena do tema dela, no tamanho do cartão.
  *
- * Esta não desenha nada próprio: reaproveita a cena do tema
- * (`desenhosDosTemas`) no tamanho de cartão. É de propósito — a pessoa vê a
- * mesma cena de "Insônia" no cartão grande, na grade de treze e na fileira de
+ * Esta não desenha nada próprio: reaproveita a arte do tema
+ * (`artesDosTemas`) no tamanho de cartão. É de propósito — a pessoa vê a mesma
+ * arte de "Dormir melhor" no cartão grande, na grade de treze e na fileira de
  * recentes, e é essa repetição que faz a lua virar o sinal de um lugar em vez
  * de mais um desenho.
  *
  * Por isso ela também não usa o casco `Cena`: aquele monta um `Svg` próprio, e
- * o desenho do tema já vem com o dele. SVG dentro de SVG não é caminho no
+ * a arte do tema já vem com o dela. SVG dentro de SVG não é caminho no
  * `react-native-svg`.
  */
 export function CenaDaPratica({
@@ -178,16 +178,26 @@ export function CenaDaPratica({
         é folga — e, num cartão de 330, um terço de folga é o objeto flutuando
         no meio de cem pontos de nada. Grande e cortada nas beiradas, ela ocupa
         a faixa de cima do cartão como as outras três cenas ocupam.
+
+        Com a arte nova ela saiu do meio e foi para a **direita**. A arte de
+        objeto é um desenho só, centrado na própria caixa, e no meio do cartão
+        ele caía exatamente onde o título começa — o coração do tema da
+        ansiedade ficava atrás da palavra "Aterramento". Encostada à direita e
+        um pouco menor, ela divide a faixa de cima com o selo em vez de
+        disputar a de baixo com o texto.
       */}
       <View
         style={{
-          height: altura * 0.6,
+          height: altura * 0.56,
           overflow: 'hidden',
-          alignItems: 'center',
-          justifyContent: 'center',
+          alignItems: 'flex-end',
+          justifyContent: 'flex-end',
+          paddingRight: 8,
         }}
       >
-        <DesenhoDoTema tema={tema} size={altura * 0.92} />
+        {ehTemaComArte(tema) && (
+          <ArteDoTema tema={tema} largura={altura * 0.66} altura={altura * 0.52} />
+        )}
       </View>
     </View>
   );

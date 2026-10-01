@@ -1,4 +1,4 @@
-import { Animated, Easing } from 'react-native';
+import { Animated, Easing, Platform } from 'react-native';
 
 /**
  * Os laços infinitos do app, e a armadilha que eles evitam.
@@ -30,9 +30,39 @@ import { Animated, Easing } from 'react-native';
  * consegue ser conferido sem um aparelho na mão. Uma animação que só existe no
  * nativo é uma animação que ninguém viu.
  *
+ * ## E a sequência não pode valer no aparelho
+ *
+ * Porque ela conserta o navegador **cobrando o preço no celular**. Dizendo
+ * `false` ao `_isUsingNativeDriver`, ela tira o laço do caminho nativo em
+ * todo lugar — e o caminho comum reinicia a animação **pelo JavaScript** a
+ * cada volta: `animation.reset()` e `animation.start()` outra vez, um
+ * atravessamento da ponte por ciclo.
+ *
+ * No aparelho isso aparece. Pedro viu primeiro na frase que cai na tela
+ * inicial: "dá uma travada no meio do caminho e reinicia". É exatamente isso
+ * — as palavras congelam no instante da emenda, que cai no meio da queda
+ * delas, e seguem. Quanto mais ocupado o JavaScript, maior a travada.
+ *
+ * Então a sequência é **só do navegador**. No aparelho o laço volta a ser
+ * `Animated.loop(timing)`, que é o que o `_startNativeLoop` sabe rodar
+ * sozinho, para sempre, sem passar por aqui nenhuma vez.
+ *
  * `scripts/confere-lacos.js` guarda a regra: nenhum `Animated.loop` direto em
  * `src`, fora daqui.
  */
+
+/**
+ * Embrulha o passo do laço no formato que **esta** plataforma precisa.
+ *
+ * No navegador, uma sequência, para o laço não delegar a um driver nativo que
+ * não existe. No aparelho, o passo cru, para o laço rodar inteiro do outro
+ * lado da ponte. Ver a nota acima: as duas metades deste arquivo são a mesma
+ * decisão vista de cada lado.
+ */
+function paraOLaco(passos: Animated.CompositeAnimation[]): Animated.CompositeAnimation {
+  if (Platform.OS === 'web' || passos.length > 1) return Animated.sequence(passos);
+  return passos[0];
+}
 
 /**
  * O laço de ida e volta: o formato de quase toda animação de ambiente daqui.
@@ -47,6 +77,21 @@ import { Animated, Easing } from 'react-native';
  * `isInteraction: false` está aqui por dentro porque vale para todos: um laço
  * infinito registrado como interação faz o `InteractionManager` achar que a
  * tela nunca assentou, e tudo que espera por ele fica esperando para sempre.
+ *
+ * ## Este continua reiniciando pelo JavaScript, e por quê
+ *
+ * Duas metades são duas animações, e `Animated.sequence` responde `false` ao
+ * `_isUsingNativeDriver` **qualquer que seja o tamanho** dela — está escrito
+ * assim no `AnimatedImplementation` da versão que usamos. Não há como pedir
+ * um laço nativo de ida e volta: o `_startNativeLoop` só existe no `timing`
+ * cru.
+ *
+ * O preço é o mesmo do `lacoQueSoVai` de antes — uma travada por volta —, e a
+ * diferença é onde ela cai. Aqui a emenda do laço acontece no ponto em que o
+ * movimento **já está parado**, porque é o fim da volta: a nuvem no extremo
+ * da passada, a planta no alto da vergada. Uma travada onde nada se mexe não
+ * aparece. É por isso que ninguém viu em nenhuma destas, e viu na queda das
+ * palavras, que emenda no meio do caminho.
  */
 export function lacoDeIdaEVolta(
   valor: Animated.Value,
@@ -99,11 +144,13 @@ export function lacoQueSoVai(
   }: { ms: number; easing?: (t: number) => number; ate?: number; nativo?: boolean },
 ) {
   /*
-    A sequência de um item só não é firula: é ela que faz o laço rodar no
-    navegador. Ver a nota do alto do arquivo.
+    A sequência de um item só não é firula, e também não é de graça: no
+    navegador é ela que faz o laço andar, e no aparelho é ela que faz o laço
+    travar uma vez por volta. Por isso quem decide é a plataforma, em
+    `paraOLaco`. Ver a nota do alto do arquivo.
   */
   return Animated.loop(
-    Animated.sequence([
+    paraOLaco([
       Animated.timing(valor, {
         toValue: ate,
         duration: ms,

@@ -80,5 +80,4 @@ export {
 } from './CamadaEmpilhada';
 
 export { BottomNav, type TabKey } from './navigation/BottomNav';
-export { ExplosaoDaAba, type Explosao } from './navigation/ExplosaoDaAba';
 export { TopBar } from './navigation/TopBar';

@@ -302,7 +302,7 @@ function razao(frente, fundo) {
     humor novo entrar na paleta, ele cai aqui sozinho: a lista vem de
     `todosOsCeus`, que percorre os humores de verdade.
   */
-  console.log('\n— a frase sobre os quatro fundos do story —');
+  console.log('\n— a frase sobre os cinco fundos do story —');
   for (const e of estilosDoStory.ESTILOS_DO_STORY) {
     linha(`frase no fundo "${e.rotulo}"`, e.tinta, e.fundo, AA_TEXTO);
   }

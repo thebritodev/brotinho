@@ -1,12 +1,13 @@
 /**
- * Os quatro fundos possíveis do card do story.
+ * Os cinco fundos possíveis do card do story.
  *
  * ## Por que existe escolha
  *
  * Porque postar uma frase é postar algo sobre o próprio dia, e o fundo é parte
  * do que se diz. Um único verde escuro obrigava quem queria mandar uma frase
- * leve a mandá-la com cara de noite. São quatro porque quatro cabem numa linha
- * de botões sem virar um seletor de cor.
+ * leve a mandá-la com cara de noite. São cinco porque cinco ainda cabem numa
+ * linha de botões sem virar um seletor de cor — a tela cheia deu a largura que
+ * a folha de baixo não dava.
  *
  * ## Por que as cores não seguem o tema
  *
@@ -17,7 +18,7 @@
  *
  * ## O par de cada estilo é medido
  *
- * `confere-contraste.js` mede tinta sobre fundo nos quatro, com o piso de
+ * `confere-contraste.js` mede tinta sobre fundo nos cinco, com o piso de
  * texto grande (3:1 não basta aqui — a frase é lida em miniatura no feed, e a
  * miniatura é o pior caso). O verde continua sendo o padrão porque é o que o
  * app sempre mandou, e trocar o padrão trocaria o que as pessoas já postam
@@ -59,6 +60,23 @@ export const ESTILOS_DO_STORY: EstiloDoStory[] = [
     fundo: '#F5E3B0',
     tinta: '#3A3630',
     vinheta: '#8A6318',
+  },
+  {
+    /*
+      O quinto, e o único que não estava aqui quando a tela de compartilhar
+      virou tela cheia.
+
+      O documento mostra quatro fundos — Terra, Sol, Calma e Noite —, e o app
+      tinha quatro outros: Mata, Terra, Sol e Noite. Três coincidem; o que
+      falta de cada lado é um só. Em vez de trocar o conjunto, entrou o que
+      faltava: trocar tiraria o verde, que é o padrão e o que as pessoas já
+      postaram, e isso mudaria a cara de posts antigos sem ninguém pedir.
+    */
+    chave: 'calma',
+    rotulo: 'Calma',
+    fundo: '#CFE0EA',
+    tinta: '#3A3630',
+    vinheta: '#2A4556',
   },
   {
     chave: 'noite',

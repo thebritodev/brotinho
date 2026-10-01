@@ -74,14 +74,6 @@ const RIGHT: SideTab = { key: 'perfil', label: 'Perfil', icon: 'user' };
 type Props = {
   active?: TabKey;
   onChange?: (tab: TabKey) => void;
-  /**
-   * Onde o dedo encostou, em pixels da tela — para a explosao sair dali.
-   *
-   * A barra mede e entrega; quem desenha e quem empilha as telas, porque a
-   * explosao precisa ficar **por cima** da troca de tela, e daqui ela ficaria
-   * presa dentro da barra. Ver `ExplosaoDaAba`.
-   */
-  aoTocar?: (tab: TabKey, onde: { x: number; y: number }) => void;
 };
 
 /**
@@ -93,10 +85,10 @@ type Props = {
  *
  * Cada uma diz uma coisa diferente sobre o destino:
  *
- * - **Brotinho** balança ao vento quando a aba abre. Ele é uma planta; planta
- *   responde ao ar. O giro sai do pé do caule (`transformOrigin`), e não do
- *   meio do ícone, senão o desenho inteiro gira como uma peça de relógio em vez
- *   de vergar como um talo.
+ * - **Brotinho** nasce ao toque: a planta cresce do pé do caule até o tamanho
+ *   cheio. O desenho do botão é um broto, e brotar é o que um broto faz. A
+ *   origem é o pé (`transformOrigin`), e não o meio, senão ele incha em vez de
+ *   crescer. Ver `brotar`.
  * - **Início** enche como um copo de água. O disco fica num verde apagado com a
  *   aba fechada, e ao abrir o verde cheio **sobe** por dentro dele, com a
  *   superfície ondulando de um lado para o outro. É a única das três que muda o
@@ -112,8 +104,6 @@ type Props = {
  * continua acontecendo — ela é informação, não enfeite —, só que de uma vez.
  */
 
-/** O quanto o broto verga, em graus, no pico da balançada. */
-const VENTO = 7;
 /** O tranco do perfil é mais curto e mais rápido: é resposta a toque. */
 const TRANCO = 9;
 
@@ -178,13 +168,59 @@ function balancar(valor: Animated.Value, duracao: number) {
 }
 
 /**
+ * O broto nascendo: do nada ao tamanho cheio, a partir do pé do caule.
+ *
+ * ## O que ele é, e o que substituiu
+ *
+ * É a animação do documento, traduzida quadro a quadro: a planta sai de
+ * `scale(.15, 0)` invisível, chega a `(.6, .7)` no meio do caminho já opaca,
+ * passa de 1 perto do fim e assenta. Em tela: um broto brotando, no botão que
+ * tem o desenho de um broto.
+ *
+ * No lugar dela havia uma balançada ao vento, que acontecia **ao abrir a aba**
+ * e não ao toque. Ela não estava errada — uma planta responde ao ar —, mas
+ * respondia à navegação, e não ao dedo: quem tocava na aba já aberta não via
+ * nada. E havia a explosão de folhas, que respondia ao dedo cobrindo a tela
+ * inteira de confete a cada troca. O crescimento faz o trabalho das duas no
+ * lugar certo, que é dentro do próprio ícone.
+ *
+ * ## Por que os quatro trechos, e não uma mola
+ *
+ * Porque uma mola (`spring`) com repique passa de 1 e volta **em todos os
+ * eixos ao mesmo tempo**, e o que faz isto ler como crescer é a diferença
+ * entre eles: no começo o broto é mais largo que alto — `(.15, 0)` —, como
+ * uma semente abrindo, e só depois ele sobe. Essa diferença some numa mola.
+ *
+ * O `scaleY` sai de zero e a origem é o pé: é isso que faz o desenho crescer
+ * do chão em vez de inchar do meio.
+ */
+function brotar(valor: Animated.Value) {
+  valor.setValue(0);
+  Animated.timing(valor, {
+    toValue: 1,
+    duration: 700,
+    easing: Easing.bezier(0.3, 0.7, 0.4, 1),
+    useNativeDriver: true,
+  }).start();
+}
+
+/** Os quadros do crescimento, lidos do documento. */
+const CRESCIMENTO = {
+  entrada: [0, 0.45, 1],
+  opacidade: [0, 1, 1],
+  largura: [0.15, 0.6, 1],
+  altura: [0, 0.7, 1],
+  passaDe: { entrada: [0, 0.45, 0.8, 1], largura: [0.15, 0.6, 1.06, 1], altura: [0, 0.7, 1.06, 1] },
+} as const;
+
+/**
  * BottomNav — três destinos, só ícones.
  *
  * Sem rótulos, o único sinal de qual aba está aberta é a cor; por isso os
  * `accessibilityLabel` são obrigatórios, senão quem usa leitor de tela fica
  * sem nada para ouvir.
  */
-export function BottomNav({ active = 'home', onChange, aoTocar }: Props) {
+export function BottomNav({ active = 'home', onChange }: Props) {
   const { colors, palette, shadows } = useTema();
   const insets = useSafeAreaInsets();
 
@@ -200,8 +236,9 @@ export function BottomNav({ active = 'home', onChange, aoTocar }: Props) {
   }, []);
 
   /** Um valor por ícone que se mexe: -1 a 1, convertido em graus abaixo. */
-  const vento = useRef(new Animated.Value(0)).current;
   const tranco = useRef(new Animated.Value(0)).current;
+  /** De 0 a 1: o broto da aba nascendo. Ver `brotar`. */
+  const cresce = useRef(new Animated.Value(1)).current;
   /**
    * O nível da água, em pontos a partir do topo do disco.
    *
@@ -213,14 +250,17 @@ export function BottomNav({ active = 'home', onChange, aoTocar }: Props) {
   const nivel = useRef(new Animated.Value(active === 'home' ? 0 : CENTER_SIZE)).current;
 
   /*
-    O broto balança quando a aba **passa a ser** a dele, e não a cada
-    renderização: sem esta guarda, qualquer mudança de estado do app faria a
-    folha tremer sozinha no canto da tela.
+    Ele também nasce quando a aba passa a ser a dele por outro caminho — um
+    botão de dentro de uma tela, o voltar do sistema. Sem isto, chegar na aba
+    do broto sem tocar na barra deixaria o ícone trocando de cor em silêncio.
+
+    A guarda no `active` é o que impede a folha de tremer sozinha a cada
+    mudança de estado do app.
   */
   useEffect(() => {
-    if (active !== 'broto' || menosMovimento) return;
-    balancar(vento, 900);
-  }, [active, menosMovimento, vento]);
+    if (active !== 'broto' || menosMovimento) return cresce.setValue(1);
+    brotar(cresce);
+  }, [active, menosMovimento, cresce]);
 
   /**
    * O giro de cada crista. Só rodam enquanto a água está se mexendo.
@@ -286,25 +326,46 @@ export function BottomNav({ active = 'home', onChange, aoTocar }: Props) {
         accessibilityRole="tab"
         accessibilityLabel={t.label}
         accessibilityState={{ selected: ativa }}
-        onPress={(e) => {
-          /* O perfil responde ao toque, inclusive quando já está aberto: é
-             confirmação do gesto, não anúncio de destino novo. */
-          if (!doBroto && !menosMovimento) balancar(tranco, 420);
-          /*
-            `pageX`/`pageY` e a posicao na tela, e nao no botao. E a mesma
-            coordenada em que a explosao e desenhada, duas camadas acima.
-          */
-          aoTocar?.(t.key, { x: e.nativeEvent.pageX, y: e.nativeEvent.pageY });
+        onPress={() => {
+          /* Os dois respondem ao toque, inclusive quando a aba já está
+             aberta: é confirmação do gesto, não anúncio de destino novo. */
+          if (menosMovimento) {
+            onChange?.(t.key);
+            return;
+          }
+          if (doBroto) brotar(cresce);
+          else balancar(tranco, 420);
           onChange?.(t.key);
         }}
         style={{ flex: 1, alignItems: 'center', justifyContent: 'center', minHeight: 48, gap: 3 }}
       >
         <Animated.View
           style={{
-            /* O broto verga a partir do pé do caule; o perfil gira no meio,
+            /* O broto cresce a partir do pé do caule; o perfil gira no meio,
                que é onde fica o pescoço do bonequinho. */
             transformOrigin: doBroto ? 'bottom center' : 'center',
-            transform: [{ rotate: giro(doBroto ? vento : tranco, doBroto ? VENTO : TRANCO) }],
+            ...(doBroto
+              ? {
+                  opacity: cresce.interpolate({
+                    inputRange: [...CRESCIMENTO.entrada],
+                    outputRange: [...CRESCIMENTO.opacidade],
+                  }),
+                  transform: [
+                    {
+                      scaleX: cresce.interpolate({
+                        inputRange: [...CRESCIMENTO.passaDe.entrada],
+                        outputRange: [...CRESCIMENTO.passaDe.largura],
+                      }),
+                    },
+                    {
+                      scaleY: cresce.interpolate({
+                        inputRange: [...CRESCIMENTO.passaDe.entrada],
+                        outputRange: [...CRESCIMENTO.passaDe.altura],
+                      }),
+                    },
+                  ],
+                }
+              : { transform: [{ rotate: giro(tranco, TRANCO) }] }),
           }}
         >
           <Icon
@@ -441,10 +502,7 @@ export function BottomNav({ active = 'home', onChange, aoTocar }: Props) {
           accessibilityRole="tab"
           accessibilityLabel="Início"
           accessibilityState={{ selected: active === 'home' }}
-          onPress={(e) => {
-            aoTocar?.('home', { x: e.nativeEvent.pageX, y: e.nativeEvent.pageY });
-            onChange?.('home');
-          }}
+          onPress={() => onChange?.('home')}
           style={({ pressed }) => ({
             width: CENTER_SIZE,
             height: CENTER_SIZE,

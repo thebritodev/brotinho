@@ -37,7 +37,7 @@ import {
   type IconName,
   type OrigemDoBroto,
 } from '../../components';
-import { falasDaCasa, ehNoite, horaDaCena } from '../../data/falasDoBroto';
+import { falasDaCasa, horaDaCena } from '../../data/falasDoBroto';
 import { DIA_PESADO } from '../../data/humores';
 import { proximoPasso } from '../../data/primeiraSemana';
 import { saudacaoDoDia } from '../../data/saudacao';
@@ -297,19 +297,20 @@ export function BrotinhoScreen({
     da primeira dobra, que é justamente o que esta aba não pode fazer.
   */
   const alturaDaCena = Math.max(300, Math.min(height * 0.5, 460));
-  const ehDeNoite = ehNoite(new Date());
+  /*
+    A hora é lida **uma vez por renderização**, e os três lugares que a usam
+    leem a mesma: o céu, a pose e a saudação. Três `new Date()` diferentes
+    conseguem cair dos dois lados do meio-dia e pôr o broto de pé sob a lua.
+  */
+  const hora = horaDaCena(new Date());
+  const ehDeNoite = hora === 'noite';
 
   /*
     A pose segue a hora: ele se espreguiça de manhã, fica parado de tarde e
     cochila de noite. É o mesmo relógio que pinta o céu, e por isso as duas
     coisas nunca se contradizem — não existe broto dormindo sob o sol.
   */
-  const poseDaHora =
-    horaDaCena(new Date()) === 'manha'
-      ? 'espreguica'
-      : ehDeNoite
-        ? 'dorme'
-        : 'parado';
+  const poseDaHora = hora === 'manha' ? 'espreguica' : ehDeNoite ? 'dorme' : 'parado';
 
   /*
     O rodízio de falas. Tocar no broto passa para a seguinte, e a conta não
@@ -350,7 +351,7 @@ export function BrotinhoScreen({
   const falas = falasDaCasa({
     nome: data.profile.name.trim() || 'você',
     humor: mood,
-    hora: horaDaCena(new Date()),
+    hora,
     folhasQueFaltam: faltamParaOProximo ?? 0,
   });
   const fala = falas[falaAtual % falas.length];
@@ -423,7 +424,12 @@ export function BrotinhoScreen({
               largura={width}
               altura={alturaDaCena + insets.top}
               humor={mood}
-              noite={ehDeNoite}
+              /*
+                A hora, e não só a noite: de manhã o céu ganha o dourado de
+                quem acabou de acordar, de tarde fica o pastel do humor cru,
+                de noite entra o véu com lua e estrelas. Ver `Cena`.
+              */
+              hora={hora}
               chao="grama"
               capim
             />

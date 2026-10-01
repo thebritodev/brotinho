@@ -4,7 +4,7 @@ import { Pressable, ScrollView, Text, View } from 'react-native';
 import { findPractice } from '../../data/practices';
 import type { PraticaVisitada } from '../../state/derived';
 import { fonts, radius, useTema } from '../../theme';
-import { DesenhoDoTema, ehTemaDesenhado } from './desenhosDosTemas';
+import { ArteDoTema, ehTemaComArte } from './artesDosTemas';
 import { SOBRA_DO_DESENHO, TAMANHO_DO_DESENHO } from './PracticeTopicCard';
 
 /**
@@ -41,8 +41,17 @@ import { SOBRA_DO_DESENHO, TAMANHO_DO_DESENHO } from './PracticeTopicCard';
  * Porque eles **não** podem competir com o carrossel de cima. Ali estão as três
  * coisas de fazer agora, grandes, e é ali que alguém sem rumo deve olhar
  * primeiro. Esta fileira é para quem já sabe o que quer: baixa, horizontal,
- * reconhecível de relance pela cena do tema — que é justamente o que a arte
+ * reconhecível de relance pela arte do tema — que é justamente o que a arte
  * cortada na borda faz melhor do que um ícone centralizado.
+ *
+ * ## A arte é a mesma da grade de temas, e tem de ser
+ *
+ * Ela já foi outra. Enquanto a grade de treze temas passou a usar a arte de
+ * objeto do documento, esta fileira continuou com a cena de paisagem antiga, e
+ * o cartão grande de cima também — três lugares mostrando "Acalmar a
+ * ansiedade" com dois desenhos diferentes, um por cima do outro na mesma
+ * rolagem. O desenho de um tema é o que faz ele virar um lugar reconhecível; em
+ * duas versões, não vira nada.
  */
 
 /** Largura e altura de cada cartãozinho da fileira. */
@@ -160,14 +169,24 @@ export function OndeVoceParou({ itens, margem, onAbrir }: Props) {
               Sem cena para o tema, fica só a cor: melhor a cor sozinha do que
               um ícone genérico brigando com as cenas dos vizinhos.
             */}
-            {ehTemaDesenhado(item.topico) && (
+            {ehTemaComArte(item.topico) && (
               <View
                 accessibilityElementsHidden
                 importantForAccessibility="no-hide-descendants"
                 pointerEvents="none"
-                style={{ position: 'absolute', right: 0, bottom: 0 }}
+                style={{
+                  position: 'absolute',
+                  right: 0,
+                  bottom: 0,
+                  width: TAMANHO_DO_DESENHO,
+                  height: TAMANHO_DO_DESENHO,
+                }}
               >
-                <DesenhoDoTema tema={item.topico} size={TAMANHO_DO_DESENHO} />
+                <ArteDoTema
+                  tema={item.topico}
+                  largura={TAMANHO_DO_DESENHO}
+                  altura={TAMANHO_DO_DESENHO}
+                />
               </View>
             )}
           </View>

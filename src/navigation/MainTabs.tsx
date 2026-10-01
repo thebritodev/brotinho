@@ -5,8 +5,6 @@ import {
   AbasVivas,
   BottomNav,
   CamadaEmpilhada,
-  type Explosao,
-  ExplosaoDaAba,
   ProvedorDeCobertura,
   type TabKey,
 } from '../components';
@@ -51,14 +49,6 @@ export function MainTabs() {
   const { colors } = useTema();
   const { data } = useAppState();
   const [tab, setTab] = useState<TabKey>('home');
-  /*
-    A explosao do ultimo toque na barra.
-
-    O `id` sobe a cada toque e e o que faz a animacao recomecar — sem ele,
-    tocar duas vezes na mesma aba nao soltaria folha na segunda, porque nada
-    no objeto teria mudado.
-  */
-  const [explosao, setExplosao] = useState<Explosao | null>(null);
   const [sub, setSub] = useState<SubScreen | null>(null);
   /**
    * A aba de baixo está coberta por uma tela empilhada?
@@ -344,21 +334,22 @@ export function MainTabs() {
         </View>
         <CamadaEmpilhada aberta={sub} render={renderSub} aoCobrir={setCoberta} />
       </View>
+      {/*
+        A resposta ao toque mora **dentro** do icone, e nao mais em volta dele.
+
+        Houve aqui uma explosao de folhas que saia de onde o dedo encostou e
+        cobria a tela durante a troca. Ela respondia ao toque, que era o
+        problema que eu queria resolver, e respondia demais: nove pedacos
+        atravessando a tela inteira a cada troca de aba — o gesto mais
+        repetido do app — viravam confete, e confete em toda troca deixa de
+        ser comemoracao e passa a ser ruido.
+
+        O documento responde de outro jeito, e e o jeito que ficou: cada icone
+        se mexe do proprio jeito. O broto **cresce** do pe, o Inicio enche de
+        agua, o Perfil da um tranco. Ver `BottomNav`.
+      */}
       <BottomNav
         active={tab}
-        aoTocar={(qual, onde) =>
-          setExplosao((antes: Explosao | null) => ({
-            id: (antes?.id ?? 0) + 1,
-            x: onde.x,
-            y: onde.y,
-            /*
-              As duas abas do personagem soltam folha; o Perfil solta brilho.
-              Ver `ExplosaoDaAba` — a distincao importa menos pelo desenho e
-              mais por nao fingir que as tres abas sao o mesmo lugar.
-            */
-            tipo: qual === 'perfil' ? 'brilho' : 'folha',
-          }))
-        }
         onChange={(next) => {
           setTab(next);
           setSub(null);
@@ -366,15 +357,6 @@ export function MainTabs() {
           setOrigemDoRegistro(null);
         }}
       />
-
-      {/*
-        A explosao fica **fora** da barra e por cima de tudo.
-
-        Dentro da barra ela seria recortada pelos limites dela — que e
-        exatamente a faixa de onde as folhas precisam sair. Aqui ela cobre a
-        tela inteira, acontece durante a troca e desaparece sozinha.
-      */}
-      <ExplosaoDaAba explosao={explosao} />
     </View>
   );
 }
