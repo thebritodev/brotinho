@@ -1,3 +1,4 @@
+import type { Pose } from '../components/brand/geometriaDoBroto';
 import type { Mood } from '../theme/tokens';
 
 /**
@@ -111,27 +112,55 @@ export const NO_ONBOARDING = {
 };
 
 /**
- * Uma fala por tema de prática, dita no alto da tela do tema.
+ * Como o broto aparece em cada tema de prática: o que ele diz e o que faz.
  *
- * Cada uma é sobre **ele**, não sobre a pessoa — é o que evita que o balão
- * vire um segundo subtítulo. Ele conta o que aquilo tem a ver com a vida de um
- * broto, e quem lê faz a ponte sozinho.
+ * ## A fala é sobre **ele**
+ *
+ * E não sobre a pessoa — é o que evita que o balão vire um segundo subtítulo.
+ * Ele conta o que aquilo tem a ver com a vida de um broto, e quem lê faz a
+ * ponte sozinho. "Eu também cresço meio torto às vezes" diz mais sobre culpa
+ * do que qualquer frase que começasse com "você".
+ *
+ * ## A pose não é o sintoma
+ *
+ * Ele **não** fica ansioso no tema da ansiedade nem triste no da tristeza.
+ * Num app de saúde mental, o personagem que espelha o estado da pessoa a
+ * deixa sozinha no estado; o que acompanha é o que faz companhia. Então ele
+ * fica calmo onde dói, pensa onde falta foco, se espreguiça onde falta
+ * começar — e dorme só no tema do sono, que é o único em que dormir é a coisa
+ * certa a fazer.
+ *
+ * O `humor` aqui é o rosto dele, não o da pessoa: é o que pinta o céu da cena
+ * do tema, e por isso é escolhido pelo assunto, não pelo registro de hoje.
  */
-export const NO_TEMA: Record<string, string> = {
-  ansiedade: 'Essa respiração me ajuda quando fico agitado.',
-  estresse: 'Solta os ombros comigo?',
-  raiva: 'Pode sacudir. Minhas folhas aguentam.',
-  insonia: 'Bocejo só de pensar nisso.',
-  tristeza: 'Posso ficar aqui do seu lado?',
-  luto: 'Eu lembro de tudo que me regou.',
-  solidao: 'Eu não saio daqui. Estou plantado.',
-  procrastinacao: 'Só dois minutinhos. Topa?',
-  foco: 'Uma coisa de cada vez.',
-  autoestima: 'Você é importante para mim.',
-  culpa: 'Eu também cresço meio torto às vezes.',
-  comparacao: 'Cada planta tem o tempo dela. Eu demorei.',
-  gratidao: 'Sou grato por você cuidar de mim.',
+export type ComoEleAparece = {
+  fala: string;
+  pose: Pose;
+  humor: Mood;
+  /** Só a insônia: a cena do tema acontece de noite, seja qual for a hora. */
+  noite?: boolean;
 };
+
+export const NO_TEMA: Record<string, ComoEleAparece> = {
+  ansiedade: { fala: 'Essa respiração me ajuda quando fico agitado.', pose: 'calmo', humor: 'leve' },
+  estresse: { fala: 'Solta os ombros comigo?', pose: 'parado', humor: 'cansado' },
+  raiva: { fala: 'Pode sacudir. Minhas folhas aguentam.', pose: 'espreguica', humor: 'leve' },
+  insonia: { fala: 'Bocejo só de pensar nisso.', pose: 'dorme', humor: 'leve', noite: true },
+  tristeza: { fala: 'Posso ficar aqui do seu lado?', pose: 'calmo', humor: 'triste' },
+  luto: { fala: 'Eu lembro de tudo que me regou.', pose: 'pensa', humor: 'leve' },
+  solidao: { fala: 'Eu não saio daqui. Estou plantado.', pose: 'acena', humor: 'leve' },
+  procrastinacao: { fala: 'Só dois minutinhos. Topa?', pose: 'espreguica', humor: 'leve' },
+  foco: { fala: 'Uma coisa de cada vez.', pose: 'pensa', humor: 'leve' },
+  autoestima: { fala: 'Você é importante para mim.', pose: 'parado', humor: 'feliz' },
+  culpa: { fala: 'Eu também cresço meio torto às vezes.', pose: 'calmo', humor: 'leve' },
+  comparacao: { fala: 'Cada planta tem o tempo dela. Eu demorei.', pose: 'pensa', humor: 'leve' },
+  gratidao: { fala: 'Sou grato por você cuidar de mim.', pose: 'comemora', humor: 'feliz' },
+};
+
+/** Como ele aparece num tema — com um padrão para tema que ainda não tenha. */
+export function noTema(chave: string): ComoEleAparece {
+  return NO_TEMA[chave] ?? { fala: 'Estou aqui com você.', pose: 'parado', humor: 'leve' };
+}
 
 /** O que ele diz enquanto acompanha uma respiração. */
 export const NA_RESPIRACAO = {
@@ -190,7 +219,7 @@ export const TODAS_AS_FALAS: string[] = [
   NO_ONBOARDING.humor,
   ...Object.values(NO_ONBOARDING.humorEscolhido),
   ...Object.values(SOBRE_O_HUMOR),
-  ...Object.values(NO_TEMA),
+  ...Object.values(NO_TEMA).map((t) => t.fala),
   ...Object.values(NA_RESPIRACAO),
   ...NOS_PASSOS,
   ...Object.values(NA_COMPOSTA),

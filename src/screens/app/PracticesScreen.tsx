@@ -1,13 +1,28 @@
 import React, { useRef, useState } from 'react';
-import { Pressable, ScrollView, Text, View } from 'react-native';
+import { Pressable, ScrollView, Text, useWindowDimensions, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { Icon, PracticeTopicCard, ScreenTransition, TopBar } from '../../components';
+import {
+  AnimatedSprout,
+  BalaoDoBroto,
+  Cena,
+  CRISTA_DO_MORRO,
+  Icon,
+  PracticeTopicCard,
+  ScreenTransition,
+  TopBar,
+} from '../../components';
 import { PracticeIllustration } from '../../components/brand/PracticeIllustration';
 import { PRACTICE_TOPICS, findPractice, findTopic, resumoDoTema } from '../../data/practices';
 import { useAppState } from '../../state/AppStateProvider';
 import type { OrigemDoRegistro } from '../../state/types';
-import { praticasMaisFeitas, ultimaPratica, vezesPorPratica } from '../../state/derived';
+import { ehNoite, noTema } from '../../data/falasDoBroto';
+import {
+  praticasMaisFeitas,
+  sproutStage,
+  ultimaPratica,
+  vezesPorPratica,
+} from '../../state/derived';
 import { fonts, radius, useTema } from '../../theme';
 import { PracticeDetailScreen } from '../practices/PracticeDetailScreen';
 import { useBotaoVoltar } from '../../navigation/useBotaoVoltar';
@@ -63,6 +78,19 @@ export function PracticesScreen({
     return pratica && tema ? [{ ...r, pratica, tema }] : [];
   });
   const insets = useSafeAreaInsets();
+  const { width: largura, height: alturaDaTela } = useWindowDimensions();
+
+  /*
+    A cena do tema ocupa pouco mais de um terco da tela.
+
+    O documento desenha 300 sobre 844. Como fracao, o enquadramento sobrevive a
+    aparelhos curtos — onde 300 fixos empurrariam a primeira pratica para fora
+    da dobra, que e justamente o que esta tela nao pode fazer.
+  */
+  const alturaDaCenaDoTema = Math.max(220, Math.min(alturaDaTela * 0.36, 330));
+  const ehDeNoite = ehNoite(new Date());
+  const estagioDoBroto = sproutStage(data);
+
   // A oferta da Home chega como estado inicial: esta tela é montada de novo a
   // cada abertura, então não há caso em que o alvo mude com ela na frente.
   const [topicKey, setTopicKey] = useState<string | null>(alvo?.topico ?? null);
@@ -140,25 +168,130 @@ export function PracticesScreen({
   // --- Lista de práticas de um tema ---------------------------------------
 
   if (topic) {
+    /* Como ele aparece neste tema: a fala, a pose e o ceu. Ver `NO_TEMA`. */
+    const eleNoTema = noTema(topic.key);
     return (
       <ScreenTransition transitionKey="tema" ordem={PASSOS_DAS_PRATICAS}>
-      <View style={{ flex: 1, paddingTop: insets.top }}>
-        <TopBar title={topic.title} onBack={voltarDoTema} />
+      <View style={{ flex: 1 }}>
         <ScrollView
-          contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 32 + POR_TRAS_DA_BARRA, gap: 12 }}
+          contentContainerStyle={{ paddingBottom: 32 + POR_TRAS_DA_BARRA, gap: 12 }}
           showsVerticalScrollIndicator={false}
         >
-          <Text
-            style={{
-              fontFamily: fonts.body.regular,
-              fontSize: 15,
-              lineHeight: 15 * 1.5,
-              color: colors.textSecondary,
-              marginBottom: 2,
-            }}
-          >
-            {topic.intro}
-          </Text>
+          {/*
+            A cena do tema, com o broto dentro dela.
+
+            A `TopBar` saiu: o titulo do tema aparecia pequeno na barra e
+            grande logo abaixo, e a barra roubava do ceu a faixa que ele
+            precisa para passar por tras da hora e da bateria. O botao de
+            voltar continua, redondo, pousado sobre o ceu.
+
+            Ele nao fica ansioso no tema da ansiedade nem triste no da
+            tristeza: num app de saude mental, o personagem que espelha o
+            estado deixa a pessoa sozinha nele. Ver `NO_TEMA`.
+          */}
+          <View style={{ height: alturaDaCenaDoTema + insets.top }}>
+            <Cena
+              largura={largura}
+              altura={alturaDaCenaDoTema + insets.top}
+              humor={eleNoTema.humor}
+              noite={eleNoTema.noite ?? ehDeNoite}
+              chao="grama"
+              capim
+              xDoBroto={largura * 0.4}
+            />
+            <View
+              style={{
+                position: 'absolute',
+                left: largura * 0.4 - alturaDaCenaDoTema * 0.34,
+                bottom: CRISTA_DO_MORRO.grama - 6,
+                width: alturaDaCenaDoTema * 0.68,
+                alignItems: 'center',
+              }}
+            >
+              <AnimatedSprout
+                mood={eleNoTema.humor}
+                stage={estagioDoBroto}
+                size={Math.round(alturaDaCenaDoTema * 0.62)}
+                pose={eleNoTema.pose}
+              />
+            </View>
+            <BalaoDoBroto
+              lado="esquerda"
+              apareceEm={topic.key}
+              style={{
+                position: 'absolute',
+                right: 20,
+                top: insets.top + alturaDaCenaDoTema * 0.34,
+                maxWidth: 160,
+              }}
+            >
+              <Text
+                style={{
+                  fontFamily: fonts.body.bold,
+                  fontSize: 14.5,
+                  lineHeight: 14.5 * 1.35,
+                  color: colors.textPrimary,
+                }}
+              >
+                {eleNoTema.fala}
+              </Text>
+            </BalaoDoBroto>
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel="Voltar"
+              onPress={voltarDoTema}
+              style={{
+                position: 'absolute',
+                left: 20,
+                top: insets.top + 8,
+                width: 44,
+                height: 44,
+                borderRadius: 22,
+                backgroundColor: colors.surface,
+                alignItems: 'center',
+                justifyContent: 'center',
+                ...shadows.md,
+              }}
+            >
+              <Icon name="back" size={20} color={colors.textPrimary} />
+            </Pressable>
+          </View>
+
+          <View style={{ paddingHorizontal: 20, gap: 6, marginTop: 4 }}>
+            <Text
+              style={{
+                fontFamily: fonts.body.extraBold,
+                fontSize: 13.5,
+                letterSpacing: 0.6,
+                textTransform: 'uppercase',
+                color: colors.primaryStrong,
+              }}
+            >
+              Práticas
+            </Text>
+            <Text
+              style={{
+                color: colors.textPrimary,
+                fontFamily: fonts.display.extraBold,
+                fontSize: 30,
+                lineHeight: 30 * 1.1,
+              }}
+            >
+              {topic.solucao}
+            </Text>
+            <Text
+              style={{
+                fontFamily: fonts.body.regular,
+                fontSize: 15.5,
+                lineHeight: 15.5 * 1.5,
+                color: palette.brown700,
+              }}
+            >
+              {topic.intro}
+            </Text>
+          </View>
+
+          <View style={{ paddingHorizontal: 20, gap: 12 }}>
 
           {topic.practices.map((p) => (
             <Pressable
@@ -248,6 +381,7 @@ export function PracticesScreen({
               <Icon name="chevronRight" color={palette.brown400} />
             </Pressable>
           ))}
+          </View>
         </ScrollView>
       </View>
       </ScreenTransition>
