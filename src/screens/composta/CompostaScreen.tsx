@@ -1,12 +1,16 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { Pressable, ScrollView, Text, View } from 'react-native';
+import { Pressable, ScrollView, Text, useWindowDimensions, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import {
   LuzDeEstufa,
   alturaDoMascote,
   AjudaAgora,
+  AnimatedSprout,
+  BalaoDoBroto,
   Button,
+  Cena,
+  CRISTA_DO_MORRO,
   Chip,
   Icon,
   Input,
@@ -20,6 +24,7 @@ import { toqueDeConclusao, toqueLeve } from '../../services/toque';
 import { useAppState } from '../../state/AppStateProvider';
 import { vezesQueVoltou, voltouAntes } from '../../state/derived';
 import { SUGESTOES_DA_COMPOSTA } from '../../data/composta';
+import { NA_COMPOSTA, naComposta } from '../../data/falasDoBroto';
 import { fonts, radius, useTema } from '../../theme';
 import { AduboAssentando } from './AduboAssentando';
 import { FallingWords } from './FallingWords';
@@ -63,6 +68,16 @@ export function CompostaScreen({
   aoEscreverNoDiario?: (comeco: string) => void;
 }) {
   const { colors, palette, shadows, vidros } = useTema();
+  const { width: largura, height: alturaDaTela } = useWindowDimensions();
+
+  /*
+    A faixa de terra da abertura: um quarto da tela.
+
+    O documento desenha 250 sobre 844. Como fracao ela encolhe junto num
+    aparelho curto, onde a tela ja carrega tres passos escritos e dois
+    cartoes.
+  */
+  const alturaDaTerra = Math.max(180, Math.min(alturaDaTela * 0.28, 260));
   const insets = useSafeAreaInsets();
   const { data, addCompost } = useAppState();
 
@@ -285,23 +300,71 @@ export function CompostaScreen({
           contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 28 + POR_TRAS_DA_BARRA, gap: 20 }}
           showsVerticalScrollIndicator={false}
         >
-          <View style={{ alignItems: 'center', gap: 12 }}>
-            {/* Halo verde: aqui a tela inteira e verde — ver `LuzDeEstufa`. */}
-            <LuzDeEstufa diametro={alturaDoMascote(2, 120)} tom="verde">
-              <Sprout mood="leve" stage={2} size={120} />
-            </LuzDeEstufa>
-            <Text
+          {/*
+            A cena da terra, com o broto plantado nela.
+
+            O halo verde saiu. Ele servia para destacar o broto do creme; aqui
+            ele passa a estar **na terra**, que e o lugar da ferramenta — o
+            pensamento vira adubo, e adubo mora embaixo. A cena diz isso antes
+            de qualquer um dos tres passos escritos.
+          */}
+          <View style={{ marginHorizontal: -20, height: alturaDaTerra }}>
+            <Cena
+              largura={largura}
+              altura={alturaDaTerra}
+              humor="leve"
+              semAstro
+              nuvens={false}
+              chao="terra"
+            />
+            <View
               style={{
-                color: colors.textPrimary,
-                fontFamily: fonts.display.bold,
-                fontSize: 20,
-                lineHeight: 20 * 1.3,
-                textAlign: 'center',
+                position: 'absolute',
+                left: largura * 0.3 - alturaDaTerra * 0.3,
+                bottom: CRISTA_DO_MORRO.terra - 10,
+                width: alturaDaTerra * 0.6,
+                alignItems: 'center',
               }}
             >
-              Um pensamento repetido em voz alta perde a força
-            </Text>
+              <AnimatedSprout
+                mood="leve"
+                stage={2}
+                size={Math.round(alturaDaTerra * 0.55)}
+                showPot={false}
+              />
+            </View>
+            <BalaoDoBroto
+              lado="esquerda"
+              style={{
+                position: 'absolute',
+                right: 16,
+                top: alturaDaTerra * 0.22,
+                maxWidth: 180,
+              }}
+            >
+              <Text
+                style={{
+                  fontFamily: fonts.body.bold,
+                  fontSize: 14.5,
+                  lineHeight: 14.5 * 1.35,
+                  color: colors.textPrimary,
+                }}
+              >
+                {NA_COMPOSTA.convite}
+              </Text>
+            </BalaoDoBroto>
           </View>
+
+          <Text
+            style={{
+              color: colors.textPrimary,
+              fontFamily: fonts.display.extraBold,
+              fontSize: 26,
+              lineHeight: 26 * 1.2,
+            }}
+          >
+            Um pensamento repetido em voz alta perde a força
+          </Text>
 
           <View style={{ gap: 12 }}>
             {passo('1', 'Você escreve o pensamento que está te incomodando, em uma frase curta.')}
@@ -722,6 +785,36 @@ export function CompostaScreen({
               </View>
             </View>
 
+            {/*
+              Ele ouve, e diz que esta ouvindo.
+
+              A tela ja contava repeticoes e dizia o estado em letra pequena —
+              "Compostando", "Quase compostado". Isso e o app falando. O balao
+              e ele: a mesma informacao dita por alguem que esta ali, e num
+              exercicio que consiste em repetir a propria frase em voz alta
+              para uma tela, ter alguem do outro lado e metade do que faz
+              seguir ate o fim.
+            */}
+            <BalaoDoBroto
+              lado="baixo"
+              apareceEm={
+                session.reps === 0 ? 0 : session.reps < 5 ? 1 : session.reps < 9 ? 2 : 3
+              }
+              style={{ maxWidth: 260 }}
+            >
+              <Text
+                style={{
+                  fontFamily: fonts.body.bold,
+                  fontSize: 14.5,
+                  lineHeight: 14.5 * 1.35,
+                  color: colors.textPrimary,
+                  textAlign: 'center',
+                }}
+              >
+                {naComposta(session.reps)}
+              </Text>
+            </BalaoDoBroto>
+
             <LuzDeEstufa diametro={alturaDoMascote(estágio, 150)} tom="verde">
               <Sprout mood={humor} stage={estágio} size={150} />
             </LuzDeEstufa>
@@ -852,6 +945,28 @@ export function CompostaScreen({
           vaso — que é literalmente o que a frase abaixo promete. As duas coisas
           respeitam "reduzir movimento" e aparecem prontas para quem pediu isso.
         */}
+        {/*
+          O agradecimento dele, antes do que o app tem a dizer.
+
+          O titulo abaixo e o app explicando o que aconteceu — "a frase perdeu
+          o significado e virou adubo". O balao e ele recebendo. Sao duas
+          coisas diferentes, e e a segunda que faz a pratica terminar em
+          alguem, e nao em texto.
+        */}
+        <BalaoDoBroto lado="baixo" style={{ maxWidth: 280 }}>
+          <Text
+            style={{
+              fontFamily: fonts.body.bold,
+              fontSize: 14.5,
+              lineHeight: 14.5 * 1.35,
+              color: colors.textPrimary,
+              textAlign: 'center',
+            }}
+          >
+            {NA_COMPOSTA.fim}
+          </Text>
+        </BalaoDoBroto>
+
         <View style={{ width: '100%', height: 200, alignItems: 'center', justifyContent: 'flex-end' }}>
           <AduboAssentando frase={thought.trim() || SUGESTOES[0]} />
           <GrowingSprout size={160} />

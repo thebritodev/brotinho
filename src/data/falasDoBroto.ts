@@ -201,10 +201,17 @@ export function noDiario(rascunho: string): string {
   return 'O que ficou com você hoje?';
 }
 
-/** Na Composta: a abertura, o meio e o fim. */
+/**
+ * Na Composta: o convite e o agradecimento.
+ *
+ * O fim não promete folha, pelo mesmo motivo de `noFim`: o broto cresce por
+ * dia cuidado, e a terceira composta do mesmo dia não faz ele crescer nada.
+ * O que é verdade é que o pensamento virou adubo — que é literalmente o que a
+ * tela acabou de desenhar.
+ */
 export const NA_COMPOSTA = {
   convite: 'Me dá esse pensamento. Eu transformo em adubo.',
-  fim: 'Obrigado pelo adubo. Ganhei uma folha.',
+  fim: 'Obrigado. Isso aí vira adubo bom.',
 };
 
 /** O que ele diz enquanto o pensamento é repetido. */
