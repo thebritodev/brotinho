@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { Pressable, Text, View } from 'react-native';
 
-import { Button, Sprout } from '../../components';
+import { AnimatedSprout, BalaoDoBroto, Button } from '../../components';
+import { NOS_PASSOS } from '../../data/falasDoBroto';
 import { calar, falar } from '../../services/voz';
 import { useAppState } from '../../state/AppStateProvider';
 import { fonts, radius, useTema } from '../../theme';
@@ -67,9 +68,11 @@ type Props = {
   steps: Step[];
   onDone: () => void;
   onCancel: () => void;
+  /** O tom do tema, que pinta a tela inteira. */
+  tom?: string;
 };
 
-export function StepGuide({ steps, onDone, onCancel }: Props) {
+export function StepGuide({ steps, onDone, onCancel, tom }: Props) {
   const { colors, palette } = useTema();
   const { data } = useAppState();
   const comVoz = data.settings.voz;
@@ -167,7 +170,16 @@ export function StepGuide({ steps, onDone, onCancel }: Props) {
   );
 
   return (
-    <View style={{ flex: 1, padding: 24, gap: 24 }}>
+    /*
+      O tom do tema pinta a tela inteira.
+
+      Mesma ideia das fases da respiracao: o guia e uma tela em que se olha
+      sem ler, e a cor e o que diz onde se esta sem exigir leitura. Aqui ela
+      nao muda a cada passo — o que muda a cada passo e o passo —, entao ela
+      e o tom do tema, e fica parada. Uma cor que mudasse a cada toque
+      transformaria a tela num semaforo.
+    */
+    <View style={{ flex: 1, padding: 24, gap: 18, backgroundColor: tom ?? colors.bg }}>
       {/* Trilha de progresso: um traço por etapa. */}
       <View style={{ flexDirection: 'row', gap: 6 }}>
         {steps.map((s, i) => (
@@ -183,8 +195,48 @@ export function StepGuide({ steps, onDone, onCancel }: Props) {
         ))}
       </View>
 
-      <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', gap: 20 }}>
-        <Sprout mood="leve" stage={2} size={120} />
+      <Text
+        style={{
+          fontFamily: fonts.body.bold,
+          fontSize: 13,
+          color: palette.brown700,
+          textAlign: 'center',
+          marginTop: -6,
+        }}
+      >
+        Passo {index + 1} de {steps.length}
+      </Text>
+
+      <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', gap: 16 }}>
+        {/*
+          O que ele diz enquanto a pessoa faz.
+
+          Tres falas em rodizio, e a ultima e sempre a de encerrar. Elas nao
+          explicam o passo — quem explica e o texto grande logo abaixo. Elas
+          so dizem que tem alguem ali, que e o que falta numa tela em que a
+          pessoa esta sozinha fazendo uma coisa dificil.
+        */}
+        <BalaoDoBroto lado="baixo" apareceEm={index} style={{ maxWidth: 280 }}>
+          <Text
+            style={{
+              fontFamily: fonts.body.bold,
+              fontSize: 14.5,
+              lineHeight: 14.5 * 1.35,
+              color: colors.textPrimary,
+              textAlign: 'center',
+            }}
+          >
+            {isLast ? NOS_PASSOS[2] : NOS_PASSOS[index % 2]}
+          </Text>
+        </BalaoDoBroto>
+
+        <AnimatedSprout
+          mood="leve"
+          stage={2}
+          size={120}
+          /* Ele pensa junto nos passos do meio, e acena no ultimo. */
+          pose={isLast ? 'acena' : 'pensa'}
+        />
 
         <Text
           style={{

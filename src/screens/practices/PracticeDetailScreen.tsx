@@ -131,8 +131,17 @@ export function PracticeDetailScreen({
     const guide = practice.guide;
     return (
       <ScreenTransition transitionKey="guia" ordem={PASSOS_DA_PRATICA}>
+      {/*
+        Sem `TopBar`: o guia pinta a tela inteira.
+
+        O fundo muda de cor a cada fase da respiracao — azul para inspirar,
+        lavanda para segurar, verde para soltar —, e uma barra creme por cima
+        cortava justamente a faixa que faz isso funcionar de olho desfocado. O
+        titulo tambem nao faz falta: quem esta no exercicio acabou de escolher
+        qual era. O que faz falta e a saida, e ela esta nos dois botoes de
+        baixo, em letra grande.
+      */}
       <View style={{ flex: 1, backgroundColor: colors.bg, paddingTop: insets.top }}>
-        <TopBar title={practice.title} onBack={() => setMode('read')} />
         {guide.kind === 'breathing' ? (
           <BreathingGuide
             phases={guide.phases}
@@ -143,6 +152,7 @@ export function PracticeDetailScreen({
         ) : (
           <StepGuide
             steps={guide.steps}
+            tom={tint}
             onDone={concluir}
             onCancel={() => setMode('read')}
           />
