@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from 'react';
-import { Linking, Pressable, ScrollView, Text, View } from 'react-native';
+import { Linking, Pressable, ScrollView, Text, useWindowDimensions, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { Card, Icon, Switch, TopBar } from '../../components';
+import { AnimatedSprout, Card, Cena, Icon, Switch, TopBar } from '../../components';
 import { horaFalada, lembreteEnquantoDorme } from '../../data/onboarding';
 import { notificacoesPermitidas } from '../../services/notifications';
 import { useAppState } from '../../state/AppStateProvider';
@@ -23,6 +23,9 @@ import { POR_TRAS_DA_BARRA } from '../../components/navigation/BottomNav';
 export function RemindersScreen({ onBack }: { onBack: () => void }) {
   const { colors, palette } = useTema();
   const insets = useSafeAreaInsets();
+  const { width: largura, height: alturaDaTela } = useWindowDimensions();
+  /* Uma faixa curta: a tela e sobre o relogio, nao sobre a paisagem. */
+  const alturaDaEspera = Math.max(130, Math.min(alturaDaTela * 0.17, 170));
   const { data, updateProfile, updateSettings } = useAppState();
   const s = data.settings;
 
@@ -54,6 +57,40 @@ export function RemindersScreen({ onBack }: { onBack: () => void }) {
         contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 32 + POR_TRAS_DA_BARRA, gap: 18 }}
         showsVerticalScrollIndicator={false}
       >
+        {/*
+          O broto esperando, numa faixa de noite.
+
+          Esta tela e sobre um horario — e horario e a coisa mais abstrata que
+          o app pede. A faixa diz, sem texto, o que o lembrete e: alguem que
+          fica acordado esperando voce voltar. O ceu e de noite fixo, e nao da
+          hora do relogio: o lembrete acontece la, nao agora.
+        */}
+        <View style={{ marginHorizontal: -20, height: alturaDaEspera }}>
+          <Cena
+            largura={largura}
+            altura={alturaDaEspera}
+            humor="cansado"
+            noite
+            chao="grama"
+          />
+          <View
+            style={{
+              position: 'absolute',
+              left: 0,
+              right: 0,
+              bottom: 12,
+              alignItems: 'center',
+            }}
+          >
+            <AnimatedSprout
+              mood="leve"
+              stage={2}
+              size={Math.round(alturaDaEspera * 0.6)}
+              pose="dorme"
+            />
+          </View>
+        </View>
+
         <Text
           style={{
             fontFamily: fonts.body.regular,

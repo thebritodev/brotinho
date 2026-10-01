@@ -2,7 +2,15 @@ import React, { useState } from 'react';
 import { Pressable, ScrollView, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { Card, Icon, ScreenTransition, Switch, TopBar, type IconName } from '../../components';
+import {
+  Card,
+  Icon,
+  type IconName,
+  RotuloDeSecao,
+  ScreenTransition,
+  Switch,
+  TopBar,
+} from '../../components';
 import { useAppState } from '../../state/AppStateProvider';
 import { fonts, useTema } from '../../theme';
 import { AboutScreen, APP_VERSION } from './AboutScreen';
@@ -61,19 +69,9 @@ function Row({
 }
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
-  const { palette } = useTema();
   return (
     <View>
-      <Text
-        style={{
-          fontFamily: fonts.display.semiBold,
-          fontSize: 15,
-          color: palette.brown400,
-          marginBottom: 8,
-        }}
-      >
-        {title}
-      </Text>
+      <RotuloDeSecao style={{ marginBottom: 8 }}>{title}</RotuloDeSecao>
       <Card>
         <View style={{ gap: 18 }}>{children}</View>
       </Card>

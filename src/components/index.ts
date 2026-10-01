@@ -5,6 +5,7 @@ export { Chip } from './core/Chip';
 export { Icon, ICON_NAMES, type IconName } from './core/Icon';
 export { IconButton } from './core/IconButton';
 export { Input } from './core/Input';
+export { RotuloDeSecao } from './core/RotuloDeSecao';
 export { Switch } from './core/Switch';
 
 export { AnimatedSprout } from './brand/AnimatedSprout';

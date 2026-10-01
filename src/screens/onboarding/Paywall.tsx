@@ -1,7 +1,7 @@
 import React from 'react';
-import { Pressable, Text, View } from 'react-native';
+import { Pressable, Text, useWindowDimensions, View } from 'react-native';
 
-import { Icon } from '../../components';
+import { AnimatedSprout, Cena, CRISTA_DO_MORRO, Icon } from '../../components';
 import { fonts, radius, useTema, type Palette, type Sombra, type Vidro } from '../../theme';
 import { PLANS, PRODUTO_DO_PLANO, type PlanKey } from '../../data/onboarding';
 import { useAssinatura } from '../../state/SubscriptionProvider';
@@ -44,7 +44,15 @@ type Props = {
 /** Tela de planos — destaque para o anual, com mensal ao lado e as demais opções abaixo. */
 export function Paywall({ plan, onSelectPlan }: Props) {
   const { colors, palette, vidros, shadows } = useTema();
+  const { width: largura, height: alturaDaTela } = useWindowDimensions();
   const { planos } = useAssinatura();
+
+  /*
+    Uma faixa curta: abaixo dela vem a oferta, os dois planos e os links que a
+    diretriz 3.1.2 exige. Num aparelho curto, qualquer coisa mais alta empurra
+    o botao de assinar para fora da dobra.
+  */
+  const alturaDoConvite = Math.max(140, Math.min(alturaDaTela * 0.2, 200));
 
   /**
    * O preço da loja tem precedência sobre o que está escrito aqui.
@@ -72,6 +80,44 @@ export function Paywall({ plan, onSelectPlan }: Props) {
 
   return (
     <View style={{ gap: 22, paddingTop: 14, paddingBottom: 4 }}>
+      {/*
+        O broto crescido, acenando, antes do preco.
+
+        Esta e a unica tela do app que pede dinheiro, e era a unica sem o
+        personagem — sobravam numeros e uma oferta. Ele entra no estagio tres,
+        que e o que a assinatura torna possivel: sem ela o broto para no
+        caminho. Nao e enfeite nem argumento, e o objeto do que esta sendo
+        comprado.
+
+        Acenando, e nao comemorando: comemorar no momento do pagamento seria o
+        app festejando o proprio dinheiro.
+      */}
+      <View style={{ marginHorizontal: -20, height: alturaDoConvite }}>
+        <Cena
+          largura={largura}
+          altura={alturaDoConvite}
+          humor="feliz"
+          chao="grama"
+          capim
+        />
+        <View
+          style={{
+            position: 'absolute',
+            left: 0,
+            right: 0,
+            bottom: CRISTA_DO_MORRO.grama - 8,
+            alignItems: 'center',
+          }}
+        >
+          <AnimatedSprout
+            mood="feliz"
+            stage={3}
+            size={Math.round(alturaDoConvite * 0.62)}
+            pose="acena"
+          />
+        </View>
+      </View>
+
       <View style={{ alignItems: 'center', gap: 12 }}>
         <View
           style={{

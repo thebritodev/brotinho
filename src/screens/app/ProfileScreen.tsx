@@ -7,6 +7,7 @@ import {
   Card,
   Icon,
   type IconName,
+  RotuloDeSecao,
   SeletorDeTema,
   StatRow,
   Switch,
@@ -88,20 +89,9 @@ export function ProfileScreen({ name, onNavigate }: Props) {
     }
   };
 
-  /** O rótulo de uma seção: o que deixa procurar em vez de ler. */
+  /** O rótulo de uma seção — ver `RotuloDeSecao`. */
   const secao = (texto: string) => (
-    <Text
-      style={{
-        fontFamily: fonts.body.extraBold,
-        fontSize: 13,
-        letterSpacing: 0.8,
-        textTransform: 'uppercase',
-        color: palette.brown400,
-        marginBottom: -8,
-      }}
-    >
-      {texto}
-    </Text>
+    <RotuloDeSecao style={{ marginBottom: -8 }}>{texto}</RotuloDeSecao>
   );
 
   const row = (
