@@ -1,6 +1,24 @@
 import type { Mood } from '../theme';
 
 /**
+ * O que o dia pede, por humor — a linha abaixo do "Oi, Fulano".
+ *
+ * Ela era uma pergunta fixa, "Vamos cuidar de você hoje?", e continua sendo
+ * exatamente isso enquanto a pessoa não respondeu. Depois de responder, ela
+ * vira a leitura daquele dia: não um diagnóstico nem um conselho, só um jeito
+ * de a tela reconhecer o que ela acabou de dizer. Sem isso, marcar o humor não
+ * mudava nada em lugar nenhum até a pessoa trocar de aba.
+ */
+export const TITULO_DO_DIA: Record<Mood, string> = {
+  feliz: 'Um dia de sol por dentro',
+  leve: 'Um bom dia para crescer',
+  ansioso: 'Dia de desacelerar',
+  cansado: 'Dia de pegar leve',
+  triste: 'Dia de se acolher',
+  neutro: 'Um dia como ele vier',
+};
+
+/**
  * Os humores por nome, e as palavras mais precisas de cada um.
  *
  * ## Por que existe uma segunda camada

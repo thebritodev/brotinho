@@ -130,6 +130,51 @@ function razao(frente, fundo) {
   fs.renameSync(ceuJs, ceuMjs);
   const ceu = await import('file://' + ceuMjs.split(path.sep).join('/'));
 
+  /*
+    Os céus de humor, que sao doze e nao um.
+
+    O céu da tela inicial deixou de ser um gradiente fixo: as tres paradas dele
+    saem do humor que a pessoa marcou, e ganham um veu quando e noite. Medir so
+    o céu antigo deixaria onze fundos sem conferencia — e sao justamente eles
+    que aparecem no dia a dia, porque o fixo so sobra para quem ainda nao
+    respondeu.
+
+    Este modulo importa de fora da pasta dele, entao o `tsc` emite espelhando
+    `src` e o arquivo nao sai na raiz da pasta temporaria. Procurar resolve
+    para qualquer import que venha depois.
+  */
+  const saidaDoHumor = pastaTemporaria('ceu-do-humor');
+  execFileSync(
+    process.execPath,
+    [
+      /*
+        CommonJS, e nao ESM como os dois de cima.
+
+        Este modulo importa de outra pasta, e o `tsc` emite o import sem
+        extensao. Num `.mjs` isso nao resolve — ESM exige a extensao escrita.
+        Compilado em CommonJS, o `require` acha o irmao sozinho, e este script
+        ja e CommonJS.
+      */
+      tsc, '--outDir', saidaDoHumor, '--module', 'commonjs', '--target', 'es2020',
+      '--moduleResolution', 'node', '--strict', '--skipLibCheck',
+      path.join(RAIZ, 'src', 'components', 'brand', 'ceuDoHumor.ts'),
+    ],
+    { stdio: 'inherit', cwd: RAIZ },
+  );
+  const procura = (dir, nome) => {
+    for (const e of fs.readdirSync(dir, { withFileTypes: true })) {
+      const p = path.join(dir, e.name);
+      if (e.isDirectory()) {
+        const achado = procura(p, nome);
+        if (achado) return achado;
+      } else if (e.name === nome) return p;
+    }
+    return null;
+  };
+  const humorJs = procura(saidaDoHumor, 'ceuDoHumor.js');
+  if (!humorJs) throw new Error('nao achei ceuDoHumor.js na saida do tsc');
+  const ceuDoHumor = require(humorJs);
+
   let falhas = 0;
   const linha = (nome, frente, fundo, piso) => {
     const r = razao(frente, fundo);
@@ -226,6 +271,29 @@ function razao(frente, fundo) {
     mistura(ceu.CEU_MEIO, '#FFFFFF', 0.75),
     AA_GRANDE,
   );
+
+  /*
+    E os doze ceus de humor, parada por parada.
+
+    Tres paradas por ceu, dois textos e o icone da pastilha — o suficiente para
+    que nenhum humor, de dia ou de noite, deixe a saudacao ilegivel. Se um
+    humor novo entrar na paleta, ele cai aqui sozinho: a lista vem de
+    `todosOsCeus`, que percorre os humores de verdade.
+  */
+  console.log('\n— texto sobre os céus de humor —');
+  const ceus = ceuDoHumor.todosOsCeus();
+  for (const c of ceus) {
+    for (const [onde, tom] of [['alto', c.alto], ['meio', c.meio], ['pé', c.baixo]]) {
+      linha(`saudação sobre o ${onde} de ${c.meio}`, ceu.TEXTO_NO_CEU, tom, AA_TEXTO);
+    }
+    linha(`texto fraco sobre ${c.meio}`, ceu.TEXTO_NO_CEU_FRACO, c.meio, AA_TEXTO);
+    linha(
+      `ícone na pastilha sobre ${c.meio}`,
+      ceu.TEXTO_NO_CEU,
+      mistura(c.meio, '#FFFFFF', 0.75),
+      AA_GRANDE,
+    );
+  }
 
   for (const [nomeDoTema, t] of Object.entries(TEMAS)) {
     console.log(`\n— tema ${nomeDoTema} —`);

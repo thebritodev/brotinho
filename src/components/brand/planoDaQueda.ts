@@ -123,16 +123,30 @@ export function planejarQueda({
   larguraDaTela,
   distancia,
   velocidade,
+  limiteDireito,
 }: {
   palavras: readonly string[];
   larguraDaTela: number;
+  /**
+   * Até onde as palavras podem chegar, em pontos.
+   *
+   * Existe por causa do broto. Ele passou a ser o mascote, grande, plantado à
+   * direita — e as colunas da direita caíam exatamente em cima da cara dele.
+   * Uma palavra atravessando o rosto do personagem não lê como pensamento
+   * caindo, lê como erro de sobreposição.
+   *
+   * Sem isto, a faixa inteira continua valendo: é quem desenha o broto que
+   * sabe onde ele está.
+   */
+  limiteDireito?: number;
   /** Quantos pontos a palavra percorre do alto até sumir na terra. */
   distancia: number;
   /** Pontos por segundo. */
   velocidade: number;
 }): PlanoDaQueda {
   const n = Math.max(1, palavras.length);
-  const cabe = larguraDaTela - MARGEM * 2;
+  const direita = Math.min(larguraDaTela, limiteDireito ?? larguraDaTela);
+  const cabe = Math.max(80, direita - MARGEM * 2);
 
   /* O tamanho de cada palavra — e a letra reduzida para a que não couber. */
   const medidas = palavras.map((palavra) => {
@@ -166,9 +180,9 @@ export function planejarQueda({
 
   const lista: PalavraDaQueda[] = medidas.map((m, i) => {
     const doLado = i % 2 === 0 ? ESQUERDA : DIREITA;
-    const desejado = doLado[Math.floor(i / 2) % doLado.length] * larguraDaTela;
+    const desejado = doLado[Math.floor(i / 2) % doLado.length] * direita;
     const meia = larguraTombada(m.largura, m.linha) / 2;
-    const centro = Math.min(larguraDaTela - MARGEM - meia, Math.max(MARGEM + meia, desejado));
+    const centro = Math.min(direita - MARGEM - meia, Math.max(MARGEM + meia, desejado));
     return {
       ...m,
       centro,

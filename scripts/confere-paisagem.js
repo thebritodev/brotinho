@@ -57,11 +57,20 @@ console.log('— a paisagem da tela inicial —\n');
 
 /* ---------- 1. As duas paletas da paisagem não olham para o tema ---------- */
 
-for (const arquivo of ['ceuDaComposta.ts', 'terraDoCanteiro.ts']) {
+for (const arquivo of ['ceuDaComposta.ts', 'terraDoCanteiro.ts', 'ceuDoHumor.ts']) {
   const texto = ler('src', 'components', 'brand', arquivo);
+  /*
+    `ceuDoHumor` importa de `theme/tokens`, e tem de importar: as cores dos
+    humores moram lá. O que ele não pode é importar o **gancho** — `useTema` é
+    que devolve a paleta do tema em uso, e é ele que faria o céu anoitecer
+    junto com o app. Importar a tabela crua é o contrário disso: é pegar a cor
+    clara sempre, seja qual for o tema.
+  */
   confere(
     arquivo,
-    !/^import .*from .*theme/m.test(texto),
+    arquivo === 'ceuDoHumor.ts'
+      ? !/from '\.\.\/\.\.\/theme'/.test(texto)
+      : !/^import .*from .*theme/m.test(texto),
     'passou a importar do tema: estas cores existem justamente para não mudar com ele',
   );
   /* A chamada, e não a menção: o comentário que explica a regra cita o nome. */
@@ -81,8 +90,15 @@ confere(
   /from '\.\/ceuDaComposta'/.test(faixa),
   'a faixa não usa mais `ceuDaComposta` — o céu voltou a anoitecer junto com o app',
 );
+/*
+  O degradê do céu deixou de ser três constantes e virou três paradas que saem
+  do humor de hoje — ver `ceuDoHumor`. A regra que importa não mudou: elas
+  continuam fora do tema. Quem garante isso agora é a conferência de
+  `ceuDoHumor.ts` logo acima, que proíbe `useTema` e o import do gancho; aqui
+  fica só a forma, para o degradê não voltar a ser escrito à mão com `colors`.
+*/
 for (const [oQue, marca] of [
-  ['o degradê do céu', /stopColor=\{CEU_(ALTO|MEIO|BAIXO)\}/g],
+  ['o degradê do céu', /stopColor=\{ceu\.(alto|meio|baixo)\}/g],
   ['as nuvens', /stopColor=\{NUVEM\}/g],
   ['os morros', /stopColor=\{MORRO\}/g],
 ]) {

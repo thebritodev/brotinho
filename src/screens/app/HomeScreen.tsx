@@ -31,6 +31,8 @@ import {
 import { setStatusBarStyle } from 'expo-status-bar';
 import { toqueLeve } from '../../services/toque';
 import { conselhoDoDia } from '../../data/conselhos';
+import { ehNoite, falasDaCasa, horaDaCena } from '../../data/falasDoBroto';
+import { TITULO_DO_DIA } from '../../data/humores';
 import { POR_TRAS_DA_BARRA } from '../../components/navigation/BottomNav';
 /* A lista mora em `data/humores` desde que a repesagem da Composta também
    precisou dela. Aqui ela responde a mesma pergunta de sempre: hoje está
@@ -48,6 +50,7 @@ import {
   AUSENCIA_LONGA,
   colheita,
   dayKey,
+  daysToNextStage,
   diasSemAparecer,
   praticasRecentes,
   type PraticaVisitada,
@@ -55,7 +58,11 @@ import {
   sproutStage,
 } from '../../state/derived';
 import { fonts, useTema } from '../../theme';
-import { TEXTO_NO_CEU, VIDRO_NO_CEU } from '../../components/brand/ceuDaComposta';
+import {
+  TEXTO_NO_CEU,
+  TEXTO_NO_CEU_FRACO,
+  VIDRO_NO_CEU,
+} from '../../components/brand/ceuDaComposta';
 
 /**
  * A tela inicial: o lugar de **fazer**.
@@ -395,6 +402,33 @@ export function HomeScreen({
 
   const stage = sproutStage(data);
 
+  /*
+    A hora do relógio dela, que decide o céu e a pose.
+
+    A mesma conta da aba do broto, e de propósito: as duas telas mostram o
+    mesmo personagem no mesmo instante, e não podem discordar sobre se é dia.
+  */
+  const ehDeNoite = ehNoite(new Date());
+  const poseDaHora =
+    horaDaCena(new Date()) === 'manha' ? 'espreguica' : ehDeNoite ? 'dorme' : 'parado';
+
+  /** O nome que ela deu ao broto — e "Brotinho" para quem manteve. */
+  const nomeDoBroto = data.profile.nomeDoBroto.trim() || 'Brotinho';
+
+  /* O rodízio de falas: tocar no broto passa para a seguinte. */
+  const [falaAtual, setFalaAtual] = useState(0);
+  const falas = falasDaCasa({
+    nome: name,
+    humor: humorMarcado ?? 'neutro',
+    hora: horaDaCena(new Date()),
+    folhasQueFaltam: daysToNextStage(data) ?? 0,
+  });
+  const fala = falas[falaAtual % falas.length];
+
+  const tituloDoDia = humorMarcado
+    ? TITULO_DO_DIA[humorMarcado]
+    : 'Vamos cuidar de você hoje?';
+
   /** O tamanho do cartão de tema, que a fileira que anda decide. Ver `CarrosselDeTemas`. */
   const larguraDoCartao = larguraDoCartaoDoTema(largura);
   const alturaDoCartao = alturaDoCartaoDoTema(larguraDoCartao);
@@ -512,6 +546,23 @@ export function HomeScreen({
           ativa={naVista && !colhendo}
           continua
           /*
+            O céu é o humor de hoje, e a hora é a do relógio dela.
+
+            Enquanto ninguém respondeu, ele continua sendo o verde de estufa
+            de sempre: pintar de neutro seria inventar uma resposta que
+            ninguém deu. Ver `ceuDoHumor`.
+          */
+          humor={humorMarcado}
+          noite={ehDeNoite}
+          estagio={stage}
+          pose={poseDaHora}
+          aoTocarNoBroto={() => {
+            toqueLeve(data.settings.vibracao);
+            setFalaAtual((n) => n + 1);
+          }}
+          rotuloDaFala={`Falar com ${nomeDoBroto}`}
+          fala={fala}
+          /*
             O título é o sintoma, e não o nome da ferramenta.
 
             Dizia "Compostar pensamentos", e o botão logo abaixo dizia
@@ -547,12 +598,29 @@ export function HomeScreen({
             saudação seria creme sobre creme e as pastilhas de vidro seriam
             branco a 6% sobre branco, ou seja, dois botões invisíveis.
           */}
-          <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-            <View style={{ flex: 1 }}>
+          <View style={{ flexDirection: 'row', alignItems: 'flex-start' }}>
+            <View style={{ flex: 1, gap: 2 }}>
               <Text
                 style={{ color: TEXTO_NO_CEU, fontFamily: fonts.display.bold, fontSize: 25 }}
               >
                 Oi, {name}
+              </Text>
+              {/*
+                A linha do humor, logo abaixo do nome.
+
+                Ela diz o que o dia pede — "Dia de desacelerar", "Um bom dia
+                para crescer" —, e só existe depois de a pessoa responder. Sem
+                resposta fica a pergunta de sempre, que é o convite a
+                responder.
+              */}
+              <Text
+                style={{
+                  color: TEXTO_NO_CEU_FRACO,
+                  fontFamily: fonts.body.bold,
+                  fontSize: 15,
+                }}
+              >
+                {tituloDoDia}
               </Text>
             </View>
             <View style={{ flexDirection: 'row', gap: 6 }}>

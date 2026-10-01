@@ -7,18 +7,25 @@ import { useMenosMovimento } from '../../hooks/useMenosMovimento';
 import { lacoQueSoVai } from '../laco';
 import { useAbaAVista } from '../AbasVivas';
 import { useCoberta } from '../CamadaEmpilhada';
-import { BrotoNaTerra } from './BrotoAoVento';
+import { AnimatedSprout } from './AnimatedSprout';
+import { BalaoDoBroto } from './BalaoDoBroto';
 import {
-  CEU_ALTO,
-  CEU_BAIXO,
-  CEU_MEIO,
+  CX,
+  POT_TOP_Y,
+  noQuadro,
+  quadroDoBroto,
+  type Pose,
+  type SproutStage,
+} from './geometriaDoBroto';
+import {
   MORRO,
   NUVEM,
   PESO_DA_NUVEM,
   TEXTO_NO_CEU,
 } from './ceuDaComposta';
+import { ceuDoHumor } from './ceuDoHumor';
 import { raizesDoBroto } from './raizesDoBroto';
-import { fonts, radius, useTema } from '../../theme';
+import { fonts, radius, useTema, type Mood } from '../../theme';
 import { tracos } from '../../theme/tokens';
 import {
   OPACIDADE_NA_QUEDA,
@@ -236,12 +243,38 @@ const NUVENS = [
 /** A coluna do broto do adubo, em fração da largura. */
 const COLUNA_DO_BROTO = 0.76;
 
-/** O y do pé do broto, na escala da terra: dentro do monte, não na crista. */
-const PE_DO_BROTO = 46;
+/**
+ * Onde o pé do broto encontra a terra, medido da borda de cima do monte.
+ *
+ * Eram 46 — fundo o bastante para o caule do broto anônimo atravessar a
+ * superfície e as raízes saírem lá de dentro. Com o mascote no lugar dele,
+ * 46 enterrava as folhas: elas nascem logo acima do pé, e ficavam debaixo da
+ * terra. Dez deixa a planta pousada na superfície, e as raízes continuam
+ * saindo do mesmo ponto que ela — que é o que mantém as duas coisas ligadas.
+ */
+const PE_DO_BROTO = 10;
 
 /* A opacidade ao longo da queda mora em `planoDaQueda`: ver `OPACIDADE_NA_QUEDA`. */
 
 type Props = {
+  /**
+   * O humor de hoje, que pinta o céu. `null` enquanto ninguém respondeu.
+   *
+   * Ver `ceuDoHumor`: as três paradas do gradiente saem daqui, e continuam
+   * sendo cor fixa — o céu não segue o tema, e isso é decisão antiga.
+   */
+  humor?: Mood | null;
+  /** Depois do pôr do sol o céu ganha um véu. */
+  noite?: boolean;
+  /** O estágio do broto plantado na terra. */
+  estagio?: SproutStage;
+  /** O que ele está fazendo — ver `POSES`. */
+  pose?: Pose;
+  /** Tocar nele faz ele falar outra coisa. Sem isto, ele não é botão. */
+  aoTocarNoBroto?: () => void;
+  rotuloDaFala?: string;
+  /** O que ele está dizendo agora. Sem isto, não há balão. */
+  fala?: string;
   /** A largura da tela. A paisagem é desenhada em pontos, 1:1, sem escala. */
   largura: number;
   /** O respiro do alto: barra de status mais a margem da tela. */
@@ -292,6 +325,13 @@ export function FaixaDaComposta({
   acao,
   onPress,
   label,
+  humor = null,
+  noite = false,
+  estagio = 2,
+  pose = 'parado',
+  aoTocarNoBroto,
+  rotuloDaFala,
+  fala,
 }: Props) {
   /* Só o que está abaixo da crista segue o tema: ver o cabeçalho. */
   const { colors } = useTema();
@@ -310,6 +350,33 @@ export function FaixaDaComposta({
     contexto é redesenhado quando ele muda, e o corpo da Home é caro demais
     para ser redesenhado dentro de um toque.
   */
+  /* As três paradas do céu, do humor de hoje — ver `ceuDoHumor`. */
+  const ceu = ceuDoHumor(humor, noite);
+
+  /*
+    O tamanho do mascote sai da largura da tela, com teto.
+
+    Uma fração pura cresceria junto com o tablet e o broto viraria um cartaz;
+    um número fixo encolheria demais num aparelho estreito, onde ele divide a
+    faixa com o cabeçalho e as palavras caindo.
+  */
+  const tamanhoDoMascote = Math.round(Math.min(largura * 0.46, 190));
+  const quadroDoMascote = quadroDoBroto(estagio, tamanhoDoMascote, { showPot: false });
+  const peDoMascote = noQuadro(quadroDoMascote, CX, POT_TOP_Y);
+  /*
+    A coluna dele, já presa dentro da tela.
+
+    `COLUNA_DO_BROTO` foi medida para um broto estreito; o mascote é quase
+    meia tela de largura, e na fração crua a folha da direita saía pela borda.
+    Prender aqui, e não mudar a fração, mantém a coluna igual em aparelho
+    largo — onde ela cabe — e só cede no estreito, que é onde o corte
+    acontecia.
+  */
+  const xDoBroto = Math.min(
+    largura - quadroDoMascote.largura / 2 - 6,
+    largura * COLUNA_DO_BROTO,
+  );
+
   const coberta = useCoberta();
   const abaAVista = useAbaAVista();
   const rodando = ativa && abaAVista && !coberta;
@@ -331,12 +398,12 @@ export function FaixaDaComposta({
   const raizes = useMemo(
     () =>
       raizesDoBroto({
-        x: largura * COLUNA_DO_BROTO,
+        x: xDoBroto,
         y: PE_DO_BROTO,
         largura,
         fundo: (alturaDaTerra + 26) * (continua ? 0.95 : TERRA_COMECA_A_SUMIR),
       }),
-    [largura, alturaDaTerra, continua],
+    [xDoBroto, largura, alturaDaTerra, continua],
   );
   const inicioDaQueda = topo + cabecalho;
   const distancia = queda + AFUNDA;
@@ -358,8 +425,16 @@ export function FaixaDaComposta({
     o `testa-queda-da-composta` percorre quadro a quadro. Ver `planoDaQueda`.
   */
   const plano = useMemo(
-    () => planejarQueda({ palavras, larguraDaTela: largura, distancia, velocidade: VELOCIDADE }),
-    [palavras, largura, distancia],
+    () =>
+      planejarQueda({
+        palavras,
+        larguraDaTela: largura,
+        distancia,
+        velocidade: VELOCIDADE,
+        /* As palavras param antes do broto — ver `limiteDireito`. */
+        limiteDireito: xDoBroto - quadroDoMascote.largura / 2 - 6,
+      }),
+    [palavras, largura, distancia, xDoBroto, quadroDoMascote.largura],
   );
 
   /**
@@ -423,9 +498,9 @@ export function FaixaDaComposta({
         <Svg width="100%" height="100%" viewBox={`0 0 ${largura} ${crista + 4}`}>
           <Defs>
             <LinearGradient id={`ceu-${id}`} x1="0" y1="0" x2="0" y2="1">
-              <Stop offset="0" stopColor={CEU_ALTO} stopOpacity={1} />
-              <Stop offset="0.3" stopColor={CEU_MEIO} stopOpacity={1} />
-              <Stop offset="1" stopColor={CEU_BAIXO} stopOpacity={1} />
+              <Stop offset="0" stopColor={ceu.alto} stopOpacity={1} />
+              <Stop offset="0.3" stopColor={ceu.meio} stopOpacity={1} />
+              <Stop offset="1" stopColor={ceu.baixo} stopOpacity={1} />
             </LinearGradient>
             {/*
               Um gradiente por morro, e todos terminando em zero.
@@ -702,11 +777,75 @@ export function FaixaDaComposta({
         começa 26 pontos acima da crista, e o pé está a 46 dali para baixo.
         Fora da vista ele para de balançar, como as palavras param de cair.
       */}
-      <BrotoNaTerra
-        pe={crista - 26 + PE_DO_BROTO}
-        coluna={largura * COLUNA_DO_BROTO}
-        ativa={rodando}
-      />
+      {/*
+        É o **mascote** que está plantado aqui, e não mais o broto anônimo.
+
+        Eram dois brotos diferentes no mesmo app: o personagem, com rosto,
+        morava na aba dele; aqui crescia um broto sem cara, desenhado à parte.
+        A tela que a pessoa mais vê era justamente a única sem o personagem.
+
+        As raízes continuam, e continuam sendo o ponto: o pensamento vira adubo
+        e o adubo vira raiz. O que muda é quem está em cima delas.
+
+        `top` em vez de `bottom` porque o que precisa cair no lugar certo é o
+        **pé da haste**, que fica no meio do desenho — as folhas descem abaixo
+        dele. `noQuadro` devolve onde esse ponto cai dentro do quadro.
+      */}
+      {/*
+        O que ele diz, à esquerda dele, com o bico apontando de volta.
+
+        Fica **dentro do céu** como tudo o mais desta faixa, e por isso o texto
+        é cor fixa: no escuro, `textPrimary` seria creme sobre céu claro. Ver
+        `ceuDaComposta`.
+
+        A largura máxima é a distância até o broto, menos uma folga — escrita
+        como conta e não como número, porque a coluna dele é uma fração da
+        tela e muda de aparelho para aparelho.
+      */}
+      {!!fala && (
+        <BalaoDoBroto
+          lado="direita"
+          apareceEm={fala}
+          style={{
+            position: 'absolute',
+            left: 20,
+            top: crista - 26 + PE_DO_BROTO - peDoMascote.y + 12,
+            maxWidth: Math.max(140, xDoBroto - quadroDoMascote.largura / 2 - 36),
+          }}
+        >
+          <Text
+            style={{
+              fontFamily: fonts.body.bold,
+              fontSize: 14.5,
+              lineHeight: 14.5 * 1.35,
+              color: TEXTO_NO_CEU,
+            }}
+          >
+            {fala}
+          </Text>
+        </BalaoDoBroto>
+      )}
+
+      <Pressable
+        accessibilityRole="button"
+        accessibilityLabel={rotuloDaFala ?? 'Falar com o broto'}
+        onPress={aoTocarNoBroto}
+        disabled={!aoTocarNoBroto}
+        style={{
+          position: 'absolute',
+          left: xDoBroto - quadroDoMascote.largura / 2,
+          top: crista - 26 + PE_DO_BROTO - peDoMascote.y,
+        }}
+      >
+        <AnimatedSprout
+          mood={humor ?? 'neutro'}
+          stage={estagio}
+          size={tamanhoDoMascote}
+          showPot={false}
+          pose={pose}
+          bamboleia={rodando}
+        />
+      </Pressable>
 
       {/* O cabeçalho, dentro do céu e com a altura que foi reservada a ele. */}
       <View style={{ height: topo + cabecalho, paddingTop: topo, paddingHorizontal: recuo }}>

@@ -63,7 +63,19 @@ export const PESO_DA_NUVEM = 1.7;
   `confere-contraste.js`, que mede as três.
 */
 export const TEXTO_NO_CEU = '#3A3630';
-export const TEXTO_NO_CEU_FRACO = '#716B60';
+/*
+  O fraco escureceu de #716B60 para #5B5548, e quem mandou foi o céu novo.
+
+  Ele media 4,91 contra o creme do meio do degradê antigo, que era o único céu
+  que existia. Agora o céu é o humor de hoje — onze tons a mais, alguns bem
+  mais claros que o creme —, e naquele valor ele caía para 3,45 sobre o céu
+  cansado de noite. O `confere-contraste` mede os doze, e 4,83 é o pior caso
+  deste tom.
+
+  É o mesmo `brown700` que o documento usa para essa linha. A escolha de antes
+  não era errada; era medida contra um céu só.
+*/
+export const TEXTO_NO_CEU_FRACO = '#5B5548';
 
 /**
  * O fundo das pastilhas do cabeçalho, que ficam sobre o céu.
