@@ -147,6 +147,37 @@ confere(
   'o balão de fala do broto perdeu o `tom="noCeu"`: no escuro ele fica preto com o texto fixo escuro dentro',
 );
 
+/*
+  A emenda entre o céu e a terra.
+
+  A terra é uma curva: no meio ela sobe bem acima da crista, nas pontas ela
+  entra uns dez pontos abaixo dela. O céu terminava quatro pontos abaixo da
+  crista, e entre o fim de um e o começo da outra sobrava um triângulo em cada
+  borda que ninguém pintava. No navegador aparecia o creme do fundo e ninguém
+  notou; no Android aparecia preto, e foi assim que o Pedro viu.
+
+  O que esta conferência cobra é que a altura do céu continue **saindo da
+  curva**, e não de um número escolhido. Um número volta a divergir no dia em
+  que alguém mexer na curva — que é exatamente como o defeito nasceu.
+*/
+confere(
+  'FaixaDaComposta',
+  faixa.includes('const EMENDA =')
+    && faixa.includes('Math.max(CURVA_DA_TERRA.BORDA_ESQUERDA, CURVA_DA_TERRA.BORDA_DIREITA)'),
+  'a emenda do céu com a terra virou número solto: ela tem de sair da própria curva',
+);
+confere(
+  'FaixaDaComposta',
+  (faixa.match(/crista \+ EMENDA/g) || []).length >= 3,
+  'o céu não desce mais até a emenda: volta o vão preto nas duas pontas',
+);
+/* A curva é escrita uma vez e usada pelo preenchimento e pelo fio do alto. */
+confere(
+  'FaixaDaComposta',
+  (faixa.match(/CRISTA_DA_TERRA\(largura\)/g) || []).length >= 2,
+  'o alto da terra voltou a ser escrito duas vezes: as duas cópias divergem',
+);
+
 /* ---------- 3. O cabeçalho mora dentro do céu ---------- */
 
 const home = ler('src', 'screens', 'app', 'HomeScreen.tsx');

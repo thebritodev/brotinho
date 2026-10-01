@@ -166,6 +166,54 @@ export function alturaDaFaixa(
   return topo + cabecalho + queda + (continua ? ALTURA_DA_TERRA_CONTINUA : ALTURA_DA_TERRA);
 }
 
+/**
+ * A emenda entre o céu e a terra — e o vão preto que morava nela.
+ *
+ * ## O defeito
+ *
+ * O `Svg` da terra começa `RECUO` pontos acima da crista, e dentro dele a
+ * curva do monte entra em `BORDA_ESQUERDA` de um lado e `BORDA_DIREITA` do
+ * outro. Nas pontas, portanto, a terra só começa a pintar
+ * `BORDA_DIREITA - RECUO` pontos **abaixo** da crista — no meio da faixa ela
+ * sobe muito acima disso, que é o que faz a curva ser uma curva.
+ *
+ * O céu terminava quatro pontos abaixo da crista. Entre o fim do céu e o
+ * começo da terra sobravam seis pontos, num triângulo colado em cada borda, e
+ * ninguém pintava aquilo: o SVG ali é transparente, e o Android compõe
+ * transparente sobre preto.
+ *
+ * É a "faixa preta entre o solo e o fundo, no canto esquerdo e direito" que o
+ * Pedro fotografou. No navegador ela não aparecia porque o fundo da página é
+ * branco — o vão existia igual, e eu estava medindo com a cor errada atrás.
+ *
+ * ## O conserto
+ *
+ * O céu desce até `EMENDA`, que é calculado da própria curva e não escolhido:
+ * a borda mais baixa da terra, mais dois pontos de folga. A terra continua por
+ * cima, então o céu a mais fica escondido em toda a largura, menos justamente
+ * nas duas pontas, que é onde ele precisa aparecer.
+ */
+const CURVA_DA_TERRA = {
+  /** Quanto o `Svg` da terra sobe acima da crista. */
+  RECUO: 26,
+  /** Onde a curva entra, em cada ponta, dentro do `Svg` da terra. */
+  BORDA_ESQUERDA: 34,
+  BORDA_DIREITA: 36,
+  /** Os dois pontos de controle da curva, também para dentro do `Svg`. */
+  CONTROLE_ESQUERDO: 10,
+  CONTROLE_DIREITO: 8,
+};
+
+/** Quanto o céu passa da crista, para encontrar a terra nas pontas. */
+const EMENDA =
+  Math.max(CURVA_DA_TERRA.BORDA_ESQUERDA, CURVA_DA_TERRA.BORDA_DIREITA) - CURVA_DA_TERRA.RECUO + 2;
+
+/** A curva do alto da terra, escrita uma vez e usada pelo preenchimento e pelo fio. */
+const CRISTA_DA_TERRA = (largura: number) =>
+  `M-8 ${CURVA_DA_TERRA.BORDA_ESQUERDA} `
+  + `C${largura * 0.24} ${CURVA_DA_TERRA.CONTROLE_ESQUERDO} ${largura * 0.7} ${CURVA_DA_TERRA.CONTROLE_DIREITO} `
+  + `${largura + 8} ${CURVA_DA_TERRA.BORDA_DIREITA}`;
+
 /** Quanto a palavra afunda para além da crista antes de sumir de vez. */
 const AFUNDA = 18;
 
@@ -500,8 +548,10 @@ export function FaixaDaComposta({
   return (
     <View style={{ height: altura, marginHorizontal: -recuo }}>
       {/* 1. O céu, e o que está longe demais para ter contorno. */}
-      <View style={{ position: 'absolute', top: 0, left: 0, right: 0, height: crista + 4 }}>
-        <Svg width="100%" height="100%" viewBox={`0 0 ${largura} ${crista + 4}`}>
+      <View
+        style={{ position: 'absolute', top: 0, left: 0, right: 0, height: crista + EMENDA }}
+      >
+        <Svg width="100%" height="100%" viewBox={`0 0 ${largura} ${crista + EMENDA}`}>
           <Defs>
             <LinearGradient id={`ceu-${id}`} x1="0" y1="0" x2="0" y2="1">
               <Stop offset="0" stopColor={ceu.alto} stopOpacity={1} />
@@ -545,14 +595,20 @@ export function FaixaDaComposta({
             pixel no aparelho, e meio pixel de céu sobre transparente vira um
             fio escuro colado na lateral. O `viewBox` recorta a sobra.
           */}
-          <Rect x={-4} y={0} width={largura + 8} height={crista + 4} fill={`url(#ceu-${id})`} />
+          <Rect
+            x={-4}
+            y={0}
+            width={largura + 8}
+            height={crista + EMENDA}
+            fill={`url(#ceu-${id})`}
+          />
 
           {/* O tempo nublado, atrás de tudo: os morros passam por cima delas. */}
           {NUVENS.map((n, i) => (
             <Ellipse
               key={`n${i}`}
               cx={largura * n.x}
-              cy={(crista + 4) * n.y}
+              cy={(crista + EMENDA) * n.y}
               rx={largura * n.rx}
               ry={n.ry}
               fill={`url(#nuvem${i}-${id})`}
@@ -661,12 +717,12 @@ export function FaixaDaComposta({
       {/* 3. A terra, por cima das palavras — é nela que elas somem. */}
       <View
         pointerEvents="none"
-        style={{ position: 'absolute', left: 0, right: 0, top: crista - 26, bottom: 0 }}
+        style={{ position: 'absolute', left: 0, right: 0, top: crista - CURVA_DA_TERRA.RECUO, bottom: 0 }}
       >
         <Svg
           width="100%"
           height="100%"
-          viewBox={`0 0 ${largura} ${alturaDaTerra + 26}`}
+          viewBox={`0 0 ${largura} ${alturaDaTerra + CURVA_DA_TERRA.RECUO}`}
         >
           <Defs>
             <LinearGradient id={`terra-${id}`} x1="0" y1="0" x2="0" y2="1">
@@ -734,11 +790,11 @@ export function FaixaDaComposta({
 
           {/* A terra sangra para fora dos dois lados: ela é o chão, não um objeto. */}
           <Path
-            d={`M-8 ${alturaDaTerra + 26} L-8 34 C${largura * 0.24} 10 ${largura * 0.7} 8 ${largura + 8} 36 L${largura + 8} ${alturaDaTerra + 26} Z`}
+            d={`${CRISTA_DA_TERRA(largura)} L${largura + 8} ${alturaDaTerra + CURVA_DA_TERRA.RECUO} L-8 ${alturaDaTerra + CURVA_DA_TERRA.RECUO} Z`}
             fill={`url(#terra-${id})`}
           />
           <Path
-            d={`M-8 34 C${largura * 0.24} 10 ${largura * 0.7} 8 ${largura + 8} 36`}
+            d={CRISTA_DA_TERRA(largura)}
             stroke={TERRA_CLARA}
             strokeWidth={3}
             strokeLinecap="round"
