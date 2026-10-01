@@ -1,15 +1,25 @@
 import React, { useState } from 'react';
-import { ScrollView, Text, View } from 'react-native';
+import { Pressable, ScrollView, Text, useWindowDimensions, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { Button, GrowingSprout, Icon, ScreenTransition, TopBar } from '../../components';
+import {
+  AnimatedSprout,
+  BalaoDoBroto,
+  Button,
+  Cena,
+  CRISTA_DO_MORRO,
+  Icon,
+  ScreenTransition,
+  TopBar,
+} from '../../components';
 import { PracticeIllustration } from '../../components/brand/PracticeIllustration';
 import type { Practice } from '../../data/practices';
 import { useAppState } from '../../state/AppStateProvider';
 import type { OrigemDoRegistro } from '../../state/types';
 import { useBotaoVoltar } from '../../navigation/useBotaoVoltar';
 import { toqueDeConclusao } from '../../services/toque';
-import { vezesPorPratica } from '../../state/derived';
+import { noFim } from '../../data/falasDoBroto';
+import { nomeDoBroto, sproutStage, vezesPorPratica } from '../../state/derived';
 import { fonts, radius, useTema } from '../../theme';
 import { BreathingGuide } from './BreathingGuide';
 import { StepGuide } from './StepGuide';
@@ -43,6 +53,15 @@ type Mode = 'read' | 'guide' | 'finished';
  */
 const PASSOS_DA_PRATICA = ['leitura', 'guia', 'fim'] as const;
 
+/**
+ * Quantas voltas a respiracao pode ter.
+ *
+ * Tres, quatro e seis — os numeros do documento. Quatro e o padrao de
+ * quase toda pratica guiada do app, entao a opcao do meio e a que ja
+ * existia: quem nao mexer em nada continua fazendo o que fazia.
+ */
+const CICLOS_A_ESCOLHER = [3, 4, 6];
+
 export function PracticeDetailScreen({
   practice,
   topicKey,
@@ -52,8 +71,24 @@ export function PracticeDetailScreen({
 }: Props) {
   const { colors, palette, shadows, vidros } = useTema();
   const insets = useSafeAreaInsets();
+  const { width: largura, height: alturaDaTela } = useWindowDimensions();
   const { data, registrarPratica } = useAppState();
   const [mode, setMode] = useState<Mode>('read');
+
+  const estagio = sproutStage(data);
+  /*
+    A cena da comemoração ocupa quase metade da tela.
+
+    O documento desenha 400 sobre 844. Como fração, o título e os botões
+    continuam cabendo num aparelho curto — e aqui isso importa mais que nas
+    outras telas, porque esta termina em três botões empilhados.
+  */
+  const alturaDaFesta = Math.max(260, Math.min(alturaDaTela * 0.44, 400));
+  const nomeDoBrotoAqui = nomeDoBroto(data) || 'Brotinho';
+
+  /* So a respiracao tem ciclos; o guia por passos nao. */
+  const respiracao = practice.guide?.kind === 'breathing' ? practice.guide : null;
+  const [ciclos, setCiclos] = useState(respiracao?.cycles ?? 4);
 
   const comeco = practice.comecoNoDiario;
   const escrever =
@@ -101,7 +136,7 @@ export function PracticeDetailScreen({
         {guide.kind === 'breathing' ? (
           <BreathingGuide
             phases={guide.phases}
-            cycles={guide.cycles}
+            cycles={ciclos}
             onDone={concluir}
             onCancel={() => setMode('read')}
           />
@@ -122,34 +157,84 @@ export function PracticeDetailScreen({
   if (mode === 'finished') {
     return (
       <ScreenTransition transitionKey="fim" ordem={PASSOS_DA_PRATICA}>
-      <View
-        style={{
-          flex: 1,
-          backgroundColor: colors.bg,
-          paddingTop: insets.top,
-          padding: 24,
-          alignItems: 'center',
-          justifyContent: 'center',
-          gap: 22,
-        }}
+      <ScrollView
+        style={{ flex: 1, backgroundColor: colors.bg }}
+        contentContainerStyle={{ flexGrow: 1, paddingBottom: 28 }}
+        showsVerticalScrollIndicator={false}
       >
-        <GrowingSprout size={150} ate={2} />
+        {/*
+          A comemoração acontece num lugar, e não sobre o creme.
+
+          O broto pula, bate as folhas e solta brilhos — é a única pose do app
+          em que ele festeja, e ela existe só aqui. O céu é feliz seja qual for
+          o humor que a pessoa marcou hoje: quem acabou de fazer uma prática
+          merece um céu bom, mesmo num dia ruim. Essa é a diferença entre
+          espelhar o estado e fazer companhia.
+        */}
+        <View style={{ height: alturaDaFesta + insets.top }}>
+          <Cena
+            largura={largura}
+            altura={alturaDaFesta + insets.top}
+            humor="feliz"
+            chao="grama"
+            capim
+          />
+          <View
+            style={{
+              position: 'absolute',
+              left: 0,
+              right: 0,
+              bottom: CRISTA_DO_MORRO.grama - 6,
+              alignItems: 'center',
+            }}
+          >
+            <AnimatedSprout
+              mood="feliz"
+              stage={estagio}
+              size={Math.round(alturaDaFesta * 0.62)}
+              pose="comemora"
+            />
+          </View>
+          <BalaoDoBroto
+            lado="baixo"
+            style={{
+              position: 'absolute',
+              left: 24,
+              right: 24,
+              top: insets.top + 18,
+            }}
+          >
+            <Text
+              style={{
+                fontFamily: fonts.body.bold,
+                fontSize: 14.5,
+                lineHeight: 14.5 * 1.35,
+                color: colors.textPrimary,
+                textAlign: 'center',
+              }}
+            >
+              {noFim({ cresceu: false })}
+            </Text>
+          </BalaoDoBroto>
+        </View>
+
+        <View style={{ padding: 24, alignItems: 'center', gap: 18 }}>
         <Text
           style={{
             color: colors.textPrimary,
-            fontFamily: fonts.display.bold,
-            fontSize: 24,
-            lineHeight: 24 * 1.25,
+            fontFamily: fonts.display.extraBold,
+            fontSize: 30,
+            lineHeight: 30 * 1.1,
             textAlign: 'center',
           }}
         >
-          Pronto
+          Você cuidou de você
         </Text>
         <Text
           style={{
             fontFamily: fonts.body.regular,
-            fontSize: 15,
-            lineHeight: 15 * 1.55,
+            fontSize: 16,
+            lineHeight: 16 * 1.5,
             color: palette.brown700,
             textAlign: 'center',
           }}
@@ -187,7 +272,8 @@ export function PracticeDetailScreen({
             Fazer de novo
           </Button>
         </View>
-      </View>
+        </View>
+      </ScrollView>
       </ScreenTransition>
     );
   }
@@ -330,10 +416,94 @@ export function PracticeDetailScreen({
           </Text>
         </View>
 
+        {/*
+          Quantas voltas, antes de comecar.
+
+          O documento poe a escolha aqui, e ela resolve um incomodo real: o
+          numero de ciclos vinha escrito na pratica e valia para todo mundo.
+          Quatro voltas de 4-7-8 sao dezenove segundos cada — curto para quem
+          ja respira assim, longo para quem esta comecando com o peito
+          apertado. Tres opcoes, e a do meio continua sendo a que a pratica
+          sempre teve.
+
+          Nao fica guardado de proposito: e uma escolha para **esta** vez. Quem
+          esta pior hoje escolhe tres hoje, e nao fica com tres para sempre.
+        */}
+        {!!respiracao && respiracao.phases.length > 0 && (
+          <View
+            style={{
+              ...vidros.cartao,
+              borderRadius: radius.lg,
+              padding: 18,
+              flexDirection: 'row',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              gap: 10,
+              ...shadows.sm,
+            }}
+          >
+            <Text
+              style={{
+                fontFamily: fonts.body.bold,
+                fontSize: 15,
+                color: palette.brown700,
+              }}
+            >
+              Ciclos
+            </Text>
+            <View style={{ flexDirection: 'row', gap: 6 }}>
+              {CICLOS_A_ESCOLHER.map((n) => {
+                const escolhido = n === ciclos;
+                return (
+                  <Pressable
+                    key={n}
+                    accessibilityRole="button"
+                    accessibilityLabel={`${n} ciclos`}
+                    onPress={() => setCiclos(n)}
+                    style={{
+                      minWidth: 48,
+                      height: 38,
+                      borderRadius: radius.md,
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      backgroundColor: escolhido ? colors.primarySoft : colors.surface,
+                      borderWidth: 2,
+                      borderColor: escolhido ? colors.primary : 'transparent',
+                    }}
+                  >
+                    <Text
+                      style={{
+                        fontFamily: fonts.body.bold,
+                        fontSize: 15,
+                        color: colors.textPrimary,
+                      }}
+                    >
+                      {n}
+                    </Text>
+                  </Pressable>
+                );
+              })}
+            </View>
+          </View>
+        )}
+
         {practice.guide ? (
-          <Button variant="primary" style={{ width: '100%' }} onPress={() => setMode('guide')}>
-            Fazer agora com o broto
-          </Button>
+          <>
+            <Button variant="primary" style={{ width: '100%' }} onPress={() => setMode('guide')}>
+              Começar com o {nomeDoBrotoAqui}
+            </Button>
+            <Text
+              style={{
+                fontFamily: fonts.body.regular,
+                fontSize: 13,
+                color: palette.brown400,
+                textAlign: 'center',
+                marginTop: -6,
+              }}
+            >
+              Você pode pausar quando quiser.
+            </Text>
+          </>
         ) : (
           /*
             Sem guia, esta tela não tinha saída nenhuma: só "Voltar".

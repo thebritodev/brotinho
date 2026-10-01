@@ -177,9 +177,20 @@ export const NOS_PASSOS = [
   'Última. Você está indo muito bem.',
 ];
 
-/** Depois de terminar uma prática. */
+/**
+ * Depois de terminar uma prática.
+ *
+ * O documento faz ele dizer "ganhei uma folha nova", porque lá cada prática
+ * vale uma folha e dez folhas viram um estágio. Aqui não: o broto cresce por
+ * **dia cuidado**, e uma prática feita na terceira vez do mesmo dia não faz
+ * ele crescer nada. A fala tinha de deixar de prometer o que não acontece —
+ * não por rigor, mas porque uma recompensa que não chega é pior do que
+ * recompensa nenhuma.
+ *
+ * O que é verdade: o dia passou a contar, e ele estava junto.
+ */
 export function noFim({ cresceu }: { cresceu: boolean }): string {
-  return cresceu ? 'Olha! Eu cresci.' : 'Ganhei uma folha nova.';
+  return cresceu ? 'Olha! Eu cresci com você.' : 'Hoje já conta. Fiquei aqui o tempo todo.';
 }
 
 /** No diário, conforme a pessoa escreve. */
