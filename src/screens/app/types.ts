@@ -10,6 +10,14 @@ export type SubScreen =
   | 'jardim'
   | 'conselhos'
   /**
+   * Configurações aberta direto em "Meus dados".
+   *
+   * O "Editar" do Perfil leva ao nome e ao nome do broto, que é o que a
+   * pessoa quer editar ali. Parando na lista de Configurações, ele pediria um
+   * segundo toque para chegar onde o próprio rótulo prometeu.
+   */
+  | 'dados'
+  /**
    * O Diário virou tela empilhada.
    *
    * Ele era aba, na esquerda da barra, e o lugar dele agora é o primeiro

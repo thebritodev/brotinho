@@ -100,13 +100,20 @@ const PASSOS_DAS_CONFIGURACOES = [
   'politica',
 ] as const;
 
-export function SettingsScreen({ onBack }: { onBack: () => void }) {
+export function SettingsScreen({
+  onBack,
+  abrirEm = null,
+}: {
+  onBack: () => void;
+  /** Abre direto num detalhe, em vez da lista. Ver `SubScreen`. */
+  abrirEm?: Detalhe | null;
+}) {
   const { palette } = useTema();
   const insets = useSafeAreaInsets();
   const { data, updateSettings } = useAppState();
   const s = data.settings;
 
-  const [detalhe, setDetalhe] = useState<Detalhe | null>(null);
+  const [detalhe, setDetalhe] = useState<Detalhe | null>(abrirEm);
 
   // A política é o único detalhe aberto de dentro de outro: voltar dela leva ao
   // Sobre, e não ao começo, que é para onde o botão da barra de cima já leva.

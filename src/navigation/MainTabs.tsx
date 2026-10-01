@@ -192,6 +192,8 @@ export function MainTabs() {
         return <TherapySummaryScreen onBack={closeSub} />;
       case 'config':
         return <SettingsScreen onBack={closeSub} />;
+      case 'dados':
+        return <SettingsScreen onBack={closeSub} abrirEm="dados" />;
       case 'privacidade':
         return <PrivacyScreen onBack={closeSub} />;
       case 'composta':
