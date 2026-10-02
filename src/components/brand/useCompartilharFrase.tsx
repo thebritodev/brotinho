@@ -7,6 +7,7 @@ import {
   compartilharFrase,
   type ResultadoDoCompartilhar,
 } from '../../services/compartilharFrase';
+import { copiarFrase, salvarFrase, type ResultadoDeGuardar } from '../../services/guardarFrase';
 import { fonts } from '../../theme';
 import { CardDoStory, STORY } from './CardDoStory';
 import { ESTILOS_DO_STORY, ESTILO_PADRAO, type EstiloDoStory } from './estilosDoStory';
@@ -73,8 +74,30 @@ function avisoDe(r: ResultadoDoCompartilhar): string | null {
 [dev] ${r.motivo}` : frase;
 }
 
+/**
+ * O recado de "Salvar imagem" e "Copiar texto".
+ *
+ * Os dois precisam dizer que deram certo, e o compartilhar não precisa: ali a
+ * folha do sistema abre na cara da pessoa e **ela** é a confirmação. Salvar e
+ * copiar não abrem nada — sem uma palavra de volta, o toque some no vazio e a
+ * pessoa toca de novo.
+ */
+function recadoDe(r: ResultadoDeGuardar, oQue: 'salvou' | 'copiou'): string {
+  if (r.tipo === 'ok') return oQue === 'salvou' ? 'Imagem salva na galeria.' : 'Frase copiada.';
+  if (r.tipo === 'sem-permissao') {
+    return 'Sem a permissão de salvar na galeria, não dá. Você pode mudar isso nos ajustes do aparelho.';
+  }
+  if (r.tipo === 'indisponivel') return 'Isto não funciona por aqui.';
+  const frase = oQue === 'salvou' ? 'Não consegui salvar a imagem.' : 'Não consegui copiar.';
+  return __DEV__ ? `${frase}
+
+[dev] ${r.motivo}` : frase;
+}
+
 export function useCompartilharFrase() {
   const alvo = useRef<Svg>(null);
+  /** O card da prévia, que é quem o "Salvar imagem" fotografa. */
+  const previa = useRef<Svg>(null);
   /** A frase que está sendo virada em imagem agora; `null` quando não há. */
   const [pedido, setPedido] = useState<string | null>(null);
   const [aviso, setAviso] = useState<string | null>(null);
@@ -121,8 +144,42 @@ export function useCompartilharFrase() {
     setEscolhendo(texto);
   }, []);
 
+  /**
+   * Salvar e copiar acontecem **com a tela aberta**.
+   *
+   * O compartilhar fecha a tela e monta o card fora dela, porque quem assume
+   * dali em diante é a folha do sistema. Estes dois não: a pessoa continua
+   * olhando a prévia, escolhe outro fundo, salva de novo. Fechar seria tirar
+   * dela a coisa que ela está usando.
+   *
+   * Por isso eles fotografam a **prévia**, que é o mesmo `CardDoStory` em
+   * tamanho de verdade dentro de um `scale` — o `Svg` tem o tamanho cheio, e
+   * é dele que o PNG sai. Ver `TelaDoStory`.
+   */
+  const [trabalhando, setTrabalhando] = useState<'salvando' | 'copiando' | null>(null);
+
+  const salvar = useCallback(async () => {
+    if (trabalhando) return;
+    setTrabalhando('salvando');
+    const r = await salvarFrase(previa);
+    setTrabalhando(null);
+    setAviso(recadoDe(r, 'salvou'));
+  }, [trabalhando]);
+
+  const copiar = useCallback(async () => {
+    const texto = escolhendo;
+    if (!texto || trabalhando) return;
+    setTrabalhando('copiando');
+    const r = await copiarFrase(texto);
+    setTrabalhando(null);
+    setAviso(recadoDe(r, 'copiou'));
+  }, [escolhendo, trabalhando]);
+
   const confirmar = useCallback(() => {
     const texto = escolhendo;
+    /* O recado de "salvou" ou "copiou" morre com a tela: ele era sobre o que
+       aconteceu ali dentro, e as telas de trás também desenham o aviso. */
+    setAviso(null);
     setEscolhendo(null);
     if (!texto) return;
     // Sem capturar duas vezes se a pessoa tocar de novo enquanto trabalha.
@@ -150,9 +207,17 @@ export function useCompartilharFrase() {
     <TelaDoStory
       texto={escolhendo}
       estilo={estilo}
+      previa={previa}
+      aviso={aviso}
+      trabalhando={trabalhando}
       aoEscolher={setEstilo}
       aoConfirmar={confirmar}
-      aoFechar={() => setEscolhendo(null)}
+      aoSalvar={() => void salvar()}
+      aoCopiar={() => void copiar()}
+      aoFechar={() => {
+        setAviso(null);
+        setEscolhendo(null);
+      }}
     />
   );
 
@@ -204,6 +269,46 @@ export function useCompartilharFrase() {
  * aparelho moderno, pela interface que a pessoa já conhece.
  */
 
+/**
+ * Os botões secundários do estúdio: contorno de vidro, sem preenchimento.
+ *
+ * Eles não podem competir com o "Postar nos stories", que é verde cheio. O
+ * contorno diz "também dá para isto" sem disputar o olho — e os dois ficam
+ * iguais entre si porque salvar e copiar não têm hierarquia um sobre o outro.
+ */
+function BotaoDeVidro({
+  rotulo,
+  onPress,
+  desligado,
+}: {
+  rotulo: string;
+  onPress: () => void;
+  desligado: boolean;
+}) {
+  return (
+    <Pressable
+      accessibilityRole="button"
+      accessibilityLabel={rotulo}
+      accessibilityState={{ disabled: desligado }}
+      onPress={desligado ? undefined : onPress}
+      style={({ pressed }) => ({
+        flex: 1,
+        height: 46,
+        borderRadius: 10,
+        borderWidth: 2,
+        borderColor: ESTUDIO.contorno,
+        alignItems: 'center',
+        justifyContent: 'center',
+        opacity: desligado ? 0.5 : pressed ? 0.6 : 1,
+      })}
+    >
+      <Text style={{ fontFamily: fonts.body.bold, fontSize: 15, color: ESTUDIO.tinta }}>
+        {rotulo}
+      </Text>
+    </Pressable>
+  );
+}
+
 /** O estúdio é escuro nos dois temas. Ver a nota acima. */
 const ESTUDIO = {
   fundo: '#2B2824',
@@ -216,14 +321,24 @@ const ESTUDIO = {
 function TelaDoStory({
   texto,
   estilo,
+  previa,
+  aviso,
+  trabalhando,
   aoEscolher,
   aoConfirmar,
+  aoSalvar,
+  aoCopiar,
   aoFechar,
 }: {
   texto: string | null;
   estilo: EstiloDoStory;
+  previa: React.RefObject<Svg | null>;
+  aviso: string | null;
+  trabalhando: 'salvando' | 'copiando' | null;
   aoEscolher: (e: EstiloDoStory) => void;
   aoConfirmar: () => void;
+  aoSalvar: () => void;
+  aoCopiar: () => void;
   aoFechar: () => void;
 }) {
   const { width, height } = useWindowDimensions();
@@ -232,11 +347,28 @@ function TelaDoStory({
   if (texto === null) return null;
 
   /*
-    A prévia ocupa o que sobra entre o cabeçalho e os botões, sem passar da
-    largura da tela. Os números são as alturas reservadas: cabeçalho, linha de
-    fundos e rodapé com o botão.
+    A prévia ocupa o que sobra entre o cabeçalho e o rodapé.
+
+    A soma é escrita item por item de propósito: ela já ficou errada uma vez,
+    quando "Salvar imagem" e "Copiar texto" entraram e ninguém somou os
+    cinquenta e seis pontos deles — o resultado foi a última linha do rodapé
+    saindo pela borda de baixo da tela, que é o tipo de defeito que só aparece
+    no aparelho mais curto.
   */
-  const reservado = insets.top + 44 + 20 + 76 + 20 + 52 + insets.bottom + 48;
+  const reservado =
+    insets.top
+    + 10 // o respiro do alto
+    + 44 // o cabeçalho
+    + 18 // o vão até a prévia
+    + 18 // o vão da prévia até os fundos
+    + 76 // a fileira de fundos, com os rótulos
+    + 18 // o vão até o rodapé
+    + 52 // "Postar nos stories"
+    + 10 + 46 // "Salvar imagem" e "Copiar texto"
+    + 10 + 40 // "Agora não"
+    + 18 // a linha do recado
+    + insets.bottom
+    + 16;
   const alturaLivre = Math.max(220, height - reservado);
   const escala = Math.min(alturaLivre / STORY.altura, (width - 110) / STORY.largura);
 
@@ -301,7 +433,7 @@ function TelaDoStory({
               transformOrigin: 'top left',
             }}
           >
-            <CardDoStory texto={texto} estilo={estilo} />
+            <CardDoStory ref={previa} texto={texto} estilo={estilo} />
           </View>
         </View>
 
@@ -400,16 +532,32 @@ function TelaDoStory({
             </Text>
           </Pressable>
 
+          {/*
+            Os dois caminhos que não passam pela folha do sistema.
+
+            Lado a lado e do mesmo tamanho porque são irmãos: nenhum dos dois é
+            mais importante que o outro, e os dois são menores que o de cima,
+            que é o que a tela vem oferecer. Ver `guardarFrase`.
+          */}
+          <View style={{ flexDirection: 'row', gap: 10 }}>
+            <BotaoDeVidro
+              rotulo={trabalhando === 'salvando' ? 'Salvando…' : 'Salvar imagem'}
+              onPress={aoSalvar}
+              desligado={trabalhando !== null}
+            />
+            <BotaoDeVidro
+              rotulo={trabalhando === 'copiando' ? 'Copiando…' : 'Copiar texto'}
+              onPress={aoCopiar}
+              desligado={trabalhando !== null}
+            />
+          </View>
+
           <Pressable
             accessibilityRole="button"
             onPress={aoFechar}
             style={({ pressed }) => ({
-              height: 46,
-              borderRadius: 10,
-              borderWidth: 2,
-              borderColor: ESTUDIO.contorno,
+              paddingVertical: 10,
               alignItems: 'center',
-              justifyContent: 'center',
               opacity: pressed ? 0.6 : 1,
             })}
           >
@@ -420,16 +568,24 @@ function TelaDoStory({
             </Text>
           </Pressable>
 
+          {/*
+            Uma linha só, no mesmo lugar, para as duas coisas que ela pode
+            dizer: o recado de quando algo acontece e a promessa de quando nada
+            acontece. Duas linhas empilhadas fariam o rodapé pular de altura a
+            cada toque.
+          */}
           <Text
+            accessibilityLiveRegion="polite"
             style={{
               textAlign: 'center',
-              fontFamily: fonts.body.regular,
+              fontFamily: aviso ? fonts.body.bold : fonts.body.regular,
               fontSize: 13,
-              color: ESTUDIO.tinta,
-              opacity: 0.6,
+              lineHeight: 13 * 1.4,
+              color: aviso ? '#A8CDB6' : ESTUDIO.tinta,
+              opacity: aviso ? 1 : 0.6,
             }}
           >
-            Só você decide o que é compartilhado.
+            {aviso ?? 'Só você decide o que é compartilhado.'}
           </Text>
         </View>
       </View>

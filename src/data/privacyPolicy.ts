@@ -78,6 +78,20 @@ export const PRIVACY_POLICY: PolicySection[] = [
     ],
   },
   {
+    /*
+      Entrou quando "Salvar imagem" entrou na tela de compartilhar. A ficha da
+      Play passa a mostrar uma permissão de armazenamento, e uma permissão que
+      aparece na loja sem estar escrita aqui é a política ficando desatualizada
+      em silêncio.
+    */
+    title: 'Galeria de fotos',
+    paragraphs: [
+      'A tela de compartilhar a frase do dia tem um botão "Salvar imagem". Ele grava na sua galeria a imagem da frase — e só ela: nada do seu diário, do humor ou da Composta entra nessa imagem.',
+      'A permissão que o app pede é de escrever, não de ler. O Brotinho não abre, não lista e não envia nenhuma foto sua; ele não tem como. No Android, as permissões de leitura da galeria estão explicitamente bloqueadas no app.',
+      'Se você não tocar nesse botão, o app nunca encosta na sua galeria.',
+    ],
+  },
+  {
     title: 'Cópia de segurança do seu aparelho',
     paragraphs: [
       'O Brotinho permite que o sistema do seu celular inclua os dados do app na cópia de segurança que ele já faz: o backup automático do Android, guardado no seu Google Drive, e o backup do iCloud no iPhone.',

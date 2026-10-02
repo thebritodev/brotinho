@@ -71,12 +71,18 @@ function motivoDe(e: unknown): string {
 }
 
 /**
+ * O card virado em PNG, em base64.
+ *
  * O `toDataURL` do `react-native-svg` responde por callback e **não avisa
  * quando falha**: se o desenho não estiver pronto, ele simplesmente nunca chama
  * de volta. Sem o prazo, o botão ficaria em "Preparando…" para sempre, que é
  * exatamente o tipo de espera silenciosa que já custou caro neste recurso.
+ *
+ * Exportada porque o "Salvar imagem" precisa do mesmo PNG — e dois caminhos
+ * para virar o mesmo desenho em arquivo é um deles divergir do outro. Ver
+ * `guardarFrase`.
  */
-function paraBase64(svg: Svg): Promise<string> {
+export function pngDaFrase(svg: Svg): Promise<string> {
   return new Promise((resolve, reject) => {
     const relogio = setTimeout(
       () => reject(new Error(`o desenho não respondeu em ${PRAZO_MS / 1000}s`)),
@@ -107,7 +113,7 @@ export async function compartilharFrase(
     // Varre o que sobrou da vez anterior antes de criar mais um arquivo.
     limparExportacoes();
 
-    const base64 = await paraBase64(alvo.current);
+    const base64 = await pngDaFrase(alvo.current);
 
     const arquivo = new File(Paths.cache, NOME);
     // Compartilhar de novo cai no mesmo nome, e `create` reclama de arquivo
