@@ -129,10 +129,20 @@ function confere(onde, condicao, mensagem) {
     FRACAO_DO_DESLIZE > 0.08 && FRACAO_DO_DESLIZE < 0.5,
     `a camada passou a andar ${FRACAO_DO_DESLIZE} da tela: pouco demais lê como "só mudou", muito demais desmancha a tela a cada toque`,
   );
+  /*
+    O recuo de quem sai é zero desde que a troca de aba virou a revelação em
+    círculo: as duas camadas ficam paradas, e é a imobilidade — e não um
+    cruzamento bem calculado — que garante que nenhum ponto da tela fique
+    descoberto. Ver o alto de `regrasDasAbas`.
+
+    A conferência inverteu de sinal junto: ela cobrava que o recuo existisse, e
+    agora cobra que ele **não** exista. Deixá-la cobrando o antigo seria um
+    teste guardando uma regra que o app não segue mais.
+  */
   confere(
     'regrasDaTroca',
-    RECUO_DE_QUEM_SAI > 0 && RECUO_DE_QUEM_SAI < 1,
-    'o recuo de quem sai saiu do intervalo que faz as duas camadas se cruzarem',
+    RECUO_DE_QUEM_SAI === 0,
+    `a aba que sai voltou a recuar ${RECUO_DE_QUEM_SAI} tela: com a revelação em círculo, isso abre um rasgo de fundo do lado para onde ela anda`,
   );
 
   console.log(`${casos} conferências, ${falhas} falha(s)`);

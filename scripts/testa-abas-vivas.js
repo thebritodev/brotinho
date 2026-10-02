@@ -143,14 +143,19 @@ function confere(onde, condicao, mensagem) {
       }
 
       /*
-        As duas que andam cobrem a tela em qualquer instante.
+        A tela nunca fica descoberta, em instante nenhum.
 
-        A tela é o intervalo [0, 1]. Se em algum momento sobrar um pedaço sem
-        nenhuma das duas por cima, ali aparece o fundo — e um rasgo de fundo
-        atravessando a tela é piscar igual.
+        Com a revelação em círculo isso deixou de ser uma conta de cruzamento e
+        virou uma coisa mais simples de garantir: **as duas camadas ficam
+        paradas**, uma em cima da outra. A de baixo cobre a tela inteira o
+        tempo todo; a de cima é recortada pelo círculo. Nenhum ponto da tela
+        fica sem cobertura porque nenhuma das duas sai do lugar.
+
+        O teste, então, é o contrário do antigo: antes ele media se as duas se
+        cruzavam direito; agora ele cobra que nenhuma das duas ande.
       */
       const folga = 1e-9;
-      for (const t of [0, 0.02, 0.1, 0.25, 0.5, 0.75, 0.9, 0.98, 1]) {
+      for (const t of [0, 0.02, 0.5, 0.98, 1]) {
         const [aI, aF] = faixa(camadas.get(ativa), t);
         const [pI, pF] = faixa(camadas.get(anterior), t);
         const cobre =
@@ -160,40 +165,34 @@ function confere(onde, condicao, mensagem) {
         confere(onde, cobre, `em t=${t} a tela fica descoberta: ativa [${aI}, ${aF}], saindo [${pI}, ${pF}]`);
       }
 
-      /* Elas andam para lados opostos, e a que chega acaba no lugar. */
-      const daAtiva = camadas.get(ativa).desliza;
-      const daAnterior = camadas.get(anterior).desliza;
-      confere(onde, daAtiva[1] === 0, 'a aba que chega não termina no lugar');
-      confere(onde, daAnterior[0] === 0, 'a aba que sai não começa no lugar');
-      confere(onde, Math.abs(daAtiva[0]) === 1, 'a aba que chega não entra de uma tela inteira');
+      /* A que chega é a revelada, e é a única. */
+      confere(onde, camadas.get(ativa).revela === true, 'a aba que chega não é revelada em círculo');
       confere(
         onde,
-        Math.sign(daAtiva[0]) === -Math.sign(daAnterior[1]),
-        'as duas não andam para o mesmo lado',
+        ABAS.filter((c) => camadas.get(c).revela).length === 1,
+        'mais de uma camada revelando: o círculo é só da que chega',
       );
-      /*
-        E a que sai anda **menos**. É o que faz as duas se cruzarem em vez de
-        se encostarem, e é o que não deixa aparecer um fio de fundo entre elas.
-      */
       confere(
         onde,
-        Math.abs(daAnterior[1]) > 0 && Math.abs(daAnterior[1]) < 1,
-        `a que sai anda ${Math.abs(daAnterior[1])} tela: andando a tela inteira, as duas se encostam e abre um fio de fundo`,
+        camadas.get(ativa).desliza === null && camadas.get(anterior).desliza === null,
+        'alguma camada voltou a andar — parada é o que garante que a tela não fica descoberta',
       );
-      /* A que chega cobre a que sai — senão o cruzamento aparece como remendo. */
+      /* A que chega cobre a que sai: o círculo abre **por cima** dela. */
       confere(
         onde,
         camadas.get(ativa).altura > camadas.get(anterior).altura,
         'a aba que sai está por cima da que chega',
       );
 
-      /* O movimento na tela é o movimento do dedo na barra. */
-      const paraADireita = ABAS.indexOf(ativa) > ABAS.indexOf(anterior);
-      confere(
-        onde,
-        daAtiva[0] === (paraADireita ? 1 : -1),
-        `a aba ${ativa} entra pelo lado errado da barra`,
-      );
+      /*
+        Quem diz de onde a tela veio agora é o círculo, e não o lado.
+
+        O deslize dizia isso pelo sentido: a aba da direita entrava pela
+        direita. A revelação diz melhor — ela nasce no **ícone tocado**, e não
+        apenas do lado dele. O que este teste guardava virou responsabilidade
+        da `AbasVivas`, que congela a origem no instante da troca, e da
+        `BottomNav`, que a mede com `pageX`/`pageY`.
+      */
     }
   }
 

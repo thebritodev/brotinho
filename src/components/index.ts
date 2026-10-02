@@ -66,7 +66,7 @@ export { CountUp } from './feedback/CountUp';
 export { StatRow, type Stat } from './feedback/StatRow';
 
 export { ScreenTransition, type TransitionMode } from './ScreenTransition';
-export { AbasVivas, useAbaAVista } from './AbasVivas';
+export { AbasVivas, useAbaAVista, type OrigemDaTroca } from './AbasVivas';
 export {
   CarrosselDeTemas,
   alturaDoCartaoDoTema,

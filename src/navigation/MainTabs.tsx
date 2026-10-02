@@ -3,6 +3,7 @@ import { View } from 'react-native';
 
 import {
   AbasVivas,
+  type OrigemDaTroca,
   BottomNav,
   CamadaEmpilhada,
   ProvedorDeCobertura,
@@ -49,6 +50,13 @@ export function MainTabs() {
   const { colors } = useTema();
   const { data } = useAppState();
   const [tab, setTab] = useState<TabKey>('home');
+  /*
+    Onde o dedo encostou na barra, para a tela nova abrir num círculo dali.
+
+    Fica aqui, e não dentro da `AbasVivas`, porque quem sabe onde o dedo
+    encostou é a barra, e a barra é irmã das abas — não filha delas.
+  */
+  const [origemDaTroca, setOrigemDaTroca] = useState<OrigemDaTroca | null>(null);
   const [sub, setSub] = useState<SubScreen | null>(null);
   /**
    * A aba de baixo está coberta por uma tela empilhada?
@@ -329,7 +337,12 @@ export function MainTabs() {
           accessibilityElementsHidden={sub !== null}
         >
           <ProvedorDeCobertura value={coberta}>
-            <AbasVivas ativa={tab} todas={ABAS} render={(chave) => abas[chave]} />
+            <AbasVivas
+              ativa={tab}
+              todas={ABAS}
+              origem={origemDaTroca}
+              render={(chave) => abas[chave]}
+            />
           </ProvedorDeCobertura>
         </View>
         <CamadaEmpilhada aberta={sub} render={renderSub} aoCobrir={setCoberta} />
@@ -350,6 +363,7 @@ export function MainTabs() {
       */}
       <BottomNav
         active={tab}
+        aoTocar={(_, onde) => setOrigemDaTroca(onde)}
         onChange={(next) => {
           setTab(next);
           setSub(null);

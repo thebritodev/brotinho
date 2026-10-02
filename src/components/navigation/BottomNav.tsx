@@ -75,6 +75,14 @@ const RIGHT: SideTab = { key: 'perfil', label: 'Perfil', icon: 'user' };
 type Props = {
   active?: TabKey;
   onChange?: (tab: TabKey) => void;
+  /**
+   * Onde o dedo encostou, em pixels da tela — para a tela nova abrir dali.
+   *
+   * A barra mede e entrega; quem usa é a `AbasVivas`, duas camadas acima,
+   * porque o círculo da revelação recorta a aba inteira e daqui ele ficaria
+   * preso dentro da barra. Ver `regrasDasAbas`.
+   */
+  aoTocar?: (tab: TabKey, onde: { x: number; y: number }) => void;
 };
 
 /**
@@ -337,7 +345,7 @@ const CRESCIMENTO = {
  * `accessibilityLabel` são obrigatórios, senão quem usa leitor de tela fica
  * sem nada para ouvir.
  */
-export function BottomNav({ active = 'home', onChange }: Props) {
+export function BottomNav({ active = 'home', onChange, aoTocar }: Props) {
   const { colors, palette, shadows } = useTema();
   const insets = useSafeAreaInsets();
 
@@ -443,7 +451,12 @@ export function BottomNav({ active = 'home', onChange }: Props) {
         accessibilityRole="tab"
         accessibilityLabel={t.label}
         accessibilityState={{ selected: ativa }}
-        onPress={() => {
+        onPress={(e) => {
+          /*
+            `pageX`/`pageY` é a posição na tela, e não no botão: é a mesma
+            coordenada em que o círculo da revelação é desenhado.
+          */
+          aoTocar?.(t.key, { x: e.nativeEvent.pageX, y: e.nativeEvent.pageY });
           /* Os dois respondem ao toque, inclusive quando a aba já está
              aberta: é confirmação do gesto, não anúncio de destino novo. */
           if (menosMovimento) {
@@ -604,7 +617,10 @@ export function BottomNav({ active = 'home', onChange }: Props) {
           accessibilityRole="tab"
           accessibilityLabel="Início"
           accessibilityState={{ selected: active === 'home' }}
-          onPress={() => onChange?.('home')}
+          onPress={(e) => {
+            aoTocar?.('home', { x: e.nativeEvent.pageX, y: e.nativeEvent.pageY });
+            onChange?.('home');
+          }}
           style={({ pressed }) => ({
             width: CENTER_SIZE,
             height: CENTER_SIZE,

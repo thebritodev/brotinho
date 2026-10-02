@@ -96,9 +96,172 @@ const ESPERA_DO_AQUECIMENTO = 2000;
 const AbaAVista = createContext(true);
 export const useAbaAVista = () => useContext(AbaAVista);
 
+/** De onde o círculo da revelação nasce, em pixels da tela. */
+export type OrigemDaTroca = { x: number; y: number };
+
+/**
+ * O raio que o círculo precisa alcançar para cobrir a tela inteira.
+ *
+ * É a distância do ponto de origem até o canto mais longe. Calculado, e não um
+ * número grande chutado: um raio folgado demais faz o fim da animação acontecer
+ * fora da tela, e a revelação parece terminar antes da hora.
+ */
+function raioQueCobre(origem: OrigemDaTroca, largura: number, altura: number): number {
+  const dx = Math.max(origem.x, largura - origem.x);
+  const dy = Math.max(origem.y, altura - origem.y);
+  return Math.sqrt(dx * dx + dy * dy);
+}
+
+/**
+ * De que tamanho o círculo começa, em pontos de raio.
+ *
+ * Não começa de zero. Dois motivos, e o segundo é o que manda:
+ *
+ * 1. Um círculo de raio zero some do compositor em algumas superfícies, e a
+ *    aba nova pisca inteira no primeiro quadro.
+ * 2. A tela de dentro é desenhada com a **escala inversa** à do recorte (ver
+ *    `JanelaRedonda`), e inverso de quase-zero é quase-infinito: num raio
+ *    inicial de um ponto, o conteúdo entraria desenhado quinhentas vezes
+ *    maior, e o que o primeiro quadro mostraria seria um pedaço de um pixel
+ *    esticado.
+ *
+ * Vinte e dois pontos é mais ou menos o tamanho do ícone tocado — então o
+ * círculo não nasce "de um ponto", nasce **do ícone**, que é o que o documento
+ * desenha.
+ */
+const RAIO_INICIAL = 22;
+
+/**
+ * A tela nova, vista por uma janela redonda que cresce.
+ *
+ * ## Por que não é uma máscara
+ *
+ * O caminho óbvio seria `@react-native-masked-view`. Ele foi instalado, usado,
+ * e desfeito no mesmo dia: a implementação dele para web é
+ *
+ * ```js
+ * function MaskedView({ maskElement, ...props }) {
+ *   return React.createElement(View, props, maskElement);
+ * }
+ * ```
+ *
+ * — ela desenha a **máscara** e **joga os filhos fora**. No navegador a aba que
+ * chega aparecia como um disco preto crescendo sobre o nada. E o navegador é a
+ * única superfície em que este app consegue ser conferido sem um aparelho na
+ * mão: uma animação que só existe no nativo é uma animação que ninguém viu —
+ * a mesma lição que está escrita por extenso em `laco.ts`.
+ *
+ * ## Como ela funciona
+ *
+ * Duas caixas, uma dentro da outra, com escalas inversas:
+ *
+ * - a **de fora** é um quadrado do tamanho do círculo cheio, redonda por
+ *   `borderRadius`, com `overflow: 'hidden'`, e cresce de `RAIO_INICIAL` até o
+ *   raio que cobre a tela;
+ * - a **de dentro** é a tela inteira, posicionada no lugar certo e encolhida
+ *   pelo inverso exato da escala de fora.
+ *
+ * Escalar por `s` em torno de um ponto e depois por `1/s` em torno do mesmo
+ * ponto é a identidade: o conteúdo fica parado, do tamanho certo, enquanto só
+ * o recorte cresce. E as duas são `transform`, que é o que o driver nativo
+ * sabe animar sozinho — nada disto passa pelo JavaScript quadro a quadro.
+ */
+function JanelaRedonda({
+  t,
+  centro,
+  raio,
+  largura,
+  altura,
+  children,
+}: {
+  t: Animated.Value;
+  centro: OrigemDaTroca;
+  raio: number;
+  largura: number;
+  altura: number;
+  children: React.ReactNode;
+}) {
+  const inicial = Math.min(RAIO_INICIAL, raio) / raio;
+  const escala = t.interpolate({ inputRange: [0, 1], outputRange: [inicial, 1] });
+  /*
+    A inversa é uma **divisão**, e não outra interpolação.
+
+    A primeira versão escrevia `outputRange: [1 / inicial, 1]`, o que parece a
+    mesma coisa e não é: interpolar entre os inversos não dá o inverso da
+    interpolação. `1 / lerp(a, b, t) ≠ lerp(1/a, 1/b, t)` em todo t que não
+    seja 0 ou 1 — nas duas pontas bate, e no meio não.
+
+    Medido no navegador: a tela de dentro saía do tamanho certo em t=0,
+    inchava até dez vezes no meio da animação e voltava ao certo no fim. Era
+    o erro aparecendo exatamente onde a conta erra.
+  */
+  const inversa = Animated.divide(1, escala);
+
+  return (
+    <Animated.View
+      /* Tem nome para poder ser medida quadro a quadro no navegador. */
+      testID="janela-redonda"
+      style={{
+        position: 'absolute',
+        left: centro.x - raio,
+        top: centro.y - raio,
+        width: raio * 2,
+        height: raio * 2,
+        borderRadius: raio,
+        overflow: 'hidden',
+        transform: [{ scale: escala }],
+      }}
+    >
+      <Animated.View
+        /* Tem nome para poder ser medida quadro a quadro no navegador: é assim
+           que se descobre que a tela de dentro está inchando no meio da
+           animação em vez de ficar parada. */
+        testID="janela-conteudo"
+        style={{
+          position: 'absolute',
+          /* A tela inteira, deslocada para o canto dela cair no (0,0) da tela. */
+          left: raio - centro.x,
+          top: raio - centro.y,
+          width: largura,
+          height: altura,
+          /*
+            O inverso, em torno do mesmo ponto: o centro do círculo.
+
+            Escrito como ida-escala-volta, e não com `transformOrigin`. A
+            primeira versão usava a propriedade, e no navegador ela não pegou:
+            a escala aconteceu em torno do **centro da tela**, não do centro do
+            círculo, e o conteúdo entrava gigante — medido, não deduzido.
+
+            `T(d) · S(k) · T(-d)` é escalar em torno de um ponto, e `d` é a
+            distância desse ponto até o centro da `View`, que é a origem padrão
+            do `transform` no React Native. Só a escala é animada; os dois
+            deslocamentos são constantes.
+          */
+          transform: [
+            { translateX: centro.x - largura / 2 },
+            { translateY: centro.y - altura / 2 },
+            { scale: inversa },
+            { translateX: -(centro.x - largura / 2) },
+            { translateY: -(centro.y - altura / 2) },
+          ],
+        }}
+      >
+        {children}
+      </Animated.View>
+    </Animated.View>
+  );
+}
+
 type Props<Chave extends string> = {
   /** A aba em que a pessoa está. */
   ativa: Chave;
+  /**
+   * Onde o dedo encostou na barra, para o círculo nascer dali.
+   *
+   * Sem isto — uma troca que não veio de um toque na barra — o círculo nasce
+   * no meio do pé da tela, que é onde a barra fica.
+   */
+  origem?: OrigemDaTroca | null;
   /**
    * Todas as abas, **na ordem da barra de baixo**, da esquerda para a direita.
    *
@@ -112,11 +275,24 @@ type Props<Chave extends string> = {
   render: (chave: Chave) => React.ReactNode;
 };
 
-export function AbasVivas<Chave extends string>({ ativa, todas, render }: Props<Chave>) {
+export function AbasVivas<Chave extends string>({
+  ativa,
+  todas,
+  render,
+  origem,
+}: Props<Chave>) {
   const { colors } = useTema();
   const menosMovimento = useMenosMovimento();
-  /** Quanto cada aba anda: uma tela inteira, para as duas juntas cobrirem tudo. */
-  const { width: largura } = useWindowDimensions();
+  const { width: largura, height: altura } = useWindowDimensions();
+
+  /*
+    A origem é congelada no instante em que a troca começa.
+
+    Ela vem de fora e pode mudar no meio da animação — outro toque na
+    barra, por exemplo. Lida direto, o círculo saltaria de lugar enquanto
+    cresce. Congelada, cada revelação nasce onde o dedo dela encostou.
+  */
+  const ondeNasceu = useRef<OrigemDaTroca | null>(null);
 
   /*
     Calculado no próprio render, e não num efeito: num efeito, existiria um
@@ -155,6 +331,7 @@ export function AbasVivas<Chave extends string>({ ativa, todas, render }: Props<
     }
 
     setAnterior(saindo);
+    ondeNasceu.current = origem ?? { x: largura / 2, y: altura - 48 };
     t.setValue(0);
     setAnimando(true);
     const troca = Animated.timing(t, {
@@ -183,6 +360,12 @@ export function AbasVivas<Chave extends string>({ ativa, todas, render }: Props<
       troca.stop();
       clearTimeout(seguranca);
     };
+    /*
+      `origem`, `largura` e `altura` de fora da lista de propósito: elas são
+      lidas no instante da troca e congeladas. Entrando aqui, mudar de tamanho
+      de janela recomeçaria a animação no meio.
+    */
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [ativa, menosMovimento, t]);
 
   /*
@@ -215,6 +398,12 @@ export function AbasVivas<Chave extends string>({ ativa, todas, render }: Props<
     return () => clearTimeout(espera);
   }, [noAr, todas]);
 
+  const raio = raioQueCobre(
+    ondeNasceu.current ?? { x: largura / 2, y: altura - 48 },
+    largura,
+    altura,
+  );
+
   return (
     <View style={{ flex: 1, backgroundColor: colors.bg }}>
       {noAr.map((chave) => {
@@ -240,7 +429,12 @@ export function AbasVivas<Chave extends string>({ ativa, todas, render }: Props<
                   que a aba de trás não apareça por dentro da da frente em
                   nenhum quadro. Ver o cabeçalho de `regrasDasAbas`.
                 */
-                backgroundColor: colors.bg,
+                /*
+                  A camada que está sendo revelada **não** pinta fundo: o fundo
+                  dela é opaco e cobriria a aba de baixo fora do círculo, que é
+                  justamente o que o círculo existe para deixar à mostra.
+                */
+                backgroundColor: camada.revela && animando ? 'transparent' : colors.bg,
                 zIndex: camada.altura,
                 opacity: camada.opacidade,
                 transform: camada.desliza
@@ -256,7 +450,20 @@ export function AbasVivas<Chave extends string>({ ativa, todas, render }: Props<
               },
             ]}
           >
-            <AbaAVista.Provider value={camada.aVista}>{render(chave)}</AbaAVista.Provider>
+            {camada.revela && animando ? (
+              /* A revelação em círculo. Ver `JanelaRedonda` e `regrasDasAbas`. */
+              <JanelaRedonda
+                t={t}
+                centro={ondeNasceu.current ?? { x: largura / 2, y: altura - 48 }}
+                raio={raio}
+                largura={largura}
+                altura={altura}
+              >
+                <AbaAVista.Provider value={camada.aVista}>{render(chave)}</AbaAVista.Provider>
+              </JanelaRedonda>
+            ) : (
+              <AbaAVista.Provider value={camada.aVista}>{render(chave)}</AbaAVista.Provider>
+            )}
           </Animated.View>
         );
       })}
