@@ -1,6 +1,7 @@
 import React, { useEffect, useId, useMemo, useRef, useState } from 'react';
 import { Animated, Easing, View } from 'react-native';
 import Svg, {
+  Circle,
   Defs,
   Ellipse,
   G,
@@ -14,10 +15,11 @@ import Svg, {
 
 import { fraseQueODiaDemonstra } from '../../data/composta';
 import { useMenosMovimento } from '../../hooks/useMenosMovimento';
-import { lacoQueSoVai } from '../laco';
+import { lacoDeIdaEVolta, lacoQueSoVai } from '../laco';
 import { fonts } from '../../theme';
 import { palette, tracos } from '../../theme/tokens';
-import { ArteDoTema, ehTemaComArte } from './artesDosTemas';
+import { Cena as Paisagem } from './Cena';
+import { Sprout } from './Sprout';
 import { curva, desloca, estica, gira } from './movimentoDaCena';
 import { BRASA, TERRA, TERRA_CLARA, TERRA_FUNDA, TERRA_SOMBRA } from './terraDoCanteiro';
 
@@ -150,23 +152,117 @@ function Folha({
 /**
  * Prática de hoje — a cena do tema dela, no tamanho do cartão.
  *
- * Esta não desenha nada próprio: reaproveita a arte do tema
- * (`artesDosTemas`) no tamanho de cartão. É de propósito — a pessoa vê a mesma
- * arte de "Dormir melhor" no cartão grande, na grade de treze e na fileira de
- * recentes, e é essa repetição que faz a lua virar o sinal de um lugar em vez
- * de mais um desenho.
+ * ## Quem aparece aqui é o broto, num lugar
  *
- * Por isso ela também não usa o casco `Cena`: aquele monta um `Svg` próprio, e
- * a arte do tema já vem com o dela. SVG dentro de SVG não é caminho no
- * `react-native-svg`.
+ * Esta cena já mostrou a paisagem antiga do tema, e depois a arte de objeto da
+ * grade de temas. O documento mostra o **broto no vaso**, sobre um céu claro,
+ * com brilhos em volta — e a razão é a mesma da fileira de baixo
+ * (`OndeVoceParou`): este cartão é o convite para fazer uma prática agora, e
+ * quem guia a prática é ele. A arte de objeto responde de que assunto é o
+ * tema, que é a pergunta da **grade**, não a deste cartão.
+ *
+ * Os brilhos são do documento e fazem o trabalho que o selo "PARA COMEÇAR"
+ * não faz sozinho: dizem que isto aqui é a sugestão, e não mais um item.
  */
-export function CenaDaPratica({
-  tema,
-  altura,
+/** O brilho de quatro pontas do documento. */
+const BRILHO = 'M0 -9 L2.2 -2.2 L9 0 L2.2 2.2 L0 9 L-2.2 2.2 L-9 0 L-2.2 -2.2 Z';
+
+/**
+ * Os brilhos em volta do broto do cartão grande.
+ *
+ * Eles **piscam** — cada um no próprio compasso, para o conjunto não bater
+ * junto como um pisca-pisca. São `Animated.View`, e não `<animate>` dentro do
+ * SVG: propriedade de SVG animada não chega no `react-native-web`.
+ */
+function Brilhos({ largura, altura, p }: { largura: number; altura: number; p: number }) {
+  const menosMovimento = useMenosMovimento();
+  const lugares = useMemo(
+    () => [
+      { x: 0.38, y: 0.34, escala: 0.9, cor: palette.amber400, ms: 1400 },
+      { x: 0.62, y: 0.3, escala: 1.1, cor: palette.amber400, ms: 1700 },
+      { x: 0.34, y: 0.56, escala: 0.7, cor: palette.terracotta400, ms: 2000 },
+      { x: 0.68, y: 0.6, escala: 0.6, cor: palette.terracotta400, ms: 2300 },
+    ],
+    [],
+  );
+  return (
+    <>
+      {lugares.map((b) => (
+        <Pisca
+          key={`${b.x}-${b.y}`}
+          x={largura * b.x}
+          y={altura * b.y}
+          escala={b.escala}
+          cor={b.cor}
+          ms={b.ms}
+          parado={menosMovimento}
+          p={p}
+        />
+      ))}
+    </>
+  );
+}
+
+function Pisca({
+  x,
+  y,
+  escala,
+  cor,
+  ms,
+  parado,
+  p,
 }: {
-  tema: string;
+  x: number;
+  y: number;
+  escala: number;
+  cor: string;
+  ms: number;
+  parado: boolean;
+  p: number;
+}) {
+  const passo = useRef(new Animated.Value(0)).current;
+  useEffect(() => {
+    if (parado) {
+      passo.setValue(0);
+      return;
+    }
+    const laco = lacoDeIdaEVolta(passo, { ms });
+    laco.start();
+    return () => laco.stop();
+  }, [ms, parado, passo]);
+
+  const lado = 18 * escala;
+  return (
+    <Animated.View
+      pointerEvents="none"
+      style={{
+        position: 'absolute',
+        left: x - lado / 2,
+        top: y - lado / 2,
+        width: lado,
+        height: lado,
+        opacity: passo.interpolate({ inputRange: [0, 1], outputRange: [1, 0.2] }),
+        /* O toque empurra os brilhos um pouco para fora, como o do documento. */
+        transform: [{ scale: 1 + p * 0.22 }],
+      }}
+    >
+      <Svg width={lado} height={lado} viewBox="-10 -10 20 20">
+        <Path d={BRILHO} fill={cor} />
+      </Svg>
+    </Animated.View>
+  );
+}
+
+export function CenaDaPratica({
+  altura,
+  largura,
+  p,
+}: {
   /** A altura do cartão; a cena ocupa a parte de cima dela. */
   altura: number;
+  largura: number;
+  /** O passo do toque, de 0 a 1 — os brilhos respondem a ele. */
+  p: number;
 }) {
   return (
     <View style={{ flex: 1 }} pointerEvents="none">
@@ -186,18 +282,32 @@ export function CenaDaPratica({
         um pouco menor, ela divide a faixa de cima com o selo em vez de
         disputar a de baixo com o texto.
       */}
-      <View
-        style={{
-          height: altura * 0.56,
-          overflow: 'hidden',
-          alignItems: 'flex-end',
-          justifyContent: 'flex-end',
-          paddingRight: 8,
-        }}
-      >
-        {ehTemaComArte(tema) && (
-          <ArteDoTema tema={tema} largura={altura * 0.66} altura={altura * 0.52} />
-        )}
+      <View style={{ height: altura * 0.52, overflow: 'hidden' }}>
+        {/*
+          O céu da cena não segue o humor do dia: este cartão é um convite, e
+          convite não anoitece junto com quem recebe. `semAstro` porque o sol
+          disputaria com os brilhos, que são o assunto do desenho.
+        */}
+        <Paisagem
+          largura={largura}
+          altura={altura * 0.52}
+          ceu={palette.blue100}
+          semAstro
+          nuvens={false}
+          chao="grama"
+        />
+        <View
+          style={{
+            position: 'absolute',
+            left: 0,
+            right: 0,
+            bottom: 0,
+            alignItems: 'center',
+          }}
+        >
+          <Sprout mood="leve" stage={2} size={altura * 0.3} />
+        </View>
+        <Brilhos largura={largura} altura={altura * 0.52} p={p} />
       </View>
     </View>
   );
@@ -211,162 +321,198 @@ export function CenaDaPratica({
  * fechado porque a ação é escrever agora, não guardar.
  */
 /**
- * A cena do Diário.
+ * Diário — o caderno de espiral fechado, o lápis e o broto olhando.
  *
- * ## O que ela faz ao ser tocada
+ * ## O que havia aqui, e por que mudou
  *
- * O lápis sai da mesa e sobe até a página, endireitando; e a última pauta da
- * esquerda — a curta, que é onde a escrita parou — cresce.
+ * Havia um caderno **aberto** sobre a mesa, visto de frente, com um lápis
+ * pousado ao lado. O argumento era bom: papel é o objeto que diz "isto não sai
+ * do aparelho" sem precisar escrever. O argumento continua bom, e o caderno
+ * continua sendo papel.
  *
- * As duas coisas contam a mesma frase, que é a frase do cartão: *a página está
- * começada, e agora você continua*. Nenhuma das duas termina o serviço: o lápis
- * não chega a encostar e a linha não alcança o comprimento das outras, porque
- * quem escreve é a pessoa, do outro lado do toque.
+ * O que mudou é que o documento desenha a cena, e desenha outra: o caderno
+ * **fechado**, de espiral, tombado alguns graus, com o lápis atravessando por
+ * cima e o broto espiando do lado. A diferença não é de gosto. Caderno aberto
+ * em branco é o convite para preencher — é a imagem de uma tarefa. Caderno
+ * fechado com alguém ao lado é a imagem de uma coisa guardada, que é o que o
+ * diário deste app promete.
+ *
+ * E o broto tinha de estar aqui. Em todas as outras telas ele acompanha; no
+ * cartão que convida a escrever o que doeu, ele era o único ausente.
+ *
+ * ## A geometria é a do documento
+ *
+ * Caixa de 342 por 150, e os números saem de lá sem arredondar: o caderno em
+ * 128/36, as cinco argolas de quinze em quinze, o lápis girado 28 graus. O que
+ * é nosso é a maneira de animar — `curva(p, ...)` no toque, como as outras
+ * cenas, em vez do `<animate>` do SVG, que não chega no `react-native-web`.
  */
-export function CenaDoDiario({ passo = 0 }: { passo?: number }) {
-  const id = useId().replace(/[^a-zA-Z0-9]/g, '');
+const DIARIO = { largura: 342, altura: 150 };
+
+export function CenaDoDiario({
+  passo = 0,
+  altura,
+}: {
+  passo?: number;
+  /** A altura do cartão: a arte ocupa a faixa de cima dela. */
+  altura: number;
+}) {
   const p = passo;
 
+  /* O caderno endireita no toque, e o lápis sobe para a página. */
+  const giroDoCaderno = curva(p, [-4, -3.2, -2.2, -1.4, -1]);
+  const subidaDoLapis = curva(p, [0, -3, -7, -10, -12]);
+
+  /*
+    A arte é uma **faixa** no alto do cartão, e não o cartão inteiro.
+
+    A caixa do documento é 342 por 150 — larga e rasa. Esticada na altura de um
+    cartão de 330, com `slice`, ela amplia até o caderno sair pelos quatro
+    lados: foi o que aconteceu na primeira tentativa, e o que sobrava na tela
+    era um pedaço de argola. A faixa mantém a proporção de lá.
+  */
+  const faixa = altura * 0.52;
+
   return (
-    <Cena>
-      <Defs>
-        <LinearGradient id={`papel-${id}`} x1="0" y1="0" x2="0.25" y2="1">
-          <Stop offset="0" stopColor="#FFFFFF" />
-          <Stop offset="0.6" stopColor={palette.cream100} />
-          <Stop offset="1" stopColor={palette.cream300} />
-        </LinearGradient>
-        <RadialGradient id={`chao-${id}`} cx="50%" cy="50%" r="50%">
-          <Stop offset="0" stopColor={TERRA_SOMBRA} stopOpacity={0.2} />
-          <Stop offset="1" stopColor={TERRA_SOMBRA} stopOpacity={0} />
-        </RadialGradient>
-      </Defs>
-
-      {/* A sombra do caderno na mesa: sem ela o objeto flutua. */}
-      <Ellipse cx={150} cy={140} rx={104} ry={17} fill={`url(#chao-${id})`} />
-
-      <G transform="translate(150 80)">
-        {/*
-          A folha de trás, espiando — e sem contorno.
-
-          Com traço ela virava um segundo retângulo inteiro atravessando o
-          cartão, que lia como erro de desenho e não como caderno. Preenchida e
-          sem linha, ela faz o que devia fazer desde o começo: dar espessura à
-          pilha e sumir.
-        */}
-        <Rect
-          x={-84}
-          y={-54}
-          width={168}
-          height={106}
-          rx={7}
-          fill={palette.cream300}
-          opacity={0.75}
-          transform="rotate(3)"
+    <View style={{ flex: 1 }} pointerEvents="none">
+      <View style={{ height: faixa, overflow: 'hidden' }}>
+      <Svg
+        width="100%"
+        height="100%"
+        viewBox={`0 0 ${DIARIO.largura} ${DIARIO.altura}`}
+        preserveAspectRatio="xMidYMax slice"
+      >
+        {/* O chão claro em que tudo pousa: uma lombada rasa, sem contorno. */}
+        <Path
+          d="M 0 128 C 90 112 250 112 342 126 L 342 150 L 0 150 Z"
+          fill="#FFFFFF"
+          opacity={0.55}
         />
 
-        <G transform="rotate(-2)">
-          {/* As duas páginas abertas, com o vinco no meio. */}
-          <Path
-            d="M-82 -50 C-82 -53.3 -79.3 -56 -76 -56 L76 -56 C79.3 -56 82 -53.3 82 -50 L82 34 L68 48 L-76 48 C-79.3 48 -82 45.3 -82 42 Z"
-            fill={`url(#papel-${id})`}
+        <G transform={gira(giroDoCaderno, 185, 90)}>
+          {/* A sombra do caderno é uma segunda capa, deslocada — o jeito do
+              documento de dar espessura sem desfoque. */}
+          <Rect
+            x={133}
+            y={41}
+            width={112}
+            height={90}
+            rx={8}
+            fill={palette.terracotta400}
             stroke={tracos.contorno}
-            strokeWidth={2.4}
-            strokeLinejoin="round"
+            strokeWidth={3.5}
           />
-          {/* O canto virado, a mesma aresta dobrada para dentro. */}
-          <Path
-            d="M82 34 L68 34 L68 48 Z"
-            fill={palette.cream300}
+          <Rect
+            x={128}
+            y={36}
+            width={112}
+            height={90}
+            rx={8}
+            fill={palette.cream100}
             stroke={tracos.contorno}
-            strokeWidth={2}
-            strokeLinejoin="round"
+            strokeWidth={3.5}
           />
-          {/* O vinco central. */}
-          <Path d="M0 -54 L0 46" stroke={palette.brown200} strokeWidth={2.2} strokeLinecap="round" />
-
-          {/*
-            As pautas. A última da esquerda é curta: é onde a escrita parou, e
-            é o convite — a página está começada, não em branco.
-          */}
-          {[
-            [-32, -16],
-            [-14, -16],
-            [4, -16],
-            [22, -44],
-          ].map(([y, fim], i) => {
-            /*
-              Só a última cresce, e só ao longo do próprio eixo.
-
-              Por isso `estica` e não `cresce`: uma pauta que engordasse junto
-              com o comprimento viraria um borrão, não uma frase sendo escrita.
-              A origem é a margem esquerda, que é de onde se escreve.
-            */
-            const escrevendo = i === 3;
-            return (
-              <G
-                key={`e${y}`}
-                transform={escrevendo ? estica(curva(p, [1, 1.3, 1.6, 1.8, 1.9]), 1, -68, y) : undefined}
-              >
-                <Path
-                  d={`M-68 ${y} L${fim} ${y}`}
-                  stroke={palette.brown200}
-                  strokeWidth={2.8}
-                  strokeLinecap="round"
-                />
-              </G>
-            );
-          })}
-          {[-32, -14, 4, 22].map((y) => (
+          {[0, 1, 2, 3].map((i) => (
             <Path
-              key={`d${y}`}
-              d={`M16 ${y} L68 ${y}`}
-              stroke={palette.cream300}
-              strokeWidth={2.8}
+              key={`ln${i}`}
+              d={`M 150 ${62 + i * 14} L ${i === 3 ? 196 : 222} ${62 + i * 14}`}
+              stroke={palette.brown200}
+              strokeWidth={2.5}
               strokeLinecap="round"
             />
           ))}
+          {[0, 1, 2, 3, 4].map((i) => (
+            <Circle
+              key={`rg${i}`}
+              cx={134}
+              cy={52 + i * 15}
+              r={4.5}
+              fill={palette.yellow100}
+              stroke={tracos.contorno}
+              strokeWidth={2.5}
+            />
+          ))}
+          {/* A folhinha desenhada na capa: a marca de quem é o caderno. */}
+          <Path
+            d="M 208 104 C 214 96 222 100 218 108 C 214 114 206 110 208 104 Z"
+            fill={tracos.folha}
+            stroke={tracos.contornoFolha}
+            strokeWidth={2}
+          />
         </G>
-      </G>
+
+        <G transform={`${desloca(236, 20 + subidaDoLapis)} ${gira(28, 0, 0)}`}>
+          <Rect
+            x={0}
+            y={0}
+            width={12}
+            height={70}
+            rx={3}
+            fill={palette.amber400}
+            stroke={tracos.contorno}
+            strokeWidth={2.5}
+          />
+          <Path
+            d="M 0 70 L 6 84 L 12 70 Z"
+            fill={palette.cream200}
+            stroke={tracos.contorno}
+            strokeWidth={2.5}
+            strokeLinejoin="round"
+          />
+          <Rect
+            x={0}
+            y={0}
+            width={12}
+            height={10}
+            rx={3}
+            fill={palette.terracotta100}
+            stroke={tracos.contorno}
+            strokeWidth={2.5}
+          />
+        </G>
+
+        {/* Os brilhos do documento, nos três cantos livres. */}
+        {[
+          { x: 282, y: 40, escala: 1, cor: palette.amber400 },
+          { x: 300, y: 92, escala: 0.7, cor: palette.terracotta400 },
+          { x: 104, y: 30, escala: 0.6, cor: palette.amber400 },
+        ].map((b) => (
+          <G key={`sk${b.x}`} transform={`${desloca(b.x, b.y)} scale(${b.escala})`}>
+            <Path d={BRILHO} fill={b.cor} />
+          </G>
+        ))}
+      </Svg>
 
       {/*
-        O lápis, pousado na mesa ao lado do caderno — e, no toque, subindo até
-        a página e endireitando, como quem o pega para escrever.
-
-        O deslocamento vem antes do giro na lista de transformações porque a
-        ordem importa em SVG: girar primeiro giraria também o caminho que ele
-        ainda vai percorrer, e o lápis subiria de lado.
+        O broto fica fora do `Svg` porque ele **é** um `Svg`, e `Svg` dentro de
+        `Svg` não é caminho no `react-native-svg`. A posição sai da mesma caixa
+        de 342 por 150 do documento, em fração, para acompanhar o corte.
       */}
-      <G
-        transform={[
-          desloca(204 + curva(p, [0, -5, -11, -15, -17]), 132 + curva(p, [0, -6, -13, -17, -19])),
-          gira(curva(p, [18, 15, 11, 8, 7]), 0, 0),
-        ].join(' ')}
+      <View
+        style={{
+          position: 'absolute',
+          left: `${(34 / DIARIO.largura) * 100}%`,
+          top: `${(34 / DIARIO.altura) * 100}%`,
+          width: `${(92 / DIARIO.largura) * 100}%`,
+        }}
       >
-        <Rect
-          x={-38}
-          y={-4.4}
-          width={64}
-          height={8.8}
-          rx={2.6}
-          fill={tracos.vaso}
-          stroke={tracos.contorno}
-          strokeWidth={2}
-        />
-        <Path
-          d="M26 -4.4 L38 0 L26 4.4 Z"
-          fill={palette.cream200}
-          stroke={tracos.contorno}
-          strokeWidth={2}
-          strokeLinejoin="round"
-        />
-        <Path d="M34.6 -1.4 L38 0 L34.6 1.4 Z" fill={tracos.contorno} />
-      </G>
-
-      {/* Um raminho entrando pelo canto: a cena continua depois da borda. */}
-      <Ramo d="M306 8 C288 12 274 22 264 38" x={264} y={38} giro={-58} escala={0.52} />
-    </Cena>
+        <BrotoDoDiario />
+      </View>
+      </View>
+    </View>
   );
 }
+
+/** O broto do cartão do diário: pequeno, no vaso, pensando. */
+function BrotoDoDiario() {
+  const [largura, setLargura] = useState(0);
+  return (
+    <View onLayout={(e) => setLargura(e.nativeEvent.layout.width)}>
+      {largura > 0 && <Sprout mood="feliz" stage={2} size={largura} pose="pensa" />}
+    </View>
+  );
+}
+
 
 /**
  * Composta — o pensamento dito em voz alta caindo na terra, e o broto saindo

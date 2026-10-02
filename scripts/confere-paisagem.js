@@ -97,12 +97,17 @@ confere(
   `ceuDoHumor.ts` logo acima, que proíbe `useTema` e o import do gancho; aqui
   fica só a forma, para o degradê não voltar a ser escrito à mão com `colors`.
 */
-for (const [oQue, marca] of [
-  ['o degradê do céu', /stopColor=\{ceu\.(alto|meio|baixo)\}/g],
-  ['as nuvens', /stopColor=\{NUVEM\}/g],
-  ['os morros', /stopColor=\{MORRO\}/g],
+for (const [oQue, marca, quantas] of [
+  ['o degradê do céu', /stopColor=\{ceu\.(alto|meio|baixo)\}/g, 3],
+  ['os morros', /stopColor=\{MORRO\}/g, 3],
+  /*
+    As nuvens deixaram de ser degradê e viraram a nuvem recortada da `Cena` —
+    uma `View` que anda, e não um `Stop` dentro do `Svg`. A cor continua sendo
+    a fixa, só que entregue por propriedade.
+  */
+  ['as nuvens', /cor=\{NUVEM\}/g, 1],
 ]) {
-  confere('FaixaDaComposta', (faixa.match(marca) || []).length >= 3, `${oQue} deixou de usar a cor fixa`);
+  confere('FaixaDaComposta', (faixa.match(marca) || []).length >= quantas, `${oQue} deixou de usar a cor fixa`);
 }
 /*
   As três paradas do degradê do céu vinham de `colors`. Voltando para lá, o
@@ -197,10 +202,19 @@ confere(
   existe: os dois botões do cabeçalho somem e ninguém acha os lembretes nem as
   configurações.
 */
+/*
+  Uma pastilha, e não duas: o sininho saiu. Os lembretes moram dentro das
+  configurações, e o documento desenha um botão só no canto do céu.
+*/
 confere(
   'HomeScreen',
-  (home.match(/background=\{VIDRO_NO_CEU\}/g) || []).length === 2,
-  'as duas pastilhas do cabeçalho não têm mais o vidro claro',
+  (home.match(/background=\{VIDRO_NO_CEU\}/g) || []).length === 1,
+  'a pastilha do cabeçalho não tem mais o vidro claro',
+);
+confere(
+  'HomeScreen',
+  !/name="bell"/.test(home),
+  'o sininho voltou para a tela inicial: o caminho dos lembretes é dentro das configurações',
 );
 
 /* ---------- 4. A barra de status ---------- */

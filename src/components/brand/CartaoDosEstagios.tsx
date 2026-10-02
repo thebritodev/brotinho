@@ -17,15 +17,26 @@ import { Sprout, type SproutStage } from './Sprout';
  * nele. Aqui os três estágios aparecem juntos, com o de agora aceso e os
  * outros dois apagados.
  *
- * ## Por que dias, e não folhas
+ * ## A cara é a do documento; a conta é de dias
  *
- * O protótipo conta folhas: dez folhas viram um estágio, e cada prática vale
- * uma. É bonito e é errado para este app — aqui o crescimento é por **dia
- * cuidado**, não por volume, justamente para não premiar quem despeja tudo
- * numa terça e some. Ver `STAGE_AT`, em `derived`. A barra é contínua pelo
- * mesmo motivo: em dias, uma barra repartida em dez pedaços mentiria sobre o
- * tamanho de cada passo, que não é igual (três dias até Broto, sete até
- * Plantinha, onze até amadurecer).
+ * O documento conta folhas — dez folhas viram um estágio, cada prática vale
+ * uma — e desenha isso como uma fileira de pontinhos. A conta é errada para
+ * este app: aqui o crescimento é por **dia cuidado**, e não por volume,
+ * justamente para não premiar quem despeja tudo numa terça e some. Ver
+ * `STAGE_AT`, em `derived`.
+ *
+ * Mas o **desenho** do documento está certo, e eu tinha jogado fora junto com
+ * a conta. Uma barra contínua com quatro rótulos embaixo é um gráfico; uma
+ * fileira de pontinhos é um caminho com passos contados, e passo contado é o
+ * que faz alguém querer dar o próximo. Pedro pediu a cara de lá com a conta
+ * daqui, e é o que está aqui: **um pontinho por dia do estágio atual**.
+ *
+ * E há um ganho de verdade na troca. A barra contínua ia de zero a
+ * `MATURIDADE` — vinte e um dias — e por isso os três estágios apareciam nela
+ * com tamanhos diferentes, o que estava certo e não ajudava ninguém: na
+ * Plantinha, um dia movia a barra menos de cinco por cento. Os pontinhos são
+ * do **estágio de agora**, então o passo de hoje sempre ocupa um pontinho
+ * inteiro.
  */
 
 /** Os nomes dos três estágios, mais o fim do ciclo. */
@@ -46,7 +57,19 @@ export function CartaoDosEstagios({ estagio, dias, faltam, nome }: Props) {
   const { colors, palette, shadows } = useTema();
 
   const proximo = NOMES_DOS_ESTAGIOS[estagio] ?? 'Florescer';
-  const andado = Math.max(0, Math.min(1, dias / MATURIDADE));
+
+  /*
+    Os pontinhos são do estágio de agora, e não da vida inteira do broto.
+
+    `STAGE_AT` diz em que dia cada estágio abre; o fim do último é
+    `MATURIDADE`. O tamanho do passo atual é a diferença entre os dois, e é
+    quantos pontinhos a fileira tem: três na Semente, sete no Broto, onze na
+    Plantinha.
+  */
+  const comeca = STAGE_AT[estagio];
+  const termina = estagio < 3 ? STAGE_AT[(estagio + 1) as SproutStage] : MATURIDADE;
+  const passos = Math.max(1, termina - comeca);
+  const andados = Math.max(0, Math.min(passos, dias - comeca));
 
   return (
     <View
@@ -86,36 +109,33 @@ export function CartaoDosEstagios({ estagio, dias, faltam, nome }: Props) {
         })}
       </View>
 
-      <View style={{ gap: 8 }}>
+      <View style={{ gap: 10 }}>
+        {/*
+          Os pontinhos. Cada um é um dia cuidado dentro deste estágio.
+
+          `flex: 1` em cada um, e não largura fixa: a fileira tem três, sete ou
+          onze pontinhos conforme o estágio, e com largura fixa ela sobraria
+          numa ponta e estouraria na outra. O `gap` é o que os separa.
+
+          Sem rótulo embaixo. Os três nomes já estão escritos em cima, debaixo
+          dos desenhos, e repeti-los aqui era a mesma palavra duas vezes na
+          mesma altura da tela.
+        */}
         <View
-          style={{
-            height: 10,
-            borderRadius: 5,
-            backgroundColor: palette.cream300,
-            overflow: 'hidden',
-          }}
+          accessibilityRole="progressbar"
+          accessibilityValue={{ min: 0, max: passos, now: andados }}
+          style={{ flexDirection: 'row', gap: 6 }}
         >
-          <View
-            style={{
-              width: `${andado * 100}%`,
-              height: '100%',
-              borderRadius: 5,
-              backgroundColor: colors.primary,
-            }}
-          />
-        </View>
-        <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
-          {[...NOMES_DOS_ESTAGIOS, 'Flor'].map((rotulo, i) => (
-            <Text
-              key={rotulo}
+          {Array.from({ length: passos }, (_, i) => (
+            <View
+              key={i}
               style={{
-                fontFamily: fonts.body.extraBold,
-                fontSize: 12,
-                color: i === estagio - 1 ? colors.primaryStrong : palette.brown400,
+                flex: 1,
+                height: 12,
+                borderRadius: 6,
+                backgroundColor: i < andados ? colors.primary : palette.cream300,
               }}
-            >
-              {rotulo}
-            </Text>
+            />
           ))}
         </View>
         <Text

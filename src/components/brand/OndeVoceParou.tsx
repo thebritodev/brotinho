@@ -4,7 +4,7 @@ import { Pressable, ScrollView, Text, View } from 'react-native';
 import { findPractice } from '../../data/practices';
 import type { PraticaVisitada } from '../../state/derived';
 import { fonts, radius, useTema } from '../../theme';
-import { ArteDoTema, ehTemaComArte } from './artesDosTemas';
+import { Sprout } from './Sprout';
 import { SOBRA_DO_DESENHO, TAMANHO_DO_DESENHO } from './PracticeTopicCard';
 
 /**
@@ -44,14 +44,19 @@ import { SOBRA_DO_DESENHO, TAMANHO_DO_DESENHO } from './PracticeTopicCard';
  * reconhecível de relance pela arte do tema — que é justamente o que a arte
  * cortada na borda faz melhor do que um ícone centralizado.
  *
- * ## A arte é a mesma da grade de temas, e tem de ser
+ * ## Aqui é o broto, e não a arte do tema
  *
- * Ela já foi outra. Enquanto a grade de treze temas passou a usar a arte de
- * objeto do documento, esta fileira continuou com a cena de paisagem antiga, e
- * o cartão grande de cima também — três lugares mostrando "Acalmar a
- * ansiedade" com dois desenhos diferentes, um por cima do outro na mesma
- * rolagem. O desenho de um tema é o que faz ele virar um lugar reconhecível; em
- * duas versões, não vira nada.
+ * Eu já tentei os dois caminhos errados. Primeiro a cena de paisagem antiga,
+ * que não era mais a linguagem de lugar nenhum; depois a arte de objeto da
+ * grade de temas, pensando que repetir o objeto faria o tema virar um lugar
+ * reconhecível.
+ *
+ * O documento faz outra coisa, e é mais simples: nos cartões de prática
+ * **quem aparece é o broto**, no vaso, pequeno no canto. E faz sentido — a
+ * arte de objeto responde "de que assunto é este tema"; aqui a pergunta não é
+ * essa. Estes cartões são atalhos para *fazer uma prática agora*, e a prática
+ * é guiada por ele. O coração do tema da ansiedade neste cartão responde uma
+ * pergunta que ninguém fez.
  */
 
 /** Largura e altura de cada cartãozinho da fileira. */
@@ -169,26 +174,15 @@ export function OndeVoceParou({ itens, margem, onAbrir }: Props) {
               Sem cena para o tema, fica só a cor: melhor a cor sozinha do que
               um ícone genérico brigando com as cenas dos vizinhos.
             */}
-            {ehTemaComArte(item.topico) && (
-              <View
-                accessibilityElementsHidden
-                importantForAccessibility="no-hide-descendants"
-                pointerEvents="none"
-                style={{
-                  position: 'absolute',
-                  right: 0,
-                  bottom: 0,
-                  width: TAMANHO_DO_DESENHO,
-                  height: TAMANHO_DO_DESENHO,
-                }}
-              >
-                <ArteDoTema
-                  tema={item.topico}
-                  largura={TAMANHO_DO_DESENHO}
-                  altura={TAMANHO_DO_DESENHO}
-                />
-              </View>
-            )}
+            {/* O broto no vaso, no canto, passando da borda de baixo. */}
+            <View
+              accessibilityElementsHidden
+              importantForAccessibility="no-hide-descendants"
+              pointerEvents="none"
+              style={{ position: 'absolute', right: 6, bottom: 0 }}
+            >
+              <Sprout mood="leve" stage={2} size={TAMANHO_DO_DESENHO * 0.78} />
+            </View>
           </View>
         );
       })}

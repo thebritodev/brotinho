@@ -104,6 +104,103 @@ export const CARAS: Record<Mood, Cara> = {
  * boca e para onde os olhos olham — quem está ansioso continua com o olho
  * maior.
  */
+/**
+ * Os rostos das pastilhas de humor — e por que não são os do broto.
+ *
+ * ## Duas tabelas, de propósito
+ *
+ * `CARAS` é a cara do **personagem**: ela é desenhada num bulbo de 27 de raio,
+ * vista de longe, e tem de continuar legível quando o broto está do tamanho de
+ * um polegar numa faixa de céu. Por isso ela é mínima — dois olhos e uma boca.
+ *
+ * Isto aqui é outra coisa: é o **símbolo de um sentimento**, num botão de 56
+ * que a pessoa olha de perto para escolher. Ali cabe, e precisa caber, o que
+ * distingue ansiedade de tristeza sem ler o rótulo: a sobrancelha, a gota de
+ * suor, a lágrima, o "z" de quem está acabado. O documento desenha assim, e
+ * desenha assim porque a tarefa é outra.
+ *
+ * A regra antiga continua valendo, e é por isso que esta tabela mora **aqui**
+ * e não dentro do `MoodFace`: houve um tempo em que havia duas cópias do rosto
+ * em dois arquivos, e elas divergiram na primeira vez que alguém mexeu numa.
+ * Uma casa para a geometria dos rostos; duas tabelas dentro dela, com nomes
+ * que dizem para que serve cada uma.
+ *
+ * As coordenadas são as do documento, numa caixa de 56 por 56.
+ */
+export type RostoDoHumor = {
+  /** Os olhos: dois círculos, ou dois caminhos já espelhados. */
+  olhos: { tipo: 'circulo'; r: number; y: number } | { tipo: 'traco'; d: string };
+  boca: string;
+  /** A boca preenchida do `feliz` — a única que é uma forma, e não um traço. */
+  bocaCheia?: boolean;
+  /** As sobrancelhas, quando a expressão depende delas. */
+  sobrancelhas?: string;
+  /** A gota: de suor no ansioso, de choro no triste. */
+  gota?: { d: string; traco: number };
+  /** O "z" de quem está acabado, em cima e à direita. */
+  zeta?: boolean;
+  /** A bochecha corada — só quem está bem cora. */
+  bochecha?: boolean;
+};
+
+/** Onde os olhos ficam, na caixa de 56. */
+export const OLHOS_DO_HUMOR = { esquerdo: 21, direito: 35 };
+
+export const ROSTOS_DO_HUMOR: Record<Mood, RostoDoHumor> = {
+  feliz: {
+    olhos: { tipo: 'traco', d: 'M 17 24 q 4 -5 8 0 M 31 24 q 4 -5 8 0' },
+    boca: 'M 19 32 q 9 10 18 0 Z',
+    bocaCheia: true,
+    bochecha: true,
+  },
+  leve: {
+    olhos: { tipo: 'circulo', r: 2.6, y: 24 },
+    boca: 'M 21 33 q 7 6 14 0',
+    bochecha: true,
+  },
+  ansioso: {
+    olhos: { tipo: 'circulo', r: 3.2, y: 25 },
+    sobrancelhas: 'M 16 18 l 7 -2 M 40 18 l -7 -2',
+    boca: 'M 20 35 q 3 -3 6 0 q 3 3 6 0 q 2 -2 4 0',
+    gota: { d: 'M 44 16 q 3 4 0 6 q -3 -2 0 -6 Z', traco: 1.6 },
+  },
+  cansado: {
+    olhos: { tipo: 'traco', d: 'M 17 25 q 4 3 8 0 M 31 25 q 4 3 8 0' },
+    boca: 'M 23 34 l 10 0',
+    zeta: true,
+  },
+  triste: {
+    olhos: { tipo: 'circulo', r: 2.6, y: 25 },
+    sobrancelhas: 'M 16 21 q 3 -1 7 -4 M 40 21 q -3 -1 -7 -4',
+    boca: 'M 22 36 q 6 -4 12 0',
+    gota: { d: 'M 20 30 q 2 3 0 5 q -2 -2 0 -5 Z', traco: 1.4 },
+  },
+  /*
+    O neutro não aparece na fileira de escolha — ele é o estado de quem ainda
+    não respondeu. Existe aqui porque a tabela cobre `Mood` inteiro, e porque
+    o calendário do mês desenha os dias sem registro.
+  */
+  neutro: {
+    olhos: { tipo: 'circulo', r: 2.4, y: 25 },
+    boca: 'M 22 34 l 12 0',
+  },
+};
+
+/**
+ * O "z" do cansado, desenhado a traço.
+ *
+ * Não é um `<Text>` com a fonte do app: fonte própria dentro de SVG falha em
+ * silêncio no Android — a mesma história do `ArDoBroto`, e lá está escrita por
+ * extenso. Três traços fazem o mesmo zê e não dependem de fonte nenhuma.
+ */
+export const ZETA_DO_CANSADO = 'M 38 13 H 46 L 38 21 H 46';
+
+/** As bochechas do `feliz` e do `leve`, na caixa de 56. */
+export const BOCHECHAS_DO_HUMOR = [
+  { cx: 15, cy: 30 },
+  { cx: 41, cy: 30 },
+];
+
 export type Pose =
   | 'parado'
   | 'acena'

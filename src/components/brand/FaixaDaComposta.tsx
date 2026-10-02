@@ -8,6 +8,7 @@ import { lacoQueSoVai } from '../laco';
 import { useAbaAVista } from '../AbasVivas';
 import { useCoberta } from '../CamadaEmpilhada';
 import { AnimatedSprout } from './AnimatedSprout';
+import { Nuvem } from './Cena';
 import { BalaoDoBroto } from './BalaoDoBroto';
 import {
   CX,
@@ -275,23 +276,36 @@ const MORROS = [
   { x: 0.46, sobe: -4, alto: 44, largura: 0.9, op: 0.42 },
 ] as const;
 /**
- * As nuvens paradas do fundo.
+ * As nuvens do céu da tela inicial.
  *
- * Cenário, e só: elas ficam atrás dos morros, sem contorno e sem andar. O
- * `x` e o `y` são frações do céu, para o tempo nublado ser o mesmo num
- * celular estreito e num largo; `rx` também, e `ry` é em pontos porque
- * nuvem que estica com a largura da tela vira tarja.
+ * ## Elas eram manchas, e agora são nuvens
  *
- * São brancas, e o reforço de opacidade está em `PESO_DA_NUVEM`: branco
- * sobre creme, com a opacidade que bastava num céu escuro, deixava o céu liso
- * de novo.
+ * A primeira versão desenhava quatro elipses com degradê radial caindo a
+ * zero: sem aresta, sem recorte, e paradas. Lado a lado com o documento o
+ * problema fica óbvio — o documento tem **nuvem de desenho**, com a barriga
+ * ondulada em cima e a base reta, do mesmo traço do resto do app. Mancha de
+ * degradê não é um jeito diferente de desenhar nuvem; é um borrão.
+ *
+ * Agora são as mesmas da `Cena`, com o mesmo caminho e o mesmo passeio. Uma
+ * nuvem só no app inteiro.
+ *
+ * ## Por que elas saíram de dentro do `Svg`
+ *
+ * Porque andam. Propriedade de SVG animada não chega no `react-native-web`
+ * (a nota longa em `desenhosDosTemas` conta o episódio), então quem anda é
+ * uma `View` com `transform` — e `View` não entra dentro de `Svg`.
+ *
+ * O preço é que elas passam a ficar **na frente** dos morros em vez de atrás.
+ * Na prática não encosta: os morros vivem no pé do céu e as nuvens no alto
+ * dele, que é onde nuvem fica.
+ *
+ * `x` e `y` são frações do céu, para o tempo nublado ser o mesmo num celular
+ * estreito e num largo.
  */
-
 const NUVENS = [
-  { x: 0.2, y: 0.46, rx: 0.34, ry: 22, op: 0.5 },
-  { x: 0.34, y: 0.4, rx: 0.2, ry: 16, op: 0.42 },
-  { x: 0.78, y: 0.58, rx: 0.3, ry: 19, op: 0.46 },
-  { x: 0.63, y: 0.66, rx: 0.17, ry: 13, op: 0.36 },
+  { x: 0.06, y: 0.3, escala: 0.9, ms: 14000 },
+  { x: 0.42, y: 0.16, escala: 0.62, ms: 11000 },
+  { x: 0.7, y: 0.44, escala: 0.75, ms: 17000 },
 ] as const;
 
 /** A coluna do broto do adubo, em fração da largura. */
@@ -391,6 +405,8 @@ export function FaixaDaComposta({
   const { colors } = useTema();
   const id = useId().replace(/[^a-zA-Z0-9]/g, '');
   const menosMovimento = useMenosMovimento();
+  /* A escala do aparelho: as nuvens são escritas na largura de referência. */
+  const k = largura / 390;
   /*
     À vista na rolagem, com a aba aberta, e descoberta — as três.
 
@@ -572,14 +588,6 @@ export function FaixaDaComposta({
               o miolo, ela tem uma **copa** — e copa é o que diferencia um
               morro de uma mancha.
             */}
-            {/* A mesma queda a zero dos morros: nuvem também não tem aresta. */}
-            {NUVENS.map((n, i) => (
-              <RadialGradient key={`n${i}`} id={`nuvem${i}-${id}`} cx="50%" cy="50%" r="50%">
-                <Stop offset="0" stopColor={NUVEM} stopOpacity={n.op * PESO_DA_NUVEM} />
-                <Stop offset="0.5" stopColor={NUVEM} stopOpacity={n.op * PESO_DA_NUVEM * 0.8} />
-                <Stop offset="1" stopColor={NUVEM} stopOpacity={0} />
-              </RadialGradient>
-            ))}
             {MORROS.map((m, i) => (
               <RadialGradient key={i} id={`morro${i}-${id}`} cx="50%" cy="50%" r="50%">
                 <Stop offset="0" stopColor={MORRO} stopOpacity={m.op} />
@@ -603,17 +611,6 @@ export function FaixaDaComposta({
             fill={`url(#ceu-${id})`}
           />
 
-          {/* O tempo nublado, atrás de tudo: os morros passam por cima delas. */}
-          {NUVENS.map((n, i) => (
-            <Ellipse
-              key={`n${i}`}
-              cx={largura * n.x}
-              cy={(crista + EMENDA) * n.y}
-              rx={largura * n.rx}
-              ry={n.ry}
-              fill={`url(#nuvem${i}-${id})`}
-            />
-          ))}
 
           {/*
             A paisagem ao longe: três copas e uma crista rasteira.
@@ -640,6 +637,26 @@ export function FaixaDaComposta({
             />
           ))}
         </Svg>
+
+        {/*
+          As nuvens, por cima do `Svg` porque elas andam. Ver `NUVENS`.
+
+          `k` é a escala do aparelho: as posições e o passeio são escritos na
+          largura de referência, como na `Cena`, para o tempo nublado ser o
+          mesmo em qualquer tela.
+        */}
+        {NUVENS.map((n, i) => (
+          <Nuvem
+            key={`n${i}`}
+            x={largura * n.x}
+            y={(crista + EMENDA) * n.y}
+            escala={n.escala * k}
+            ms={n.ms}
+            cor={NUVEM}
+            k={k}
+            parado={menosMovimento}
+          />
+        ))}
       </View>
 
       {/*

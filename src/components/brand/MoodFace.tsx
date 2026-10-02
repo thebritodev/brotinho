@@ -1,14 +1,26 @@
 import React from 'react';
-import Svg, { Circle, G, Path } from 'react-native-svg';
+import Svg, { Circle, Ellipse, G, Path } from 'react-native-svg';
 
 import { tracos, type Mood, useTema } from '../../theme';
-import { CARAS } from './geometriaDoBroto';
+import {
+  BOCHECHAS_DO_HUMOR,
+  OLHOS_DO_HUMOR,
+  ROSTOS_DO_HUMOR,
+  ZETA_DO_CANSADO,
+} from './geometriaDoBroto';
 
 /**
- * A carinha de um humor, com a mesma expressao que o broto faz.
+ * A carinha de um humor: o símbolo do sentimento, numa pastilha.
  *
- * As formas sao as mesmas de Sprout.tsx: quem escolhe "ansioso" ve aqui o
- * rosto que o broto vai ter depois de escolher.
+ * Ela **não** é a cara do broto, e a nota de `ROSTOS_DO_HUMOR` conta por quê —
+ * em resumo: o broto é um personagem visto de longe e precisa de pouco; isto é
+ * um botão que a pessoa olha de perto para escolher, e precisa que ansiedade e
+ * tristeza se distingam sem ler o rótulo. É a sobrancelha, a gota e o zê que
+ * fazem isso, e nenhum deles caberia no bulbo do broto.
+ *
+ * A geometria mora em `geometriaDoBroto`, junto com a do personagem. Já houve
+ * duas cópias do rosto em dois arquivos, e elas divergiram na primeira vez que
+ * alguém mexeu numa.
  */
 
 type Props = {
@@ -27,6 +39,9 @@ type Props = {
   semFundo?: boolean;
 };
 
+/** A caixa do documento. O rosto inteiro é escrito nela. */
+const CAIXA = 56;
+
 export function MoodFace({ mood, size = 44, selected = false, semFundo = false }: Props) {
   const { moodColors, palette } = useTema();
   /*
@@ -39,47 +54,92 @@ export function MoodFace({ mood, size = 44, selected = false, semFundo = false }
     escura sobre a cor do humor, como um rostinho desenhado a lápis.
   */
   const traco = tracos.contorno;
-  const f = CARAS[mood] ?? CARAS.neutro;
+  const r = ROSTOS_DO_HUMOR[mood] ?? ROSTOS_DO_HUMOR.neutro;
 
-  const olho = (x: number) =>
-    f.eye === 'circle' ? (
-      <Circle cx={x} cy={-2} r={f.r} fill={traco} />
-    ) : (
-      <Path
-        d={f.eye}
-        // O olho da direita e o mesmo desenho espelhado.
-        transform={`translate(${x} -2)${x < 0 ? '' : ' scale(-1,1)'}`}
-        stroke={traco}
-        strokeWidth={2.6}
-        strokeLinecap="round"
-        fill="none"
-      />
-    );
+  const comum = {
+    stroke: traco,
+    strokeWidth: 2.6,
+    strokeLinecap: 'round' as const,
+    strokeLinejoin: 'round' as const,
+    fill: 'none',
+  };
 
   return (
-    // viewBox centrada em 0,0 para as coordenadas do rosto valerem direto.
-    <Svg viewBox="-26 -26 52 52" width={size} height={size}>
+    <Svg viewBox={`0 0 ${CAIXA} ${CAIXA}`} width={size} height={size}>
       {!semFundo && (
         <Circle
-          cx={0}
-          cy={0}
-          r={23}
+          cx={CAIXA / 2}
+          cy={CAIXA / 2}
+          r={CAIXA / 2 - 2}
           fill={moodColors[mood]}
           stroke={selected ? tracos.folha : palette.brown200}
           strokeWidth={selected ? 3 : 2}
         />
       )}
+
+      {/* A bochecha vai embaixo de tudo: é cor na pele, não traço no rosto. */}
+      {r.bochecha
+        && BOCHECHAS_DO_HUMOR.map((b) => (
+          <Ellipse
+            key={b.cx}
+            cx={b.cx}
+            cy={b.cy}
+            rx={3.5}
+            ry={2.2}
+            fill={palette.terracotta400}
+            opacity={0.35}
+          />
+        ))}
+
       <G>
-        {olho(-8)}
-        {olho(8)}
+        {r.olhos.tipo === 'circulo' ? (
+          <>
+            <Circle
+              cx={OLHOS_DO_HUMOR.esquerdo}
+              cy={r.olhos.y}
+              r={r.olhos.r}
+              fill={traco}
+            />
+            <Circle
+              cx={OLHOS_DO_HUMOR.direito}
+              cy={r.olhos.y}
+              r={r.olhos.r}
+              fill={traco}
+            />
+          </>
+        ) : (
+          <Path d={r.olhos.d} {...comum} />
+        )}
+
+        {!!r.sobrancelhas && <Path d={r.sobrancelhas} {...comum} />}
+
         <Path
-          d={f.mouth}
-          transform="translate(0 -2)"
-          stroke={traco}
-          strokeWidth={2.4}
-          strokeLinecap="round"
-          fill="none"
+          d={r.boca}
+          {...comum}
+          fill={r.bocaCheia ? traco : 'none'}
+          strokeWidth={r.bocaCheia ? 2.2 : 2.6}
         />
+
+        {!!r.gota && (
+          <Path
+            d={r.gota.d}
+            fill={palette.blue300}
+            stroke={traco}
+            strokeWidth={r.gota.traco}
+            strokeLinejoin="round"
+          />
+        )}
+
+        {r.zeta && (
+          <Path
+            d={ZETA_DO_CANSADO}
+            stroke={traco}
+            strokeWidth={2.2}
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            fill="none"
+          />
+        )}
       </G>
     </Svg>
   );

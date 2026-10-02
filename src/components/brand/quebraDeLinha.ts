@@ -83,7 +83,18 @@ function quebrarEmLinhas(texto: string, larguraMax: number, corpo: number): stri
  * Cabia, e cabia por sorte: a primeira frase nova com dois "m" a mais vazaria, e
  * o estrago só apareceria na imagem que alguém já postou.
  */
-export const LARGURA_DA_CAIXA = 820;
+/*
+  A caixa encolheu quando a frase passou a morar num papel.
+
+  Antes ela era o cartaz inteiro menos as margens: 820 de 1080. Agora o texto
+  fica dentro do retângulo de papel do documento, que tem 210 de 262 — 866
+  aqui — com 18 de recuo de cada lado, o que sobra para a letra é 718.
+
+  O `confere-story` mede as vinte frases com a fonte de verdade contra este
+  número. Se ele estiver errado, a frase vaza pela borda de uma imagem que
+  ninguém revisa antes de postar.
+*/
+export const LARGURA_DA_CAIXA = 718;
 const FOLGA = 40;
 
 /**

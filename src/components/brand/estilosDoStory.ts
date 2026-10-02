@@ -35,8 +35,23 @@ export type EstiloDoStory = {
   /**
    * A vinheta fecha as bordas. Escura nos fundos escuros, e **clara** nos
    * claros: uma vinheta preta sobre creme sujaria o papel em vez de fechá-lo.
+   *
+   * Ela saiu do card quando ele virou o do documento, e continua aqui porque
+   * `confere-contraste` ainda a mede e porque um fundo sem vinheta declarada é
+   * um fundo que ninguém pensou até o fim.
    */
   vinheta: string;
+  /**
+   * O papel em que a frase é escrita — claro em todos, porque é papel.
+   *
+   * O documento usa quase branco nos fundos claros e um creme um pouco mais
+   * quente no escuro: papel branco sobre azul-noite brilha demais e vira
+   * holofote no meio da imagem.
+   */
+  papel: string;
+  /** Os dois morros do pé do card: o da frente e o de trás. */
+  morro: string;
+  morroDeTras: string;
 };
 
 export const ESTILOS_DO_STORY: EstiloDoStory[] = [
@@ -46,6 +61,9 @@ export const ESTILOS_DO_STORY: EstiloDoStory[] = [
     fundo: '#2E4A3B',
     tinta: '#FBF6EC',
     vinheta: '#000000',
+    papel: '#F4EEE2',
+    morro: '#233A2E',
+    morroDeTras: '#3E6B54',
   },
   {
     chave: 'terra',
@@ -53,6 +71,9 @@ export const ESTILOS_DO_STORY: EstiloDoStory[] = [
     fundo: '#F1E9DA',
     tinta: '#3A3630',
     vinheta: '#5B5548',
+    papel: '#FFFDF8',
+    morro: '#5B5548',
+    morroDeTras: '#8A8375',
   },
   {
     chave: 'sol',
@@ -60,6 +81,9 @@ export const ESTILOS_DO_STORY: EstiloDoStory[] = [
     fundo: '#F5E3B0',
     tinta: '#3A3630',
     vinheta: '#8A6318',
+    papel: '#FFFDF8',
+    morro: '#5B8A72',
+    morroDeTras: '#88B39A',
   },
   {
     /*
@@ -77,6 +101,9 @@ export const ESTILOS_DO_STORY: EstiloDoStory[] = [
     fundo: '#CFE0EA',
     tinta: '#3A3630',
     vinheta: '#2A4556',
+    papel: '#FFFDF8',
+    morro: '#4F7462',
+    morroDeTras: '#7FA890',
   },
   {
     chave: 'noite',
@@ -84,6 +111,9 @@ export const ESTILOS_DO_STORY: EstiloDoStory[] = [
     fundo: '#2F3446',
     tinta: '#FBF6EC',
     vinheta: '#000000',
+    papel: '#F4EEE2',
+    morro: '#1F2330',
+    morroDeTras: '#3A4058',
   },
 ];
 

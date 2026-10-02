@@ -436,7 +436,14 @@ function Estrela({
 }
 
 /** Uma nuvem indo e voltando devagar. */
-function Nuvem({
+/**
+ * A nuvem do documento, para quem desenha céu fora daqui.
+ *
+ * Exportada porque a faixa da tela inicial precisava dela: ali as nuvens eram
+ * manchas de degradê radial — o oposto de uma nuvem de desenho, que tem
+ * recorte. Duas nuvens diferentes no mesmo app é uma a mais do que o app tem.
+ */
+export function Nuvem({
   x,
   y,
   escala,

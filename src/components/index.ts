@@ -58,6 +58,7 @@ export { MoodSelector, MOODS } from './brand/MoodSelector';
 export { PalavraDoHumor } from './brand/PalavraDoHumor';
 export { PracticeTopicCard } from './brand/PracticeTopicCard';
 export { Sprout, ehEnfeite, type Decoration, type Pose, type SproutStage } from './brand/Sprout';
+export { FaixaDoJardim, type ValorVivido } from './brand/FaixaDoJardim';
 export { ValueBadge, VALUES, type ValueKey } from './brand/ValueBadge';
 export { WindowScene } from './brand/WindowScene';
 

@@ -635,22 +635,27 @@ export function HomeScreen({
                 {tituloDoDia}
               </Text>
             </View>
-            <View style={{ flexDirection: 'row', gap: 6 }}>
-              <IconButton
-                accessibilityLabel="Lembretes"
-                icon={<Icon name="bell" color={TEXTO_NO_CEU} />}
-                onPress={onOpenReminders}
-                forma="vidro"
-                background={VIDRO_NO_CEU}
-              />
-              <IconButton
-                accessibilityLabel="Configurações"
-                icon={<Icon name="settings" color={TEXTO_NO_CEU} />}
-                onPress={onOpenSettings}
-                forma="vidro"
-                background={VIDRO_NO_CEU}
-              />
-            </View>
+            {/*
+              Um botão só, e é a engrenagem.
+
+              Havia dois: o sininho dos lembretes e a engrenagem. O documento
+              desenha um, e tem razão — os lembretes **moram dentro** das
+              configurações, e um atalho para dentro de uma tela que fica ao
+              lado dele põe dois caminhos para o mesmo lugar no canto mais
+              disputado da tela inicial. Dois ícones de sistema ali também
+              empurram a saudação para a esquerda e tiram do céu justamente o
+              vão por onde as palavras caem.
+
+              Quem procura lembrete procura em configurações. Quem não procura
+              não precisa do sino.
+            */}
+            <IconButton
+              accessibilityLabel="Configurações"
+              icon={<Icon name="settings" color={TEXTO_NO_CEU} />}
+              onPress={onOpenSettings}
+              forma="vidro"
+              background={VIDRO_NO_CEU}
+            />
           </View>
 
         </FaixaDaComposta>
@@ -707,7 +712,9 @@ export function HomeScreen({
         <CartaoHeroi
           altura={alturaDoHeroi}
           fundo={tomDaPratica}
-          cena={() => <CenaDaPratica tema={oferta.topico} altura={alturaDoHeroi} />}
+          cena={(p) => (
+            <CenaDaPratica altura={alturaDoHeroi} largura={largura - 40} p={p} />
+          )}
           selo={oferta.selo}
           titulo={oferta.titulo}
           linha={`${oferta.convite} ${oferta.duracao}, guiada pelo app.`}

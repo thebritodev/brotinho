@@ -24,6 +24,7 @@ import {
   NOMES_DOS_ESTAGIOS,
   CenaDeCrescimento,
   CenaDoDiario,
+  FaixaDoJardim,
   CrossedCard,
   HumorNoTempo,
   Icon,
@@ -50,6 +51,7 @@ import {
   daysCaredFor,
   daysToNextStage,
   diasNoCiclo,
+  livedValues,
   lembranca,
   padraoDoDia,
   sproutStage,
@@ -340,6 +342,8 @@ export function BrotinhoScreen({
     () => (padrao || aFrase ? null : proximoPasso(data)),
     [padrao, aFrase, data],
   );
+  /* Os valores que apareceram no que ela escreveu — a faixa do jardim. */
+  const valoresVividos = useMemo(() => livedValues(data), [data]);
   const memoria = useMemo(() => lembranca(data), [data]);
   const passou = useMemo(() => atravessou(data), [data]);
   const [lendoMemoria, setLendoMemoria] = useState(false);
@@ -566,6 +570,17 @@ export function BrotinhoScreen({
           nome={nomeDoBroto}
         />
 
+        {/*
+          O jardim, aberto, logo depois do crescimento.
+
+          O cartão de cima diz **onde** o broto está; este diz **com o quê** ele
+          chegou lá. São a mesma frase em duas metades, e por isso ficam
+          coladas. Ver `FaixaDoJardim` — ele era uma linha de lista no fim da
+          tela, e o retrato do que a pessoa viveu não cabe atrás de uma linha
+          de lista.
+        */}
+        <FaixaDoJardim valores={valoresVividos} margem={20} aoAbrir={onOpenGarden} />
+
         {!!padrao && (
           <View>
             <Text
@@ -659,8 +674,10 @@ export function BrotinhoScreen({
         */}
         <CartaoHeroi
           altura={alturaDoHeroi}
-          fundo={palette.cream200}
-          cena={(p) => <CenaDoDiario passo={p} />}
+          /* O âmbar do documento: o diário é o único cartão quente da tela, e
+             é o que o separa da pilha de cartões de superfície. */
+          fundo={palette.yellow100}
+          cena={(p) => <CenaDoDiario passo={p} altura={alturaDoHeroi} />}
           selo={seloDoDiario}
           titulo="Diário"
           linha="Escreva ou fale o que passou hoje. Não sai do seu aparelho."
@@ -675,7 +692,7 @@ export function BrotinhoScreen({
 
         <Card>
           <View style={{ gap: 16 }}>
-            {linha('leaf', 'Meu jardim', onOpenGarden)}
+            {/* "Meu jardim" saiu daqui: ele virou faixa aberta lá em cima. */}
             {linha('heart', 'Frases guardadas', onOpenConselhosGuardados)}
             {linha('star', 'Meus valores', onOpenValues)}
           </View>

@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { AccessibilityInfo, Animated, Easing, Pressable, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import Svg, { Circle, Path } from 'react-native-svg';
 
 import { fonts, useTema } from '../../theme';
 import { lacoQueSoVai } from '../laco';
@@ -165,6 +166,122 @@ function balancar(valor: Animated.Value, duracao: number) {
     Animated.timing(valor, { toValue: 0.45, duration: duracao * 0.22, easing: Easing.inOut(Easing.quad), useNativeDriver: true }),
     Animated.timing(valor, { toValue: 0, duration: duracao * 0.14, easing: Easing.out(Easing.quad), useNativeDriver: true }),
   ]).start();
+}
+
+/**
+ * O ícone da aba do broto: a planta no vaso, do documento.
+ *
+ * ## Por que não é mais um traço só
+ *
+ * Era um caule com duas folhas, desenhado como os outros ícones do app: um
+ * `d` só, sem preenchimento. Lado a lado com o documento, faltava a metade que
+ * identifica o personagem — o **vaso**. O broto do app mora num vaso de barro
+ * em toda tela em que ele aparece de corpo inteiro; o ícone que o representa
+ * sem vaso vira "uma plantinha", que é o que qualquer app de jardinagem tem.
+ *
+ * ## Por que são dois `Svg`, e não um
+ *
+ * Porque só a planta cresce. No documento o `scale` está no grupo da planta e
+ * o vaso fica parado — faz sentido: o que brota é o que estava plantado, e
+ * vaso não brota. Um `Animated.View` não entra dentro de um `Svg`, então a
+ * planta tem o `Svg` dela, por cima do vaso, dentro da `View` que anima.
+ *
+ * A origem do crescimento é o pé do caule, em 17,5 de 28 — 62,5% da altura.
+ * É por isso que ele cresce **do vaso para cima** em vez de inchar do meio.
+ */
+const BROTO_DA_ABA = {
+  vaso: 'M8.5 17.5h11l-1.4 6.2a1.6 1.6 0 0 1-1.6 1.3h-5a1.6 1.6 0 0 1-1.6-1.3z',
+  borda: 'M7.5 17.5h13',
+  caule: 'M14 17.5v-5',
+  folhaEsquerda: 'M14 14.2c-1.2-2.6-3.6-3.6-6.2-3.2.3 2.7 2.8 4 6.2 3.2z',
+  folhaDireita: 'M14 14.2c1.2-2.6 3.6-3.6 6.2-3.2-.3 2.7-2.8 4-6.2 3.2z',
+  cabeca: { cx: 14, cy: 7.2, r: 3.6 },
+  /** O pé do caule, em fração da caixa: é daqui que ele cresce. */
+  pe: `${(17.5 / 28) * 100}%`,
+};
+
+function IconeDoBroto({
+  ativa,
+  cor,
+  tamanho,
+  cresce,
+}: {
+  ativa: boolean;
+  cor: string;
+  tamanho: number;
+  cresce: Animated.Value;
+}) {
+  const { palette, colors } = useTema();
+  const traco = ativa ? colors.primaryStrong : cor;
+  const largura = ativa ? 2.4 : 2;
+  const comum = {
+    stroke: traco,
+    strokeWidth: largura,
+    strokeLinecap: 'round' as const,
+    strokeLinejoin: 'round' as const,
+  };
+  return (
+    <View style={{ width: tamanho, height: tamanho }}>
+      <Svg width={tamanho} height={tamanho} viewBox="0 0 28 28" fill="none">
+        <Path
+          d={BROTO_DA_ABA.vaso}
+          fill={ativa ? palette.terracotta400 : 'none'}
+          {...comum}
+        />
+        <Path d={BROTO_DA_ABA.borda} fill="none" {...comum} />
+      </Svg>
+
+      <Animated.View
+        style={{
+          position: 'absolute',
+          left: 0,
+          top: 0,
+          width: tamanho,
+          height: tamanho,
+          transformOrigin: `50% ${BROTO_DA_ABA.pe}`,
+          opacity: cresce.interpolate({
+            inputRange: [...CRESCIMENTO.entrada],
+            outputRange: [...CRESCIMENTO.opacidade],
+          }),
+          transform: [
+            {
+              scaleX: cresce.interpolate({
+                inputRange: [...CRESCIMENTO.passaDe.entrada],
+                outputRange: [...CRESCIMENTO.passaDe.largura],
+              }),
+            },
+            {
+              scaleY: cresce.interpolate({
+                inputRange: [...CRESCIMENTO.passaDe.entrada],
+                outputRange: [...CRESCIMENTO.passaDe.altura],
+              }),
+            },
+          ],
+        }}
+      >
+        <Svg width={tamanho} height={tamanho} viewBox="0 0 28 28" fill="none">
+          <Path d={BROTO_DA_ABA.caule} fill="none" {...comum} />
+          <Path
+            d={BROTO_DA_ABA.folhaEsquerda}
+            fill={ativa ? palette.green300 : 'none'}
+            {...comum}
+          />
+          <Path
+            d={BROTO_DA_ABA.folhaDireita}
+            fill={ativa ? palette.green300 : 'none'}
+            {...comum}
+          />
+          <Circle
+            cx={BROTO_DA_ABA.cabeca.cx}
+            cy={BROTO_DA_ABA.cabeca.cy}
+            r={BROTO_DA_ABA.cabeca.r}
+            fill={ativa ? palette.green300 : 'none'}
+            {...comum}
+          />
+        </Svg>
+      </Animated.View>
+    </View>
+  );
 }
 
 /**
@@ -339,42 +456,27 @@ export function BottomNav({ active = 'home', onChange }: Props) {
         }}
         style={{ flex: 1, alignItems: 'center', justifyContent: 'center', minHeight: 48, gap: 3 }}
       >
-        <Animated.View
-          style={{
-            /* O broto cresce a partir do pé do caule; o perfil gira no meio,
-               que é onde fica o pescoço do bonequinho. */
-            transformOrigin: doBroto ? 'bottom center' : 'center',
-            ...(doBroto
-              ? {
-                  opacity: cresce.interpolate({
-                    inputRange: [...CRESCIMENTO.entrada],
-                    outputRange: [...CRESCIMENTO.opacidade],
-                  }),
-                  transform: [
-                    {
-                      scaleX: cresce.interpolate({
-                        inputRange: [...CRESCIMENTO.passaDe.entrada],
-                        outputRange: [...CRESCIMENTO.passaDe.largura],
-                      }),
-                    },
-                    {
-                      scaleY: cresce.interpolate({
-                        inputRange: [...CRESCIMENTO.passaDe.entrada],
-                        outputRange: [...CRESCIMENTO.passaDe.altura],
-                      }),
-                    },
-                  ],
-                }
-              : { transform: [{ rotate: giro(tranco, TRANCO) }] }),
-          }}
-        >
-          <Icon
-            name={t.icon}
-            size={26}
-            color={ativa ? colors.primaryStrong : colors.textSecondary}
-            strokeWidth={ativa ? 2.4 : 2}
+        {doBroto ? (
+          /* Só a planta cresce; o vaso fica parado. Ver `IconeDoBroto`. */
+          <IconeDoBroto
+            ativa={ativa}
+            cor={colors.textSecondary}
+            tamanho={28}
+            cresce={cresce}
           />
-        </Animated.View>
+        ) : (
+          <Animated.View
+            /* O perfil gira no meio, que é onde fica o pescoço do bonequinho. */
+            style={{ transform: [{ rotate: giro(tranco, TRANCO) }] }}
+          >
+            <Icon
+              name={t.icon}
+              size={26}
+              color={ativa ? colors.primaryStrong : colors.textSecondary}
+              strokeWidth={ativa ? 2.4 : 2}
+            />
+          </Animated.View>
+        )}
         {/*
           O rótulo é visível, e não só para o leitor de tela.
 

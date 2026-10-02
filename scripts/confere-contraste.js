@@ -302,9 +302,23 @@ function razao(frente, fundo) {
     humor novo entrar na paleta, ele cai aqui sozinho: a lista vem de
     `todosOsCeus`, que percorre os humores de verdade.
   */
-  console.log('\n— a frase sobre os cinco fundos do story —');
+  /*
+    A frase mudou de lugar: ela nao e mais escrita no fundo do card, e sim
+    **no papel** que pousa sobre ele. Entao o par que importa passou a ser
+    tinta-do-papel sobre papel, e e esse que se mede.
+
+    O par tinta/fundo continua medido porque ele ainda existe na peca: e o
+    rotulo "A FRASE DE HOJE", la em cima, direto sobre a cor escolhida.
+  */
+  console.log('\n— o card do story, nos cinco fundos —');
+  const TINTA_DO_PAPEL = '#3A3630';
+  const ASSINATURA_DO_PAPEL = '#8A8375';
   for (const e of estilosDoStory.ESTILOS_DO_STORY) {
-    linha(`frase no fundo "${e.rotulo}"`, e.tinta, e.fundo, AA_TEXTO);
+    linha(`frase no papel de "${e.rotulo}"`, TINTA_DO_PAPEL, e.papel, AA_TEXTO);
+    linha(`assinatura no papel de "${e.rotulo}"`, ASSINATURA_DO_PAPEL, e.papel, AA_GRANDE);
+    linha(`rotulo sobre o fundo "${e.rotulo}"`, e.tinta, e.fundo, AA_TEXTO);
+    /* O nome do app fica sobre o morro da frente, sempre o tom mais escuro. */
+    linha(`marca sobre o morro de "${e.rotulo}"`, '#FBF6EC', e.morro, AA_GRANDE);
   }
 
   console.log('\n— texto sobre os céus de humor —');
