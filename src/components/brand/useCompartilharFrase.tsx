@@ -87,7 +87,18 @@ function recadoDe(r: ResultadoDeGuardar, oQue: 'salvou' | 'copiou'): string {
   if (r.tipo === 'sem-permissao') {
     return 'Sem a permissão de salvar na galeria, não dá. Você pode mudar isso nos ajustes do aparelho.';
   }
-  if (r.tipo === 'indisponivel') return 'Isto não funciona por aqui.';
+  if (r.tipo === 'indisponivel') {
+    /*
+      "Indisponível" quer dizer que o módulo nativo não está neste binário —
+      na web, que não tem nenhum, ou num development build anterior ao pacote.
+      Para quem usa o app, é um recurso que não existe aqui; para quem está
+      desenvolvendo, é a build que ficou para trás, e dizer isso economiza uma
+      hora de procura. Ver `moduloTardio`, em `guardarFrase`.
+    */
+    return __DEV__
+      ? 'Isto não funciona nesta build — o módulo nativo não está nela. Gere uma build nova.'
+      : 'Isto não funciona neste aparelho.';
+  }
   const frase = oQue === 'salvou' ? 'Não consegui salvar a imagem.' : 'Não consegui copiar.';
   return __DEV__ ? `${frase}
 

@@ -1,8 +1,6 @@
 import { Platform } from 'react-native';
 
-import * as Clipboard from 'expo-clipboard';
 import { File, Paths } from 'expo-file-system';
-import * as MediaLibrary from 'expo-media-library';
 import type Svg from 'react-native-svg';
 
 import { limparExportacoes } from './limparExportacoes';
@@ -36,7 +34,48 @@ import { pngDaFrase } from './compartilharFrase';
  *
  * O resultado é que o app ganha o botão sem ganhar o direito de olhar as
  * fotos de ninguém, que é a única forma de ter os dois.
+ *
+ * ## Por que os dois módulos são carregados tarde, e não no alto do arquivo
+ *
+ * Porque **módulo nativo que não está no binário derruba o app inteiro**, e
+ * derruba no boot.
+ *
+ * A primeira versão deste arquivo escrevia `import * as Clipboard from
+ * 'expo-clipboard'` lá em cima. O `index` do pacote chama `requireNativeModule`
+ * na hora em que é importado; quem importa este arquivo é a tela de
+ * compartilhar, que é importada pela tela inicial — então o grafo de módulos
+ * inteiro passa por aqui antes de a primeira tela aparecer. Num aparelho com
+ * uma build anterior ao pacote, o app abria em tela vermelha:
+ *
+ *     [runtime not ready]: Error: Cannot find native module 'ExpoClipboard'
+ *
+ * Isto não é só um problema de desenvolvimento. É o mesmo formato de falha que
+ * `compartilharFrase` conta por extenso: um módulo nativo pode estar no
+ * `package.json`, no `.dex` e autolinkado, e ainda assim não ser encontrado em
+ * execução. A diferença entre "um botão não funciona" e "o app não abre" é
+ * inteiramente onde o `require` acontece.
+ *
+ * Então eles são carregados **dentro da função**, em `try`. O custo é uma
+ * chamada de `require` por toque, que é nada; o ganho é que a pior coisa que
+ * pode acontecer é o botão dizer que não dá.
+ *
+ * `confere-modulos-tardios.js` guarda a regra.
  */
+
+/**
+ * Um módulo nativo carregado na hora do uso, ou `null` se ele não existe aqui.
+ *
+ * `require` e não `import` de propósito: `import` é içado para o topo do
+ * arquivo pelo empacotador, e içado para o topo ele volta a rodar no boot —
+ * que é exatamente o que esta função existe para impedir.
+ */
+function moduloTardio<T>(carregar: () => T): T | null {
+  try {
+    return carregar();
+  } catch {
+    return null;
+  }
+}
 
 export type ResultadoDeGuardar =
   | { tipo: 'ok' }
@@ -68,6 +107,12 @@ function motivoDe(e: unknown): string {
  * quer mandar a frase para alguém.
  */
 export async function copiarFrase(texto: string): Promise<ResultadoDeGuardar> {
+  const Clipboard = moduloTardio<typeof import('expo-clipboard')>(
+    // eslint-disable-next-line @typescript-eslint/no-require-imports, global-require
+    () => require('expo-clipboard'),
+  );
+  if (!Clipboard) return { tipo: 'indisponivel' };
+
   try {
     await Clipboard.setStringAsync(texto);
     return { tipo: 'ok' };
@@ -88,6 +133,12 @@ export async function salvarFrase(
 ): Promise<ResultadoDeGuardar> {
   if (Platform.OS === 'web') return { tipo: 'indisponivel' };
   if (!alvo.current) return { tipo: 'falhou', motivo: 'o card não estava montado' };
+
+  const MediaLibrary = moduloTardio<typeof import('expo-media-library')>(
+    // eslint-disable-next-line @typescript-eslint/no-require-imports, global-require
+    () => require('expo-media-library'),
+  );
+  if (!MediaLibrary) return { tipo: 'indisponivel' };
 
   try {
     /*
