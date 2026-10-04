@@ -242,6 +242,14 @@ function razao(frente, fundo) {
       .join('');
   const sobOTitulo = mistura(terra.TERRA, terra.TERRA_FUNDA, 0.425);
   linha('título da Composta sobre a terra', terra.TEXTO_NA_TERRA, sobOTitulo, AA_TEXTO);
+  /* O botão da Composta também é fixo: ver `BOTAO_NA_TERRA`. Texto grande,
+     porque ele é negrito de dezoito. */
+  linha(
+    'botão da Composta: tinta sobre o verde',
+    terra.BOTAO_NA_TERRA.tinta,
+    terra.BOTAO_NA_TERRA.fundo,
+    AA_GRANDE,
+  );
   linha('linha da Composta sobre a terra', terra.TEXTO_NA_TERRA_FRACO, terra.TERRA_FUNDA, AA_TEXTO);
   linha(
     'linha da Composta se subir até TERRA',

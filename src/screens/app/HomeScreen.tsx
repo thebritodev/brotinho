@@ -3,7 +3,6 @@ import { Modal, ScrollView, Text, useWindowDimensions, View } from 'react-native
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import {
-  AnimatedSprout,
   BoasVindas,
   CartaoHeroi,
   ChuvaDeFarelos,
@@ -713,7 +712,12 @@ export function HomeScreen({
           altura={alturaDoHeroi}
           fundo={tomDaPratica}
           cena={(p) => (
-            <CenaDaPratica altura={alturaDoHeroi} largura={largura - 40} p={p} />
+            <CenaDaPratica
+              altura={alturaDoHeroi}
+              largura={largura - 40}
+              p={p}
+              fundo={tomDaPratica}
+            />
           )}
           selo={oferta.selo}
           titulo={oferta.titulo}
@@ -856,30 +860,19 @@ export function HomeScreen({
           ))}
 
           {/*
-            O broto fechando a tela.
+            Aqui ficava um segundo broto, fechando a tela, e ele saiu.
 
-            A lista acabava num cartão, e uma tela que acaba num cartão parece
-            cortada — a pessoa rola até o fim e o que encontra é o mesmo
-            retângulo de antes, só que sem vizinho embaixo. Aqui ele encerra,
-            do jeito que um rodapé desenhado encerra uma página.
+            O argumento era que uma tela que acaba num cartão parece cortada, e
+            que um desenho no pé encerra a página como um rodapé. Em tela, o
+            que ele fazia era outra coisa: o broto desta tela mora **lá em
+            cima**, plantado na terra, grande, e é dali que ele fala. Um
+            segundo, igual, sozinho no meio do creme e sem lugar nenhum,
+            aparecia como um clone — e a pergunta que ele levantava ("por que
+            tem dois?") custa mais do que o remate que ele dava.
 
-            É o mesmo broto de cima, no mesmo estágio, e não tem balão: o de
-            cima fala, o de baixo despede. Dois personagens falando na mesma
-            tela seriam duas conversas.
+            O fim da tela agora é a grade de temas acabando, que é um fim
+            honesto: a pessoa rolou até ver tudo o que havia.
           */}
-          <View
-            accessibilityElementsHidden
-            importantForAccessibility="no-hide-descendants"
-            /* A barra de baixo flutua por cima do conteúdo: sem a folga, o vaso
-               fica atrás do botão redondo do meio dela. */
-            style={{ alignItems: 'center', paddingTop: 20, paddingBottom: 34 }}
-          >
-            <AnimatedSprout
-              mood={humorMarcado ?? 'neutro'}
-              stage={stage}
-              size={Math.min(largura * 0.3, 132)}
-            />
-          </View>
         </View>
       </ScrollView>
 

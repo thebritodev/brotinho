@@ -174,12 +174,21 @@ export function OndeVoceParou({ itens, margem, onAbrir }: Props) {
               Sem cena para o tema, fica só a cor: melhor a cor sozinha do que
               um ícone genérico brigando com as cenas dos vizinhos.
             */}
-            {/* O broto no vaso, no canto, passando da borda de baixo. */}
+            {/*
+              O broto no vaso, no canto de baixo à direita.
+
+              `bottom` em 18, e não em zero: com o pé colado na borda ele
+              descia quase o vaso inteiro para fora do cartão, e o que sobrava
+              dentro era a cabeça e meia folha. Dezoito deixa ele **passar** a
+              borda, que é o que a fileira quer — a arte cortada é o que faz
+              estes cartões serem reconhecidos de relance —, sem que o corte
+              coma a planta.
+            */}
             <View
               accessibilityElementsHidden
               importantForAccessibility="no-hide-descendants"
               pointerEvents="none"
-              style={{ position: 'absolute', right: 6, bottom: 0 }}
+              style={{ position: 'absolute', right: 6, bottom: 18 }}
             >
               <Sprout mood="leve" stage={2} size={TAMANHO_DO_DESENHO * 0.78} />
             </View>

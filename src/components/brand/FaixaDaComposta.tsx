@@ -25,7 +25,6 @@ import {
   TEXTO_NO_CEU,
 } from './ceuDaComposta';
 import { ceuDoHumor } from './ceuDoHumor';
-import { raizesDoBroto } from './raizesDoBroto';
 import { fonts, radius, useTema, type Mood } from '../../theme';
 import { tracos } from '../../theme/tokens';
 import {
@@ -42,6 +41,7 @@ import {
   TERRA_SOMBRA,
   TEXTO_NA_TERRA,
   TEXTO_NA_TERRA_FRACO,
+  BOTAO_NA_TERRA,
 } from './terraDoCanteiro';
 
 /**
@@ -465,16 +465,6 @@ export function FaixaDaComposta({
     apareceria boiando. Emendando com a faixa de baixo não há névoa, e o
     limite é quase o fim do bloco.
   */
-  const raizes = useMemo(
-    () =>
-      raizesDoBroto({
-        x: xDoBroto,
-        y: PE_DO_BROTO,
-        largura,
-        fundo: (alturaDaTerra + 26) * (continua ? 0.95 : TERRA_COMECA_A_SUMIR),
-      }),
-    [xDoBroto, largura, alturaDaTerra, continua],
-  );
   const inicioDaQueda = topo + cabecalho;
   const distancia = queda + AFUNDA;
 
@@ -831,27 +821,23 @@ export function FaixaDaComposta({
           ))}
 
           {/*
-            As raízes do broto, espalhadas por dentro da terra.
+            Aqui ficavam as raízes do broto, e elas saíram.
 
-            Elas saem do mesmo ponto onde a haste nasce e são desenhadas
-            **antes** dele, com fio fino e pouca opacidade: quem olha a faixa
-            vê textura do solo, e quem olha o broto vê que ele está preso
-            ali. Ver `raizesDoBroto`.
+            A ideia era boa no papel: um leque de fios finos saindo do pé da
+            haste, com pouca opacidade, para quem olhasse a faixa ver textura
+            de solo e quem olhasse o broto ver que ele está preso ali.
 
-            O broto em si não está mais neste `Svg`: ele balança, e giro de
-            SVG não roda no driver nativo. Ver `BrotoAoVento`.
+            Na tela, não era isso. Num aparelho de verdade os fios ficam com
+            menos de um pixel de largura, o antisserrilhado os espalha, e o
+            que sobra é uma mancha clara em leque debaixo do mascote — não lê
+            como raiz, lê como borrão. E ela cai exatamente onde o título
+            "Não sai da cabeça?" começa, roubando contraste de uma linha que
+            precisa de todo o contraste que tem.
+
+            `raizesDoBroto` continua existindo, com os testes dela: o desenho
+            não estava errado, estava no tamanho errado. Se um dia houver uma
+            tela em que a terra seja o assunto, e grande, ele serve.
           */}
-          {raizes.map((r, i) => (
-            <Path
-              key={i}
-              d={r.d}
-              stroke={TERRA_CLARA}
-              strokeWidth={r.espessura}
-              strokeLinecap="round"
-              fill="none"
-              opacity={r.opacidade}
-            />
-          ))}
         </Svg>
       </View>
 
@@ -999,14 +985,23 @@ export function FaixaDaComposta({
           accessibilityElementsHidden
           importantForAccessibility="no-hide-descendants"
           style={{
-            backgroundColor: colors.primary,
+            /* Fixo, como tudo que pousa nesta terra. Ver `BOTAO_NA_TERRA`. */
+            backgroundColor: BOTAO_NA_TERRA.fundo,
             borderRadius: radius.botao,
-            paddingVertical: 15,
+            paddingVertical: 16,
             alignItems: 'center',
             marginTop: 2,
           }}
         >
-          <Text style={{ fontFamily: fonts.body.bold, fontSize: 16, color: colors.textInverse }}>
+          <Text
+            style={{
+              fontFamily: fonts.body.bold,
+              /* Dezoito, e não dezesseis: é o único botão da primeira dobra e
+                 estava menor que o título que ele responde. */
+              fontSize: 18,
+              color: BOTAO_NA_TERRA.tinta,
+            }}
+          >
             {acao}
           </Text>
         </View>

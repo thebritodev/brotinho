@@ -16,8 +16,9 @@ import Svg, {
 import { fraseQueODiaDemonstra } from '../../data/composta';
 import { useMenosMovimento } from '../../hooks/useMenosMovimento';
 import { lacoDeIdaEVolta, lacoQueSoVai } from '../laco';
-import { fonts } from '../../theme';
+import { fonts, useTema } from '../../theme';
 import { palette, tracos } from '../../theme/tokens';
+import { AnimatedSprout } from './AnimatedSprout';
 import { Cena as Paisagem } from './Cena';
 import { Sprout } from './Sprout';
 import { curva, desloca, estica, gira } from './movimentoDaCena';
@@ -257,13 +258,17 @@ export function CenaDaPratica({
   altura,
   largura,
   p,
+  fundo,
 }: {
   /** A altura do cartão; a cena ocupa a parte de cima dela. */
   altura: number;
   largura: number;
   /** O passo do toque, de 0 a 1 — os brilhos respondem a ele. */
   p: number;
+  /** A cor do cartão: é nela que o chão da cena tem de terminar. */
+  fundo: string;
 }) {
+  const { palette: paletaDoTema } = useTema();
   return (
     <View style={{ flex: 1 }} pointerEvents="none">
       {/*
@@ -287,11 +292,25 @@ export function CenaDaPratica({
           O céu da cena não segue o humor do dia: este cartão é um convite, e
           convite não anoitece junto com quem recebe. `semAstro` porque o sol
           disputaria com os brilhos, que são o assunto do desenho.
+
+          ## Mas ele segue o **tema**, e essa era a inversão
+
+          Aqui estava `palette.blue100` — o `palette` importado direto de
+          `theme/tokens`, que é sempre a paleta **clara**. No tema escuro o
+          cartão ficava marinho e a cena dentro dele, azul-claro: um retângulo
+          de dia no meio de uma tela de noite, com a pastilha do selo escura
+          por cima do claro e a sombra dela aparecendo como borrão. Pedro
+          descreveu como "as cores estão invertidas", e era isso, literalmente.
+
+          A paleta do tema resolve o céu; o chão recebe a cor do próprio
+          cartão, senão ele termina no fundo da tela — que ali é uma cor que
+          não existe.
         */}
         <Paisagem
           largura={largura}
           altura={altura * 0.52}
-          ceu={palette.blue100}
+          ceu={paletaDoTema.blue100}
+          chaoCor={fundo}
           semAstro
           nuvens={false}
           chao="grama"
@@ -305,7 +324,12 @@ export function CenaDaPratica({
             alignItems: 'center',
           }}
         >
-          <Sprout mood="leve" stage={2} size={altura * 0.3} />
+          {/*
+            `AnimatedSprout`, e não o parado: este é o personagem convidando
+            para uma prática, e um convite de um boneco imóvel é um cartaz. É
+            a mesma animação de todas as outras telas — faltava só aqui.
+          */}
+          <AnimatedSprout mood="leve" stage={2} size={altura * 0.3} pose="acena" />
         </View>
         <Brilhos largura={largura} altura={altura * 0.52} p={p} />
       </View>

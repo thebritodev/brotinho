@@ -124,6 +124,16 @@ type Props = {
   humor?: Mood;
   /** Um tom próprio no lugar do humor — os cartões de tema usam isto. */
   ceu?: string;
+  /**
+   * Um chão próprio, para a cena que vive **dentro** de outra coisa.
+   *
+   * O chão da `Cena` é o fundo da tela, porque ela normalmente ocupa o alto
+   * dela e precisa se dissolver na página. Dentro de um cartão isso vira o
+   * contrário: o fundo da tela é uma cor que não existe ali, e aparece como
+   * uma faixa estranha entre o desenho e o resto do cartão. Quem desenha num
+   * cartão passa a cor **do cartão**.
+   */
+  chaoCor?: string;
   /** Depois do pôr do sol: véu, estrelas e lua no lugar do sol. */
   noite?: boolean;
   /**
@@ -150,6 +160,7 @@ export function Cena({
   altura,
   humor = 'neutro',
   ceu,
+  chaoCor,
   noite = false,
   hora,
   semAstro = false,
@@ -236,7 +247,7 @@ export function Cena({
               fill={cena.morro}
               opacity={0.45}
             />
-            <Path d={morro(largura, altura, 46, 78, 78, 46)} fill={cena.chao} />
+            <Path d={morro(largura, altura, 46, 78, 78, 46)} fill={chaoCor ?? cena.chao} />
           </>
         )}
 

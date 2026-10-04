@@ -31,3 +31,23 @@ export const BRASA = '#E8B65A';
 */
 export const TEXTO_NA_TERRA = '#FBF6EC';
 export const TEXTO_NA_TERRA_FRACO = '#E4DCC9';
+
+/**
+ * O botão que fica **dentro** da terra — o "Compostar esse pensamento".
+ *
+ * ## Por que ele não segue o tema
+ *
+ * Pela mesma regra de tudo o que está desenhado sobre esta terra: ela tem luz
+ * própria e é a mesma de dia e de noite, então quem pousa nela também é. O
+ * botão seguia `colors.primary` e `colors.textInverse`, e no escuro os dois
+ * **invertem**: o verde clareia e a tinta vira quase preta. Sobre uma terra
+ * que não mudou, isso é um botão verde-claro com letra preta no meio de um
+ * bloco marrom escuro — o contrário do que ele é no claro.
+ *
+ * O verde é o do documento, o mesmo do "Postar nos stories". A tinta é branca,
+ * e branca de verdade: `colors.textInverse` tem o nome certo e o valor errado
+ * aqui, porque ele responde ao tema do app e não ao fundo em que está.
+ *
+ * `confere-contraste.js` mede o par.
+ */
+export const BOTAO_NA_TERRA = { fundo: '#5B8A72', tinta: '#FFFFFF' };
