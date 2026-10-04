@@ -44,8 +44,9 @@
     "typescript": "~5.9.2"
   },
   "scripts": {
-    "start": "expo start",
-    "android": "expo start --android",
+    "start": "expo start --dev-client",
+    "tunel": "expo start --dev-client --tunnel",
+    "android": "expo start --dev-client --android",
     "ios": "expo start --ios",
     "web": "expo start --web",
     "tipos": "tsc --noEmit",
