@@ -210,6 +210,31 @@ export function CartaoHeroi({
       {/* A cena, atrás de tudo e do tamanho do cartão. */}
       <View style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }}>{cena(p)}</View>
 
+      {/*
+        A pastilha do selo — e ela não tem sombra, de propósito.
+
+        Tinha `shadows.sm`, e era a sombra que o Pedro viu torta. Ela não
+        estava torta: ela estava **do tamanho errado**, e o desenho dela conta
+        por quê. `sm` é `0 10px 22px -14px` — dez pontos para baixo, vinte e
+        dois de desfoque, e catorze de recolhimento. O recolhimento encolhe a
+        forma da sombra em catorze pontos de cada lado antes de desfocá-la,
+        o que num cartão de cem pontos de altura é o que faz a sombra cair
+        longe sem virar mancha em volta.
+
+        Esta pastilha tem vinte e nove pontos de altura. Encolhida em catorze
+        de cada lado ela sobra com **um** ponto, e esse um ponto é então
+        empurrado dez para baixo e desfocado vinte e dois: o que aparece não é
+        a sombra da pastilha, é um borrão estreito pousado debaixo dela,
+        deslocado e menor que ela. Daí "a sombra não está centralizada na tag".
+
+        O documento resolve sem conserto: a insígnia do cartão em destaque não
+        tem sombra. Ela é superfície clara sobre o tom do cartão, e isso já a
+        levanta. Ver a linha 178 do redesenho.
+
+        A lição, para a próxima: `shadows.sm` é sombra de **cartão**. Num
+        objeto com menos de uns quarenta pontos de altura o recolhimento come a
+        forma inteira e sobra o borrão. Ver `shadows` em `theme/tokens`.
+      */}
       {!!selo && (
         <View
           style={{
@@ -220,7 +245,6 @@ export function CartaoHeroi({
             borderRadius: radius.pill,
             paddingVertical: 6,
             paddingHorizontal: 12,
-            ...shadows.sm,
           }}
         >
           <Text

@@ -56,8 +56,39 @@ import { camadaDaAba, proximaAAquecer, proximasMontadas } from './regrasDasAbas'
  * `scripts/testa-abas-vivas.js`, que guarda as regras de `regrasDasAbas.ts`.
  */
 
-/** Quanto dura a passagem de uma aba para a próxima. */
-const TROCA_MS = 220;
+/**
+ * Quanto dura a passagem de uma aba para a próxima.
+ *
+ * ## Por que setecentos e vinte, e não duzentos e vinte
+ *
+ * Duzentos e vinte era o número da **dissolução**, e fazia sentido para ela:
+ * numa dissolução entre duas telas o meio do caminho é o defeito — as duas
+ * aparecem uma dentro da outra —, então a travessia tem de ser curta o bastante
+ * para ninguém ver o meio.
+ *
+ * A revelação em círculo é o contrário disso. O meio do caminho é justamente o
+ * que ela tem para mostrar: o círculo saindo do ícone tocado e abrindo a tela
+ * nova. Em duzentos e vinte milissegundos esse círculo atravessa oitocentos e
+ * cinquenta pontos de diagonal, e o que se vê não é um círculo — é a tela
+ * nova aparecendo de uma vez, com um instante de borda curva que o olho não
+ * registra. Foi exatamente isso que o Pedro relatou pedindo para "adicionar"
+ * uma animação que já estava escrita e rodando.
+ *
+ * Setecentos e vinte é o número do documento, com a curva dele — ver o
+ * `el.animate` do `navBurst` no redesenho. Ele caberia mal numa dissolução e
+ * cabe aqui por um motivo estrutural: durante a revelação as duas camadas
+ * ficam **paradas** e opacas, e o único trabalho é o compositor crescendo um
+ * recorte. Não há nada acontecendo que fique pior por durar mais.
+ *
+ * O preço é um: a aba que chega não se mexe até a troca acabar — ver
+ * `seMexendo` em `regrasDasAbas` —, então o broto dela começa a respirar
+ * setecentos e vinte milissegundos depois do toque, e não duzentos e vinte. É
+ * o preço certo a pagar: o documento também entrega a tela parada por baixo do
+ * círculo, e uma folha animando no meio de uma revelação é trabalho de
+ * JavaScript dentro da animação, que é o defeito que este arquivo inteiro
+ * existe para não repetir.
+ */
+const TROCA_MS = 720;
 
 /**
  * Quanto a montagem em silêncio espera antes de cada aba.
@@ -195,7 +226,24 @@ function JanelaRedonda({
     inchava até dez vezes no meio da animação e voltava ao certo no fim. Era
     o erro aparecendo exatamente onde a conta erra.
   */
-  const inversa = Animated.divide(1, escala);
+  const exata = Animated.divide(1, escala);
+  /*
+    E, por cima da inversa, o assentamento de quatro por cento do documento.
+
+    Lá a tela que chega entra em `scale(1.04)` e assenta em `scale(1)` enquanto
+    o círculo abre. É pouco e é o que dá profundidade à revelação: sem isso o
+    recorte cresce sobre um conteúdo absolutamente imóvel, e a leitura é de
+    buraco abrindo numa foto. Com isso a tela nova **chega**.
+
+    Multiplicado na inversa, e não somado a ela: a inversa é o que mantém o
+    conteúdo do tamanho certo dentro do recorte que cresce (ver acima), e este
+    fator é um desvio deliberado em cima dela — quatro por cento no começo,
+    nenhum no fim.
+  */
+  const inversa = Animated.multiply(
+    exata,
+    t.interpolate({ inputRange: [0, 1], outputRange: [1.04, 1] }),
+  );
 
   return (
     <Animated.View
@@ -337,7 +385,10 @@ export function AbasVivas<Chave extends string>({
     const troca = Animated.timing(t, {
       toValue: 1,
       duration: TROCA_MS,
-      easing: Easing.out(Easing.cubic),
+      /* A curva do documento, e não um `out` qualquer: ela sai devagar, corre
+         no meio e assenta devagar, que é o que faz o círculo parecer empurrado
+         pelo dedo em vez de solto. Ver o `navBurst` do redesenho. */
+      easing: Easing.bezier(0.65, 0, 0.25, 1),
       useNativeDriver: true,
     });
     const assentou = () => {

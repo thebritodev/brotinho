@@ -185,6 +185,67 @@ confere(
   'o aquecimento voltou para o `InteractionManager`, que nunca roda enquanto houver um `Animated.loop` sem `isInteraction: false` no app',
 );
 
+/*
+  A revelacao em circulo precisa durar o bastante para ser vista.
+
+  Ela ja estava escrita e rodando quando o Pedro pediu "adicione a animacao
+  circular": em 220 ms — o numero herdado da dissolucao — o circulo atravessa
+  os 850 pontos de diagonal da tela e o que se ve e a tela nova aparecendo de
+  uma vez, com um instante de borda curva que o olho nao registra. Uma animacao
+  que ninguem ve e uma animacao que nao existe.
+
+  O numero do documento e 720. O minimo aqui e 500, que e por onde o circulo
+  comeca a ser lido como circulo.
+*/
+const duracaoDaTroca = Number(/const TROCA_MS = (\d+);/.exec(abasVivas)?.[1] ?? 0);
+confere(
+  'AbasVivas',
+  duracaoDaTroca >= 500,
+  `a troca de aba dura ${duracaoDaTroca || '?'} ms: curto demais para a revelacao em circulo ser vista — o documento usa 720`,
+);
+/*
+  E ela tem de continuar sendo uma revelacao, e nao um corte.
+
+  As duas pecas: a `JanelaRedonda`, que e o recorte que cresce, e a leitura de
+  `camada.revela`, que e quem decide que a aba que chega entra recortada. Sem
+  uma delas a troca volta a ser a aba nova aparecendo inteira de uma vez.
+*/
+confere(
+  'AbasVivas',
+  /<JanelaRedonda/.test(abasVivas) && /camada\.revela/.test(abasVivas),
+  'a `JanelaRedonda` saiu do caminho da troca: a aba que chega volta a aparecer inteira de uma vez, sem o circulo',
+);
+
+/* ---------- 10: o icone do broto nao se preenche ---------- */
+
+/*
+  No documento a aba escolhida preenche o desenho do broto. Aqui nao, e o
+  pedido foi do Pedro: a 26 pontos os preenchimentos fecham os vaos entre a
+  cabeca e as duas folhas, e o icone vira uma mancha verde com um tijolinho
+  embaixo. Selecionado troca a tinta do traco e engrossa, como os outros dois
+  icones da barra. Ver `IconeDoBroto`.
+*/
+const barra = ler('src', 'components', 'navigation', 'BottomNav.tsx');
+const corpoDoIcone = barra.slice(
+  barra.indexOf('function IconeDoBroto'),
+  barra.indexOf('\n}\n', barra.indexOf('function IconeDoBroto')),
+);
+confere(
+  'BottomNav (IconeDoBroto)',
+  corpoDoIcone.length > 200,
+  'nao achei o corpo do `IconeDoBroto` — a varredura esta olhando no lugar errado',
+);
+confere(
+  'BottomNav (IconeDoBroto)',
+  !/fill=\{[^}]*ativa/.test(corpoDoIcone),
+  'o icone do broto voltou a se preencher quando a aba esta escolhida: a 26 pontos os vaos entre a cabeca e as folhas fecham, e sobra uma mancha verde',
+);
+confere(
+  'BottomNav (IconeDoBroto)',
+  /ativa \? colors\.primaryStrong/.test(corpoDoIcone),
+  'o traco do icone do broto nao muda mais de cor quando a aba esta escolhida — sem preenchimento e sem isto, nada distingue a aba aberta',
+);
+
 /* ---------- 5: a CamadaEmpilhada ---------- */
 
 const camada = ler('src', 'components', 'CamadaEmpilhada.tsx');

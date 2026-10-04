@@ -195,8 +195,29 @@ const ANEL_CLARO: BoxShadowValue = {
 };
 const ANEL_ESCURO: BoxShadowValue = { ...ANEL_CLARO, color: 'rgba(255,255,255,0.1)' };
 
+/**
+ * ## O recolhimento tem um tamanho minimo, e ele nao e pequeno
+ *
+ * As tres sombras daqui tem `spreadDistance` negativo -- a forma e encolhida
+ * antes de ser desfocada. E o que faz uma sombra cair longe do cartao sem
+ * virar mancha em volta dele, e e por isso que os numeros do documento sao
+ * esses.
+ *
+ * So que o recolhimento e em pontos, e nao em fracao do objeto. Catorze
+ * pontos de cada lado comem quase nada de um cartao de cem de altura e comem
+ * a **forma inteira** de uma pastilha de vinte e nove: sobra um ponto de
+ * altura, e esse um ponto e empurrado dez para baixo e desfocado vinte e dois.
+ * O que aparece nao e a sombra do objeto, e um borrao menor que ele e
+ * deslocado dele -- que foi exatamente a queixa "a sombra da tag nao esta
+ * centralizada".
+ *
+ * Entao: `sm` em cartao e em botao de altura cheia. **Nao** em pastilha, selo,
+ * chip ou qualquer coisa com menos de uns quarenta pontos de altura -- objeto
+ * pequeno se levanta por contraste de superficie, como o documento faz com a
+ * insignia do cartao em destaque. Ver `CartaoHeroi`.
+ */
 export const shadows = {
-  /** Cartao de lista, chip, botao pequeno. */
+  /** Cartao de lista, botao de altura cheia. Ver a nota acima: nao em chip. */
   sm: sombra(
     [ANEL_CLARO, { offsetX: 0, offsetY: 10, blurRadius: 22, spreadDistance: -14, color: 'rgba(58,54,48,0.6)' }],
     { shadowColor: palette.brown900, shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.07, shadowRadius: 8, elevation: 2 },

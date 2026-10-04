@@ -429,8 +429,21 @@ export function FaixaDaComposta({
     Uma fração pura cresceria junto com o tablet e o broto viraria um cartaz;
     um número fixo encolheria demais num aparelho estreito, onde ele divide a
     faixa com o cabeçalho e as palavras caindo.
+
+    ## Por que a fração desceu de 0,46 para 0,40
+
+    Porque num aparelho de verdade ele **era** o cartaz. Quase meia tela de
+    largura, e a faixa inteira passava a ser sobre ele: o cabeçalho encolhia
+    para o canto, o balão de fala ficava com cento e quarenta pontos de largura
+    — o mínimo que ele aceita — e as palavras da Composta caíam numa coluna
+    estreita à esquerda. A faixa tem quatro coisas para mostrar, e uma delas
+    estava comendo o espaço das outras três.
+
+    Quarenta por cento devolve vinte e três pontos de largura para o balão e
+    para as palavras, e o broto continua sendo o maior objeto da faixa — o que
+    ele tem de ser. Não é um broto pequeno, é um broto que divide a faixa.
   */
-  const tamanhoDoMascote = Math.round(Math.min(largura * 0.46, 190));
+  const tamanhoDoMascote = Math.round(Math.min(largura * 0.4, 164));
   const quadroDoMascote = quadroDoBroto(estagio, tamanhoDoMascote, { showPot: false });
   const peDoMascote = noQuadro(quadroDoMascote, CX, POT_TOP_Y);
   /*

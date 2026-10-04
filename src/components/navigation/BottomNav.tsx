@@ -196,6 +196,20 @@ function balancar(valor: Animated.Value, duracao: number) {
  *
  * A origem do crescimento é o pé do caule, em 17,5 de 28 — 62,5% da altura.
  * É por isso que ele cresce **do vaso para cima** em vez de inchar do meio.
+ *
+ * ## Selecionado muda o traço, e só o traço
+ *
+ * No documento a aba escolhida preenche o desenho: o vaso de terracota, as
+ * folhas e a cabeça de verde. Aqui não, e o pedido foi do Pedro — no aparelho,
+ * a vinte e seis pontos, os preenchimentos fecham os vãos entre a cabeça e as
+ * duas folhas, e o que sobra é uma mancha verde com um tijolinho embaixo. O
+ * desenho que identifica o personagem são os vãos.
+ *
+ * Então selecionado troca a tinta do traço — de `textSecondary` para
+ * `primaryStrong` — e engrossa de 2 para 2,4. É a mesma leitura dos outros
+ * dois ícones da barra, que também nunca se preenchem, e é o que deixa o
+ * crescimento da planta visível: um broto cheio de verde crescendo dentro de
+ * outro verde não cresce à vista de ninguém.
  */
 const BROTO_DA_ABA = {
   vaso: 'M8.5 17.5h11l-1.4 6.2a1.6 1.6 0 0 1-1.6 1.3h-5a1.6 1.6 0 0 1-1.6-1.3z',
@@ -219,7 +233,7 @@ function IconeDoBroto({
   tamanho: number;
   cresce: Animated.Value;
 }) {
-  const { palette, colors } = useTema();
+  const { colors } = useTema();
   const traco = ativa ? colors.primaryStrong : cor;
   const largura = ativa ? 2.4 : 2;
   const comum = {
@@ -231,11 +245,7 @@ function IconeDoBroto({
   return (
     <View style={{ width: tamanho, height: tamanho }}>
       <Svg width={tamanho} height={tamanho} viewBox="0 0 28 28" fill="none">
-        <Path
-          d={BROTO_DA_ABA.vaso}
-          fill={ativa ? palette.terracotta400 : 'none'}
-          {...comum}
-        />
+        <Path d={BROTO_DA_ABA.vaso} fill="none" {...comum} />
         <Path d={BROTO_DA_ABA.borda} fill="none" {...comum} />
       </Svg>
 
@@ -269,21 +279,13 @@ function IconeDoBroto({
       >
         <Svg width={tamanho} height={tamanho} viewBox="0 0 28 28" fill="none">
           <Path d={BROTO_DA_ABA.caule} fill="none" {...comum} />
-          <Path
-            d={BROTO_DA_ABA.folhaEsquerda}
-            fill={ativa ? palette.green300 : 'none'}
-            {...comum}
-          />
-          <Path
-            d={BROTO_DA_ABA.folhaDireita}
-            fill={ativa ? palette.green300 : 'none'}
-            {...comum}
-          />
+          <Path d={BROTO_DA_ABA.folhaEsquerda} fill="none" {...comum} />
+          <Path d={BROTO_DA_ABA.folhaDireita} fill="none" {...comum} />
           <Circle
             cx={BROTO_DA_ABA.cabeca.cx}
             cy={BROTO_DA_ABA.cabeca.cy}
             r={BROTO_DA_ABA.cabeca.r}
-            fill={ativa ? palette.green300 : 'none'}
+            fill="none"
             {...comum}
           />
         </Svg>

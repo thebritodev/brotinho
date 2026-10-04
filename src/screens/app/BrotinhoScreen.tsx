@@ -143,6 +143,17 @@ function GatilhoDaCelebracao({ pronto, aoComecar }: { pronto: boolean; aoComecar
 }
 
 /**
+ * Onde o balão de fala pousa, em fração da altura da cena.
+ *
+ * Cento e quatro de quatrocentos e vinte, os dois números do redesenho — a
+ * cena do Brotinho tem quatrocentos e vinte pontos lá, e o balão está em cento
+ * e quatro dentro dela. Guardado como fração, e não como os cento e quatro,
+ * porque a cena do app muda de altura com a tela: em fração o balão acompanha,
+ * em pontos ele desceria por cima do rosto num aparelho curto.
+ */
+const ALTURA_DO_BALAO = 104 / 420;
+
+/**
  * O broto desta aba — parado enquanto a aba não é a que está à vista.
  *
  * Um componente só para isto pelo mesmo motivo do `GatilhoDaCelebracao`: ler
@@ -481,10 +492,30 @@ export function BrotinhoScreen({
               </Pressable>
             </View>
 
+            {/*
+              O balão, à altura do documento.
+
+              Estava em dezesseis abaixo da barra de status, ou seja encostado
+              no alto da tela: uma caixa branca no topo do céu, longe do broto,
+              com a bicuda apontando para o nada. No redesenho ele está em
+              cento e quatro de uma cena de quatrocentos e vinte — pouco abaixo
+              de um quarto da altura dela —, e ali a bicuda encosta na altura da
+              cabeça dele. É `RELATIVO`: numa tela curta a cena encolhe, e o
+              balão tem de encolher com ela ou passa a cobrir o rosto.
+
+              `insets.top` entra por fora da conta porque a cena do app é
+              `alturaDaCena + insets.top` — ela é a cena do documento com a
+              barra de status somada em cima. Ver `Cena`.
+            */}
             <BalaoDoBroto
               lado="direita"
               apareceEm={fala}
-              style={{ position: 'absolute', left: 20, top: insets.top + 16, maxWidth: 190 }}
+              style={{
+                position: 'absolute',
+                left: 20,
+                top: insets.top + Math.round(alturaDaCena * ALTURA_DO_BALAO),
+                maxWidth: 190,
+              }}
             >
               <Text
                 style={{
