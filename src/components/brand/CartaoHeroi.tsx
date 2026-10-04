@@ -52,6 +52,15 @@ type Props = {
   fundo: string;
   /** A etiqueta do alto, quando há um motivo verdadeiro para ela. */
   selo?: string | null;
+  /**
+   * De que lado a etiqueta fica.
+   *
+   * Existe por causa do cartão do diário: a arte dele põe o broto no canto de
+   * cima à esquerda, que é onde a etiqueta morava, e os dois se sobrepunham —
+   * uma pastilha branca em cima da cara dele. Nos outros cartões o desenho
+   * ocupa o meio e a esquerda continua livre.
+   */
+  ladoDoSelo?: 'esquerda' | 'direita';
   titulo: string;
   /** Uma linha, curta, sobre a ferramenta. */
   linha?: string;
@@ -174,6 +183,7 @@ export function CartaoHeroi({
   onPress,
   label,
   altura,
+  ladoDoSelo = 'esquerda',
 }: Props) {
   const { colors, palette, shadows } = useTema();
   /*
@@ -205,7 +215,7 @@ export function CartaoHeroi({
           style={{
             position: 'absolute',
             top: 14,
-            left: 14,
+            ...(ladoDoSelo === 'direita' ? { right: 14 } : { left: 14 }),
             backgroundColor: colors.surface,
             borderRadius: radius.pill,
             paddingVertical: 6,

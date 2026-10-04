@@ -308,11 +308,22 @@ export function BrotinhoScreen({
   const ehDeNoite = hora === 'noite';
 
   /*
-    A pose segue a hora: ele se espreguiça de manhã, fica parado de tarde e
-    cochila de noite. É o mesmo relógio que pinta o céu, e por isso as duas
-    coisas nunca se contradizem — não existe broto dormindo sob o sol.
+    A pose segue a hora: ele **acena** de manhã, fica parado de tarde e cochila
+    de noite. É o mesmo relógio que pinta o céu, e por isso as duas coisas
+    nunca se contradizem — não existe broto dormindo sob o sol.
+
+    ## Por que acena aqui, e se espreguiça na tela inicial
+
+    Porque é o que o documento faz, e o motivo é bom: na tela inicial ele está
+    plantado no canto, de corpo inteiro, e espreguiçar é o que uma planta faz
+    quando o dia começa. Aqui ele está **de frente para a pessoa**, grande, no
+    meio da tela — esta aba é a visita. Quem recebe visita acena.
+
+    A diferença não é só de gosto: o aceno é a única pose em que a folha vai e
+    volta **duas vezes por ciclo**, e é isso que faz o gesto ler como
+    cumprimento em vez de vento. Era a animação que faltava nesta tela.
   */
-  const poseDaHora = hora === 'manha' ? 'espreguica' : ehDeNoite ? 'dorme' : 'parado';
+  const poseDaHora = hora === 'manha' ? 'acena' : ehDeNoite ? 'dorme' : 'parado';
 
   /*
     O rodízio de falas. Tocar no broto passa para a seguinte, e a conta não
@@ -579,7 +590,12 @@ export function BrotinhoScreen({
           tela, e o retrato do que a pessoa viveu não cabe atrás de uma linha
           de lista.
         */}
-        <FaixaDoJardim valores={valoresVividos} margem={20} aoAbrir={onOpenGarden} />
+        <FaixaDoJardim
+          valores={valoresVividos}
+          margem={20}
+          analisando={data.settings.analysis}
+          aoAbrir={onOpenGarden}
+        />
 
         {!!padrao && (
           <View>
@@ -677,8 +693,12 @@ export function BrotinhoScreen({
           /* O âmbar do documento: o diário é o único cartão quente da tela, e
              é o que o separa da pilha de cartões de superfície. */
           fundo={palette.yellow100}
-          cena={(p) => <CenaDoDiario passo={p} altura={alturaDoHeroi} />}
+          cena={(p) => (
+            <CenaDoDiario passo={p} altura={alturaDoHeroi} largura={width - 40} />
+          )}
           selo={seloDoDiario}
+          /* O broto da arte mora no canto de cima à esquerda. Ver `ladoDoSelo`. */
+          ladoDoSelo="direita"
           titulo="Diário"
           linha="Escreva ou fale o que passou hoje. Não sai do seu aparelho."
           acao="Escrever agora"

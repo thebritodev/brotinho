@@ -746,7 +746,26 @@ export type CoresDaCena = {
    */
   manha: string;
   manhaForca: number;
-  /** O chão claro, quando a cena não é de terra. */
+  /**
+   * O chão da cena — e ele é o **fundo da tela**, não uma cor própria.
+   *
+   * ## Por que, e o que acontecia antes
+   *
+   * A cena termina no meio da tela: embaixo dela vem o nome do broto, os
+   * cartões, o resto da página. Se o chão tiver cor própria, existe uma linha
+   * horizontal atravessando a tela inteira no ponto em que a cena acaba — e
+   * ela não é uma linha de desenho, é uma emenda.
+   *
+   * No tema claro ninguém via, porque o chão era `cream100` e o fundo da tela
+   * é `cream100`: por acaso, eram a mesma cor. No escuro o chão era branco a
+   * 6% sobre o céu, o que dá um cinza-azulado — e o fundo é um marrom quase
+   * preto. Pedro fotografou: "abaixo do broto tem uma faixa que muda
+   * completamente de cor após o solo do broto". Era isso, e era grosseiro.
+   *
+   * O documento faz o chão ser `--cream-100`, que é o mesmo valor de
+   * `--color-bg` nos dois temas dele. Não é coincidência: é a cena **se
+   * dissolvendo** na página em vez de terminar nela.
+   */
   chao: string;
   /** O clarão atrás do broto, nos cartões. */
   brilho: string;
@@ -760,13 +779,23 @@ const cenaClara: CoresDaCena = {
   noiteForca: 0.35,
   manha: palette.yellow300,
   manhaForca: 0.22,
-  chao: palette.cream100,
+  /* O fundo da tela clara. Ver a nota do tipo. */
+  chao: colors.bg,
   brilho: 'rgba(255,255,255,0.6)',
 };
 
 const cenaEscura: CoresDaCena = {
   nuvem: '#3F4650',
-  morro: '#4A4F58',
+  /*
+    O morro de trás é branco fraquíssimo, e não um cinza opaco.
+
+    Ele é desenhado com 45% de opacidade por cima: um cinza-azulado sólido
+    virava, no escuro, uma faixa larga e fria entre o broto e o chão — a mesma
+    que o `chao` fazia embaixo. O documento usa branco a 6% aqui, que sobre um
+    céu escuro é quase nada: o morro deixa de ser uma faixa e volta a ser o que
+    ele é, que é distância.
+  */
+  morro: 'rgba(255,255,255,0.1)',
   estrela: '#FFFFFF',
   /*
     Um roxo quase preto, e não o lavanda do tema claro.
@@ -785,7 +814,8 @@ const cenaEscura: CoresDaCena = {
   */
   manha: palette.yellow300,
   manhaForca: 0.12,
-  chao: 'rgba(255,255,255,0.06)',
+  /* O fundo da tela escura, e não branco a 6%: ver a nota do tipo. */
+  chao: coresEscuras.bg,
   brilho: 'rgba(255,255,255,0.18)',
 };
 

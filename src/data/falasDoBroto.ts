@@ -51,7 +51,15 @@ export function ehNoite(agora: Date): boolean {
 }
 
 const SAUDACAO: Record<HoraDoDia, (nome: string) => string> = {
-  manha: (nome) => `Bom dia, ${nome}. Acordei me espreguiçando.`,
+  /*
+    A saudação da manhã não descreve mais o corpo dele.
+
+    Era "Acordei me espreguiçando", e ela casava com a pose da tela inicial,
+    onde ele de fato se espreguiça. Na aba dele a pose virou o aceno — é a
+    visita, e quem recebe visita acena —, e a frase passou a contradizer o
+    desenho na mesma tela. Acordar é verdade nas duas.
+  */
+  manha: (nome) => `Bom dia, ${nome}. Acabei de acordar.`,
   tarde: () => 'Boa tarde. Já bebeu água hoje? Eu já.',
   noite: () => 'Está ficando tarde. Vamos desacelerar juntos?',
 };

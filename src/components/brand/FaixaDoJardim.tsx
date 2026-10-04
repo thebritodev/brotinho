@@ -26,12 +26,27 @@ import { Sprout, ehEnfeite } from './Sprout';
  * o que você cuida cresce. Um ícone de estrela ao lado de "Coragem" seria uma
  * etiqueta; um broto com flor é a coisa que a palavra fez acontecer.
  *
- * ## Quando ele não aparece
+ * ## Vazio, ele não some — ele convida
  *
- * Sem valor nenhum reconhecido — porque a pessoa não escreveu ainda, ou porque
- * desligou a análise dos registros — a faixa some inteira. Um "Meu jardim"
- * com três caixas vazias promete um lugar que ainda não existe, e promessa
- * vazia nesta tela é pior do que seção nenhuma.
+ * A primeira versão sumia inteira sem valor nenhum reconhecido, com o
+ * argumento de que um "Meu jardim" com três caixas vazias promete um lugar
+ * que ainda não existe.
+ *
+ * O argumento estava de cabeça para baixo. **Sumir é a promessa pior**: quem
+ * abre o app no primeiro dia não vê o jardim, não sabe que ele existe, e por
+ * isso não tem motivo nenhum para escrever no diário — que é justamente o que
+ * faz o jardim nascer. A seção que some é a que nunca é descoberta. Pedro
+ * abriu a aba e me disse que o jardim não estava lá; estava, e estava
+ * escondido por um `return null`.
+ *
+ * Então ela existe sempre. Com valores, mostra os vasinhos. Sem nenhum,
+ * mostra um só, apagado, e diz em uma linha o que faz ele nascer. É a
+ * diferença entre uma caixa vazia e um canteiro preparado.
+ *
+ * O único caso em que ela continua sumindo é a análise dos registros
+ * desligada: ali não é "ainda não", é "você pediu para eu não olhar", e
+ * oferecer o jardim seria oferecer uma coisa que a própria escolha dela
+ * desligou.
  */
 
 /** As cores de fundo dos vasinhos, em rodízio. São as do documento. */
@@ -42,16 +57,20 @@ export type ValorVivido = { value: ValueKey; count: number };
 export function FaixaDoJardim({
   valores,
   margem,
+  analisando,
   aoAbrir,
 }: {
   valores: ValorVivido[];
   /** A margem lateral da tela, para a fileira sangrar até a borda. */
   margem: number;
+  /** A análise dos registros está ligada? Ver a nota do alto. */
+  analisando: boolean;
   aoAbrir: () => void;
 }) {
   const { colors, palette } = useTema();
 
-  if (!valores.length) return null;
+  if (!analisando) return null;
+  const vazio = valores.length === 0;
 
   return (
     <View style={{ gap: 12 }}>
@@ -85,9 +104,23 @@ export function FaixaDoJardim({
             color: palette.brown400,
           }}
         >
-          valores que você viveu
+          {vazio ? 'ainda sem nada' : 'valores que você viveu'}
         </Text>
       </View>
+
+      {vazio && (
+        <Text
+          style={{
+            fontFamily: fonts.body.regular,
+            fontSize: 14,
+            lineHeight: 14 * 1.5,
+            color: colors.textSecondary,
+          }}
+        >
+          Escreva no diário e o que você viveu vira planta aqui. Coragem,
+          conexão, autocuidado — o broto reconhece sozinho.
+        </Text>
+      )}
 
       <ScrollView
         horizontal
@@ -95,6 +128,47 @@ export function FaixaDoJardim({
         style={{ marginHorizontal: -margem }}
         contentContainerStyle={{ paddingHorizontal: margem, gap: 12 }}
       >
+        {vazio && (
+          /*
+            Um vasinho apagado, e não três.
+
+            Três caixas vazias leem como um lugar quebrado; uma, apagada, lê
+            como o primeiro canteiro esperando. E ela é tocável: leva ao
+            jardim, que tem a história inteira.
+          */
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel="Ver jardim"
+            onPress={aoAbrir}
+            style={({ pressed }) => ({
+              width: 118,
+              borderRadius: radius.lg,
+              backgroundColor: palette.cream200,
+              borderWidth: 2,
+              borderStyle: 'dashed',
+              borderColor: palette.brown200,
+              paddingVertical: 14,
+              alignItems: 'center',
+              gap: 2,
+              opacity: pressed ? 0.85 : 1,
+            })}
+          >
+            <View style={{ opacity: 0.45 }}>
+              <Sprout mood="leve" stage={1} size={58} />
+            </View>
+            <Text
+              style={{ fontFamily: fonts.body.bold, fontSize: 14, color: palette.brown400 }}
+            >
+              O primeiro
+            </Text>
+            <Text
+              style={{ fontFamily: fonts.body.regular, fontSize: 13, color: palette.brown400 }}
+            >
+              nenhuma vez
+            </Text>
+          </Pressable>
+        )}
+
         {valores.map((v, i) => (
           <Pressable
             key={v.value}

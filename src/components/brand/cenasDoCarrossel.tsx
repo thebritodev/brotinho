@@ -352,10 +352,13 @@ const DIARIO = { largura: 342, altura: 150 };
 export function CenaDoDiario({
   passo = 0,
   altura,
+  largura,
 }: {
   passo?: number;
   /** A altura do cartão: a arte ocupa a faixa de cima dela. */
   altura: number;
+  /** A largura do cartão, para a caixa do documento ser escalada inteira. */
+  largura: number;
 }) {
   const p = passo;
 
@@ -373,14 +376,42 @@ export function CenaDoDiario({
   */
   const faixa = altura * 0.52;
 
+  /*
+    A caixa inteira é escalada de uma vez, e esse é o ponto.
+
+    A versão anterior deixava o `Svg` se virar com `preserveAspectRatio` e
+    punha o broto por fora dele, posicionado em **porcentagem do contentor**.
+    As duas coisas crescem por réguas diferentes: o `slice` amplia o desenho
+    para cobrir a caixa, e a porcentagem não amplia nada. O caderno ficava
+    grande e o broto ficava pequeno ao lado dele — exatamente a diferença que
+    sobrava entre o nosso cartão e o do documento.
+
+    Agora existe uma caixa de 342 por 150, do tamanho exato do documento, com
+    o `Svg` e o broto dentro dela nas coordenadas de lá. Ela inteira recebe um
+    `scale`. O que cresce, cresce junto.
+  */
+  const escala = Math.max(largura / DIARIO.largura, faixa / DIARIO.altura);
+  const sobraX = (largura - DIARIO.largura * escala) / 2;
+  const sobraY = faixa - DIARIO.altura * escala;
+
   return (
     <View style={{ flex: 1 }} pointerEvents="none">
       <View style={{ height: faixa, overflow: 'hidden' }}>
+      <View
+        style={{
+          position: 'absolute',
+          left: sobraX,
+          top: sobraY,
+          width: DIARIO.largura,
+          height: DIARIO.altura,
+          transform: [{ scale: escala }],
+          transformOrigin: 'top left',
+        }}
+      >
       <Svg
-        width="100%"
-        height="100%"
+        width={DIARIO.largura}
+        height={DIARIO.altura}
         viewBox={`0 0 ${DIARIO.largura} ${DIARIO.altura}`}
-        preserveAspectRatio="xMidYMax slice"
       >
         {/* O chão claro em que tudo pousa: uma lombada rasa, sem contorno. */}
         <Path
@@ -488,27 +519,13 @@ export function CenaDoDiario({
         `Svg` não é caminho no `react-native-svg`. A posição sai da mesma caixa
         de 342 por 150 do documento, em fração, para acompanhar o corte.
       */}
-      <View
-        style={{
-          position: 'absolute',
-          left: `${(34 / DIARIO.largura) * 100}%`,
-          top: `${(34 / DIARIO.altura) * 100}%`,
-          width: `${(92 / DIARIO.largura) * 100}%`,
-        }}
-      >
-        <BrotoDoDiario />
+      <View style={{ position: 'absolute', left: 30, top: 30 }}>
+        {/* As coordenadas são as do documento: `translate(34 44) scale(.47)`
+            sobre um broto de 200 de largura dá 94 aqui. */}
+        <Sprout mood="feliz" stage={2} size={94} pose="pensa" />
       </View>
       </View>
-    </View>
-  );
-}
-
-/** O broto do cartão do diário: pequeno, no vaso, pensando. */
-function BrotoDoDiario() {
-  const [largura, setLargura] = useState(0);
-  return (
-    <View onLayout={(e) => setLargura(e.nativeEvent.layout.width)}>
-      {largura > 0 && <Sprout mood="feliz" stage={2} size={largura} pose="pensa" />}
+      </View>
     </View>
   );
 }
