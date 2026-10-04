@@ -22,19 +22,32 @@ for ($i = 0; $i -lt 60; $i++) {
     $tunel = (Invoke-RestMethod 'http://127.0.0.1:4040/api/tunnels' -TimeoutSec 3).tunnels |
       Where-Object { $_.proto -eq 'https' } | Select-Object -First 1
     if ($tunel) {
-      $url = $tunel.public_url -replace '^https', 'exp'
+      # O `exp://` e o esquema do EXPO GO. Anotado assim, o Android entregava
+      # o endereco para ele, que recusava o SDK e dizia "error loading app" —
+      # o arquivo avisava para nao usar o Expo Go e, na linha de cima, dava o
+      # endereco dele. O development build atende em dois formatos: o http
+      # cru, que se cola no campo "Enter URL manually", e o `exp+<slug>://`,
+      # que o `expo-dev-client` registra sozinho.
+      $http = $tunel.public_url -replace '^https', 'http'
+      $fundo = 'exp+brotinho-app://expo-development-client/?url=' + $http
       $quando = Get-Date -Format 'dd/MM/yyyy HH:mm'
       Set-Content -Path $Destino -Encoding utf8 -Value @(
-        'Abra este endereco no BROTINHO (development build) instalado no celular:',
+        'Abra o BROTINHO (development build) instalado no celular e cole isto',
+        'em "Enter URL manually":',
         '',
-        $url,
+        $http,
+        '',
+        'Ou toque neste link, que abre o app direto:',
+        '',
+        $fundo,
         '',
         "anotado em $quando",
         'O endereco muda a cada vez que o servidor sobe.',
         '',
-        'NAO use o Expo Go. A Play Store atualizou ele para o SDK 57 e o projeto',
-        'esta no 54 — o Expo Go recusa o endereco com "error loading app". O app',
-        'de desenvolvimento proprio vem de:',
+        'NAO use o Expo Go, e nao use endereco `exp://` — aquele esquema e o',
+        'DELE. A Play Store atualizou o Expo Go para o SDK 57 e o projeto esta',
+        'no 54: ele recusa com "error loading app". O app de desenvolvimento',
+        'proprio vem de:',
         '  npx eas build --profile development --platform android'
       )
       exit 0

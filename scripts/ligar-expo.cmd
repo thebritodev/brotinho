@@ -1,6 +1,14 @@
 @echo off
 rem ===========================================================================
-rem  Sobe o servidor do Expo Go, com tunel, e o mantem de pe.
+rem  Sobe o servidor do development build, com tunel, e o mantem de pe.
+rem
+rem  NAO e o do Expo Go, e a diferenca e uma bandeira so: `--dev-client`.
+rem  Sem ela, `expo start` anuncia o projeto no formato que o Expo Go le
+rem  (`exposdk:54.0.0`) e imprime o QR dele. O Expo Go da Play Store esta no
+rem  SDK 57, recusa o 54, e diz `error loading app` — que foi exatamente o
+rem  que aconteceu. Este arquivo ficou meses chamando `expo start --tunnel`
+rem  puro enquanto o AGENTS.md, duas pastas acima, explicava por que isso
+rem  nao funciona.
 rem
 rem  ATENCAO AO QUE NAO ESTA AQUI: nao ha CI=1.
 rem
@@ -40,7 +48,7 @@ rem  Anota o endereco do tunel em endereco-expo.txt assim que ele subir. Roda em
 rem  paralelo porque o `expo start` abaixo bloqueia ate cair.
 start "" /b powershell -NoProfile -ExecutionPolicy Bypass -WindowStyle Hidden -File "%~dp0anota-endereco.ps1"
 
-call npx expo start --tunnel >> "%LOG%" 2>&1
+call npx expo start --dev-client --tunnel >> "%LOG%" 2>&1
 echo ----- caiu em %DATE% %TIME%, subindo de novo em 15s ----- >> "%LOG%"
 timeout /t 15 /nobreak > nul
 goto laco
