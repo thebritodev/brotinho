@@ -5,12 +5,22 @@ import React, {
   useLayoutEffect,
   useRef,
   useState,
-} from 'react';
-import { Animated, Easing, StyleSheet, useWindowDimensions, View } from 'react-native';
+} from "react";
+import {
+  Animated,
+  Easing,
+  StyleSheet,
+  useWindowDimensions,
+  View,
+} from "react-native";
 
-import { useMenosMovimento } from '../hooks/useMenosMovimento';
-import { useTema } from '../theme';
-import { camadaDaAba, proximaAAquecer, proximasMontadas } from './regrasDasAbas';
+import { useMenosMovimento } from "../hooks/useMenosMovimento";
+import { useTema } from "../theme";
+import {
+  camadaDaAba,
+  proximaAAquecer,
+  proximasMontadas,
+} from "./regrasDasAbas";
 
 /**
  * As abas da barra de baixo, todas montadas ao mesmo tempo — só uma à vista.
@@ -137,7 +147,11 @@ export type OrigemDaTroca = { x: number; y: number };
  * número grande chutado: um raio folgado demais faz o fim da animação acontecer
  * fora da tela, e a revelação parece terminar antes da hora.
  */
-function raioQueCobre(origem: OrigemDaTroca, largura: number, altura: number): number {
+function raioQueCobre(
+  origem: OrigemDaTroca,
+  largura: number,
+  altura: number,
+): number {
   const dx = Math.max(origem.x, largura - origem.x);
   const dy = Math.max(origem.y, altura - origem.y);
   return Math.sqrt(dx * dx + dy * dy);
@@ -196,9 +210,28 @@ const RAIO_INICIAL = 22;
  * ponto é a identidade: o conteúdo fica parado, do tamanho certo, enquanto só
  * o recorte cresce. E as duas são `transform`, que é o que o driver nativo
  * sabe animar sozinho — nada disto passa pelo JavaScript quadro a quadro.
+ *
+ * ## Por que ela nunca sai da árvore
+ *
+ * Porque entrar e sair **é** a travada, e ela voltou por aqui.
+ *
+ * A primeira versão só desenhava esta janela durante a animação. Lá, o começo
+ * da troca trocava o tipo do elemento que embrulha a tela — de um `Provider`
+ * para uma `JanelaRedonda` —, e o React responde a isso do único jeito que
+ * sabe: desmonta tudo o que está embaixo e monta de novo. Embaixo está a tela
+ * inteira. O fim da troca fazia o mesmo no sentido contrário.
+ *
+ * Ou seja: a animação que veio tirar a travada montava a tela de destino duas
+ * vezes dentro do toque. Medido com a CPU quatro vezes mais lenta — 348 ms de
+ * linha travada, o nó mais fundo da aba substituído 416 ms depois do toque, e
+ * treze quadros de círculo num total de quarenta e dois.
+ *
+ * Então ela fica. O que varia é `recortando`, que é **estilo** — e estilo não
+ * remonta nada.
  */
 function JanelaRedonda({
   t,
+  recortando,
   centro,
   raio,
   largura,
@@ -206,6 +239,16 @@ function JanelaRedonda({
   children,
 }: {
   t: Animated.Value;
+  /**
+   * Esta janela está recortando agora?
+   *
+   * **Ela existe sempre**, e este é o ponto inteiro — ver o parágrafo "Por que
+   * ela nunca sai da árvore", acima. Falso aqui não tira a janela do caminho:
+   * tira o recorte, a redondeza e as escalas, e as duas caixas viram duas
+   * `View` do tamanho da tela, que é o que elas têm de ser quando não há
+   * nenhuma troca acontecendo.
+   */
+  recortando: boolean;
   centro: OrigemDaTroca;
   raio: number;
   largura: number;
@@ -213,7 +256,10 @@ function JanelaRedonda({
   children: React.ReactNode;
 }) {
   const inicial = Math.min(RAIO_INICIAL, raio) / raio;
-  const escala = t.interpolate({ inputRange: [0, 1], outputRange: [inicial, 1] });
+  const escala = t.interpolate({
+    inputRange: [0, 1],
+    outputRange: [inicial, 1],
+  });
   /*
     A inversa é uma **divisão**, e não outra interpolação.
 
@@ -245,34 +291,57 @@ function JanelaRedonda({
     t.interpolate({ inputRange: [0, 1], outputRange: [1.04, 1] }),
   );
 
+  /*
+    Parada, a janela é a tela inteira e mais nada.
+
+    Nem `borderRadius`, nem `overflow`, nem `transform`: um recorte redondo de
+    novecentos pontos de raio cobre a tela toda e não esconde nada, mas no
+    Android ele é desenhado com `clipPath` a cada quadro — das três abas, para
+    sempre, inclusive enquanto a pessoa rola. Fora da troca não há nada para
+    recortar, então não se recorta.
+  */
+  const paradaFora = {
+    position: "absolute",
+    left: 0,
+    top: 0,
+    right: 0,
+    bottom: 0,
+  } as const;
+
   return (
     <Animated.View
       /* Tem nome para poder ser medida quadro a quadro no navegador. */
       testID="janela-redonda"
-      style={{
-        position: 'absolute',
-        left: centro.x - raio,
-        top: centro.y - raio,
-        width: raio * 2,
-        height: raio * 2,
-        borderRadius: raio,
-        overflow: 'hidden',
-        transform: [{ scale: escala }],
-      }}
+      style={
+        recortando
+          ? {
+              position: "absolute",
+              left: centro.x - raio,
+              top: centro.y - raio,
+              width: raio * 2,
+              height: raio * 2,
+              borderRadius: raio,
+              overflow: "hidden",
+              transform: [{ scale: escala }],
+            }
+          : paradaFora
+      }
     >
       <Animated.View
         /* Tem nome para poder ser medida quadro a quadro no navegador: é assim
            que se descobre que a tela de dentro está inchando no meio da
            animação em vez de ficar parada. */
         testID="janela-conteudo"
-        style={{
-          position: 'absolute',
-          /* A tela inteira, deslocada para o canto dela cair no (0,0) da tela. */
-          left: raio - centro.x,
-          top: raio - centro.y,
-          width: largura,
-          height: altura,
-          /*
+        style={
+          recortando
+            ? {
+                position: "absolute",
+                /* A tela inteira, deslocada para o canto dela cair no (0,0) da tela. */
+                left: raio - centro.x,
+                top: raio - centro.y,
+                width: largura,
+                height: altura,
+                /*
             O inverso, em torno do mesmo ponto: o centro do círculo.
 
             Escrito como ida-escala-volta, e não com `transformOrigin`. A
@@ -285,14 +354,16 @@ function JanelaRedonda({
             do `transform` no React Native. Só a escala é animada; os dois
             deslocamentos são constantes.
           */
-          transform: [
-            { translateX: centro.x - largura / 2 },
-            { translateY: centro.y - altura / 2 },
-            { scale: inversa },
-            { translateX: -(centro.x - largura / 2) },
-            { translateY: -(centro.y - altura / 2) },
-          ],
-        }}
+                transform: [
+                  { translateX: centro.x - largura / 2 },
+                  { translateY: centro.y - altura / 2 },
+                  { scale: inversa },
+                  { translateX: -(centro.x - largura / 2) },
+                  { translateY: -(centro.y - altura / 2) },
+                ],
+              }
+            : paradaFora
+        }
       >
         {children}
       </Animated.View>
@@ -458,18 +529,25 @@ export function AbasVivas<Chave extends string>({
   return (
     <View style={{ flex: 1, backgroundColor: colors.bg }}>
       {noAr.map((chave) => {
-        const camada = camadaDaAba(chave, { ativa, anterior, seMexendo, ordem: todas });
+        const camada = camadaDaAba(chave, {
+          ativa,
+          anterior,
+          seMexendo,
+          ordem: todas,
+        });
         return (
           <Animated.View
             key={chave}
             /* Tem nome para poder ser medida quadro a quadro no navegador. */
             testID={`aba-viva-${chave}`}
-            pointerEvents={camada.recebeToque ? 'auto' : 'none'}
+            pointerEvents={camada.recebeToque ? "auto" : "none"}
             /*
               A aba escondida some para o leitor de tela: montada e invisível,
               ela continuaria na ordem de leitura do TalkBack.
             */
-            importantForAccessibility={camada.recebeToque ? 'auto' : 'no-hide-descendants'}
+            importantForAccessibility={
+              camada.recebeToque ? "auto" : "no-hide-descendants"
+            }
             accessibilityElementsHidden={!camada.recebeToque}
             renderToHardwareTextureAndroid={animando}
             style={[
@@ -485,7 +563,8 @@ export function AbasVivas<Chave extends string>({
                   dela é opaco e cobriria a aba de baixo fora do círculo, que é
                   justamente o que o círculo existe para deixar à mostra.
                 */
-                backgroundColor: camada.revela && animando ? 'transparent' : colors.bg,
+                backgroundColor:
+                  camada.revela && animando ? "transparent" : colors.bg,
                 zIndex: camada.altura,
                 opacity: camada.opacidade,
                 transform: camada.desliza
@@ -493,7 +572,10 @@ export function AbasVivas<Chave extends string>({
                       {
                         translateX: t.interpolate({
                           inputRange: [0, 1],
-                          outputRange: [camada.desliza[0] * largura, camada.desliza[1] * largura],
+                          outputRange: [
+                            camada.desliza[0] * largura,
+                            camada.desliza[1] * largura,
+                          ],
                         }),
                       },
                     ]
@@ -501,20 +583,40 @@ export function AbasVivas<Chave extends string>({
               },
             ]}
           >
-            {camada.revela && animando ? (
-              /* A revelação em círculo. Ver `JanelaRedonda` e `regrasDasAbas`. */
-              <JanelaRedonda
-                t={t}
-                centro={ondeNasceu.current ?? { x: largura / 2, y: altura - 48 }}
-                raio={raio}
-                largura={largura}
-                altura={altura}
-              >
-                <AbaAVista.Provider value={camada.aVista}>{render(chave)}</AbaAVista.Provider>
-              </JanelaRedonda>
-            ) : (
-              <AbaAVista.Provider value={camada.aVista}>{render(chave)}</AbaAVista.Provider>
-            )}
+            {/*
+              A revelação em círculo — e **sempre** a mesma árvore. Ver
+              `JanelaRedonda` e `regrasDasAbas`.
+
+              Aqui havia um ternário: a `JanelaRedonda` entrava quando a
+              animação começava e saía quando ela acabava. Parece inofensivo e
+              é o defeito inteiro. Trocar o tipo do elemento num ponto da
+              árvore faz o React **desmontar e montar de novo** tudo o que está
+              embaixo — e embaixo está a tela inteira. Então cada troca de aba
+              montava a tela de destino duas vezes: uma ao abrir a janela e
+              outra ao fechá-la, as duas dentro do toque.
+
+              Medido no navegador com a CPU quatro vezes mais lenta: o nó mais
+              fundo da aba era substituído 416 ms depois do toque, e havia um
+              buraco de 348 ms entre dois quadros. No aparelho do Pedro isso
+              aparecia como a tela congelando e só depois trocar — sem círculo
+              nenhum, porque a rede de segurança chegava antes da animação.
+
+              É a quinta vez que a mesma queixa volta pela mesma causa:
+              trabalho de React dentro da animação. Desta vez quem o
+              reintroduziu foi a própria animação que veio consertá-la.
+            */}
+            <JanelaRedonda
+              t={t}
+              recortando={camada.revela && animando}
+              centro={ondeNasceu.current ?? { x: largura / 2, y: altura - 48 }}
+              raio={raio}
+              largura={largura}
+              altura={altura}
+            >
+              <AbaAVista.Provider value={camada.aVista}>
+                {render(chave)}
+              </AbaAVista.Provider>
+            </JanelaRedonda>
           </Animated.View>
         );
       })}
