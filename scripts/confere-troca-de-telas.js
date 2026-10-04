@@ -216,6 +216,36 @@ confere(
   'a `JanelaRedonda` saiu do caminho da troca: a aba que chega volta a aparecer inteira de uma vez, sem o circulo',
 );
 
+/*
+  A camada da troca nao pode virar textura de hardware.
+
+  `renderToHardwareTextureAndroid` serve para camada que so anda, gira, escala
+  ou esmaece **e cujo conteudo nao muda** enquanto roda — esta na documentacao
+  dela. Desde a revelacao em circulo nenhuma camada anda, e o conteudo da que
+  chega muda a cada quadro, porque e o recorte dela que cresce. Promovida, o
+  Android desenha a camada uma vez e compoe a copia: uma tela congelada pousada
+  em cima da outra, que foi o que o Pedro viu no aparelho.
+*/
+confere(
+  'AbasVivas',
+  /* A propriedade de verdade, e nao a mencao: o comentario que explica
+     por que ela saiu cita o nome dela. Daqui o `^\s*` — em JSX ela abre a
+     linha; no comentario ela vem no meio de uma frase. */
+  !/^\s*renderToHardwareTextureAndroid=\{/m.test(abasVivas),
+  'a camada da troca voltou a ser promovida a textura de hardware: no Android ela congela, porque o conteudo dela muda a cada quadro enquanto o recorte cresce',
+);
+/*
+  E o recorte so recorta no Android se a caixa tiver fundo: quem monta o
+  caminho redondo e a `ReactViewGroup`, e ela so o monta quando ha fundo. Sem
+  isso o `borderRadius` nao vira desenho nenhum, a camada que chega fica
+  transparente e as duas telas aparecem uma por cima da outra.
+*/
+confere(
+  'AbasVivas',
+  /backgroundColor: fundo,/.test(abasVivas),
+  'a caixa que recorta perdeu o fundo proprio: no Android ela deixa de recortar, e a troca volta a ser duas telas uma por cima da outra',
+);
+
 /* ---------- 10: o icone do broto nao se preenche ---------- */
 
 /*

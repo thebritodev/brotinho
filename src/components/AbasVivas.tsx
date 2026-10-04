@@ -5,22 +5,22 @@ import React, {
   useLayoutEffect,
   useRef,
   useState,
-} from "react";
+} from 'react';
 import {
   Animated,
   Easing,
   StyleSheet,
   useWindowDimensions,
   View,
-} from "react-native";
+} from 'react-native';
 
-import { useMenosMovimento } from "../hooks/useMenosMovimento";
-import { useTema } from "../theme";
+import { useMenosMovimento } from '../hooks/useMenosMovimento';
+import { useTema } from '../theme';
 import {
   camadaDaAba,
   proximaAAquecer,
   proximasMontadas,
-} from "./regrasDasAbas";
+} from './regrasDasAbas';
 
 /**
  * As abas da barra de baixo, todas montadas ao mesmo tempo — só uma à vista.
@@ -228,10 +228,30 @@ const RAIO_INICIAL = 22;
  *
  * Então ela fica. O que varia é `recortando`, que é **estilo** — e estilo não
  * remonta nada.
+ *
+ * ## O fundo é o que faz o Android recortar
+ *
+ * `overflow: 'hidden'` com `borderRadius` recorta no navegador por conta da
+ * folha de estilo. No Android quem recorta é a `ReactViewGroup`, e ela só
+ * monta o caminho redondo quando a `View` tem **fundo** — sem
+ * `backgroundColor` o raio não vira desenho nenhum e o `overflow` volta a
+ * recortar um retângulo.
+ *
+ * Então a caixa que recorta pinta o fundo da página. E repare no que isso faz
+ * com o defeito quando ele acontece:
+ *
+ * - recortando: um disco do fundo da página, com a tela nova dentro, crescendo;
+ * - **sem** recortar: um retângulo opaco do tamanho do círculo cheio, que
+ *   cobre a tela toda.
+ *
+ * O pior caso vira uma troca seca — feia, e só. Antes o pior caso era a
+ * camada que chega ficar transparente e as duas telas aparecerem uma por
+ * cima da outra, que foi exatamente o que o Pedro viu no aparelho.
  */
 function JanelaRedonda({
   t,
   recortando,
+  fundo,
   centro,
   raio,
   largura,
@@ -249,6 +269,14 @@ function JanelaRedonda({
    * nenhuma troca acontecendo.
    */
   recortando: boolean;
+  /**
+   * A cor de fundo da página, pintada **dentro** do recorte.
+   *
+   * Ela não é decoração: é o que faz o recorte existir no Android e o que
+   * decide como ele falha. Ver "O fundo é o que faz o Android recortar",
+   * acima.
+   */
+  fundo: string;
   centro: OrigemDaTroca;
   raio: number;
   largura: number;
@@ -301,7 +329,7 @@ function JanelaRedonda({
     recortar, então não se recorta.
   */
   const paradaFora = {
-    position: "absolute",
+    position: 'absolute',
     left: 0,
     top: 0,
     right: 0,
@@ -315,13 +343,15 @@ function JanelaRedonda({
       style={
         recortando
           ? {
-              position: "absolute",
+              position: 'absolute',
               left: centro.x - raio,
               top: centro.y - raio,
               width: raio * 2,
               height: raio * 2,
               borderRadius: raio,
-              overflow: "hidden",
+              overflow: 'hidden',
+              /* Ver "O fundo é o que faz o Android recortar", no alto. */
+              backgroundColor: fundo,
               transform: [{ scale: escala }],
             }
           : paradaFora
@@ -335,7 +365,7 @@ function JanelaRedonda({
         style={
           recortando
             ? {
-                position: "absolute",
+                position: 'absolute',
                 /* A tela inteira, deslocada para o canto dela cair no (0,0) da tela. */
                 left: raio - centro.x,
                 top: raio - centro.y,
@@ -540,16 +570,34 @@ export function AbasVivas<Chave extends string>({
             key={chave}
             /* Tem nome para poder ser medida quadro a quadro no navegador. */
             testID={`aba-viva-${chave}`}
-            pointerEvents={camada.recebeToque ? "auto" : "none"}
+            /*
+              Aqui havia um `renderToHardwareTextureAndroid={animando}`, e ele
+              saiu.
+
+              Ele entrou quando as camadas **andavam**: uma camada que só
+              translada não precisa ser redesenhada, e promovê-la a textura de
+              hardware é exatamente o caso para que a propriedade existe. A
+              documentação dela diz isso com todas as letras — e diz também o
+              limite: serve para animação que mexe só em opacidade, rotação,
+              translação ou escala **da própria camada**, cujo conteúdo não
+              muda enquanto ela roda.
+
+              Desde que a troca virou revelação em círculo, nenhuma camada
+              anda — e o conteúdo da que chega muda a cada quadro, porque é o
+              recorte dela que está crescendo. Promovida a textura, o Android
+              desenha a camada uma vez e passa a compor a cópia: o que o Pedro
+              viu no aparelho foi isso, uma tela congelada pousada em cima da
+              outra.
+            */
+            pointerEvents={camada.recebeToque ? 'auto' : 'none'}
             /*
               A aba escondida some para o leitor de tela: montada e invisível,
               ela continuaria na ordem de leitura do TalkBack.
             */
             importantForAccessibility={
-              camada.recebeToque ? "auto" : "no-hide-descendants"
+              camada.recebeToque ? 'auto' : 'no-hide-descendants'
             }
             accessibilityElementsHidden={!camada.recebeToque}
-            renderToHardwareTextureAndroid={animando}
             style={[
               StyleSheet.absoluteFill,
               {
@@ -564,7 +612,7 @@ export function AbasVivas<Chave extends string>({
                   justamente o que o círculo existe para deixar à mostra.
                 */
                 backgroundColor:
-                  camada.revela && animando ? "transparent" : colors.bg,
+                  camada.revela && animando ? 'transparent' : colors.bg,
                 zIndex: camada.altura,
                 opacity: camada.opacidade,
                 transform: camada.desliza
@@ -608,6 +656,7 @@ export function AbasVivas<Chave extends string>({
             <JanelaRedonda
               t={t}
               recortando={camada.revela && animando}
+              fundo={colors.bg}
               centro={ondeNasceu.current ?? { x: largura / 2, y: altura - 48 }}
               raio={raio}
               largura={largura}
