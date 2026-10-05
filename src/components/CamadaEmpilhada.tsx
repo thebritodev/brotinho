@@ -2,6 +2,7 @@ import React, { createContext, useContext, useEffect, useRef, useState } from 'r
 import { Animated, Easing, StyleSheet, useWindowDimensions } from 'react-native';
 
 import { useMenosMovimento } from '../hooks/useMenosMovimento';
+import { contaAbertura, precisaRedesenhar } from './regrasDaCamada';
 import { useTema } from '../theme';
 import { DURACAO_DA_TROCA, FRACAO_DO_DESLIZE } from './regrasDaTroca';
 import { ScreenTransition } from './ScreenTransition';
@@ -176,6 +177,19 @@ export function CamadaEmpilhada<Chave extends string>({ aberta, render, aoCobrir
   }, [aberta, menosMovimento, t, aoCobrir]);
 
   /*
+    Qual abertura é esta.
+
+    Contada no corpo do render, e não num efeito: o elemento novo precisa
+    existir **neste** render, senão a tela aparece com o conteúdo da abertura
+    anterior por um quadro. `contaAbertura` é idempotente quando nada muda, que
+    é o que torna isso seguro. Ver `regrasDaCamada`.
+  */
+  const anteriorAberta = useRef<Chave | null>(aberta);
+  const abertura = useRef(0);
+  abertura.current = contaAbertura(anteriorAberta.current, aberta, abertura.current);
+  anteriorAberta.current = aberta;
+
+  /*
     A tela empilhada, desenhada uma vez só por abertura.
 
     `render` devolve um elemento novo a cada chamada, e esta camada renderiza
@@ -185,11 +199,23 @@ export function CamadaEmpilhada<Chave extends string>({ aberta, render, aoCobrir
     dos 220 ms do deslize de saída. Congelada, o React nem entra nela, e o
     deslize corre sozinho.
 
-    Refaz quando a chave muda — que é quando a tela realmente é outra.
+    ## Por abertura, e não por chave
+
+    Aqui dizia `desenhada.current?.chave !== mostrada`, e a chave é a
+    identidade da **tela**, não a do **conteúdo**. Abrir a prática da ansiedade
+    e voltar deixava guardado um elemento com a chave `'praticas'`; abrir
+    qualquer outra prática punha a chave em `'praticas'` de novo, o elemento
+    congelado era reaproveitado, e a tela abria na ansiedade outra vez.
+
+    Medido no navegador: quatro cartões de temas diferentes abriram os quatro
+    em "Acalmar a ansiedade". Ver `regrasDaCamada` para o porquê de "abertura"
+    ser a conta certa, e `testa-camada-empilhada` para a regra guardada.
   */
-  const desenhada = useRef<{ chave: Chave; no: React.ReactNode } | null>(null);
-  if (mostrada !== null && desenhada.current?.chave !== mostrada) {
-    desenhada.current = { chave: mostrada, no: render(mostrada) };
+  const desenhada = useRef<{ chave: Chave; abertura: number; no: React.ReactNode } | null>(
+    null,
+  );
+  if (mostrada !== null && precisaRedesenhar(desenhada.current, mostrada, abertura.current)) {
+    desenhada.current = { chave: mostrada, abertura: abertura.current, no: render(mostrada) };
   }
 
   if (!mostrada) return null;
