@@ -137,6 +137,14 @@ function usePousoNaPauta() {
   return { deslocamento, medir };
 }
 
+/**
+ * Onde o balão do broto pousa, em fração da altura da faixa.
+ *
+ * Cento e oito de duzentos e cinquenta, os dois números do documento — a
+ * altura do peito dele, que é onde a bicuda encosta no corpo. Ver o uso.
+ */
+const ALTURA_DO_BALAO_NO_DIARIO = 108 / 250;
+
 /** Registros carregados por vez na lista. */
 const PAGINA = 5;
 
@@ -201,7 +209,24 @@ export function JournalScreen({
     cima, porque o de baixo e a folha. Um quinto da tela da para ele caber
     inteiro e deixar a folha comecar acima da dobra.
   */
-  const alturaDaCenaDoDiario = Math.max(130, Math.min(alturaDaTela * 0.17, 175));
+  /*
+    A altura da faixa do broto, e ela cresceu.
+
+    Era `0.17` da tela, com teto em 175 — num aparelho comum, 143 pontos. O
+    documento desenha esta cena com **250**, e a diferença não era de gosto:
+    a 143 o broto saía com noventa e um pontos, e noventa e um pontos de um
+    broto no estágio um é quase só vaso. O rosto, que é a única coisa que esta
+    faixa tem para dizer, ficava com menos de vinte pontos de diâmetro.
+
+    Os 250 do documento numa tela de 844 são 0,296 dela. É a fração que ficou,
+    com o mesmo teto do documento.
+
+    O argumento antigo — "nesta tela o espaço de baixo vale mais, porque o de
+    baixo é a folha" — continua verdadeiro e continua atendido: a folha rola, e
+    quem está escrevendo rola junto. O que não dá é a faixa existir e não ser
+    legível, que é o pior dos dois mundos.
+  */
+  const alturaDaCenaDoDiario = Math.max(190, Math.min(alturaDaTela * 0.296, 250));
   const estagioDoDiario = sproutStage(data);
 
   const [text, setText] = useState('');
@@ -604,13 +629,26 @@ export function JournalScreen({
               pose={text.trim() ? 'parado' : 'pensa'}
             />
           </View>
+          {/*
+            O balão **ao lado dele**, e não por cima.
+
+            Estava em 0,12 da altura da faixa — ou seja, encostado no topo —
+            enquanto o broto fica embaixo. Os dois ficavam na diagonal, com a
+            bicuda apontando para um pedaço vazio de morro: lia como dois
+            objetos sem relação, e não como alguém falando.
+
+            O documento põe em 108 de 250, que é 0,432 — a altura do peito
+            dele. Ali a bicuda encosta no corpo, e é isso que faz a fala ser
+            dele. Guardado como fração pela mesma razão do balão da tela do
+            Brotinho: a faixa muda de altura com a tela.
+          */}
           <BalaoDoBroto
             lado="esquerda"
             apareceEm={noDiario(text)}
             style={{
               position: 'absolute',
               right: 16,
-              top: alturaDaCenaDoDiario * 0.12,
+              top: alturaDaCenaDoDiario * ALTURA_DO_BALAO_NO_DIARIO,
               maxWidth: 175,
             }}
           >

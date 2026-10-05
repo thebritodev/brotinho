@@ -303,11 +303,36 @@ export const POSES: Record<Pose, DescricaoDaPose> = {
    * atravessar a tristeza deixa a pessoa sozinha nela. Pensar é olhar para
    * longe, não é estar mal.
    *
-   * A boca de agora é quase uma linha, subindo um pouco à direita: o canto
-   * levantado de quem está considerando alguma coisa.
+   * ## Nem a do documento, nem a reta — e os dois erros foram meus
+   *
+   * A boca daqui já errou duas vezes, em direções opostas, e as duas estão
+   * desenhadas abaixo porque a terceira versão só se entende junto delas.
+   *
+   * **Primeira:** ela nasceu copiando o documento, `M -4 8 Q 1 6 5 9`. No
+   * desenho do documento aquilo é um "hmm"; no nosso, ampliado, é uma boca
+   * **para baixo** — e o broto pensava de cara triste no guia dos passos, no
+   * diário em branco e em três temas.
+   *
+   * **Segunda:** eu corrigi para `M -5 8.5 Q 0 9.6 5 7`, "quase uma linha
+   * subindo um pouco à direita", e ela não lê como nada. Quase reta é quase
+   * sem rosto: o Pedro aumentou o broto do Diário, olhou de perto e pediu para
+   * arrumar a expressão.
+   *
+   * **A de agora** é `M -4 9.5 Q 1 10.5 6 6.5` — arqueada para **baixo**, que
+   * é a direção do sorriso, e com três pontos de desnível entre os cantos.
+   * Pequena, deslocada para a direita e nitidamente torta: o canto levantado
+   * de quem está considerando alguma coisa, e não a linha de quem não está
+   * sentindo nada. Com o olhar em cima e à direita, fecha como "pensando no
+   * que você vai dizer".
+   *
+   * A lição está na seção E de `confere-broto`, e ela mudou por causa disto.
+   * A regra antiga reprovava qualquer arco para cima, o que é grosso demais —
+   * mas o que separa "hmm" de choro não é só o sinal, é **fundura e
+   * simetria**, e agora ela mede as duas. Esta boca passa pelo caminho mais
+   * seguro dos dois: nem para cima ela arqueia.
    */
   pensa: {
-    boca: 'M -5 8.5 Q 0 9.6 5 7',
+    boca: 'M -4 9.5 Q 1 10.5 6 6.5',
     olhar: { x: 2, y: -3 },
   },
   /** Calmo: olhos fechados e um sorriso mínimo. É a pose de quem respira. */

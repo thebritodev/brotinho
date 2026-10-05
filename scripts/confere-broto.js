@@ -343,18 +343,56 @@ async function main() {
     confere(`a boca do humor ${humor} arqueia ${esperado}`, ok, `${a?.toFixed(2)}`);
   }
 
+  /** A diferenca de altura entre os dois cantos da boca. */
+  const desnivel = (d) => {
+    const n = numeros(d);
+    if (n.length < 6) return null;
+    return Math.abs(n[1] - n[5]);
+  };
+
   /*
-    Nenhuma pose pode impor boca para cima. As poses sao o que ele **faz**, e
+    Nenhuma pose pode impor a boca do triste. As poses sao o que ele **faz**, e
     nenhuma das sete e "estar mal" — quem decide isso e o humor.
+
+    ## E "a boca do triste" nao e so o sinal do arco
+
+    A primeira versao desta conferencia reprovava qualquer arco para cima, e
+    estava grossa demais. Eu mesmo obedeci a ela: troquei a boca que o
+    documento desenha para o `pensa` por um sorrisinho quase reto, e o que saiu
+    foi um rosto sem expressao nenhuma. O Pedro viu no aparelho e pediu para
+    arrumar.
+
+    O que faz a boca triste nao e a direcao sozinha: e ela ser **funda** e
+    **simetrica**. Os dois numeros separam as duas bocas sem ambiguidade:
+
+      triste   M -8 10 Q 0 3 8 10   arco -3,50   desnivel 0
+      pensa    M -4 8  Q 1 6 5 9    arco -1,25   desnivel 1
+
+    Dezesseis de largura com os cantos na mesma altura e um arco tres vezes
+    mais fundo e uma cara de choro. Nove de largura, raso, com o canto direito
+    um ponto abaixo do esquerdo e a boca de "hmm" — a assimetria e justamente
+    o que a le como consideracao, e nao como tristeza.
+
+    Entao a regra passou a ser: ou a boca nao arqueia para cima de jeito
+    nenhum, ou ela arqueia **pouco** e **torto**. A do triste nao passa em
+    nenhum dos dois caminhos.
   */
+  /** Até onde uma boca de pose pode arquear para cima, sendo assimétrica. */
+  const ARCO_MAXIMO_DE_POSE = 2;
+  /** Quanto os cantos precisam diferir para a boca ser "hmm", e não choro. */
+  const DESNIVEL_MINIMO = 0.5;
+
   for (const [nome, pose] of Object.entries(g.POSES)) {
     const d = pose.boca;
     if (typeof d !== 'string' || d === 'aberta' || d === 'ronco') continue;
     const a = arco(d);
+    const dn = desnivel(d);
+    const reta = a !== null && a > -0.3;
+    const hmm = a !== null && dn !== null && a > -ARCO_MAXIMO_DE_POSE && dn >= DESNIVEL_MINIMO;
     confere(
       `a boca da pose ${nome} não é a do triste`,
-      a !== null && a > -0.3,
-      `${a === null ? '?' : a.toFixed(2)} · ${d}`,
+      reta || hmm,
+      `arco ${a === null ? '?' : a.toFixed(2)} · desnível ${dn === null ? '?' : dn.toFixed(2)} · ${d}`,
     );
   }
 }
