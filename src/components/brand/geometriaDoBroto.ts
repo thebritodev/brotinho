@@ -438,6 +438,21 @@ export const STEM_TOP_Y: Record<SproutStage, number> = {
 
 export const BULB_R: Record<SproutStage, number> = { 1: 20, 2: 27, 3: 33 };
 
+/**
+ * O centro da cabeça, em unidades de desenho.
+ *
+ * Quatro acima do topo da haste — é ali que o bulbo é desenhado, e era uma
+ * conta escrita só dentro de `caixaDaPlanta`. Virou função exportada quando o
+ * Diário precisou pendurar o balão de fala **na cabeça** em vez de numa fração
+ * chutada da faixa: com a conta em dois lugares, mudar o desenho deixaria a
+ * bicuda apontando para o lugar de antes, e ninguém descobriria por teste.
+ *
+ * Para levar isto a pixels, passe por `noQuadro` com o quadro do broto.
+ */
+export function centroDaCabeca(stage: SproutStage): { x: number; y: number } {
+  return { x: CX, y: STEM_TOP_Y[stage] - 4 };
+}
+
 /*
   As espessuras do desenho.
 
@@ -517,7 +532,7 @@ export type Caixa = { x: number; y: number; largura: number; altura: number };
  */
 export function caixaDaPlanta(stage: SproutStage, temEnfeite = false): Caixa {
   const stemTopY = STEM_TOP_Y[stage];
-  const cy = stemTopY - 4;
+  const cy = centroDaCabeca(stage).y;
 
   let esquerda = Infinity;
   let direita = -Infinity;

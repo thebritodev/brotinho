@@ -39,7 +39,13 @@ export { OndeVoceParou } from './brand/OndeVoceParou';
 export { DesenhoDoTema, ehTemaDesenhado } from './brand/desenhosDosTemas';
 export { LuzDeEstufa } from './brand/LuzDeEstufa';
 export { GraoDePapel } from './brand/GraoDePapel';
-export { alturaDoMascote } from './brand/geometriaDoBroto';
+export {
+  alturaDoMascote,
+  centroDaCabeca,
+  CX,
+  noQuadro,
+  quadroDoBroto,
+} from './brand/geometriaDoBroto';
 export { InsightCard } from './brand/InsightCard';
 export { CartaoDoConselho } from './brand/CartaoDoConselho';
 export { Desenterrar } from './brand/Desenterrar';

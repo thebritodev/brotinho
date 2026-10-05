@@ -27,13 +27,17 @@ import {
   BalaoDoBroto,
   Button,
   Cena,
+  centroDaCabeca,
   CRISTA_DO_MORRO,
+  CX,
   MoodSelector,
   HumorComPalavra,
   Icon,
   InsightCard,
   MoodFace,
   MOODS,
+  noQuadro,
+  quadroDoBroto,
   Sprout,
   TopBar,
 } from '../../components';
@@ -137,13 +141,51 @@ function usePousoNaPauta() {
   return { deslocamento, medir };
 }
 
+/** O recuo da coluna do broto dentro da faixa. */
+const RECUO_DA_COLUNA = 16;
+
 /**
- * Onde o balão do broto pousa, em fração da altura da faixa.
+ * Quanto o vaso afunda na encosta, contado do pé da faixa.
  *
- * Cento e oito de duzentos e cinquenta, os dois números do documento — a
- * altura do peito dele, que é onde a bicuda encosta no corpo. Ver o uso.
+ * Mais fundo que a crista, e não em cima dela: com o vaso pousado na crista
+ * sobra uma tira de morro embaixo que tem exatamente a cor da página, e ela lê
+ * como vazio, não como chão.
  */
-const ALTURA_DO_BALAO_NO_DIARIO = 108 / 250;
+const POUSO_DO_VASO = 14;
+
+/** A folga entre o desenho e a bicuda do balão. */
+const FOLGA_ATE_O_BALAO = 10;
+
+/**
+ * A altura da caixa que centra o balão na cabeça.
+ *
+ * O balão muda de altura com o que ele diz — uma linha, duas, três. Ancorá-lo
+ * pelo topo deixaria a bicuda subindo e descendo conforme o texto; ancorá-lo
+ * pelo centro de uma caixa fixa prende a bicuda na cabeça, qualquer que seja o
+ * tamanho dele. Cento e vinte cobre o balão mais alto que esta tela produz.
+ */
+const FAIXA_DO_BALAO = 120;
+
+/**
+ * O amarelo da faixa no tema escuro.
+ *
+ * **Amarelo não sobrevive a ser escurecido.** O `amber100` escuro da paleta é
+ * `#4A4126`, e ele está certo para o que a paleta faz com ele: um retângulo de
+ * vinte e quatro pontos atrás de um ícone, a pastilha de um aviso. Esticado
+ * para duzentos e cinquenta por trezentos e noventa, vira um campo de oliva de
+ * valor médio — o Pedro disse "estranho", e estranho é a palavra certa: lê como
+ * mancha, não como cor escolhida.
+ *
+ * O que o claro faz aqui é luz de abajur sobre uma página. A tradução disso
+ * para a noite não é o mesmo tom mais escuro, é a mesma **sensação**: um marrom
+ * quente e baixo, como luz de abajur numa parede. O que separa um do outro é o
+ * verde — em `#4A4126` o verde encosta no vermelho e o azul fica longe dos
+ * dois, que é a receita do caqui. Aqui os três descem em degraus parecidos.
+ *
+ * A paleta não muda: `amber100` continua servindo os oito outros lugares que o
+ * usam, todos pequenos. Quem precisava de outra resposta era o campo grande.
+ */
+const AMBAR_DA_NOITE = '#3E3026';
 
 /** Registros carregados por vez na lista. */
 const PAGINA = 5;
@@ -197,7 +239,7 @@ export function JournalScreen({
   /** Abre uma prática direto, para a oferta que vem depois de salvar. */
   aoAbrirPratica?: (alvo: { topico: string; pratica: string }) => void;
 }) {
-  const { colors, palette, shadows } = useTema();
+  const { colors, palette, shadows, tema } = useTema();
   const insets = useSafeAreaInsets();
   const { data, addJournalEntry, updateJournalEntry, removeJournalEntry, setTodayMood } =
     useAppState();
@@ -227,7 +269,26 @@ export function JournalScreen({
     legível, que é o pior dos dois mundos.
   */
   const alturaDaCenaDoDiario = Math.max(190, Math.min(alturaDaTela * 0.296, 250));
+  const tamanhoDoBrotoDoDiario = Math.round(alturaDaCenaDoDiario * 0.64);
+  /** A coluna em que o desenho é centrado, dentro da faixa. */
+  const colunaDoBroto = alturaDaCenaDoDiario * 0.72;
   const estagioDoDiario = sproutStage(data);
+  /*
+    Onde o desenho acaba e onde a cabeça dele está — as duas medidas que o
+    balão usa, tiradas do mesmo quadro que desenha o broto.
+
+    `quadroDoBroto` devolve a caixa e o tamanho dela em pixels; `noQuadro`
+    converte um ponto do desenho para dentro dela. Ver `centroDaCabeca`.
+  */
+  const quadroDoBrotoDoDiario = quadroDoBroto(estagioDoDiario, tamanhoDoBrotoDoDiario);
+  /** A borda direita do desenho, contada da borda esquerda da faixa. */
+  const direitaDoBroto =
+    RECUO_DA_COLUNA + (colunaDoBroto + quadroDoBrotoDoDiario.largura) / 2;
+  /** O centro da cabeça, contado do pé da faixa. */
+  const alturaDaCabeca =
+    POUSO_DO_VASO +
+    quadroDoBrotoDoDiario.altura -
+    noQuadro(quadroDoBrotoDoDiario, CX, centroDaCabeca(estagioDoDiario).y).y;
 
   const [text, setText] = useState('');
 
@@ -600,7 +661,7 @@ export function JournalScreen({
           <Cena
             largura={larguraDaTela}
             altura={alturaDaCenaDoDiario}
-            ceu={palette.amber100}
+            ceu={tema === 'escuro' ? AMBAR_DA_NOITE : palette.amber100}
             semAstro
             nuvens={false}
             chao="grama"
@@ -608,49 +669,70 @@ export function JournalScreen({
           <View
             style={{
               position: 'absolute',
-              left: 16,
-              /*
-                Mais fundo que a crista, e nao em cima dela.
-
-                Numa faixa curta, deixar o vaso pousado na crista empurra o
-                desenho para o alto e sobra uma tira de morro embaixo que tem
-                exatamente a cor da pagina — le como vazio, nao como chao. Com
-                o vaso dentro da encosta, a faixa acaba onde o desenho acaba.
-              */
-              bottom: 14,
-              width: alturaDaCenaDoDiario * 0.72,
+              left: RECUO_DA_COLUNA,
+              /* Ver `POUSO_DO_VASO`. */
+              bottom: POUSO_DO_VASO,
+              width: colunaDoBroto,
               alignItems: 'center',
             }}
           >
+            {/*
+              `parado`, e não mais `pensa` quando a folha está em branco.
+
+              A pose de pensar põe o olhar em cima e à direita e torce a boca.
+              Ampliada, ela não lê como consideração: lê como alguém olhando
+              para outro lugar, e numa tela em que a pessoa vai escrever o que
+              doeu, olhar para outro lugar é a coisa errada a fazer. O Pedro
+              pediu emoção suave, e suave aqui é o rosto do humor `leve` —
+              olhos no meio, sorriso simétrico pequeno, bochecha.
+
+              O que muda conforme ela escreve continua mudando: é o que ele
+              **diz**, no balão. Ver `noDiario`.
+            */}
             <AnimatedSprout
               mood="leve"
               stage={estagioDoDiario}
-              size={Math.round(alturaDaCenaDoDiario * 0.64)}
-              pose={text.trim() ? 'parado' : 'pensa'}
+              size={tamanhoDoBrotoDoDiario}
+              pose="parado"
             />
           </View>
           {/*
-            O balão **ao lado dele**, e não por cima.
+            O balão pendurado **na cabeça dele**, e não numa fração da faixa.
 
-            Estava em 0,12 da altura da faixa — ou seja, encostado no topo —
-            enquanto o broto fica embaixo. Os dois ficavam na diagonal, com a
-            bicuda apontando para um pedaço vazio de morro: lia como dois
-            objetos sem relação, e não como alguém falando.
+            Já esteve em 0,12 da altura — encostado no topo, com o broto lá
+            embaixo — e depois em 0,432, que são os 108 de 250 do documento.
+            Os dois eram chute com cara de número: medido na tela, a bicuda
+            ficava 85 pontos à direita da cabeça e 66 abaixo dela, apontando
+            para um pedaço vazio de morro. O Pedro disse que estava longe, e
+            estava.
 
-            O documento põe em 108 de 250, que é 0,432 — a altura do peito
-            dele. Ali a bicuda encosta no corpo, e é isso que faz a fala ser
-            dele. Guardado como fração pela mesma razão do balão da tela do
-            Brotinho: a faixa muda de altura com a tela.
+            Agora as duas coordenadas saem do desenho. `direitaDoBroto` é onde
+            o desenho de fato acaba, e `alturaDaCabeca` é o centro do bulbo
+            levado a pixels pelo mesmo quadro que desenha o broto — ver
+            `centroDaCabeca`. A caixa de `FAIXA_DO_BALAO` centra o balão nessa
+            altura, então a bicuda fica na cabeça mesmo quando a fala cresce
+            para três linhas.
           */}
+          <View
+            pointerEvents="box-none"
+            style={{
+              position: 'absolute',
+              left: direitaDoBroto + FOLGA_ATE_O_BALAO,
+              right: 12,
+              top: alturaDaCenaDoDiario - alturaDaCabeca - FAIXA_DO_BALAO / 2,
+              height: FAIXA_DO_BALAO,
+              justifyContent: 'center',
+              alignItems: 'flex-start',
+            }}
+          >
           <BalaoDoBroto
             lado="esquerda"
             apareceEm={noDiario(text)}
-            style={{
-              position: 'absolute',
-              right: 16,
-              top: alturaDaCenaDoDiario * ALTURA_DO_BALAO_NO_DIARIO,
-              maxWidth: 175,
-            }}
+            /* Sem teto ele vira uma linha unica encostada na borda direita:
+               a caixa de fora deixa quase duzentos pontos livres, e a fala
+               cabe neles. Cento e setenta e cinco a quebra em duas linhas, que
+               e a forma que um balao de fala tem. */
+            style={{ maxWidth: 175 }}
           >
             <Text
               style={{
@@ -663,6 +745,7 @@ export function JournalScreen({
               {noDiario(text)}
             </Text>
           </BalaoDoBroto>
+          </View>
         </View>
 
         <Text style={{ color: colors.textPrimary, fontFamily: fonts.display.semiBold, fontSize: 19 }}>{comeco}</Text>
