@@ -356,6 +356,33 @@ function razao(frente, fundo) {
     const tintaForte = t.palette.brown900;
 
     /*
+      O cabecalho do Diario, que deixou de ficar sobre o fundo da pagina.
+
+      A faixa daquela tela passou a ser a cor do cartao que a abre --
+      `yellow100` -- e a subir ate o topo, por tras do titulo e do botao de
+      voltar. Antes o cabecalho pousava em `colors.bg`, um par que o resto
+      deste arquivo ja cobria; agora ele pousa num tom de cor, e esse par e
+      novo. No tema escuro `yellow100` e um dourado de valor medio, que e onde
+      isto aperta.
+
+      Titulo em `AA_GRANDE` porque e negrito de vinte; a seta em `AA_GRANDE`
+      tambem, que e o piso da WCAG para elemento de interface que nao e texto.
+      Ver `JournalScreen`.
+    */
+    linha(
+      `título do Diário sobre a faixa (${nomeDoTema})`,
+      c.textPrimary,
+      t.palette.yellow100,
+      AA_GRANDE,
+    );
+    linha(
+      `seta de voltar do Diário sobre a faixa (${nomeDoTema})`,
+      t.palette.brown700,
+      t.palette.yellow100,
+      AA_GRANDE,
+    );
+
+    /*
       As cores de humor ficaram de fora deste arquivo, de propósito.
 
       A primeira versão media cada uma contra o fundo e reprovava o tema claro

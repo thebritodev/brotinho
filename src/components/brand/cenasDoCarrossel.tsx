@@ -546,7 +546,19 @@ export function CenaDoDiario({
       <View style={{ position: 'absolute', left: 30, top: 30 }}>
         {/* As coordenadas são as do documento: `translate(34 44) scale(.47)`
             sobre um broto de 200 de largura dá 94 aqui. */}
-        <Sprout mood="feliz" stage={2} size={94} pose="pensa" />
+        {/*
+          O mesmo rosto da tela do Diário, e pelo mesmo motivo.
+
+          Era `feliz` com a pose `pensa`. A pose põe o olhar em cima e à
+          direita e torce a boca, e o que ela entrega é alguém olhando para
+          outro lugar — num convite para escrever o que doeu, olhar para outro
+          lugar é a coisa errada. Agora é o rosto do humor `leve`, parado:
+          olhos no meio, sorriso simétrico pequeno, bochecha.
+
+          E é o **mesmo** rosto que a tela que este cartão abre mostra. O
+          cartão é a porta; o personagem não pode trocar de cara ao atravessá-la.
+        */}
+        <Sprout mood="leve" stage={2} size={94} pose="parado" />
       </View>
       </View>
       </View>

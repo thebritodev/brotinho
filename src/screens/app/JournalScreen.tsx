@@ -166,26 +166,16 @@ const FOLGA_ATE_O_BALAO = 10;
  */
 const FAIXA_DO_BALAO = 120;
 
-/**
- * O amarelo da faixa no tema escuro.
- *
- * **Amarelo não sobrevive a ser escurecido.** O `amber100` escuro da paleta é
- * `#4A4126`, e ele está certo para o que a paleta faz com ele: um retângulo de
- * vinte e quatro pontos atrás de um ícone, a pastilha de um aviso. Esticado
- * para duzentos e cinquenta por trezentos e noventa, vira um campo de oliva de
- * valor médio — o Pedro disse "estranho", e estranho é a palavra certa: lê como
- * mancha, não como cor escolhida.
- *
- * O que o claro faz aqui é luz de abajur sobre uma página. A tradução disso
- * para a noite não é o mesmo tom mais escuro, é a mesma **sensação**: um marrom
- * quente e baixo, como luz de abajur numa parede. O que separa um do outro é o
- * verde — em `#4A4126` o verde encosta no vermelho e o azul fica longe dos
- * dois, que é a receita do caqui. Aqui os três descem em degraus parecidos.
- *
- * A paleta não muda: `amber100` continua servindo os oito outros lugares que o
- * usam, todos pequenos. Quem precisava de outra resposta era o campo grande.
- */
-const AMBAR_DA_NOITE = '#3E3026';
+/*
+  A cor da faixa saiu daqui e foi para o `yellow100` da paleta.
+
+  Houve neste lugar um `AMBAR_DA_NOITE = '#3E3026'`, inventado para o tema
+  escuro porque o `amber100` escuro vira caqui quando esticado. O problema era
+  real, a resposta é que estava no nível errado: a faixa não precisava de um
+  tom próprio, precisava do tom **do cartão que abre esta tela**.
+
+  Ver `COR_DA_FAIXA` no corpo da tela.
+*/
 
 /** Registros carregados por vez na lista. */
 const PAGINA = 5;
@@ -239,7 +229,7 @@ export function JournalScreen({
   /** Abre uma prática direto, para a oferta que vem depois de salvar. */
   aoAbrirPratica?: (alvo: { topico: string; pratica: string }) => void;
 }) {
-  const { colors, palette, shadows, tema } = useTema();
+  const { colors, palette, shadows } = useTema();
   const insets = useSafeAreaInsets();
   const { data, addJournalEntry, updateJournalEntry, removeJournalEntry, setTodayMood } =
     useAppState();
@@ -268,6 +258,19 @@ export function JournalScreen({
     quem está escrevendo rola junto. O que não dá é a faixa existir e não ser
     legível, que é o pior dos dois mundos.
   */
+  /**
+   * A cor da faixa — e é a cor do cartão que abriu esta tela.
+   *
+   * O Diário é o único cartão quente da aba do Brotinho, e `palette.yellow100`
+   * é o que o pinta. Tocar nele e cair numa tela com outro amarelo fazia a
+   * transição parecer troca de assunto; com a mesma cor, a tela lê como o
+   * cartão aberto.
+   *
+   * É `yellow100`, e não o `amber100` que estava aqui, nem o `#3E3026` que eu
+   * tinha inventado para o escuro: os dois eram tons escolhidos para esta
+   * faixa isoladamente, e a faixa não é um objeto isolado.
+   */
+  const corDaFaixa = palette.yellow100;
   const alturaDaCenaDoDiario = Math.max(190, Math.min(alturaDaTela * 0.296, 250));
   const tamanhoDoBrotoDoDiario = Math.round(alturaDaCenaDoDiario * 0.64);
   /** A coluna em que o desenho é centrado, dentro da faixa. */
@@ -638,9 +641,24 @@ export function JournalScreen({
   return (
     <KeyboardAvoidingView
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-      style={{ flex: 1, paddingTop: insets.top }}
+      style={{ flex: 1 }}
     >
-      <TopBar title="Diário" onBack={onBack} />
+      {/*
+        O cabeçalho **dentro** da faixa, e não em cima dela.
+
+        O recuo da barra de status morava no contêiner da tela inteira, então a
+        cor da faixa começava abaixo do cabeçalho: uma tira da cor da página
+        atravessava o alto, e a faixa aparecia como um bloco colado no meio da
+        tela em vez de ser o fundo dela.
+
+        Agora quem leva o recuo é esta `View`, pintada da mesma cor — a cor
+        corre do topo do aparelho, passa por trás do título e do botão de
+        voltar, e encontra o céu da `Cena` sem emenda. O cabeçalho continua
+        fora da `ScrollView`, parado, enquanto o conteúdo rola por baixo.
+      */}
+      <View style={{ paddingTop: insets.top, backgroundColor: corDaFaixa }}>
+        <TopBar title="Diário" onBack={onBack} />
+      </View>
 
       <ScrollView
         contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 32 + POR_TRAS_DA_BARRA, gap: 16 }}
@@ -661,7 +679,7 @@ export function JournalScreen({
           <Cena
             largura={larguraDaTela}
             altura={alturaDaCenaDoDiario}
-            ceu={tema === 'escuro' ? AMBAR_DA_NOITE : palette.amber100}
+            ceu={corDaFaixa}
             semAstro
             nuvens={false}
             chao="grama"
