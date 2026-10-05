@@ -81,6 +81,32 @@ export function useToqueAnimado(onPress?: () => void, duracao = DURACAO_DO_TOQUE
     return () => valor.removeListener(id);
   }, [valor]);
 
+  /*
+    Os relógios em curso, para nenhum disparar depois de a tela sair.
+
+    Os dois `setTimeout` daqui eram soltos: o de fora guardava a alça numa
+    variável que ninguém lia, e o de dentro nem isso. Quem toca num cartão e
+    some antes do meio da cena — fechando a tela, ou o app indo para o fundo —
+    deixava para trás um relógio que ainda ia chamar `onPress()` e navegar
+    sozinho, e outro que ia mexer num valor animado de um componente que não
+    existe mais.
+
+    Na prática isso quase nunca acontecia, porque as abas ficam montadas e as
+    telas empilhadas ficam congeladas — "quase nunca" é o que faz um defeito
+    destes atravessar meses sem ser visto, não o que o torna aceitável.
+  */
+  const relogios = useRef<ReturnType<typeof setTimeout>[]>([]);
+  const agendar = (o: () => void, quando: number) => {
+    relogios.current.push(setTimeout(o, quando));
+  };
+  useEffect(
+    () => () => {
+      for (const r of relogios.current) clearTimeout(r);
+      relogios.current = [];
+    },
+    [],
+  );
+
   const tocar = () => {
     if (!onPress) return;
 
@@ -139,7 +165,7 @@ export function useToqueAnimado(onPress?: () => void, duracao = DURACAO_DO_TOQUE
       }
     });
 
-    const aMeioCaminho = setTimeout(() => {
+    agendar(() => {
       animacao.stop();
       andando.current = false;
       onPress();
@@ -149,7 +175,7 @@ export function useToqueAnimado(onPress?: () => void, duracao = DURACAO_DO_TOQUE
         a tela nova começa a passar por cima dele. Meio segundo depois ele já
         está coberto, e ninguém vê a volta.
       */
-      setTimeout(() => valor.setValue(0), 500);
+      agendar(() => valor.setValue(0), 500);
     }, duracao * ONDE_A_TELA_COMECA);
   };
 

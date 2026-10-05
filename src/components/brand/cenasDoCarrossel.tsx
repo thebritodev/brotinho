@@ -21,7 +21,7 @@ import { palette, tracos } from '../../theme/tokens';
 import { AnimatedSprout } from './AnimatedSprout';
 import { Cena as Paisagem } from './Cena';
 import { Sprout } from './Sprout';
-import { curva, desloca, estica, gira } from './movimentoDaCena';
+import { curva, desloca, gira } from './movimentoDaCena';
 import { BRASA, TERRA, TERRA_CLARA, TERRA_FUNDA, TERRA_SOMBRA } from './terraDoCanteiro';
 
 /**

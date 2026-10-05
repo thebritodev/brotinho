@@ -28,7 +28,6 @@ import {
   Button,
   Cena,
   centroDaCabeca,
-  CRISTA_DO_MORRO,
   CX,
   MoodSelector,
   HumorComPalavra,

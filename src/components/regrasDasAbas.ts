@@ -185,7 +185,9 @@ export function sentidoDaTroca<Chave extends string>(
  */
 export function camadaDaAba<Chave extends string>(
   chave: Chave,
-  { ativa, anterior, seMexendo, ordem }: CenaDasAbas<Chave>,
+  /* `ordem` não entra: ela decidia de que lado a aba entrava, e desde que
+     a troca virou revelação em círculo ninguém anda. Ver `RECUO_DE_QUEM_SAI`. */
+  { ativa, anterior, seMexendo }: CenaDasAbas<Chave>,
 ): CamadaDaAba {
   const aVista = chave === seMexendo;
   const parada = {

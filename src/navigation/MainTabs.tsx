@@ -15,7 +15,6 @@ import { GardenScreen } from '../screens/app/GardenScreen';
 import { JournalScreen } from '../screens/app/JournalScreen';
 import { PracticesScreen } from '../screens/app/PracticesScreen';
 import { PrivacyScreen } from '../screens/app/PrivacyScreen';
-import { RemindersScreen } from '../screens/app/RemindersScreen';
 import { ProfileScreen } from '../screens/app/ProfileScreen';
 import { SettingsScreen } from '../screens/app/SettingsScreen';
 import { TherapySummaryScreen } from '../screens/app/TherapySummaryScreen';
@@ -230,8 +229,6 @@ export function MainTabs() {
         );
       case 'valores':
         return <ValuesScreen onBack={closeSub} />;
-      case 'lembretes':
-        return <RemindersScreen onBack={closeSub} />;
       case 'jardim':
         return <GardenScreen onBack={closeSub} aoAbrir={setSub} />;
       case 'conselhos':
@@ -279,7 +276,6 @@ export function MainTabs() {
           aoRolar={(y) => {
             rolagemDaHome.current = y;
           }}
-          onOpenReminders={() => setSub('lembretes')}
           onOpenGarden={() => setSub('jardim')}
         />
       ),

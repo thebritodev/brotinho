@@ -5,7 +5,6 @@ import Svg, {
   Ellipse,
   LinearGradient,
   Path,
-  RadialGradient,
   Stop,
 } from 'react-native-svg';
 
@@ -18,7 +17,6 @@ import type { OrigemDosFarelos } from './ChuvaDeFarelos';
 import { GraoDePapel } from './GraoDePapel';
 import {
   TERRA,
-  TERRA_CLARA,
   TERRA_FUNDA,
   TERRA_SOMBRA,
   TEXTO_NA_TERRA,
@@ -229,7 +227,6 @@ export function FaixaDaFrase({
   aviso = null,
   aoCeder,
 }: Props) {
-  const { colors } = useTema();
   const id = useId().replace(/[^a-zA-Z0-9]/g, '');
   const menosMovimento = useMenosMovimento();
 
@@ -613,6 +610,30 @@ export function FaixaDaFrase({
         ninguém precisa acertar a folha; a linha embaixo do título diz o que
         fazer, em texto, que é peso visual de outra ordem.
       */}
+      {/*
+        ## Dois alvos, e eles são **irmãos** — não um dentro do outro
+
+        A intenção aqui sempre foi certa: guardar e reler são coisas
+        diferentes de desenterrar, e o leitor de tela precisa dos dois
+        anúncios. A execução é que estava errada — a porta das guardadas era
+        um `Pressable` **dentro** do `Pressable` grande.
+
+        Isso vira um `<button>` dentro de um `<button>`, que é inválido em
+        HTML e o React reclama em voz alta. No aparelho o custo é outro e é
+        pior: o TalkBack não garante alcançar o botão de dentro, então o
+        anúncio que o aninhamento existia para dar é justamente o que ele
+        tirava. E é a mesma regra que a `FaixaDaComposta` já segue, escrita
+        lá: dois alvos concêntricos são dois anúncios para a mesma coisa.
+
+        A forma que ficou: o alvo grande é uma `Pressable` **vazia**, atrás, e
+        o texto vem numa camada por cima com `pointerEvents="box-none"` — o
+        toque atravessa a camada e os textos e chega ao alvo de trás, menos
+        onde há a `Pressable` das guardadas, que é irmã e não filha.
+
+        O que se perde é o `opacity` de 0,9 no texto enquanto o dedo está
+        apertado; ele continua valendo para a faixa. A diferença entre 1 e 0,9
+        num texto não é perceptível, e dois alvos corretos valem mais.
+      */}
       <Pressable
         accessibilityRole="button"
         accessibilityLabel={aberto ? 'Ler a frase de hoje de novo' : 'Desenterrar a frase de hoje'}
@@ -623,27 +644,37 @@ export function FaixaDaFrase({
           right: 0,
           top: 0,
           height: ALTURA_DO_CANTEIRO + ALTURA_DO_CONVITE,
+          opacity: pressed ? 0.9 : 1,
+        })}
+      />
+
+      <View
+        pointerEvents="box-none"
+        style={{
+          position: 'absolute',
+          left: 0,
+          right: 0,
+          top: 0,
+          height: ALTURA_DO_CANTEIRO + ALTURA_DO_CONVITE,
           paddingHorizontal: recuo,
           paddingBottom: 16,
           justifyContent: 'flex-end',
           gap: 6,
-          opacity: pressed ? 0.9 : 1,
-        })}
+        }}
       >
-        <View style={{ flexDirection: 'row', alignItems: 'baseline', gap: 12 }}>
+        <View
+          pointerEvents="box-none"
+          style={{ flexDirection: 'row', alignItems: 'baseline', gap: 12 }}
+        >
           <Text
+            pointerEvents="none"
             style={{ fontFamily: fonts.display.extraBold, fontSize: 25, color: TEXTO_NA_TERRA }}
           >
             A frase de hoje
           </Text>
 
-          <View style={{ flex: 1 }} />
+          <View pointerEvents="none" style={{ flex: 1 }} />
 
-          {/*
-            A porta das guardadas é um alvo de toque separado, dentro do
-            outro: guardar e reler são coisas diferentes de desenterrar, e o
-            leitor de tela precisa dos dois anúncios.
-          */}
           <Pressable
             accessibilityRole="button"
             accessibilityLabel={
@@ -668,6 +699,7 @@ export function FaixaDaFrase({
         </View>
 
         <Text
+          pointerEvents="none"
           style={{
             fontFamily: fonts.body.regular,
             fontSize: 14,
@@ -677,7 +709,7 @@ export function FaixaDaFrase({
         >
           {aberto ? 'Toque no papel para ler de novo.' : 'Toque no papel para desenterrar.'}
         </Text>
-      </Pressable>
+      </View>
       <CartaoDePapel
         visivel={lendo}
         texto={texto}
@@ -987,18 +1019,36 @@ function CartaoDePapel({
 
   return (
     <Modal visible={visivel} transparent animationType="fade" onRequestClose={onFechar}>
-      <Pressable
-        accessibilityRole="button"
-        accessibilityLabel="Fechar a frase"
-        onPress={onFechar}
+      {/*
+        O véu fecha a frase, e é **irmão** do cartão.
+
+        Ele era o pai: uma `Pressable` de tela inteira com o cartão dentro. Os
+        botões de guardar e compartilhar ficavam, então, dentro de um botão —
+        e o TalkBack não garante alcançar os de dentro. Numa tela cuja razão de
+        existir são essas duas ações, era o pior lugar para esse defeito estar.
+        Ver `confere-alvos-de-toque`.
+      */}
+      <View
         style={{
           flex: 1,
-          backgroundColor: 'rgba(28, 24, 20, 0.62)',
           alignItems: 'center',
           justifyContent: 'center',
           padding: 24,
         }}
       >
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel="Fechar a frase"
+          onPress={onFechar}
+          style={{
+            position: 'absolute',
+            left: 0,
+            right: 0,
+            top: 0,
+            bottom: 0,
+            backgroundColor: 'rgba(28, 24, 20, 0.62)',
+          }}
+        />
         <Animated.View
           style={{
             width: '100%',
@@ -1069,7 +1119,7 @@ function CartaoDePapel({
             )}
           </View>
         </Animated.View>
-      </Pressable>
+      </View>
     </Modal>
   );
 }

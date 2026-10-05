@@ -167,9 +167,24 @@ export function SwipeableEntry({
             virar um cartão de várias telas de altura. O texto inteiro fica a
             um toque — antes só dava para reler entrando em "Editar", o que
             sugeria que você ia alterar alguma coisa. */}
+        {/*
+          O cartão e o botão de opções são **irmãos**.
+
+          O botão morava dentro do `Card`, e `Card` com `onPress` é uma
+          `Pressable` — ou seja, um alvo de toque dentro de outro, com todos os
+          problemas que isso traz (ver `confere-alvos-de-toque`). Aqui ele era o
+          pior caso dos três que a revisão achou: o alvo de fora ocupa o cartão
+          inteiro, então o de dentro tinha vinte e oito pontos de largura contra
+          a tela toda.
+
+          Agora o botão é posicionado por cima do canto, irmão do cartão. O
+          `paddingRight` na coluna de texto é o que impede a data e o texto de
+          passarem por baixo dele.
+        */}
+        <View>
         <Card onPress={onRead}>
           <View style={{ flexDirection: 'row', alignItems: 'flex-start' }}>
-            <View style={{ flex: 1, gap: 4, marginBottom: 6 }}>
+            <View style={{ flex: 1, gap: 4, marginBottom: 6, paddingRight: 34 }}>
               <Text
                 style={{
                   fontFamily: fonts.body.extraBold,
@@ -201,15 +216,6 @@ export function SwipeableEntry({
                 </View>
               )}
             </View>
-            <Pressable
-              accessibilityRole="button"
-              accessibilityLabel={`Opções do registro de ${date}`}
-              onPress={() => setMenuAberto(true)}
-              hitSlop={10}
-              style={{ width: 28, height: 22, alignItems: 'flex-end', justifyContent: 'center' }}
-            >
-              <Icon name="more" size={18} color={palette.brown400} />
-            </Pressable>
           </View>
           <Text
             numberOfLines={LINHAS_NA_LISTA}
@@ -223,6 +229,25 @@ export function SwipeableEntry({
             {text}
           </Text>
         </Card>
+        {/* O recuo é o `padding` do `Card`, que é 20 — ver `Card`. */}
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel={`Opções do registro de ${date}`}
+          onPress={() => setMenuAberto(true)}
+          hitSlop={10}
+          style={{
+            position: 'absolute',
+            right: 20,
+            top: 20,
+            width: 28,
+            height: 22,
+            alignItems: 'flex-end',
+            justifyContent: 'center',
+          }}
+        >
+          <Icon name="more" size={18} color={palette.brown400} />
+        </Pressable>
+        </View>
       </Swipeable>
 
       <Modal
@@ -231,18 +256,34 @@ export function SwipeableEntry({
         animationType="fade"
         onRequestClose={() => setMenuAberto(false)}
       >
-        {/* Tocar fora fecha, como qualquer folha de ações do sistema. */}
-        <Pressable
-          accessibilityRole="button"
-          accessibilityLabel="Fechar"
-          onPress={() => setMenuAberto(false)}
-          style={{
-            flex: 1,
-            backgroundColor: 'rgba(0,0,0,0.35)',
-            justifyContent: 'flex-end',
-            padding: 20,
-          }}
-        >
+        {/*
+          O véu e a folha são **irmãos**.
+
+          O véu já foi o pai: uma `Pressable` de tela inteira com a folha de
+          ações dentro dela. Tocar fora fechava, que é o comportamento certo, mas
+          "Editar" e "Excluir" ficavam dentro de um botão — `<button>` dentro de
+          `<button>`, inválido em HTML, e no aparelho o TalkBack não garante
+          alcançar os botões de dentro. Uma folha de ações cujas ações o leitor
+          de tela pode não alcançar é a pior troca possível.
+
+          Agora o véu fica atrás, preenchendo a tela, e a folha é irmã dele.
+          O toque fora continua fechando, e os dois botões são dois alvos de
+          primeira ordem. Ver `confere-alvos-de-toque`.
+        */}
+        <View style={{ flex: 1, justifyContent: 'flex-end', padding: 20 }}>
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel="Fechar"
+            onPress={() => setMenuAberto(false)}
+            style={{
+              position: 'absolute',
+              left: 0,
+              right: 0,
+              top: 0,
+              bottom: 0,
+              backgroundColor: 'rgba(0,0,0,0.35)',
+            }}
+          />
           <View
             style={{
               backgroundColor: colors.surface,
@@ -285,7 +326,7 @@ export function SwipeableEntry({
               <Text style={{ fontFamily: fonts.body.bold, fontSize: 15, color: colors.danger }}>Excluir</Text>
             </Pressable>
           </View>
-        </Pressable>
+        </View>
       </Modal>
     </View>
   );

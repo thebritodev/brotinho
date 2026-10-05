@@ -171,11 +171,8 @@ export function AppLockGate({ children }: { children: React.ReactNode }) {
     de aparecer como consequência de um erro.
   */
   const camada = trancado ? (
-    <Pressable
-      accessibilityRole="button"
-      accessibilityLabel="Desbloquear"
+    <View
       accessibilityViewIsModal
-      onPress={authenticate}
       style={[
         StyleSheet.absoluteFill,
         {
@@ -187,6 +184,26 @@ export function AppLockGate({ children }: { children: React.ReactNode }) {
         },
       ]}
     >
+      {/*
+        Tocar em qualquer lugar desbloqueia — e isso é uma **área**, não um
+        botão.
+
+        A tela inteira já foi uma `Pressable` com `accessibilityRole="button"`
+        e rótulo "Desbloquear", e dentro dela havia o botão "Desbloquear". Dois
+        anúncios para a mesma ação, que é exatamente o que a regra dos alvos de
+        toque existe para evitar — e aqui com o agravante de o alvo de fora
+        cobrir a tela toda.
+
+        Agora a área fica atrás, escondida do leitor de tela, e quem o leitor
+        anuncia é o botão de verdade. O gesto continua igual para quem enxerga:
+        toca em qualquer lugar e abre.
+      */}
+      <Pressable
+        accessibilityElementsHidden
+        importantForAccessibility="no-hide-descendants"
+        onPress={authenticate}
+        style={StyleSheet.absoluteFill}
+      />
       {/*
         A cena atras, e a camada continua opaca.
 
@@ -202,7 +219,10 @@ export function AppLockGate({ children }: { children: React.ReactNode }) {
         <Cena largura={largura} altura={altura} humor="cansado" noite chao="nenhum" />
       </View>
 
-      <AnimatedSprout mood="leve" stage={2} size={140} pose="calmo" />
+      {/* O desenho e os textos não capturam o toque: ele é da área de trás. */}
+      <View pointerEvents="none">
+        <AnimatedSprout mood="leve" stage={2} size={140} pose="calmo" />
+      </View>
       <Text
         style={{
           fontFamily: fonts.display.bold,
@@ -229,7 +249,7 @@ export function AppLockGate({ children }: { children: React.ReactNode }) {
       <Button variant="primary" onPress={authenticate} style={{ width: '100%' }}>
         Desbloquear
       </Button>
-    </Pressable>
+    </View>
   ) : null;
 
   /*

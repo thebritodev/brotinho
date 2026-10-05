@@ -12,7 +12,6 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import {
   AFraseVoltou,
-  alturaDoMascote,
   AnimatedSprout,
   BalaoDoBroto,
   Button,
@@ -29,7 +28,6 @@ import {
   HumorNoTempo,
   Icon,
   InsightCard,
-  LuzDeEstufa,
   MemoryCard,
   MoodSelector,
   PalavraDoHumor,
@@ -41,7 +39,6 @@ import {
 import { falasDaCasa, horaDaCena } from '../../data/falasDoBroto';
 import { DIA_PESADO } from '../../data/humores';
 import { proximoPasso } from '../../data/primeiraSemana';
-import { saudacaoDoDia } from '../../data/saudacao';
 import { toqueLeve } from '../../services/toque';
 import { useAppState } from '../../state/AppStateProvider';
 import {
@@ -274,32 +271,9 @@ export function BrotinhoScreen({
      precisa entregar mais nada na primeira dobra. */
   const sproutSize = Math.min(width, height * 0.4);
 
-  /**
-   * A luz tem o tamanho do desenho, e não o da tela.
-   *
-   * Na tela inicial ela era uma fração da largura, e ali funcionava porque
-   * abaixo dela vinha logo a pergunta do humor. Aqui, acima dela, vem o balão
-   * de fala — e um halo de 380 em volta de um broto de 174 deixava o bico do
-   * balão apontando para quase cem pontos de vazio. O balão parecia flutuar
-   * longe de quem está falando.
-   *
-   * `alturaDoMascote` é a mesma tabela que desenha o broto, então isto
-   * acompanha o estágio: no primeiro, onde o desenho é pequeno, a luz encolhe
-   * junto. A folga de 20% é o que faz a luz sobrar em volta em vez de virar
-   * recorte, e o teto continua sendo a largura da tela.
-   */
-  const diametroDaLuz = Math.min(
-    Math.round(width * 0.9),
-    Math.round(alturaDoMascote(stage, sproutSize) * 1.2),
-  );
   const faceSize = Math.max(36, Math.min(54, (width - 40) / 6.2));
 
   const diasCuidados = daysCaredFor(data);
-  const saudacao = useMemo(
-    () => saudacaoDoDia({ agora: new Date(), diasCuidados }),
-    [diasCuidados],
-  );
-
   const padrao = useMemo(() => padraoDoDia(data), [data]);
 
   /*

@@ -148,7 +148,6 @@ type Props = {
   /** Altura em que a tela abre, guardada fora dela — ver `MainTabs`. */
   rolagemInicial?: number;
   aoRolar?: (y: number) => void;
-  onOpenReminders: () => void;
   onOpenGarden: () => void;
 };
 
@@ -194,7 +193,6 @@ export function HomeScreen({
   onOpenConselhosGuardados,
   rolagemInicial = 0,
   aoRolar,
-  onOpenReminders,
   onOpenGarden,
 }: Props) {
   const { colors, palette, tintsDosTemas } = useTema();

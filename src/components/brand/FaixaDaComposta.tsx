@@ -21,12 +21,10 @@ import {
 import {
   MORRO,
   NUVEM,
-  PESO_DA_NUVEM,
   TEXTO_NO_CEU,
 } from './ceuDaComposta';
 import { ceuDoHumor } from './ceuDoHumor';
-import { fonts, radius, useTema, type Mood } from '../../theme';
-import { tracos } from '../../theme/tokens';
+import { fonts, radius, type Mood } from '../../theme';
 import {
   OPACIDADE_NA_QUEDA,
   TOMBO,
@@ -402,7 +400,6 @@ export function FaixaDaComposta({
   fala,
 }: Props) {
   /* Só o que está abaixo da crista segue o tema: ver o cabeçalho. */
-  const { colors } = useTema();
   const id = useId().replace(/[^a-zA-Z0-9]/g, '');
   const menosMovimento = useMenosMovimento();
   /* A escala do aparelho: as nuvens são escritas na largura de referência. */
