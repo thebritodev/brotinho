@@ -2,7 +2,7 @@
   "expo": {
     "name": "Brotinho",
     "slug": "brotinho-app",
-    "version": "1.2.0",
+    "version": "1.3.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "automatic",
@@ -15,7 +15,7 @@
         "ITSAppUsesNonExemptEncryption": false,
         "NSSpeechRecognitionUsageDescription": "O Brotinho usa o reconhecimento de fala do próprio aparelho para escrever o que você falar.",
         "NSMicrophoneUsageDescription": "O Brotinho usa o microfone para transformar seu desabafo em texto.",
-        "NSPhotoLibraryUsageDescription": "A tela de compartilhar do iPhone permite salvar o resumo para a terapia ou a cópia dos seus dados nas suas fotos. O Brotinho não abre nem lê a sua galeria."
+        "NSPhotoLibraryUsageDescription": "O Brotinho abre a sua galeria quando você escolhe uma foto de perfil, e só a foto que você toca vem para o app. A tela de compartilhar do iPhone também permite salvar o resumo para a terapia ou a imagem da frase nas suas fotos."
       },
       "privacyManifests": {
         "NSPrivacyAccessedAPITypes": [
@@ -120,10 +120,17 @@
         "expo-media-library",
         {
           "savePhotosPermission": "O Brotinho salva a imagem da frase na sua galeria, quando você pede. Ele não abre nem lê o que já está lá.",
-          "photosPermission": "O Brotinho não precisa ver a sua galeria. Esta permissão existe só porque o sistema pede, e o app nunca a usa para ler.",
+          "photosPermission": "O Brotinho não lista nem varre a sua galeria. Esta permissão existe só porque o sistema a pede junto da de salvar, e o app nunca a usa para ler.",
           "granularPermissions": [
             "photo"
           ]
+        }
+      ],
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "O Brotinho abre a sua galeria quando você escolhe uma foto de perfil, e só a foto que você toca vem para o app. A tela de compartilhar do iPhone também permite salvar o resumo para a terapia ou a imagem da frase nas suas fotos.",
+          "cameraPermission": false
         }
       ],
       "expo-asset",

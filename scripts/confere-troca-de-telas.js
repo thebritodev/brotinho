@@ -439,7 +439,7 @@ for (const arq of telas) {
       confere(
         `${curto} (${nome})`,
         !new RegExp(`\\b${contexto}\\(`).test(corpo),
-        `o corpo da tela chama \`${contexto}()\`: a tela inteira é redesenhada quando a resposta muda, que é no instante de um toque — leia numa folha pequena, como a \`FaixaDaComposta\` faz`,
+        `o corpo da tela chama \`${contexto}()\`: a tela inteira é redesenhada quando a resposta muda, que é no instante de um toque — leia numa folha pequena, como o \`CartaoDaComposta\` faz`,
       );
     }
     i = fim;

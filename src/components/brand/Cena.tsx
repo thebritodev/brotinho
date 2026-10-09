@@ -39,7 +39,7 @@ import { TERRA, TERRA_FUNDA } from './terraDoCanteiro';
  * que piscam, as nuvens que passam. Não é gosto — `Animated` entrega valor
  * novo chamando `setNativeProps`, que os nós do `react-native-svg` não
  * implementam no `react-native-web`, e ali a animação simplesmente não
- * acontece (a nota longa em `desenhosDosTemas` conta o episódio inteiro).
+ * acontece (a nota longa em `components/laco` conta o episódio inteiro).
  * Movendo e apagando `View`s, o mesmo código roda igual nas três plataformas
  * e ainda vai para o driver nativo.
  *
@@ -95,6 +95,7 @@ export type ChaoDaCena = 'grama' | 'terra' | 'nenhum';
  * Quem posiciona o broto precisa disto, e por isso é uma tabela exportada em
  * vez de um número escrito dentro do desenho. A terra sobe mais que a grama
  * porque ela é um canteiro cortado, não um morro visto de longe.
+ *
  */
 export const LINHA_DO_CHAO: Record<ChaoDaCena, number> = {
   grama: 46,

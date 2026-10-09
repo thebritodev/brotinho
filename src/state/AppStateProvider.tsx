@@ -18,11 +18,14 @@ import {
 } from '../services/notifications';
 import { LIMITE_DO_HISTORICO } from '../data/conselhos';
 import { palavraValida } from '../data/humores';
+import { aFotoExiste } from '../services/fotoDePerfil';
 import { limparExportacoes } from '../services/limparExportacoes';
 import { clearAppData, loadAppData, saveAppData } from '../storage/appStorage';
 import type { Mood } from '../theme';
 import { dayKey, daysCaredFor, diasComRegistro, diasSemAparecer, nomeDoBroto } from './derived';
 import { sanitizarDados } from './sanitize';
+import { EspecieProvider } from '../components/brand/especieDoBroto';
+import { especieValida, type EspecieKey } from '../data/especies';
 import { TemaProvider } from '../theme';
 import type { Plant } from './types';
 import {
@@ -49,7 +52,15 @@ type AppStateValue = {
   addJournalEntry: (text: string, origem?: OrigemDoRegistro) => void;
   updateJournalEntry: (id: string, text: string) => void;
   removeJournalEntry: (id: string) => void;
-  addCompost: (entry: Omit<Compost, 'id' | 'createdAt'>) => void;
+  /**
+   * Guarda uma compostagem, e devolve o `id` dela.
+   *
+   * Devolve porque a tela do fim precisa dele: é lá que a pessoa responde
+   * quanto a frase pesa agora, e a resposta tem de achar a sessão que acabou
+   * de nascer. Procurá-la depois pelo texto seria achar a errada em quem
+   * compostou a mesma frase duas vezes.
+   */
+  addCompost: (entry: Omit<Compost, 'id' | 'createdAt'>) => string;
   /**
    * Anota se uma frase compostada ainda pesa, uma semana depois.
    *
@@ -57,6 +68,11 @@ type AppStateValue = {
    * faz a pergunta não voltar a insistir. Ver `compostaParaRepesar`.
    */
   repesarComposta: (id: string, resposta: 'menos' | 'igual' | 'mais' | null) => void;
+  /**
+   * Anota o peso dito no fim da prática — ver `Compost.pesoNaHora`, que conta
+   * por que este campo não é o mesmo da repesagem.
+   */
+  pesarAgora: (id: string, resposta: 'menos' | 'igual' | 'mais') => void;
   /** Registra que a pessoa já viu a comemoração deste estágio. */
   markStageSeen: (stage: number) => void;
   /** Anota a frase desenterrada hoje. Ignora se hoje já tem uma. */
@@ -66,7 +82,15 @@ type AppStateValue = {
   /** Anota que as boas-vindas já foram vistas, ou que o jardim já foi aberto. */
   marcarVisto: (oQue: 'boasVindas' | 'jardim') => void;
   /** Guarda a planta madura no jardim e começa um broto novo. */
-  colherPlanta: (planta: Plant) => void;
+  /**
+   * Guarda a planta madura e planta a espécie escolhida para o próximo ciclo.
+   *
+   * As duas coisas numa chamada só porque são o mesmo acontecimento: um ciclo
+   * fecha e outro começa. Separadas, haveria um instante em que a planta já
+   * foi guardada e o broto novo ainda não tem espécie — e é justo o instante
+   * em que a tela remonta.
+   */
+  colherPlanta: (planta: Plant, proxima: EspecieKey) => void;
   /** Anota uma prática concluída. */
   registrarPratica: (topic: string, practice: string) => void;
   /** Põe no lugar de tudo o conteúdo de um arquivo trazido de volta. */
@@ -140,6 +164,26 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
   }, [hydrated]);
 
   /**
+   * Esquece a foto de perfil que não está mais no disco.
+   *
+   * O perfil guarda o nome do arquivo; o arquivo mora na pasta do app. Quem
+   * restaura um backup num aparelho novo recebe o nome sem a foto — o backup é
+   * do JSON — e ficaria com "Remover foto" oferecido em Meus dados para uma
+   * foto que não existe. O retrato já cai de volta no broto por conta própria;
+   * isto é só limpar o resto, uma vez, na abertura.
+   */
+  useEffect(() => {
+    if (!hydrated || Platform.OS === 'web') return;
+    const nome = data.profile.fotoDePerfil;
+    if (nome && !aFotoExiste(nome)) {
+      setData((prev) => ({ ...prev, profile: { ...prev.profile, fotoDePerfil: null } }));
+    }
+    // Só na abertura: `data` inteiro aqui faria um `stat` de disco por humor
+    // marcado, e a condição já impede o laço.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [hydrated]);
+
+  /**
    * Guarda o recorde de dias cuidados, para a contagem nunca descer.
    *
    * Sem isto o piso ficaria em zero para sempre e não protegeria nada. A
@@ -207,12 +251,17 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
     }));
   }, []);
 
-  const colherPlanta = useCallback((planta: Plant) => {
+  const colherPlanta = useCallback((planta: Plant, proxima: EspecieKey) => {
     setData((prev) =>
       // Colher zera o ciclo, então o estágio visto volta ao começo junto.
       prev.garden.some((p) => p.id === planta.id)
         ? prev
-        : { ...prev, garden: [...prev.garden, planta], stageSeen: 1 },
+        : {
+          ...prev,
+          garden: [...prev.garden, planta],
+          stageSeen: 1,
+          profile: { ...prev.profile, especieAtual: proxima },
+        },
     );
   }, []);
 
@@ -320,6 +369,14 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
   const addCompost = useCallback((entry: Omit<Compost, 'id' | 'createdAt'>) => {
     const compost: Compost = { id: `${Date.now()}`, createdAt: Date.now(), ...entry };
     setData((prev) => ({ ...prev, composts: [compost, ...prev.composts] }));
+    return compost.id;
+  }, []);
+
+  const pesarAgora = useCallback((id: string, resposta: 'menos' | 'igual' | 'mais') => {
+    setData((prev) => ({
+      ...prev,
+      composts: prev.composts.map((c) => (c.id === id ? { ...c, pesoNaHora: resposta } : c)),
+    }));
   }, []);
 
   const repesarComposta = useCallback(
@@ -370,6 +427,7 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
       updateJournalEntry,
       removeJournalEntry,
       addCompost,
+      pesarAgora,
       repesarComposta,
       markStageSeen,
       marcarVisto,
@@ -391,6 +449,7 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
       updateJournalEntry,
       removeJournalEntry,
       addCompost,
+      pesarAgora,
       repesarComposta,
       markStageSeen,
       marcarVisto,
@@ -410,7 +469,19 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
         do disco. Colocá-lo acima obrigaria a duplicar a leitura do
         AsyncStorage só para saber de que cor pintar.
       */}
-      <TemaProvider preferencia={data.settings.tema}>{children}</TemaProvider>
+      <TemaProvider preferencia={data.settings.tema}>
+        {/*
+          E a espécie do broto, que é do personagem e não do tema.
+
+          Fica aqui pelo mesmo motivo do tema: a escolha vem do disco, e lê-la
+          de novo mais abaixo obrigaria a duplicar o AsyncStorage. O arquivo
+          importado é o do contexto, e não o índice de `components` — o índice
+          puxa a árvore de componentes inteira para o caminho do boot.
+        */}
+        <EspecieProvider especie={especieValida(data.profile.especieAtual)}>
+          {children}
+        </EspecieProvider>
+      </TemaProvider>
     </AppStateContext.Provider>
   );
 }

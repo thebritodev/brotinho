@@ -39,7 +39,7 @@ const { pastaTemporaria } = require('./pasta-temporaria');
 
 const RAIZ = path.join(__dirname, '..');
 
-/* As mesmas contas da tela inicial e da faixa. Ver `HomeScreen` e `FaixaDaComposta`. */
+/* As mesmas contas da tela inicial e da faixa. Ver `HomeScreen` e `CartaoDaComposta`. */
 const AFUNDA = 18;
 const VELOCIDADE = 57;
 const distanciaDaTela = (largura) => Math.round(Math.min(largura * 0.42, 172)) + AFUNDA;

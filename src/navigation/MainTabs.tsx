@@ -98,6 +98,28 @@ export function MainTabs() {
    * não deve provocar renderização nenhuma. E aqui em cima, e não na Home,
    * porque é justamente a Home que deixa de existir no meio do caminho.
    */
+  /**
+   * Quantas vezes cada aba foi pedida de volta ao topo.
+   *
+   * Tocar na aba em que já se está é um gesto que todo app de abas responde —
+   * e o nosso não respondia: o toque trocava para a aba que já estava aberta e
+   * nada acontecia. Quem rolou até o fim das treze práticas e quis voltar ao
+   * começo tinha de arrastar de volta a tela inteira.
+   *
+   * É um contador, e não um `boolean`, porque o pedido pode se repetir: dois
+   * toques seguidos são dois pedidos, e um `true` que já está `true` não
+   * dispara efeito nenhum na segunda vez.
+   *
+   * Zero é o valor de montagem e não rola nada — senão toda aba abriria
+   * rolando sozinha para o topo, destruindo a altura guardada que `AbasVivas`
+   * existe para preservar.
+   */
+  const [aoTopo, setAoTopo] = useState<Record<TabKey, number>>({
+    home: 0,
+    broto: 0,
+    perfil: 0,
+  });
+
   const rolagemDaHome = useRef(0);
   /**
    * O mesmo, para a aba do broto.
@@ -257,29 +279,45 @@ export function MainTabs() {
     travada voltaria pela porta dos fundos. Congelados, o React nem entra
     nelas.
 
-    O `name` é a única coisa daqui que elas leem e que muda.
+    ## Por que três memos, e não um
+
+    Um só bastava enquanto a única dependência era o `name`, que vale para as
+    três. O pedido de voltar ao topo não vale: ele é de **uma** aba. Num memo
+    só, qualquer contador que mudasse trocaria a identidade do objeto inteiro, e
+    tocar no Início já aberto redesenharia também o Brotinho e o Perfil —
+    justamente dentro dos setecentos milissegundos em que a água enche o botão.
+    É o defeito de sempre desta casa: trabalho de React no meio de uma animação.
+
+    Separados, cada contador só alcança a aba dele.
   */
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  const abas = useMemo(
-    () => ({
-      home: (
+  const telaDaHome = useMemo(
+    () => (
         <HomeScreen
           name={name}
           onOpenComposta={() => setSub('composta')}
-          onOpenSettings={() => setSub('config')}
           onOpenPractices={(alvo) => {
             setPraticaAlvo(alvo ?? null);
             setSub('praticas');
           }}
           onOpenConselhosGuardados={() => setSub('conselhos')}
+          onOpenBroto={() => setTab('broto')}
+          onOpenDiario={() => setSub('diario')}
+          onOpenResumo={() => setSub('terapia')}
+          aoTopo={aoTopo.home}
           rolagemInicial={rolagemDaHome.current}
           aoRolar={(y) => {
             rolagemDaHome.current = y;
           }}
           onOpenGarden={() => setSub('jardim')}
         />
-      ),
-      broto: (
+    ),
+    [name, aoTopo.home],
+  );
+
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const telaDoBroto = useMemo(
+    () => (
         <BrotinhoScreen
           onOpenGarden={() => setSub('jardim')}
           onOpenDiario={() => setSub('diario')}
@@ -290,15 +328,25 @@ export function MainTabs() {
             setPraticaAlvo(alvo ?? null);
             setSub('praticas');
           }}
+          aoTopo={aoTopo.broto}
           rolagemInicial={rolagemDoBroto.current}
           aoRolar={(y) => {
             rolagemDoBroto.current = y;
           }}
         />
-      ),
-      perfil: <ProfileScreen name={name} onNavigate={setSub} />,
-    }),
-    [name],
+    ),
+    [aoTopo.broto],
+  );
+
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const telaDoPerfil = useMemo(
+    () => <ProfileScreen name={name} onNavigate={setSub} aoTopo={aoTopo.perfil} />,
+    [name, aoTopo.perfil],
+  );
+
+  const abas = useMemo(
+    () => ({ home: telaDaHome, broto: telaDoBroto, perfil: telaDoPerfil }),
+    [telaDaHome, telaDoBroto, telaDoPerfil],
   );
 
   return (
@@ -361,10 +409,23 @@ export function MainTabs() {
         active={tab}
         aoTocar={(_, onde) => setOrigemDaTroca(onde)}
         onChange={(next) => {
+          /*
+            Tocar na aba em que já se está: o pedido é voltar ao topo.
+
+            **Só quando não há tela empilhada por cima.** Com uma prática ou as
+            configurações abertas, o mesmo toque já significa outra coisa —
+            fechar o que está em cima e voltar para a aba — e essa resposta é
+            mais urgente que rolar. Rolar a aba escondida por baixo não seria
+            visto de qualquer forma.
+          */
+          const jaEstaAqui = next === tab && !sub;
+
           setTab(next);
           setSub(null);
           setComecoDaPratica(null);
           setOrigemDoRegistro(null);
+
+          if (jaEstaAqui) setAoTopo((n) => ({ ...n, [next]: n[next] + 1 }));
         }}
       />
     </View>

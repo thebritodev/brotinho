@@ -20,6 +20,7 @@ import {
   CartaoHeroi,
   Cena,
   CRISTA_DO_MORRO,
+  quadroDoBroto,
   NOMES_DOS_ESTAGIOS,
   CenaDeCrescimento,
   CenaDoDiario,
@@ -57,6 +58,7 @@ import type { Compost } from '../../state/types';
 import { ANCORA_RAPIDA } from '../../data/practices';
 import { fonts, radius, useTema } from '../../theme';
 import { POR_TRAS_DA_BARRA } from '../../components/navigation/BottomNav';
+import { NAO_ACHATAR } from '../../components/naoAchatar';
 
 /**
  * A aba do broto: o personagem, o humor de hoje e a memória dela.
@@ -98,6 +100,8 @@ type Props = {
    * existir quando o diário abre — ver o comentário de `rolagemDoBroto` lá.
    */
   rolagemInicial?: number;
+  /** Sobe de um a cada toque na aba já aberta: o pedido de voltar ao topo. */
+  aoTopo?: number;
   aoRolar?: (y: number) => void;
 };
 
@@ -140,17 +144,6 @@ function GatilhoDaCelebracao({ pronto, aoComecar }: { pronto: boolean; aoComecar
 }
 
 /**
- * Onde o balão de fala pousa, em fração da altura da cena.
- *
- * Cento e quatro de quatrocentos e vinte, os dois números do redesenho — a
- * cena do Brotinho tem quatrocentos e vinte pontos lá, e o balão está em cento
- * e quatro dentro dela. Guardado como fração, e não como os cento e quatro,
- * porque a cena do app muda de altura com a tela: em fração o balão acompanha,
- * em pontos ele desceria por cima do rosto num aparelho curto.
- */
-const ALTURA_DO_BALAO = 104 / 420;
-
-/**
  * O broto desta aba — parado enquanto a aba não é a que está à vista.
  *
  * Um componente só para isto pelo mesmo motivo do `GatilhoDaCelebracao`: ler
@@ -176,6 +169,7 @@ export function BrotinhoScreen({
   onOpenPractices,
   onOpenComposta,
   rolagemInicial = 0,
+  aoTopo = 0,
   aoRolar,
 }: Props) {
   const { colors, palette, shadows } = useTema();
@@ -248,6 +242,18 @@ export function BrotinhoScreen({
    */
   const alturaInicial = useRef(rolagemInicial).current;
   const rolagem = useRef<ScrollView>(null);
+
+  /*
+    O toque na aba em que já se está pede o topo de volta — ver `MainTabs`.
+
+    Zero é a montagem e não rola nada: a tela abre na altura que ficou
+    guardada, e rolar sozinha ao aparecer destruiria exatamente isso.
+  */
+  useEffect(() => {
+    if (!aoTopo) return;
+    rolagem.current?.scrollTo({ y: 0, animated: true });
+  }, [aoTopo]);
+
   const jaRestaurou = useRef(false);
 
   /** A mesma medida dos cartões do carrossel da tela inicial. */
@@ -267,9 +273,30 @@ export function BrotinhoScreen({
       ? 'fim do dia'
       : 'recomendado';
 
-  /* O broto cabe maior aqui do que cabia na tela inicial: esta tela não
-     precisa entregar mais nada na primeira dobra. */
-  const sproutSize = Math.min(width, height * 0.4);
+  /*
+    O broto cabe maior aqui do que cabia na tela inicial: esta tela não precisa
+    entregar mais nada na primeira dobra.
+
+    Era `min(width, height * 0.4)`, e desceu um décimo. O que ele ocupava a
+    mais não era dele: era o céu de que o balão precisa. No estágio 3, num
+    aparelho de 390 por 844, o desenho tomava 266 de uma cena de 422 e sobravam
+    74 pontos acima dele — menos que os 97 de uma fala de três linhas, e a
+    caixa saía pelo alto da tela. Com esta fração sobram cem, e as falas mais
+    longas cabem em qualquer estágio.
+
+    O preço é um broto uns dez por cento menor, que ninguém nota sem os dois
+    lado a lado. O ganho é a fala nunca mais brigar com ele por espaço.
+  */
+  const sproutSize = Math.min(width * 0.86, height * 0.36);
+  /*
+    A caixa que o desenho dele ocupa — é dela que sai a altura do balão.
+
+    Vem de `quadroDoBroto` e não de `sproutSize`: `size` é a largura que o
+    desenho teria se a caixa dele fosse a de referência, e a do mascote é mais
+    estreita e mais alta. Usar `sproutSize` cru aqui poria o balão uns setenta
+    pontos fora do lugar no estágio 3.
+  */
+  const quadroDoBrotoDaAba = quadroDoBroto(stage, sproutSize, { showPot: true });
 
   const faceSize = Math.max(36, Math.min(54, (width - 40) / 6.2));
 
@@ -444,7 +471,7 @@ export function BrotinhoScreen({
             */}
             <View
               ref={molduraDoBroto}
-              collapsable={false}
+              {...NAO_ACHATAR}
               style={{
                 position: 'absolute',
                 left: 0,
@@ -467,29 +494,55 @@ export function BrotinhoScreen({
             </View>
 
             {/*
-              O balão, à altura do documento.
+              O balão, **acima da cabeça** — e não mais ao lado dela.
 
-              Estava em dezesseis abaixo da barra de status, ou seja encostado
-              no alto da tela: uma caixa branca no topo do céu, longe do broto,
-              com a bicuda apontando para o nada. No redesenho ele está em
-              cento e quatro de uma cena de quatrocentos e vinte — pouco abaixo
-              de um quarto da altura dela —, e ali a bicuda encosta na altura da
-              cabeça dele. É `RELATIVO`: numa tela curta a cena encolhe, e o
-              balão tem de encolher com ela ou passa a cobrir o rosto.
+              ## Por que ele saiu do lado
 
-              `insets.top` entra por fora da conta porque a cena do app é
-              `alturaDaCena + insets.top` — ela é a cena do documento com a
-              barra de status somada em cima. Ver `Cena`.
+              Ele estava numa fração da altura da cena, à esquerda, com a
+              bicuda apontando para a direita. No estágio 1 e 2 isso funcionava.
+              No 3 não: o broto cresce para os lados, a folha da esquerda chega
+              a cento e doze de uma tela de trezentos e noventa, e o balão — que
+              começa em vinte e tem cento e noventa de largura mais a bicuda —
+              terminava em duzentos e vinte e quatro. Cento e doze pontos de
+              sobreposição: o balão cobria a folha e encostava na cara dele.
+
+              Dava para encolher o balão até caber no vão que sobra, mas o vão
+              é de uns noventa pontos — uma caixa de cinco letras por linha. A
+              resposta certa não é um balão menor, é outro lugar.
+
+              ## Por que acima
+
+              É o lugar que **cresce junto** com ele: quanto maior o broto,
+              mais alto o balão, e a distância entre os dois nunca muda. Ao
+              lado, cada estágio pede um vão diferente e o terceiro não tem
+              nenhum. Também é o lugar que todo mundo já lê como fala — bicuda
+              para baixo, apontando para quem falou.
+
+              ## A conta
+
+              `bottom` em vez de `top`: o que precisa ficar fixo é a borda de
+              **baixo** do balão, logo acima do desenho, e o balão cresce para
+              cima conforme a frase. Com `top`, uma fala de três linhas desceria
+              por cima dele outra vez.
+
+              As três parcelas são as mesmas que posicionam o broto — a crista
+              do morro, a altura do quadro dele — então as duas peças não têm
+              como divergir. `onLayout` não entra nisto: ele não dispara no
+              `react-native-web`, que é onde eu confiro. Ver `CartaoHeroi`.
             */}
-            <BalaoDoBroto
-              lado="direita"
-              apareceEm={fala}
+            <View
+              pointerEvents="box-none"
               style={{
                 position: 'absolute',
                 left: 20,
-                top: insets.top + Math.round(alturaDaCena * ALTURA_DO_BALAO),
-                maxWidth: 190,
+                right: 20,
+                bottom: CRISTA_DO_MORRO.grama - 6 + quadroDoBrotoDaAba.altura + 10,
+                alignItems: 'center',
               }}
+            >
+            <BalaoDoBroto
+              apareceEm={fala}
+              style={{ maxWidth: Math.min(280, width - 72) }}
             >
               <Text
                 style={{
@@ -502,6 +555,7 @@ export function BrotinhoScreen({
                 {fala}
               </Text>
             </BalaoDoBroto>
+            </View>
           </View>
         </View>
 
@@ -584,6 +638,9 @@ export function BrotinhoScreen({
           dias={diasNoCiclo(data)}
           faltam={faltamParaOProximo}
           nome={nomeDoBroto}
+          /* A régua é posicionada por coordenada; o cartão precisa saber a
+             largura dele. O recuo do `contentContainerStyle` é de 20. */
+          largura={width - 40}
         />
 
         {/*

@@ -9,6 +9,7 @@ import {
   type Farelo,
 } from './quedaDosFarelos';
 import { TERRA, TERRA_FUNDA, TERRA_SOMBRA } from './terraDoCanteiro';
+import { NAO_ACHATAR } from '../naoAchatar';
 
 /**
  * A camada por onde caem os farelos de terra quando o buraco da Frase do dia
@@ -78,7 +79,7 @@ export const ChuvaDeFarelos = forwardRef<ChuvaDeFarelosRef>(function ChuvaDeFare
   }));
 
   return (
-    <View ref={raiz} collapsable={false} pointerEvents="none" style={StyleSheet.absoluteFill}>
+    <View ref={raiz} {...NAO_ACHATAR} pointerEvents="none" style={StyleSheet.absoluteFill}>
       {rajadas.map((r) => (
         <RajadaDeFarelos
           key={r.id}

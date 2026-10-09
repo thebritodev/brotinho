@@ -14,6 +14,27 @@ export type Profile = {
    * "o app" e passar a ser alguém.
    */
   nomeDoBroto: string;
+  /**
+   * O **nome do arquivo** da foto de perfil, dentro da pasta do app. `null`
+   * para quem não escolheu nenhuma — e aí o retrato é o broto, sorrindo.
+   *
+   * Só o nome, e nunca o caminho inteiro. A pasta de documentos do app muda de
+   * endereço: no iPhone ela fica dentro de um contêiner com identificador
+   * próprio, e esse identificador **troca a cada atualização do app**. Um
+   * caminho absoluto guardado hoje aponta para o nada depois do próximo
+   * update, e o retrato da pessoa viraria um quadrado vazio sem nenhum aviso.
+   * Ver `caminhoDaFoto`, em `services/fotoDePerfil`.
+   */
+  fotoDePerfil: string | null;
+  /**
+   * A espécie do broto que está crescendo agora — ver `data/especies`.
+   *
+   * Escolhida pela pessoa toda vez que uma planta amadurece. Quem nunca
+   * escolheu, e quem instalou antes disto existir, fica no `brotinho`, que tem
+   * exatamente as cores de sempre: ninguém vê o próprio broto trocar de cor
+   * no meio de um ciclo por causa de uma atualização.
+   */
+  especieAtual: string;
   checkin: string | null;
   valores: string[];
   sleepTime: string;
@@ -72,6 +93,24 @@ export type Compost = {
     quando: number;
     resposta: 'menos' | 'igual' | 'mais' | null;
   };
+  /**
+   * O quanto a frase pesa **no instante em que acabou de ser compostada**.
+   *
+   * Campo separado de `peso`, e a separação é o ponto. `peso` é a repesagem de
+   * uma semana depois: ela existe para medir se a dor afrouxou com o tempo, e
+   * `compostaParaRepesar` usa a **ausência** dela para decidir de quem
+   * perguntar. Se a resposta dada no fim da prática caísse ali, toda
+   * compostagem nasceria já repesada, e a pergunta de uma semana depois nunca
+   * mais apareceria para ninguém.
+   *
+   * São duas perguntas com a mesma forma e sentidos diferentes: esta é "e
+   * agora?", aquela é "e ainda?". O jardim conta as flores que ficaram mais
+   * leves por esta.
+   *
+   * Ausente em quem compostou antes de a pergunta existir, e em quem passou
+   * direto sem responder.
+   */
+  pesoNaHora?: 'menos' | 'igual' | 'mais';
 };
 
 export type Settings = {
@@ -139,6 +178,15 @@ export type Plant = {
   valor: string | null;
   /** O humor predominante no período. */
   mood: Mood | null;
+  /**
+   * A espécie que ela era — ver `data/especies`.
+   *
+   * Guardada na planta, e não derivada da ordem do jardim, porque é dela para
+   * sempre: a primeira planta de quem instalou antes disto existir foi um
+   * brotinho verde, e vai continuar sendo verde no jardim mesmo depois de a
+   * pessoa plantar quatro lavandas.
+   */
+  especie?: string;
 };
 
 /** Uma prática concluída, para o app lembrar o que já foi feito. */
@@ -226,6 +274,8 @@ export type AppData = {
 export const INITIAL_PROFILE: Profile = {
   name: '',
   nomeDoBroto: '',
+  fotoDePerfil: null,
+  especieAtual: 'brotinho',
   checkin: null,
   valores: [],
   sleepTime: '23:00',

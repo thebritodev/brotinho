@@ -138,7 +138,8 @@ export function lacoQueSoVai(
     ate = 1,
     /**
      * `false` para quem anima o que o driver nativo não sabe animar — largura,
-     * cor, posição. Ver `cenasDoCarrossel`.
+     * cor, posição. Hoje ninguém pede isso; o parâmetro fica porque a limitação
+     * não mudou, e a próxima animação de forma vai precisar dele.
      */
     nativo = true,
   }: { ms: number; easing?: (t: number) => number; ate?: number; nativo?: boolean },

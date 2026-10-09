@@ -1,6 +1,12 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { AccessibilityInfo, Animated, Easing, Pressable, Text, View } from 'react-native';
 
+import {
+  ESPECIES,
+  escolhasApos,
+  especieValida,
+  type EspecieKey,
+} from '../../data/especies';
 import { pedirAvaliacaoNaColheita } from '../../services/pedirAvaliacao';
 import { toqueDeConclusao } from '../../services/toque';
 import { useAppState } from '../../state/AppStateProvider';
@@ -20,13 +26,30 @@ import { VALUES, type ValueKey } from './ValueBadge';
  *
  * O tom não é de troféu. A planta não é prêmio por desempenho: é o registro de
  * um período, e o texto fala dele.
+ *
+ * ## E é aqui que se escolhe a próxima espécie
+ *
+ * Esta tela era um aviso com um botão: "ver meu jardim". O ciclo seguinte
+ * começava com um broto idêntico ao que acabou de ser guardado — vinte e um
+ * dias para ver a mesma mudinha de novo, que é a repetição que o Pedro
+ * apontou.
+ *
+ * Agora ela é uma **escolha**: três espécies, e a próxima planta é a que ela
+ * escolher. Receber é passivo; escolher é a pessoa dizendo o que quer para as
+ * próximas três semanas. Ver `data/especies` para o mecanismo inteiro.
+ *
+ * A primeira das três é a que responde ao humor predominante do período, e ela
+ * já vem **marcada**. Não é para empurrar: é para a tela nunca ter um botão
+ * desabilitado esperando um toque, e para o botão de voltar do Android ter
+ * sempre uma resposta válida. Quem não quiser aquela troca em dois toques.
  */
 export function HarvestNotice({
   planta,
-  onClose,
+  onEscolher,
 }: {
   planta: Plant;
-  onClose: () => void;
+  /** Guarda a planta e planta a espécie escolhida. */
+  onEscolher: (proxima: EspecieKey) => void;
 }) {
   const { colors, moodColorsFundo, palette, shadows } = useTema();
   const { data } = useAppState();
@@ -65,6 +88,21 @@ export function HarvestNotice({
 
   const valor = VALUES[planta.valor as ValueKey];
 
+  /*
+    As três ofertas, e a marcada.
+
+    `escolhasApos` nunca devolve a espécie atual, e põe na frente a que
+    responde ao humor predominante do período — ver `data/especies`. O estado
+    começa na primeira: a tela nunca aparece sem resposta válida.
+
+    `useMemo` porque a lista não pode mudar entre dois quadros desta tela: ela
+    é derivada de valores estáveis, mas uma remontagem no meio da escolha
+    trocando as opções debaixo do dedo seria o pior momento possível.
+  */
+  const atual = especieValida(planta.especie);
+  const ofertas = useMemo(() => escolhasApos(atual, planta.mood), [atual, planta.mood]);
+  const [escolhida, setEscolhida] = useState<EspecieKey>(ofertas[0]);
+
   return (
     <Animated.View
       style={{
@@ -83,7 +121,7 @@ export function HarvestNotice({
       <Pressable
         accessibilityRole="button"
         accessibilityLabel="Fechar"
-        onPress={onClose}
+        onPress={() => onEscolher(escolhida)}
         style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }}
       />
 
@@ -114,11 +152,20 @@ export function HarvestNotice({
             justifyContent: 'center',
           }}
         >
+          {/*
+            Na espécie que ela **era**, e não na de agora.
+
+            Quando esta tela aparece, a espécie do perfil ainda é a desta
+            planta — mas um segundo depois deixa de ser, e o jardim desenha as
+            plantas antigas lendo `planta.especie`. Passar aqui também deixa os
+            dois caminhos iguais e tira a pergunta de qual dos dois vale.
+          */}
           <Sprout
             mood={planta.mood ?? 'feliz'}
             stage={3}
             size={116}
             showPot={false}
+            especie={atual}
             decorations={ehEnfeite(planta.valor) ? [planta.valor] : []}
           />
         </View>
@@ -141,6 +188,75 @@ export function HarvestNotice({
           Ela fica guardada no seu jardim.
         </Text>
 
+        <View style={{ height: 1, alignSelf: 'stretch', backgroundColor: palette.brown100 }} />
+
+        <Text
+          style={{
+            fontFamily: fonts.display.bold,
+            fontSize: 18,
+            color: colors.textPrimary,
+            textAlign: 'center',
+          }}
+        >
+          O que você quer plantar agora?
+        </Text>
+
+        {/*
+          As três, lado a lado, no estágio 2.
+
+          Estágio 2 e não 1: a semente das três espécies é quase o mesmo
+          desenho, e escolher entre três imagens iguais não é escolher. No 2 já
+          há folhas, haste e cabeça — as três peças que mudam de cor.
+
+          `especie` passada em cada uma: aqui o contexto não serve, porque o
+          ponto é justamente mostrar o que **não** é a espécie de agora.
+        */}
+        <View style={{ flexDirection: 'row', alignSelf: 'stretch', gap: 8 }}>
+          {ofertas.map((chave) => {
+            const e = ESPECIES[chave];
+            const marcada = chave === escolhida;
+            return (
+              <Pressable
+                key={chave}
+                accessibilityRole="radio"
+                accessibilityState={{ selected: marcada }}
+                accessibilityLabel={`${e.nome}. ${e.sobre}`}
+                onPress={() => setEscolhida(chave)}
+                style={{
+                  flex: 1,
+                  alignItems: 'center',
+                  gap: 2,
+                  paddingVertical: 10,
+                  borderRadius: radius.md,
+                  borderWidth: 2,
+                  borderColor: marcada ? colors.primary : 'transparent',
+                  backgroundColor: marcada ? colors.primarySoft : colors.surfaceSunken,
+                }}
+              >
+                <Sprout mood="feliz" stage={2} size={58} showPot={false} especie={chave} />
+                <Text
+                  numberOfLines={1}
+                  style={{
+                    fontFamily: fonts.body.extraBold,
+                    fontSize: 12.5,
+                    color: marcada ? colors.primaryStrong : colors.textPrimary,
+                  }}
+                >
+                  {e.nome}
+                </Text>
+              </Pressable>
+            );
+          })}
+        </View>
+
+        {/*
+          A linha da escolhida, e só dela.
+
+          Três descrições de uma linha em colunas de oitenta pontos viram seis
+          linhas de texto picado. Uma por vez, embaixo, é o que cabe e o que se
+          lê — e muda ao tocar, que é o que faz valer tocar nas três antes de
+          decidir.
+        */}
         <Text
           style={{
             fontFamily: fonts.body.regular,
@@ -148,13 +264,14 @@ export function HarvestNotice({
             lineHeight: 14 * 1.5,
             color: colors.textSecondary,
             textAlign: 'center',
+            minHeight: 14 * 1.5 * 2,
           }}
         >
-          Um broto novo começa agora. Não é recomeçar do zero — é a próxima estação.
+          {ESPECIES[escolhida].sobre}
         </Text>
 
-        <Button onPress={onClose} style={{ marginTop: 4 }}>
-          Ver meu jardim
+        <Button onPress={() => onEscolher(escolhida)} style={{ marginTop: 4 }}>
+          Plantar {ESPECIES[escolhida].nome.toLowerCase()}
         </Button>
       </Animated.View>
     </Animated.View>

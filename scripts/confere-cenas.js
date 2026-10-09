@@ -5,7 +5,7 @@
  *
  * Tocar num tema faz a cena dele se mexer antes de a tela trocar — a ampulheta
  * escorre, a chama treme, as gotas caem. É o que separa treze cartões
- * coloridos de treze coisas, e está escrito no topo de `desenhosDosTemas`.
+ * coloridos de treze coisas, e está escrito no topo de `cenasDosTemas`.
  *
  * Só que uma cena parada **não quebra nada**: ela desenha, o cartão anima o
  * passo, a tela abre, e ninguém repara que aquele desenho foi o único que não
@@ -28,14 +28,14 @@ const fs = require('fs');
 const path = require('path');
 
 const RAIZ = path.join(__dirname, '..');
-const ARQ = path.join(RAIZ, 'src', 'components', 'brand', 'desenhosDosTemas.tsx');
+const ARQ = path.join(RAIZ, 'src', 'components', 'brand', 'cenasDosTemas.tsx');
 
 const texto = fs.readFileSync(ARQ, 'utf8');
 
 /** Os temas que a tela espera, lidos do mapa de cenas do próprio arquivo. */
 /* Do `const CENAS` até o fecho: o tipo tem `=>` dentro, entao nao da para casar por `>`. */
 const mapa = texto.match(/const CENAS[^{]*\{([\s\S]*?)\n\};/);
-if (!mapa) throw new Error('não achei o mapa CENAS em desenhosDosTemas.tsx');
+if (!mapa) throw new Error('não achei o mapa CENAS em cenasDosTemas.tsx');
 const temas = [...mapa[1].matchAll(/^\s+([a-z]+):\s*([A-Za-z]+),/gm)].map((m) => ({
   tema: m[1],
   cena: m[2],
@@ -45,23 +45,29 @@ let falhas = 0;
 console.log(`\n— as cenas dos temas: ${temas.length} —\n`);
 
 for (const { tema, cena } of temas) {
-  const inicio = texto.indexOf(`function ${cena}({ p }: CenaProps) {`);
+  const inicio = texto.indexOf(`function ${cena}({ largura, altura, estagio, parado }: CenaProps) {`);
   if (inicio < 0) {
     falhas += 1;
-    console.log(`  FALHA ${tema}: não achei a função ${cena} recebendo o passo`);
+    console.log(`  FALHA ${tema}: não achei a função ${cena} com a assinatura de cena`);
     continue;
   }
   /* O corpo vai até a próxima função de cena, ou até o mapa. */
   const proxima = texto.slice(inicio + 1).search(/\nfunction [A-Z]|\nconst CENAS/);
   const corpo = texto.slice(inicio, proxima < 0 ? undefined : inicio + 1 + proxima);
 
-  /* O passo é usado quando aparece como `curva(p` ou `(p,` em alguma conta. */
-  const usos = (corpo.match(/curva\(p[,)]/g) || []).length + (corpo.match(/\bp\b\s*[,)]/g) || []).length;
+  /*
+    A régua trocou de nome junto com o arquivo.
+
+    Ela cobrava o passo do toque (`p`), porque as cenas antigas só se mexiam
+    enquanto o dedo estava em cima. As novas se mexem sozinhas, no laço nativo:
+    quem não chama `useLaco` é quem está parado.
+  */
+  const usos = (corpo.match(/useLaco\(/g) || []).length;
   if (usos === 0) {
     falhas += 1;
-    console.log(`  FALHA ${tema}: a cena não usa o passo — ela não se mexe no toque`);
+    console.log(`  FALHA ${tema}: a cena não pede laço nenhum — ela não se mexe`);
   } else {
-    console.log(`  ok    ${tema.padEnd(16)} ${usos} uso(s) do passo`);
+    console.log(`  ok    ${tema.padEnd(16)} ${usos} laço(s)`);
   }
 }
 

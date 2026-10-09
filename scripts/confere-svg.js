@@ -19,10 +19,20 @@
  * ali dentro — um `<Defs>` no próprio bloco, ou um componente de gradientes
  * como filho dele, que é como o `Sprout` faz.
  *
- * É uma regra grossa de propósito. A fina — casar cada nome usado com o nome
- * definido — não dá para escrever sem interpretar JavaScript: os nomes são
- * montados com variável para serem únicos por instância. A grossa pega o
- * defeito que aconteceu de verdade e não acusa nada que esteja certo.
+ * E, quando o bloco define os seus gradientes ali mesmo, **cada nome usado
+ * tem de ser um dos nomes definidos**.
+ *
+ * Essa segunda metade eu tinha dado como impossível: "não dá para escrever sem
+ * interpretar JavaScript, os nomes são montados com variável para serem únicos
+ * por instância". Dá, e a saída é boba — os dois lados são o mesmo tipo de
+ * texto, um `sol-${id}` de um lado e um `url(#sol-${id})` do outro. Trocando
+ * toda interpolação por um símbolo, `sol-§` tem de bater com `sol-§`.
+ *
+ * Escrevi isso depois de um disco preto de 320 pontos aparecer no canto da
+ * tela inicial, no aparelho do Pedro: o gradiente chamava `sol-` e o círculo
+ * pedia `sol2-`, sobra de um nome que eu renomeei pela metade. A regra grossa
+ * passou — havia um `<Defs>` ali — e o navegador não desenha nada no lugar,
+ * então nenhuma captura mostrou.
  *
  * Uso: node scripts/confere-svg.js
  */
@@ -94,14 +104,53 @@ for (const arquivo of arquivos(FONTES)) {
       Ou um `<Defs>` aqui mesmo, ou um componente de gradientes como filho —
       que é como o `Sprout` faz, com `<Gradientes id={…} />`.
     */
-    const define =
-      /<Defs\b/.test(bloco.corpo) || /<[A-Za-z]*Gradientes?\b/.test(bloco.corpo);
-    if (!define) {
+    const temDefs = /<Defs\b/.test(bloco.corpo);
+    const temComponente = /<[A-Za-z]*Gradientes?\b/.test(bloco.corpo);
+    if (!temDefs && !temComponente) {
       falhas += 1;
       const nome = usos[0].replace(/[`${}]/g, '');
       console.log(
         `  FALHA ${curto}:${bloco.linha}: usa url(#${nome}) e este Svg não define gradiente nenhum — no Android isso sai preto`,
       );
+      continue;
+    }
+
+    /*
+      O nome, sem o que varia: `sol-${id}` e `sol-${outraCoisa}` viram o mesmo
+      `sol-§`. É o que permite comparar os dois lados sem saber o valor da
+      variável — e é o bastante, porque o pedaço escrito à mão é justamente a
+      parte que se erra ao renomear.
+    */
+    const semVariavel = (t) => t.replace(/\$\{[^}]*\}/g, '§').replace(/[`'"]/g, '').trim();
+
+    /*
+      Só quando o bloco define tudo sozinho. Com um componente de gradientes
+      como filho, os nomes nascem lá dentro e esta comparação acusaria o que
+      está certo.
+    */
+    if (temDefs && !temComponente) {
+      /*
+        O nome definido vem inteiro, com a interpolação dentro.
+
+        A primeira versão cortava no primeiro `}` — `terra-${id}` virava
+        `terra-${id` — e aí nenhum nome batia com nenhum: a conferência
+        reprovava os doze desenhos certos do app. Pegar o literal inteiro
+        entre crases, e a aspa quando o nome é fixo, resolve.
+      */
+      const definidos = new Set([
+        ...[...bloco.corpo.matchAll(/\bid=\{`([^`]*)`\}/g)].map((m) => semVariavel(m[1])),
+        ...[...bloco.corpo.matchAll(/\bid="([^"]*)"/g)].map((m) => semVariavel(m[1])),
+      ]);
+      for (const uso of usos) {
+        const nome = semVariavel(uso);
+        if (definidos.has(nome)) continue;
+        falhas += 1;
+        console.log(
+          `  FALHA ${curto}:${bloco.linha}: usa url(#${nome}) e este Svg define ${
+            [...definidos].join(', ') || 'nenhum'
+          } — no Android um nome que não existe sai preto`,
+        );
+      }
     }
   }
 }

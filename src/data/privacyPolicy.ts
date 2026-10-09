@@ -83,12 +83,23 @@ export const PRIVACY_POLICY: PolicySection[] = [
       Play passa a mostrar uma permissão de armazenamento, e uma permissão que
       aparece na loja sem estar escrita aqui é a política ficando desatualizada
       em silêncio.
+
+      Reescrito quando a foto de perfil entrou. O texto antigo dizia que o app
+      "não abre, não lista e não envia nenhuma foto sua" — e a primeira metade
+      disso deixaria de ser verdade do jeito que a pessoa lê, porque agora
+      existe um botão que abre o selecionador do sistema. O fato técnico não
+      mudou: o app continua sem poder listar ou varrer a galeria. Mas política
+      que depende de o leitor saber a diferença entre "o app abriu a galeria" e
+      "o sistema abriu a galeria para o app" é política que engana sem mentir.
+      Agora está escrito o que acontece.
     */
     title: 'Galeria de fotos',
     paragraphs: [
       'A tela de compartilhar a frase do dia tem um botão "Salvar imagem". Ele grava na sua galeria a imagem da frase — e só ela: nada do seu diário, do humor ou da Composta entra nessa imagem.',
-      'A permissão que o app pede é de escrever, não de ler. O Brotinho não abre, não lista e não envia nenhuma foto sua; ele não tem como. No Android, as permissões de leitura da galeria estão explicitamente bloqueadas no app.',
-      'Se você não tocar nesse botão, o app nunca encosta na sua galeria.',
+      'Você também pode escolher uma foto de perfil, em Perfil › Editar. Quem abre a galeria nesse momento é o seu próprio celular, não o Brotinho: o app recebe de volta uma cópia da única foto que você tocar, e nada além dela.',
+      'Essa cópia fica guardada na pasta do Brotinho, no seu aparelho, junto do resto. Ela não sobe para servidor nenhum, não aparece para mais ninguém, e sai de vez quando você toca em "Remover".',
+      'O Brotinho não tem como listar, varrer ou enviar as suas fotos. No Android, as três permissões de leitura da galeria continuam explicitamente bloqueadas no app; no iPhone, o selecionador roda fora do app e não dá acesso à sua biblioteca.',
+      'Se você não tocar em nenhum desses dois botões, o app nunca encosta na sua galeria.',
     ],
   },
   {

@@ -5,7 +5,22 @@ questionários. Revise antes de enviar: são suas palavras publicadas no seu nom
 
 ---
 
-## Estado: 1.1.0 **aprovada**, esperando você soltar
+## Estado: 1.3.0 enviada; a 1.1.0 continua aprovada e parada
+
+**1.3.0 compilada e enviada em 09/10/2026.** Traz a Composta redesenhada, a
+régua do ciclo, a escolha de espécie a cada colheita e a foto de perfil.
+
+> **Duas versões ficaram pelo caminho e isso precisa ser resolvido no console.**
+> A 1.1.0 foi aprovada em 15/09 e nunca foi solta — o lançamento é manual. A
+> **1.2.0 virou build** (a 15, em 05/10) e não há registro nenhum de envio nem
+> de revisão; é por isso que esta versão é a 1.3.0 e não a 1.2.0.
+>
+> Antes de soltar a 1.3.0, olhe em App Store Connect quais versões estão
+> abertas. Só você vê isso.
+
+---
+
+## Estado anterior: 1.1.0 **aprovada**, esperando você soltar
 
 Enviada em 14/09/2026, aprovada pela Apple e conferida aqui em **15/09/2026**.
 Compilação **14**, versão 1.1.0, estado `Pronto para distribuição`.
@@ -272,6 +287,26 @@ A ordem, que é a ordem dos arquivos (a da 1.0.2, enviada em 10/09/2026):
 **Só as três primeiras aparecem no resultado de busca.** Por isso a Frase do
 dia vem em segundo: é a novidade da 1.0.2 e a tela que mais diz, sem legenda,
 o que o app faz por alguém num dia difícil.
+
+### O que há de novo — 1.3.0
+
+```
+• A Composta foi inteira redesenhada. O pensamento que não sai da cabeça se desmancha letra por letra enquanto você repete, e cada frase compostada deixa uma flor no seu jardim.
+• A barra de crescimento virou uma régua dos 21 dias do ciclo, com cada etapa desenhada no dia em que ela acontece.
+• Quando uma planta amadurece, você escolhe a próxima espécie: lavanda, girassol, suculenta ou cerejeira. O broto dos próximos 21 dias é a que você escolher — outras folhas, outra cabeça, outro vaso, outra flor no fim.
+• O jardim virou uma prateleira de espécies: cada planta guardada continua sendo o que era quando amadureceu.
+• Dá para pôr uma foto sua no lugar do broto, na tela inicial. A galeria nunca é lida pelo app: o sistema entrega só a foto que você tocar, e ela fica no seu aparelho.
+• Acertos de desenho: títulos que apareciam cortados, etapas sem nome na régua, e o balão de fala do broto que ficava atrás do microfone durante a Composta.
+```
+
+> **Confira contra a última versão que você de fato soltou.** Esta lista cobre
+> o que entrou desde a 1.1.0. Se a 1.1.0 ainda estiver parada em "Pronto para
+> distribuição" — era o estado em 15/09/2026, e nada aqui registra o contrário
+> —, quem atualizar vai receber a 1.1.0, a 1.2.0 e a 1.3.0 de uma vez, e o
+> bloco da 1.1.0 logo abaixo precisa vir **antes** destes itens.
+>
+> É o mesmo tropeço da 1.0.2, contado adiante nesta ficha: a lista foi escrita
+> para a versão compilada em vez de para a versão que a pessoa tem instalada.
 
 ### O que há de novo — 1.1.0
 

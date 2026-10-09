@@ -12,6 +12,8 @@ import Svg, {
 } from 'react-native-svg';
 
 import { tracos, type Mood, useTema } from '../../theme';
+import type { EspecieKey, TintaDaEspecie } from '../../data/especies';
+import { useTintaDoBroto } from './especieDoBroto';
 import {
   BULB_R,
   CARAS,
@@ -54,7 +56,7 @@ export type { Decoration, Pose, SproutStage };
  * broto é o mesmo de dia e de noite. Um bulbo que clareasse no tema escuro
  * viraria um negativo de si mesmo.
  */
-function Gradientes({ id }: { id: string }) {
+function Gradientes({ id, tinta }: { id: string; tinta: TintaDaEspecie }) {
   return (
     <Defs>
       {/* A luz vem de cima à esquerda, e é ela que define os três centros. */}
@@ -73,18 +75,18 @@ function Gradientes({ id }: { id: string }) {
         <Stop offset="0.7" stopColor={tracos.contorno} stopOpacity={0} />
       </RadialGradient>
       <RadialGradient id={`bulbo-${id}`} cx="34%" cy="28%" r="78%">
-        <Stop offset="0" stopColor={tracos.bulboLuz} />
-        <Stop offset="0.62" stopColor={tracos.folhaClara} />
-        <Stop offset="1" stopColor={tracos.bulboSombra} />
+        <Stop offset="0" stopColor={tinta.bulboLuz} />
+        <Stop offset="0.62" stopColor={tinta.folhaClara} />
+        <Stop offset="1" stopColor={tinta.bulboSombra} />
       </RadialGradient>
       <LinearGradient id={`folha-${id}`} x1="0" y1="0" x2="0" y2="1">
-        <Stop offset="0" stopColor={tracos.folhaLuz} />
-        <Stop offset="1" stopColor={tracos.folhaSombra} />
+        <Stop offset="0" stopColor={tinta.folhaLuz} />
+        <Stop offset="1" stopColor={tinta.folhaSombra} />
       </LinearGradient>
       <LinearGradient id={`vaso-${id}`} x1="0" y1="0" x2="1" y2="1">
-        <Stop offset="0" stopColor={tracos.vasoLuz} />
-        <Stop offset="0.55" stopColor={tracos.vaso} />
-        <Stop offset="1" stopColor={tracos.vasoSombra} />
+        <Stop offset="0" stopColor={tinta.vasoLuz} />
+        <Stop offset="0.55" stopColor={tinta.vaso} />
+        <Stop offset="1" stopColor={tinta.vasoSombra} />
       </LinearGradient>
     </Defs>
   );
@@ -240,6 +242,7 @@ function Leaf({
   color,
   gradiente,
   iluminada = false,
+  tinta,
 }: {
   x: number;
   y: number;
@@ -248,24 +251,25 @@ function Leaf({
   color?: string;
   gradiente?: string;
   iluminada?: boolean;
+  tinta: TintaDaEspecie;
 }) {
   // O padrão saiu da assinatura: valor de parâmetro é avaliado antes do corpo,
   // e ali o gancho ainda não rodou.
   const preenchimento =
-    color ?? (iluminada && gradiente ? `url(#${gradiente})` : tracos.folhaSombra);
+    color ?? (iluminada && gradiente ? `url(#${gradiente})` : tinta.folhaSombra);
   return (
     <G transform={`translate(${x} ${y}) rotate(${rotate}) scale(${scale})`}>
       <Path
         d="M0 0 C -6 -14 -18 -26 -32 -24 C -42 -22 -44 -6 -34 4 C -22 16 -8 12 0 0 Z"
         fill={preenchimento}
-        stroke={tracos.contornoFolha}
+        stroke={tinta.contornoFolha}
         strokeWidth={TRACO_DA_FOLHA}
         strokeLinejoin="round"
       />{/* TRACO_DA_FOLHA afinou junto com o resto — ver `geometriaDoBroto`. */}
       {/* A nervura principal, que já existia. */}
       <Path
         d="M -2 -2 C -12 -9 -22 -15 -31 -18"
-        stroke={tracos.contornoFolha}
+        stroke={tinta.contornoFolha}
         strokeWidth={1.5}
         strokeLinecap="round"
         fill="none"
@@ -276,7 +280,7 @@ function Leaf({
           {/* Uma nervura secundária: uma só, saindo da principal. */}
           <Path
             d="M -10 -6 C -14 -12 -17 -16 -19 -19"
-            stroke={tracos.contornoFolha}
+            stroke={tinta.contornoFolha}
             strokeWidth={1}
             opacity={0.25}
             fill="none"
@@ -323,12 +327,16 @@ export function FolhaSolta({
   indice,
   /** A escala do desenho na tela: quantos pixels vale uma unidade. */
   escala,
+  especie,
 }: {
   stage: SproutStage;
   indice: number;
   escala: number;
+  /** A espécie, quando não é a de agora — ver `especieDoBroto`. */
+  especie?: EspecieKey;
 }) {
   const idDoGradiente = useId().replace(/[^a-zA-Z0-9]/g, '');
+  const tinta = useTintaDoBroto(especie);
   const folha = LEAVES_BY_STAGE[stage][indice];
   if (!folha) return null;
 
@@ -341,7 +349,7 @@ export function FolhaSolta({
       width={lado * escala}
       height={lado * escala}
     >
-      <Gradientes id={idDoGradiente} />
+      <Gradientes id={idDoGradiente} tinta={tinta} />
       <Leaf
         x={0}
         y={0}
@@ -349,6 +357,7 @@ export function FolhaSolta({
         scale={folha.scale}
         gradiente={`folha-${idDoGradiente}`}
         iluminada={voltadaParaALuz}
+        tinta={tinta}
       />
     </Svg>
   );
@@ -390,14 +399,24 @@ export function escalaDoQuadro(caixaLargura: number, largura: number) {
 /** O lado do quadro de uma folha solta, em unidades de desenho. */
 export const LADO_DA_FOLHA_SOLTA = ALCANCE_DA_FOLHA * 2;
 
-function Decorations({ list, cx, cy }: { list: Decoration[]; cx: number; cy: number }) {
+function Decorations({
+  list,
+  cx,
+  cy,
+  tinta,
+}: {
+  list: Decoration[];
+  cx: number;
+  cy: number;
+  tinta: TintaDaEspecie;
+}) {
   const { palette } = useTema();
   return (
     <G>
       {list.includes('criatividade') && (
         <Path
           d={`M ${cx - 34} ${cy - 46} l 3 7 l 7 1 l -5 5 l 1 7 l -6 -3 l -6 3 l 1 -7 l -5 -5 l 7 -1 z`}
-          fill={tracos.vaso}
+          fill={tinta.vaso}
         />
       )}
       {list.includes('curiosidade') && (
@@ -456,11 +475,11 @@ function Decorations({ list, cx, cy }: { list: Decoration[]; cx: number; cy: num
             cy={10}
             rx={30}
             ry={34}
-            fill={tracos.folhaClara}
-            stroke={tracos.contornoFolha}
+            fill={tinta.folhaClara}
+            stroke={tinta.contornoFolha}
             strokeWidth={4}
           />
-          <Leaf x={-4} y={-22} rotate={-25} scale={0.9} color={tracos.folhaClara} />
+          <Leaf x={-4} y={-22} rotate={-25} scale={0.9} color={tinta.folhaClara} tinta={tinta} />
         </G>
       )}
     </G>
@@ -502,6 +521,16 @@ type Props = {
    * estágio. Quem as tira é quem vai desenhá-las por fora, animadas.
    */
   folhasSoltas?: number[];
+  /**
+   * A espécie, quando não é a de agora.
+   *
+   * Quase ninguém passa isto: a espécie do broto vem do contexto, e é por isso
+   * que ela não precisa atravessar quarenta telas. Os dois lugares que passam
+   * são a tela de escolha, que mostra três lado a lado, e o jardim, onde cada
+   * planta guardada continua sendo o que era quando amadureceu. Ver
+   * `especieDoBroto`.
+   */
+  especie?: EspecieKey;
 };
 
 /**
@@ -517,9 +546,15 @@ export function Sprout({
   parte = 'tudo',
   pose = 'parado',
   folhasSoltas = VAZIO,
+  especie,
 }: Props) {
   /* Um sufixo por instância — ver `Gradientes`. */
   const idDoGradiente = useId().replace(/[^a-zA-Z0-9]/g, '');
+  /*
+    Os doze tons da espécie. O contorno, a bochecha e a terra não entram: são
+    o traço do personagem, e personagem não troca de contorno. Ver `especies`.
+  */
+  const tinta = useTintaDoBroto(especie);
   const stemTopY = STEM_TOP_Y[stage];
   const bulbR = BULB_R[stage];
   const midY = (POT_TOP_Y + stemTopY) / 2;
@@ -557,7 +592,7 @@ export function Sprout({
     animá-la dentro deste SVG: `Animated` entrega valor novo chamando
     `setNativeProps`, que os nós do `react-native-svg` não implementam no
     `react-native-web`. A animação rodaria no aparelho e ficaria parada na
-    única superfície onde dá para conferir (ver a nota em `desenhosDosTemas`).
+    única superfície onde dá para conferir (ver a nota em `components/laco`).
 
     A saída é desenhar a folha solta **fora** do SVG, numa `Animated.View` que
     gira com `transform` comum — igual em toda plataforma, no driver nativo. Só
@@ -595,7 +630,7 @@ export function Sprout({
 
   return (
     <Svg viewBox={comoViewBox(caixa)} width={largura} height={altura}>
-      <Gradientes id={idDoGradiente} />
+      <Gradientes id={idDoGradiente} tinta={tinta} />
       {/*
         Não há fundo de humor atrás do broto, e isso é decisão, não falta.
 
@@ -674,7 +709,7 @@ export function Sprout({
           />
           <Path
             d="M 76 168 C 78 190 82 208 86 218"
-            stroke={tracos.vasoRisco}
+            stroke={tinta.vasoRisco}
             strokeWidth={4}
             opacity={0.18}
             strokeLinecap="round"
@@ -719,7 +754,7 @@ export function Sprout({
       */}
       <Path
         d={`M ${CX} ${POT_TOP_Y} C ${CX - 6} ${midY} ${CX + 6} ${midY - 10} ${CX} ${stemTopY}`}
-        stroke={tracos.haste}
+        stroke={tinta.haste}
         strokeWidth={3.8}
         strokeLinecap="round"
         fill="none"
@@ -743,6 +778,7 @@ export function Sprout({
             {...l}
             gradiente={`folha-${idDoGradiente}`}
             iluminada={voltadaParaALuz}
+            tinta={tinta}
           />
         );
       })}
@@ -756,7 +792,7 @@ export function Sprout({
         cy={stemTopY - 4}
         r={bulbR}
         fill={`url(#bulbo-${idDoGradiente})`}
-        stroke={tracos.contornoFolha}
+        stroke={tinta.contornoFolha}
         strokeWidth={2.2}
       />
       {/*
@@ -772,7 +808,7 @@ export function Sprout({
           + `C ${CX - bulbR * 0.6} ${stemTopY - 4 + bulbR * 0.74} `
           + `${CX - bulbR * 0.15} ${stemTopY - 4 + bulbR * 0.96} `
           + `${CX + bulbR * 0.3} ${stemTopY - 4 + bulbR * 0.89}`}
-        stroke={tracos.bulboCurva}
+        stroke={tinta.bulboCurva}
         strokeWidth={3}
         opacity={0.3}
         strokeLinecap="round"
@@ -780,7 +816,7 @@ export function Sprout({
       />
 
       <Face mood={mood} pose={pose} cx={CX} cy={stemTopY - 4} />
-      <Decorations list={decorations} cx={CX} cy={stemTopY - 4} />
+      <Decorations list={decorations} cx={CX} cy={stemTopY - 4} tinta={tinta} />
         </>
       )}
     </Svg>

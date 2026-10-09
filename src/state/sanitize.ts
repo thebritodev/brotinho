@@ -1,4 +1,5 @@
 import { LIMITE_DO_HISTORICO, type ConselhoVisto } from '../data/conselhos';
+import { especieValida } from '../data/especies';
 import { palavraValida } from '../data/humores';
 import { renomear } from '../data/onboarding';
 import type {
@@ -62,6 +63,22 @@ const hora = (v: unknown, padrao: string) => {
 
 const DIA = /^\d{4}-\d{2}-\d{2}$/;
 
+/**
+ * O nome do arquivo da foto de perfil, e nada mais que isso.
+ *
+ * Letras, números, ponto, hífen e sublinhado. O que importa é o que **não**
+ * passa: barra e `..`. O valor é concatenado com a pasta de documentos do app
+ * para montar uma URI, e um `../../` vindo de um backup editado à mão viraria
+ * um caminho para fora da pasta do app. Vale a mesma régua de sempre — o JSON
+ * do disco não é código de confiança.
+ */
+const NOME_DE_ARQUIVO = /^[A-Za-z0-9._-]{1,120}$/;
+const nomeDeArquivo = (v: unknown): string | null => {
+  if (typeof v !== 'string') return null;
+  if (!NOME_DE_ARQUIVO.test(v)) return null;
+  return v.includes('..') ? null : v;
+};
+
 /** A opção de recusa virou ausência de resposta. */
 const semRecusa = (v: string | null) => (v === 'Prefiro não responder' ? null : v);
 
@@ -77,6 +94,24 @@ function perfilLimpo(v: unknown): Profile {
     // Cortado no tamanho porque ele vai para o título da notificação, onde o
     // sistema trunca sem avisar — melhor cortar aqui, com controle.
     nomeDoBroto: texto(p.nomeDoBroto, INITIAL_PROFILE.nomeDoBroto).slice(0, 24),
+    /*
+      A foto pode não estar mais lá, e isso não é erro.
+
+      O nome sobrevive ao backup; o arquivo, não — ele mora na pasta do app, e
+      quem restaura um backup num aparelho novo recebe o nome de uma foto que
+      nunca foi copiada. O retrato volta a ser o broto, que é o padrão, e
+      ninguém vê mensagem de erro por causa de um avatar. Quem apaga o arquivo
+      de verdade é `limparFotoSumida`, na abertura.
+    */
+    fotoDePerfil: nomeDeArquivo(p.fotoDePerfil),
+    /*
+      Espécie que não existe mais volta ao brotinho.
+
+      Pode vir de um backup de uma versão que tinha outra lista. Cair no verde
+      de sempre é o pior caso aceitável; desenhar com `undefined` seria um
+      broto sem cor nenhuma.
+    */
+    especieAtual: especieValida(textoOuNulo(p.especieAtual)),
     // Rótulos de resposta mudaram entre versões; `renomear` traduz os antigos.
     checkin: p.checkin ? textoOuNulo(renomear(String(p.checkin))) : null,
     tentou: listaDeTextos(p.tentou).map(renomear),
@@ -184,6 +219,18 @@ function compostasLimpas(v: unknown): Compost[] {
     if (typeof c.thought !== 'string') return [];
     const createdAt = typeof c.createdAt === 'number' && Number.isFinite(c.createdAt) ? c.createdAt : Date.now();
     const peso = pesoLimpo(c.peso);
+    /*
+      O peso dito na hora é uma das três respostas, e nada mais.
+
+      Vale o mesmo cuidado de `pesoLimpo`: o arquivo importado pode trazer
+      qualquer coisa nesse campo, e uma string estranha atravessaria até o
+      jardim, onde é comparada com `'menos'` para contar quantas flores ficaram
+      mais leves. Ver `Compost.pesoNaHora`.
+    */
+    const naHora =
+      c.pesoNaHora === 'menos' || c.pesoNaHora === 'igual' || c.pesoNaHora === 'mais'
+        ? c.pesoNaHora
+        : null;
     return [{
       id: typeof c.id === 'string' ? c.id : `${createdAt}`,
       createdAt,
@@ -198,6 +245,7 @@ function compostasLimpas(v: unknown): Compost[] {
         não há. Ausente é ausente.
       */
       ...(peso ? { peso } : null),
+      ...(naHora ? { pesoNaHora: naHora } : null),
     }];
   });
 }
@@ -241,6 +289,8 @@ function jardimLimpo(v: unknown): Plant[] {
       dias,
       valor: typeof g.valor === 'string' ? g.valor : null,
       mood: ehMood(g.mood) ? g.mood : null,
+      /* Planta sem espécie é de antes de haver espécies: era o brotinho. */
+      especie: especieValida(typeof g.especie === 'string' ? g.especie : null),
     }];
   });
 }

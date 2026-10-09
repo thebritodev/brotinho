@@ -1,7 +1,9 @@
 import type { SproutStage } from '../components';
 import { DIA_PESADO, ROTULO_DO_HUMOR } from '../data/humores';
+import { PRACTICE_TOPICS } from '../data/practices';
 import { ROTULO_DO_VALOR, type ValueKey } from '../data/valores';
 import type { Mood } from '../theme/tokens';
+import { especieValida } from '../data/especies';
 import { TENTOU_TERAPIA } from '../data/onboarding';
 import type { AppData, Compost, Plant } from './types';
 
@@ -185,6 +187,15 @@ export function colheita(data: AppData): Plant {
     dias,
     valor: valorDoPeriodo,
     mood,
+    /*
+      A espécie que ela **era** quando amadureceu.
+
+      Guardada aqui, e não derivada depois: a pessoa escolhe a próxima no
+      mesmo instante em que esta é colhida, e um jardim que lesse a espécie do
+      perfil mostraria todas as plantas antigas com a cor da nova a cada
+      escolha. A planta de março é lavanda para sempre.
+    */
+    especie: especieValida(data.profile.especieAtual),
   };
 }
 
@@ -1006,7 +1017,7 @@ export function praticasMaisFeitas(data: AppData, quantas = 3) {
  *
  * `quando` é a data da última vez que ela foi feita — e é opcional porque a
  * mesma fileira serve para quem nunca fez nenhuma. Sem data, o cartão mostra
- * quanto tempo a prática leva no lugar de "ontem"; ver `OndeVoceParou`.
+ * quanto tempo a prática leva no lugar de "ontem"; ver `FeitasRecentemente`.
  */
 export type PraticaVisitada = { topico: string; pratica: string; quando?: number };
 
@@ -1172,5 +1183,330 @@ export function resumoDoPeriodo(
         */
         peso: c.peso?.resposta ?? null,
       })),
+  };
+}
+
+/* ====================================================================== *
+ *  O que a tela inicial nova pede                                         *
+ * ====================================================================== */
+
+/**
+ * A sequência: quantos dias seguidos ela apareceu, contando até hoje.
+ *
+ * ## Por que não é `daysCaredFor`
+ *
+ * Aquele é o **total** de dias cuidados, com piso que nunca desce — a medida
+ * que faz o broto crescer, e que existe justamente para não punir quem some
+ * uma semana. Esta é outra pergunta, e ela precisa poder cair: "você veio
+ * ontem, anteontem e hoje". Um número que nunca desce não é sequência, é
+ * acervo, e mostrá-lo com ícone de folha ao lado do nome prometeria uma coisa
+ * e entregaria outra.
+ *
+ * ## Por que ela tolera *hoje* vazio
+ *
+ * A contagem começa em hoje; se hoje ainda não tem nada, começa em ontem. Sem
+ * isso a sequência zeraria toda madrugada e só voltaria depois do primeiro
+ * registro do dia — a pessoa abriria o app de manhã e veria o trabalho de duas
+ * semanas marcado como zero. O que ela quebra é **faltar um dia inteiro**, que
+ * é o que a palavra quer dizer.
+ *
+ * Dia conta quando houve qualquer coisa: humor, diário, composta ou prática —
+ * a mesma régua de `diasComRegistro`, porque as quatro são aparecer.
+ */
+export function sequenciaAtual(data: AppData, agora: Date = new Date()): number {
+  const dias = new Set<string>();
+  data.moodHistory.forEach((m) => dias.add(m.date));
+  data.journal.forEach((e) => dias.add(dayKey(e.createdAt)));
+  data.composts.forEach((c) => dias.add(dayKey(c.createdAt)));
+  data.practicesDone.forEach((p) => dias.add(dayKey(p.at)));
+  if (dias.size === 0) return 0;
+
+  const cursor = new Date(agora);
+  if (!dias.has(dayKey(cursor))) cursor.setDate(cursor.getDate() - 1);
+
+  let n = 0;
+  while (dias.has(dayKey(cursor))) {
+    n += 1;
+    cursor.setDate(cursor.getDate() - 1);
+  }
+  return n;
+}
+
+/** Um dia da faixa da semana: a letra, a data e se houve prática nele. */
+export type DiaDePratica = {
+  day: string;
+  date: string;
+  /** Houve prática guiada neste dia? */
+  praticou: boolean;
+  hoje: boolean;
+  futuro: boolean;
+};
+
+/**
+ * A semana do calendário, marcando os dias em que ela **praticou**.
+ *
+ * Mesma janela de `moodWeek` — domingo a sábado, e não os últimos sete dias —
+ * e pelo mesmo motivo: duas fitas de sete colunas na mesma tela, uma delas
+ * girando os rótulos e a outra não, seriam duas semanas diferentes chamadas de
+ * semana. Ver `moodWeek` para o argumento inteiro.
+ *
+ * Aqui a pergunta é mais estreita de propósito: só prática guiada. A fita fica
+ * logo abaixo do nome e é a promessa do app — "você fez alguma coisa por você
+ * nestes dias". Somar humor marcado a isso transformaria a folha num carimbo de
+ * presença, e abrir o app passaria a valer tanto quanto respirar três minutos.
+ */
+export function semanaDePraticas(data: AppData, agora: Date = new Date()): DiaDePratica[] {
+  const feitas = new Set(data.practicesDone.map((p) => dayKey(p.at)));
+  const domingo = new Date(agora);
+  domingo.setDate(agora.getDate() - agora.getDay());
+  const chaveDeHoje = dayKey(agora);
+
+  return LETRAS_DA_SEMANA.map((letra, i) => {
+    const d = new Date(domingo);
+    d.setDate(domingo.getDate() + i);
+    const chave = dayKey(d);
+    return {
+      day: letra,
+      date: chave,
+      praticou: feitas.has(chave),
+      hoje: chave === chaveDeHoje,
+      futuro: chave > chaveDeHoje,
+    };
+  });
+}
+
+/**
+ * O nome de uma prática a partir da chave guardada no histórico.
+ *
+ * `practicesDone` guarda chave, e não título: o título pode ser reescrito sem
+ * invalidar o histórico de ninguém. Quem precisa escrever o nome numa frase
+ * busca aqui, e aceita `null` — uma prática aposentada some do catálogo e o
+ * registro dela continua existindo.
+ */
+export function tituloDaPratica(chave: string): string | null {
+  for (const tema of PRACTICE_TOPICS) {
+    const p = tema.practices.find((x) => x.key === chave);
+    if (p) return p.title;
+  }
+  return null;
+}
+
+/** As três contas da semana, e a frase que as resume. */
+export type ResumoDaSemana = {
+  praticas: number;
+  diarios: number;
+  compostas: number;
+  /**
+   * Uma frase sobre a semana — ou `null` quando ainda não há o que dizer.
+   *
+   * Nula de propósito em vez de genérica: "sua semana está começando" escrito
+   * num rodapé verde, com o broto feliz ao lado, é o app fingindo ter notado
+   * uma coisa. O rodapé some junto, e o cartão fica só com os números.
+   */
+  nota: string | null;
+};
+
+/** O que o humor de um dia vale na hora de dizer se a semana aliviou. */
+const PESO_DO_HUMOR: Record<Mood, number> = {
+  triste: 0,
+  ansioso: 1,
+  cansado: 1,
+  neutro: 2,
+  leve: 3,
+  feliz: 4,
+};
+
+/** Como cada humor entra numa frase: "a semana começou ansiosa". */
+const COMO_A_SEMANA_ESTAVA: Record<Mood, string> = {
+  feliz: 'animada',
+  leve: 'leve',
+  ansioso: 'ansiosa',
+  cansado: 'cansada',
+  triste: 'pesada',
+  neutro: 'quieta',
+};
+
+/**
+ * O resumo da semana do calendário: três contas e uma frase.
+ *
+ * ## Por que não é `resumoDoPeriodo(data, 7)`
+ *
+ * Aquele conta os **últimos sete dias** e serve ao resumo para a terapia, que
+ * é um documento: ali a janela móvel é a certa, porque a pergunta é "como foi
+ * o último período". Aqui as contas ficam encostadas na fita de humor e na
+ * fita de práticas, que são a semana do calendário. Números de uma janela ao
+ * lado de fitas de outra fariam o cartão se contradizer — quatro práticas
+ * anunciadas em cima de uma fita com três folhas.
+ *
+ * ## A frase
+ *
+ * Ela só aparece quando há do que falar: três dias de humor registrado, e uma
+ * diferença de verdade entre o começo e o fim da semana. As duas guardas
+ * existem para a mesma coisa — uma observação precisa ter observado algo.
+ *
+ * `agora` é parâmetro para o teste não depender do dia em que rodar.
+ */
+export function resumoDaSemana(data: AppData, agora: Date = new Date()): ResumoDaSemana {
+  const domingo = new Date(agora);
+  domingo.setDate(agora.getDate() - agora.getDay());
+  domingo.setHours(0, 0, 0, 0);
+  const desde = domingo.getTime();
+  const chaveInicio = dayKey(domingo);
+  const chaveFim = dayKey(agora);
+
+  const praticas = data.practicesDone.filter((p) => p && p.at >= desde).length;
+  const diarios = data.journal.filter((e) => e.createdAt >= desde).length;
+  const compostas = data.composts.filter((c) => c.createdAt >= desde).length;
+
+  const registros = data.moodHistory
+    .filter((m) => m.date >= chaveInicio && m.date <= chaveFim)
+    .sort((a, b) => a.date.localeCompare(b.date));
+
+  let nota: string | null = null;
+  if (registros.length >= 3) {
+    const metade = Math.floor(registros.length / 2);
+    const media = (lista: typeof registros) =>
+      lista.reduce((s, m) => s + PESO_DO_HUMOR[m.mood], 0) / lista.length;
+    const comeco = media(registros.slice(0, metade));
+    const fim = media(registros.slice(registros.length - metade));
+    const primeiro = COMO_A_SEMANA_ESTAVA[registros[0].mood];
+
+    if (fim - comeco >= 0.75) nota = `A semana começou ${primeiro} e foi ficando mais leve.`;
+    else if (comeco - fim >= 0.75) nota = `A semana começou ${primeiro} e foi pesando.`;
+    else nota = `A semana inteira esteve ${primeiro}.`;
+  }
+
+  /*
+    A prática mais feita entra na frase quando houve repetição de verdade.
+
+    Uma prática feita uma vez não é "a que você mais fez" — é a única que você
+    fez, e chamar aquilo de padrão é o app vendo coisa onde não há.
+  */
+  const porPratica = new Map<string, number>();
+  for (const p of data.practicesDone.filter((x) => x && x.at >= desde)) {
+    porPratica.set(p.practice, (porPratica.get(p.practice) ?? 0) + 1);
+  }
+  const campea = [...porPratica.entries()].sort((a, b) => b[1] - a[1])[0];
+  if (nota && campea && campea[1] >= 2) {
+    const nome = tituloDaPratica(campea[0]);
+    if (nome) nota += ` ${nome} foi a prática que você mais fez.`;
+  }
+
+  return { praticas, diarios, compostas, nota };
+}
+
+/** Uma coisa feita, para a fileira de recentes da tela inicial. */
+export type FeitaRecentemente =
+  | { tipo: 'pratica'; topico: string; pratica: string; quando: number }
+  | { tipo: 'diario'; quando: number; linhas: number }
+  | { tipo: 'composta'; quando: number };
+
+/**
+ * O que a pessoa fez por último — práticas, diários e compostas, juntos.
+ *
+ * ## Por que as três, e não só práticas
+ *
+ * A fileira já foi só de práticas, e a razão escrita na época era boa: Diário e
+ * Composta tinham cartão próprio e grande logo acima, então repeti-los aqui
+ * gastava vaga com o que a tela já oferecia.
+ *
+ * Na tela nova só a Composta tem cartão grande, e o Diário não aparece em lugar
+ * nenhum da tela inicial. Mais importante: esta fileira deixou de se chamar
+ * "práticas recentes" e passou a se chamar **"feitas recentemente"** — e nessa
+ * pergunta, escrever no diário conta tanto quanto respirar três minutos. Uma
+ * lista que diz "feitas" e esconde metade do que foi feito está errada pelo
+ * próprio título.
+ *
+ * ## Uma por dia, por tipo
+ *
+ * Quem escreve três vezes numa terça não quer três cartões idênticos de terça.
+ * O que a fileira responde é "por onde eu andei", e andar no mesmo lugar três
+ * vezes continua sendo um lugar. Práticas diferentes no mesmo dia aparecem
+ * separadas, porque aí são lugares diferentes.
+ */
+export function feitasRecentemente(data: AppData, quantas = 8): FeitaRecentemente[] {
+  const itens: FeitaRecentemente[] = [];
+
+  const vistos = new Set<string>();
+  for (const p of [...data.practicesDone].filter(Boolean).sort((a, b) => b.at - a.at)) {
+    const marca = `p:${p.practice}:${dayKey(p.at)}`;
+    if (vistos.has(marca)) continue;
+    vistos.add(marca);
+    itens.push({ tipo: 'pratica', topico: p.topic, pratica: p.practice, quando: p.at });
+  }
+
+  const porDiaNoDiario = new Map<string, { quando: number; linhas: number }>();
+  for (const e of data.journal) {
+    const chave = dayKey(e.createdAt);
+    const linhas = e.text.split(/\n+/).filter((l) => l.trim()).length || 1;
+    const antes = porDiaNoDiario.get(chave);
+    porDiaNoDiario.set(chave, {
+      quando: Math.max(antes?.quando ?? 0, e.createdAt),
+      linhas: (antes?.linhas ?? 0) + linhas,
+    });
+  }
+  for (const [, v] of porDiaNoDiario) itens.push({ tipo: 'diario', ...v });
+
+  const diasDeComposta = new Set<string>();
+  for (const c of [...data.composts].sort((a, b) => b.createdAt - a.createdAt)) {
+    const chave = dayKey(c.createdAt);
+    if (diasDeComposta.has(chave)) continue;
+    diasDeComposta.add(chave);
+    itens.push({ tipo: 'composta', quando: c.createdAt });
+  }
+
+  return itens.sort((a, b) => b.quando - a.quando).slice(0, quantas);
+}
+
+/**
+ * Uma frase compostada, do jeito que o jardim precisa dela.
+ *
+ * `indice` é a posição na ordem de criação, da mais antiga para a mais nova, e
+ * é ele que decide a flor — ver `florDoIndice`. Precisa vir daqui, e não da
+ * posição na lista mostrada: a tela lista da mais recente para a mais antiga, e
+ * numerar por ali faria a flor de uma frase **mudar** a cada nova compostagem.
+ * A flor de uma frase é dela para sempre.
+ */
+export type FraseNoJardim = {
+  id: string;
+  indice: number;
+  frase: string;
+  reps: number;
+  quando: number;
+  /** O peso dito no fim da prática. Ver `Compost.pesoNaHora`. */
+  peso: 'menos' | 'igual' | 'mais' | null;
+};
+
+/**
+ * O jardim da Composta: cada frase que virou flor, e as contas de cima.
+ *
+ * Devolve na ordem de criação, da mais antiga para a mais nova — é a ordem em
+ * que as flores são plantadas no solo, e a tela inverte para listar. Não
+ * obedece ao interruptor de análise de propósito: isto não é o app encontrando
+ * padrão em texto nenhum, é a pessoa relendo o que ela mesma escreveu, como o
+ * diário.
+ */
+export function jardimDaComposta(data: AppData): {
+  frases: FraseNoJardim[];
+  /** Quantas vezes, somando tudo, ela já repetiu uma frase aqui. */
+  repeticoes: number;
+  /** Quantas ficaram mais leves — contadas pelo peso dito na hora. */
+  maisLeves: number;
+} {
+  const frases = [...data.composts]
+    .sort((a, b) => a.createdAt - b.createdAt)
+    .map((c, indice) => ({
+      id: c.id,
+      indice,
+      frase: c.thought,
+      reps: c.reps,
+      quando: c.createdAt,
+      peso: c.pesoNaHora ?? null,
+    }));
+
+  return {
+    frases,
+    repeticoes: frases.reduce((soma, f) => soma + f.reps, 0),
+    maisLeves: frases.filter((f) => f.peso === 'menos').length,
   };
 }

@@ -19,9 +19,21 @@
  *
  * ## O que ele afirma
  *
- * Que em qualquer perfil que não seja `development` a configuração sai
- * **idêntica** ao `app.json`, campo por campo; e que em `development` mudam
- * exatamente quatro coisas, nem uma a mais.
+ * Que nas builds que vão para a loja (`preview`, `production`) a configuração
+ * sai **idêntica** ao `app.json`, campo por campo; que em `development` mudam
+ * exatamente quatro coisas, nem uma a mais; e que servir aqui na máquina muda
+ * **uma só**, o `scheme`.
+ *
+ * Essa última afirmação já foi o contrário, e o contrário é que estava errado.
+ * Ela dizia que servir localmente devolvia o `app.json` intacto — o que soa
+ * mais seguro e é o defeito: é o `scheme` que o `expo start --dev-client` usa
+ * para montar o endereço do QR, e sem ele a CLI cai no `exp://`, que abre o
+ * **Expo Go**. O Expo Go não roda este projeto, e a tela do celular dizia
+ * "error loading app" com o servidor, o pacote e o app todos certos. Ver o
+ * cabeçalho do `app.config.js`, e o `AGENTS.md`, que descreve o sintoma.
+ *
+ * O que continua valendo sem exceção é o perigo de verdade: o pacote. Servir
+ * não pode mexer nele, e as builds de loja não podem mexer em nada.
  *
  * Não chama o `expo config` de propósito: aquilo leva vinte segundos por
  * perfil e traz junto tudo o que os plugins acrescentam. O que importa aqui é
@@ -71,17 +83,43 @@ function comPerfil(perfil) {
 
 console.log('— a identidade do app por perfil —\n');
 
-/* 1. O app de verdade sai intocado, em todo perfil que não seja o de dev. */
+/* 1. As builds que vão para a loja saem intocadas. */
 const original = achatar(doApp);
-for (const perfil of [undefined, 'preview', 'production']) {
+for (const perfil of ['preview', 'production']) {
   const saiu = achatar(comPerfil(perfil));
   const mudou = Object.keys({ ...original, ...saiu }).filter((k) => original[k] !== saiu[k]);
   ok(
     mudou.length === 0,
-    `perfil ${perfil ?? '(nenhum)'} devolve o app.json intacto`,
+    `perfil ${perfil} devolve o app.json intacto`,
     mudou.length ? `mudou: ${mudou.join(', ')}` : '',
   );
 }
+
+/*
+  1b. Servir aqui na máquina acrescenta o `scheme`, e só ele.
+
+  Duas afirmações numa: que o `scheme` está lá — senão o QR volta a apontar
+  para o Expo Go — e que mais nada mudou. A segunda é a que protege o pacote:
+  servir não gera binário, então não há motivo nenhum para a identidade do app
+  mudar aqui, e se ela mudar é engano.
+*/
+const servindo = achatar(comPerfil(undefined));
+const mudouAoServir = Object.keys({ ...original, ...servindo }).filter(
+  (k) => original[k] !== servindo[k],
+);
+ok(
+  mudouAoServir.length === 1 && mudouAoServir[0] === 'scheme',
+  'servir (nenhum perfil) acrescenta o `scheme`, e só ele',
+  `mudou: ${mudouAoServir.join(', ') || 'nada'}`,
+);
+ok(
+  servindo['android.package'] === original['android.package'],
+  'servir não mexe no pacote do Android',
+);
+ok(
+  servindo.scheme === achatar(comPerfil('development')).scheme,
+  'o `scheme` que o QR usa é o mesmo que o app de desenvolvimento registra',
+);
 
 /* 2. O de desenvolvimento muda os quatro campos, e nenhum outro. */
 const dev = achatar(comPerfil('development'));

@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Pressable, ScrollView, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -29,6 +29,8 @@ import { POR_TRAS_DA_BARRA } from '../../components/navigation/BottomNav';
 type Props = {
   name: string;
   onNavigate: (screen: SubScreen) => void;
+  /** Sobe de um a cada toque na aba já aberta: o pedido de voltar ao topo. */
+  aoTopo?: number;
 };
 
 /**
@@ -54,10 +56,24 @@ type Props = {
  * aparece nos dois lugares: quem abriu o app por um motivo não deve ter de
  * trocar de aba para chegar ao que veio buscar.
  */
-export function ProfileScreen({ name, onNavigate }: Props) {
+export function ProfileScreen({ name, onNavigate, aoTopo = 0 }: Props) {
   const { colors, palette, shadows, moodColors } = useTema();
   const insets = useSafeAreaInsets();
   const { data, updateSettings } = useAppState();
+
+  const rolagem = useRef<ScrollView>(null);
+
+  /*
+    O toque na aba em que já se está pede o topo de volta — ver `MainTabs`.
+
+    Zero é a montagem e não rola nada. Aqui isso importa menos que nas outras
+    duas, porque o Perfil não guarda a altura em que ficou; vale assim mesmo,
+    para as três abas responderem ao mesmo gesto do mesmo jeito.
+  */
+  useEffect(() => {
+    if (!aoTopo) return;
+    rolagem.current?.scrollTo({ y: 0, animated: true });
+  }, [aoTopo]);
 
   const growth = useMemo(() => stats(data), [data]);
   /** Ver `fazTerapia`: o resumo é o mesmo, o texto é que para de pressupor. */
@@ -137,6 +153,7 @@ export function ProfileScreen({ name, onNavigate }: Props) {
   return (
     <View style={{ flex: 1, paddingTop: insets.top }}>
       <ScrollView
+        ref={rolagem}
         contentContainerStyle={{
           paddingHorizontal: 20,
           paddingTop: 16,

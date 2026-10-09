@@ -18,7 +18,7 @@
  *   perde;
  * - e o toque pode acabar contando para os dois alvos.
  *
- * A `FaixaDaComposta` ja tinha a regra escrita por extenso -- "dois alvos
+ * O `CartaoDaComposta` ja tinha a regra escrita por extenso -- "dois alvos
  * concentricos que fazem a mesma coisa viram dois anuncios no leitor de tela" --
  * e mesmo assim o outro arquivo fez o contrario. Regra que mora so num
  * comentario e regra que um dia alguem contraria sem saber.
@@ -27,7 +27,7 @@
  *
  * Alvos irmaos, nao aninhados: o grande fica atras, vazio, e o conteudo vem
  * numa camada por cima com `pointerEvents="box-none"`, deixando o toque passar
- * -- menos onde houver o alvo pequeno, que e irmao. Ver `FaixaDaFrase`.
+ * -- menos onde houver o alvo pequeno, que e irmao. Ver `CartaoDaFrase`.
  *
  * Uso: node scripts/confere-alvos-de-toque.js
  */
@@ -147,7 +147,7 @@ if (falhas) {
   console.log('');
   for (const d of detalhes) console.log(d);
   console.log('');
-  console.log('Alvos irmãos, não aninhados: ver o cabeçalho deste arquivo e `FaixaDaFrase`.');
+  console.log('Alvos irmãos, não aninhados: ver o cabeçalho deste arquivo e `CartaoDaFrase`.');
   process.exit(1);
 }
 console.log('nenhum alvo de toque mora dentro de outro.');

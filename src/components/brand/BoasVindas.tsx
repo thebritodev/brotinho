@@ -45,7 +45,7 @@ import {
  * pode fechar na hora.
  */
 
-/** Tons da terra, os mesmos do canteiro da Frase do dia (`Desenterrar`). */
+/** Tons da terra, os mesmos do canteiro da Frase do dia (`buracoDaFrase`). */
 const TERRA = '#8A7A63';
 const TERRA_FUNDA = '#5F5443';
 

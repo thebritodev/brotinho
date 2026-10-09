@@ -91,7 +91,7 @@ const ALTURA_NA_GRADE = 124;
  * Então o cartão não cresce: quem cresce é a caixa em volta dele. O desenho
  * fica **irmão** do cartão, não filho, e ocupa esta faixa embaixo. Nada é
  * desenhado fora de limite nenhum, e os dois lugares que usam esta regra —
- * aqui e em `OndeVoceParou` — fazem igual.
+ * aqui e em `FeitasRecentemente` — fazem igual.
  */
 export const SOBRA_DO_DESENHO = 40;
 

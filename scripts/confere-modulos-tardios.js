@@ -36,6 +36,15 @@
  * é curta de propósito: ela é a memória de quais pacotes ainda estão nessa
  * janela.
  *
+ * ## Cada módulo diz onde é a casa dele
+ *
+ * A lista era de nomes, e a casa era uma só, fixa em `guardarFrase.ts`. Isso
+ * passou enquanto os dois módulos tardios eram os daquele arquivo; quando
+ * `expo-image-picker` chegou, para a foto de perfil, a regra mandava carregá-lo
+ * tarde num serviço novo — e a conferência exigia encontrá-lo no arquivo
+ * errado. Um guarda que só aceita a resposta de ontem é um guarda que a pessoa
+ * seguinte desliga.
+ *
  * Uso: node scripts/confere-modulos-tardios.js
  */
 
@@ -44,11 +53,15 @@ const path = require('path');
 
 const RAIZ = path.join(__dirname, '..');
 
-/** Os módulos nativos que chegaram depois da última build publicada. */
-const TARDIOS = ['expo-clipboard', 'expo-media-library'];
-
-/** Onde o carregamento tardio é permitido — e onde ele tem de estar. */
-const CASA = path.join('src', 'services', 'guardarFrase.ts');
+/**
+ * Os módulos nativos que chegaram depois da última build publicada, e o
+ * arquivo onde cada um é carregado tarde.
+ */
+const TARDIOS = {
+  'expo-clipboard': path.join('src', 'services', 'guardarFrase.ts'),
+  'expo-media-library': path.join('src', 'services', 'guardarFrase.ts'),
+  'expo-image-picker': path.join('src', 'services', 'fotoDePerfil.ts'),
+};
 
 function arquivos(dir) {
   const achados = [];
@@ -75,7 +88,7 @@ console.log('— os módulos nativos recém-chegados —\n');
 
 const todos = arquivos('src');
 
-for (const modulo of TARDIOS) {
+for (const [modulo, CASA] of Object.entries(TARDIOS)) {
   /*
     `import ... from 'x'` em qualquer lugar de `src`. O `import type` não conta:
     ele é apagado na emissão e nunca chega a executar nada.
@@ -99,13 +112,21 @@ for (const modulo of TARDIOS) {
   );
 }
 
-/* O ajudante existe, e é ele que engole o erro do módulo que não está lá. */
-const casa = fs.readFileSync(path.join(RAIZ, CASA), 'utf8');
-confere(
-  CASA,
-  /function moduloTardio</.test(casa) && /catch\s*\{\s*\n?\s*return null;/.test(casa),
-  'o `moduloTardio` sumiu ou deixou de devolver `null` quando o módulo não existe',
-);
+/*
+  O ajudante existe em cada casa, e é ele que engole o erro do módulo ausente.
+
+  Uma cópia por arquivo, e não um módulo compartilhado: importar o ajudante de
+  fora traria o arquivo de fora para o grafo, e o grafo é exatamente o que esta
+  conferência existe para manter curto.
+*/
+for (const CASA of new Set(Object.values(TARDIOS))) {
+  const casa = fs.readFileSync(path.join(RAIZ, CASA), 'utf8');
+  confere(
+    CASA,
+    /function moduloTardio</.test(casa) && /catch\s*\{\s*\n?\s*return null;/.test(casa),
+    'o `moduloTardio` sumiu ou deixou de devolver `null` quando o módulo não existe',
+  );
+}
 
 console.log(`${casos} conferências, ${falhas.length} falha(s)`);
 if (falhas.length) {

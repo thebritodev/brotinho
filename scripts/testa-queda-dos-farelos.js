@@ -33,7 +33,7 @@ const LARGURAS = [320, 360, 390, 412, 430];
 const ALTURAS = [560, 680, 760, 840];
 /** Onde o buraco está, em fração da altura da camada, no instante em que cede. */
 const POSICOES = [0.08, 0.3, 0.55, 0.8, 0.95];
-/** O buraco nos três estágios: como a faixa manda. Ver `COVA` em `FaixaDaFrase`. */
+/** O buraco nos três estágios: como o canteiro manda. Ver `COVA` em `buracoDaFrase`. */
 const TAMANHOS = [
   [44, 39],
   [53, 54],

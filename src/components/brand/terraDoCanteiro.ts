@@ -27,7 +27,7 @@ export const BRASA = '#E8B65A';
   marrom escuro exatamente à noite.
 
   Os dois são medidos contra `TERRA_FUNDA`, que é o tom sob o qual eles caem:
-  8,6 e 5,3. Ver `FaixaDaComposta`.
+  8,6 e 5,3. Ver `CartaoDaComposta`.
 */
 export const TEXTO_NA_TERRA = '#FBF6EC';
 export const TEXTO_NA_TERRA_FRACO = '#E4DCC9';

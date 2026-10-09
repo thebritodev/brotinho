@@ -1,12 +1,13 @@
 import React, { useState } from 'react';
-import { Modal, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Image, Modal, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { Button, Card, Icon, Input, TopBar } from '../../components';
+import { Button, Card, Icon, Input, Sprout, TopBar } from '../../components';
 import { CANAL, CHECKIN, GENERO, IDADE, PLANS, TENTOU } from '../../data/onboarding';
 import { useAppState } from '../../state/AppStateProvider';
 import { daysCaredFor } from '../../state/derived';
 import { fonts, radius, useTema } from '../../theme';
+import { useFotoDePerfil } from './useFotoDePerfil';
 import { OptionList, TimeField } from '../onboarding/parts';
 import { POR_TRAS_DA_BARRA } from '../../components/navigation/BottomNav';
 
@@ -24,10 +25,11 @@ const LISTAS: Record<Campo, { titulo: string; opcoes: string[]; multi: boolean }
 const VAZIO = 'Não informado';
 
 export function MyDataScreen({ onBack }: { onBack: () => void }) {
-  const { colors, palette } = useTema();
+  const { colors, palette, shadows } = useTema();
   const insets = useSafeAreaInsets();
   const { data, updateProfile } = useAppState();
   const p = data.profile;
+  const retrato = useFotoDePerfil();
 
   const [campo, setCampo] = useState<Campo | null>(null);
   const [editandoNome, setEditandoNome] = useState(false);
@@ -91,6 +93,122 @@ export function MyDataScreen({ onBack }: { onBack: () => void }) {
     </View>
   );
 
+  /** O diâmetro do retrato aqui — maior que o da Home, porque aqui é o assunto. */
+  const RETRATO = 56;
+
+  /**
+   * O botãozinho de escolher e o de remover.
+   *
+   * Irmãos, e não um dentro de uma linha tocável. A linha inteira como alvo com
+   * um "Remover" dentro dela seria alvo dentro de alvo: `<button>` dentro de
+   * `<button>` no navegador, dois anúncios no leitor de tela, e o toque podendo
+   * contar para os dois. Ver `confere-alvos-de-toque.js`.
+   */
+  const chip = (rotulo: string, aoTocar: () => void, forte = false) => (
+    <Pressable
+      accessibilityRole="button"
+      accessibilityLabel={rotulo}
+      onPress={aoTocar}
+      style={({ pressed }) => ({
+        paddingVertical: 9,
+        paddingHorizontal: 14,
+        borderRadius: radius.md,
+        backgroundColor: forte ? colors.primarySoft : colors.bg,
+        opacity: pressed ? 0.85 : 1,
+        ...(forte ? {} : shadows.sm),
+      })}
+    >
+      <Text
+        style={{
+          fontFamily: fonts.body.bold,
+          fontSize: 14,
+          color: forte ? colors.primaryStrong : colors.textPrimary,
+        }}
+      >
+        {rotulo}
+      </Text>
+    </Pressable>
+  );
+
+  /**
+   * A foto de perfil.
+   *
+   * Mora aqui, e não só no toque-e-segura do retrato da Home, porque atalho
+   * escondido não é função: quem não sabe que existe nunca descobre. Este é o
+   * lugar onde o nome dela também se troca.
+   *
+   * O texto diz o que acontece sem foto, em vez de deixar um disco vazio
+   * perguntando. Ninguém precisa ser cobrado por uma selfie num app de saúde
+   * mental — o padrão é o broto, e ele já é um rosto.
+   */
+  const aFoto = (
+    <View style={{ gap: 12 }}>
+      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 14 }}>
+        <View
+          style={{
+            width: RETRATO,
+            height: RETRATO,
+            borderRadius: RETRATO / 2,
+            backgroundColor: colors.primarySoft,
+            overflow: 'hidden',
+            alignItems: 'center',
+          }}
+        >
+          {retrato.foto ? (
+            <Image
+              source={{ uri: retrato.foto }}
+              accessibilityIgnoresInvertColors
+              style={{ width: RETRATO, height: RETRATO }}
+              resizeMode="cover"
+            />
+          ) : (
+            /* O mesmo enquadramento por recorte do cabeçalho — ver lá. */
+            <View style={{ marginTop: -4 }}>
+              <Sprout mood="feliz" stage={3} size={RETRATO * 1.35} showPot={false} />
+            </View>
+          )}
+        </View>
+        <View style={{ flex: 1, gap: 2 }}>
+          <Text style={{ fontFamily: fonts.body.bold, fontSize: 13, color: colors.textSecondary }}>
+            Foto de perfil
+          </Text>
+          <Text
+            style={{
+              fontFamily: fonts.body.regular,
+              fontSize: 14,
+              lineHeight: 14 * 1.45,
+              color: retrato.temFoto ? colors.textPrimary : palette.brown400,
+            }}
+          >
+            {retrato.temFoto
+              ? 'Aparece na sua tela inicial.'
+              : 'Sem foto, quem aparece é o broto. Fica como você preferir.'}
+          </Text>
+        </View>
+      </View>
+
+      <View style={{ flexDirection: 'row', gap: 10 }}>
+        {chip(retrato.temFoto ? 'Trocar foto' : 'Escolher foto', () => {
+          void retrato.escolher();
+        }, true)}
+        {retrato.temFoto && chip('Remover', retrato.remover)}
+      </View>
+
+      {!!retrato.aviso && (
+        <Text
+          style={{
+            fontFamily: fonts.body.regular,
+            fontSize: 13,
+            lineHeight: 13 * 1.45,
+            color: palette.terracotta600,
+          }}
+        >
+          {retrato.aviso}
+        </Text>
+      )}
+    </View>
+  );
+
   const lista = campo ? LISTAS[campo] : null;
   const plano = PLANS[p.plan];
 
@@ -121,6 +239,7 @@ export function MyDataScreen({ onBack }: { onBack: () => void }) {
         {secao(
           'Sobre você',
           <>
+            {aFoto}
             {linha('Nome', p.name.trim() || VAZIO, () => {
               setRascunhoNome(p.name);
               setRascunhoBroto(p.nomeDoBroto);

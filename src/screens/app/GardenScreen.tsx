@@ -11,15 +11,17 @@ import {
   Icon,
   type IconName,
   NOMES_DOS_ESTAGIOS,
+  ReguaDoCiclo,
   Sprout,
   TopBar,
   VALUES,
   type ValueKey,
 } from '../../components';
+import { ESPECIES, especieValida } from '../../data/especies';
 import { NO_JARDIM } from '../../data/falasDoBroto';
 import { useAppState } from '../../state/AppStateProvider';
 import {
-  MATURIDADE, dayKey, daysToNextStage, diasNoCiclo, sproutStage,
+  dayKey, daysToNextStage, diasNoCiclo, sproutStage,
 } from '../../state/derived';
 import { fonts, type Mood, radius, useTema } from '../../theme';
 import type { SubScreen } from './types';
@@ -137,12 +139,21 @@ export function GardenScreen({
                 alignItems: 'center',
               }}
             >
-              <AnimatedSprout
-                mood={humorDeHoje}
-                stage={sproutStage(data)}
-                size={tamanho}
-                bamboleia
-              />
+              {/*
+                Feliz, e não o humor de hoje.
+
+                Nas outras telas o broto espelha como a pessoa está — é o que
+                faz dele um companheiro e não um boneco. Aqui não: esta é a tela
+                do tempo que ela já cuidou, e o broto está no meio de um jardim
+                que ela criou. Um broto triste no meio da colheita dela
+                transforma a única tela de orgulho do app numa cobrança.
+
+                O céu em volta continua sendo o de hoje. Quem está leve não
+                precisa de uma tela ensolarada para ser lembrado disso, e o
+                contraste entre um dia pesado e uma planta contente é o que esta
+                tela tem a dizer.
+              */}
+              <AnimatedSprout mood="feliz" stage={sproutStage(data)} size={tamanho} bamboleia />
             </View>
             <BalaoDoBroto
               lado="direita"
@@ -201,40 +212,21 @@ export function GardenScreen({
                   : `${noCiclo} ${noCiclo === 1 ? 'dia' : 'dias'} de cuidado. Faltam ${faltam} para o próximo passo.`}
             </Text>
 
-            {/* A régua do ciclo, com os quatro nomes por onde ele passa. */}
-            <View
-              style={{
-                width: '100%',
-                height: 10,
-                borderRadius: 5,
-                backgroundColor: palette.cream300,
-                overflow: 'hidden',
-              }}
-            >
-              <View
-                style={{
-                  width: `${Math.min(100, (noCiclo / MATURIDADE) * 100)}%`,
-                  height: 10,
-                  borderRadius: 5,
-                  backgroundColor: colors.primary,
-                }}
-              />
-            </View>
-            <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
-              {[...NOMES_DOS_ESTAGIOS, 'Flor'].map((rotulo, i) => (
-                <Text
-                  key={rotulo}
-                  style={{
-                    fontFamily: fonts.body.extraBold,
-                    fontSize: 12,
-                    color:
-                      i === sproutStage(data) - 1 ? colors.primaryStrong : palette.brown400,
-                  }}
-                >
-                  {rotulo}
-                </Text>
-              ))}
-            </View>
+            {/*
+              A régua do ciclo — a mesma da aba do broto.
+
+              Aqui havia uma barra linear de zero a vinte e um dias com os
+              quatro nomes espalhados em larguras iguais embaixo dela. Os dois
+              estavam certos separados e errados juntos: o Broto abre no dia 3,
+              que é um sétimo do ciclo, e o nome dele estava a um terço da
+              largura. A barra passava por cima do nome do estágio que ela
+              ainda não tinha alcançado.
+
+              Ver `ReguaDoCiclo`. A largura é a do cartão menos o recuo de 18
+              de cada lado — a régua é posicionada por coordenada, e medir não
+              é opção no `react-native-web`.
+            */}
+            <ReguaDoCiclo largura={width - 40 - 36} dias={noCiclo} />
           </View>
         </View>
 
@@ -331,11 +323,31 @@ export function GardenScreen({
             <Text style={{ color: colors.textPrimary, fontFamily: fonts.display.semiBold, fontSize: 19 }}>
               Plantas que você criou
             </Text>
+            {/*
+              A prateleira deixou de ser de cópias.
+
+              Cada planta é desenhada na **espécie que ela era** — ver
+              `data/especies`. É o que faz esta lista ser um histórico de
+              fases em vez de uma fileira do mesmo broto com meses diferentes
+              escritos embaixo.
+            */}
+            <Text
+              style={{
+                fontFamily: fonts.body.regular,
+                fontSize: 13.5,
+                lineHeight: 13.5 * 1.45,
+                color: palette.brown400,
+                marginTop: -6,
+              }}
+            >
+              Uma espécie por ciclo — a que você escolheu quando o anterior fechou.
+            </Text>
 
             {/* Da mais nova para a mais antiga: o que aconteceu por último
                 importa mais do que o começo de tudo. */}
             {[...data.garden].reverse().map((planta) => {
               const valor = VALUES[planta.valor as ValueKey];
+              const especie = ESPECIES[especieValida(planta.especie)];
               return (
                 <View
                   key={planta.id}
@@ -365,14 +377,26 @@ export function GardenScreen({
                       stage={3}
                       size={54}
                       showPot={false}
+                      especie={especie.chave}
                       decorations={ehEnfeite(planta.valor) ? [planta.valor] : []}
                     />
                   </View>
 
                   <View style={{ flex: 1, gap: 3 }}>
-                    <Text style={{ color: colors.textPrimary, fontFamily: fonts.body.extraBold, fontSize: 15 }}>
-                      {mesDe(planta.maturedAt) || 'período guardado'}
-                    </Text>
+                    <View style={{ flexDirection: 'row', alignItems: 'baseline', gap: 6 }}>
+                      <Text style={{ color: colors.textPrimary, fontFamily: fonts.body.extraBold, fontSize: 15 }}>
+                        {especie.nome}
+                      </Text>
+                      <Text
+                        style={{
+                          fontFamily: fonts.body.bold,
+                          fontSize: 12.5,
+                          color: palette.brown400,
+                        }}
+                      >
+                        {mesDe(planta.maturedAt) || 'período guardado'}
+                      </Text>
+                    </View>
                     <Text
                       style={{
                         fontFamily: fonts.body.regular,

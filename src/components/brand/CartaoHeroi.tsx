@@ -117,7 +117,7 @@ const QUASE = 46;
  * `onLayout` não dispara no `react-native-web`, então o véu voltaria ao
  * palpite justamente no navegador, que é onde eu confiro e de onde saem as
  * capturas da loja. Esta casa já tropeçou nisso três vezes — ver
- * `LuzDeEstufa`, `geometriaDoBroto` e `FaixaDaComposta`. Aqui não há medida:
+ * `LuzDeEstufa`, `geometriaDoBroto` e `CompostaScreen`. Aqui não há medida:
  * quem mede é o layout, que sabe fazer isso nas duas plataformas.
  *
  * ## Por que SVG

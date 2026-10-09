@@ -224,6 +224,26 @@ export type CompostSession = {
   /** Usados só no modo manual, enquanto o botão fica pressionado. */
   holdOn: () => void;
   holdOff: () => void;
+  /**
+   * A sessão está pausada: o microfone está desligado e nada acumula.
+   *
+   * É diferente de `silent`, e a diferença é de quem decidiu. `silent` é o app
+   * notando que a pessoa parou de falar; isto é a pessoa **pedindo** para
+   * parar. Na tela, uma coisa é um aviso e a outra é um botão.
+   */
+  pausado: boolean;
+  /**
+   * Pausa sem perder nada: solta os eventos, desliga o reconhecimento e para
+   * o gravador, mantendo os segundos e as repetições já contados.
+   *
+   * Não é `stop`. `stop` encerra a sessão, e `start` depois dele **zera** o
+   * contador — foi por isso que isto virou um par próprio em vez de a tela
+   * chamar os dois. Pausar e voltar perdendo vinte segundos de voz seria pior
+   * que não ter pausa.
+   */
+  pausar: () => void;
+  /** Volta a ouvir, de onde parou. */
+  retomar: (modo?: ModoDaComposta) => Promise<void>;
 };
 
 type Options = {
@@ -247,6 +267,8 @@ export function useCompostSession({ targetSeconds, frase, onFinish }: Options): 
   const [level, setLevel] = useState(0);
   const [silent, setSilent] = useState(false);
   const [repTick, setRepTick] = useState(0);
+  /** A pessoa pediu para parar de ouvir — ver `pausar`. */
+  const [pausado, setPausado] = useState(false);
 
   // Estado da máquina de detecção, fora do React para não provocar re-render.
   const machine = useRef(estadoInicial());
@@ -471,6 +493,7 @@ export function useCompostSession({ targetSeconds, frase, onFinish }: Options): 
   const start = useCallback(
     async (modo: ModoDaComposta = 'voz') => {
       setError(null);
+      setPausado(false);
       machine.current = estadoInicial();
       conferidor.current = null;
       soltarEventos();
@@ -509,6 +532,35 @@ export function useCompostSession({ targetSeconds, frase, onFinish }: Options): 
   const holdOff = useCallback(() => {
     holding.current = false;
   }, []);
+
+  const pausar = useCallback(() => {
+    setPausado(true);
+    holding.current = false;
+    soltarEventos();
+    stopNativeSpeech();
+    void pararEApagar(recorder);
+  }, [recorder, soltarEventos]);
+
+  const retomar = useCallback(
+    async (modo: ModoDaComposta = 'voz') => {
+      setPausado(false);
+      /*
+        A máquina **não** é tocada aqui, e é essa a diferença entre isto e
+        `start`: os segundos e as repetições de antes da pausa continuam de pé.
+        O silêncio acumulado zera, senão a tela diria "você parou de falar" no
+        instante em que a pessoa mandou voltar a ouvir.
+      */
+      machine.current.silence = 0;
+      setSilent(false);
+      if (modo === 'silencio') {
+        setRunning(true);
+        return;
+      }
+      if (await iniciarPorFrase()) return;
+      await iniciarAcustico();
+    },
+    [iniciarPorFrase, iniciarAcustico],
+  );
 
   /** Um passo da máquina: recebe se há voz e quanto tempo passou. */
   const step = useCallback(
@@ -644,5 +696,8 @@ export function useCompostSession({ targetSeconds, frase, onFinish }: Options): 
     stop,
     holdOn,
     holdOff,
+    pausado,
+    pausar,
+    retomar,
   };
 }

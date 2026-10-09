@@ -14,7 +14,7 @@ import { AR_DO_BROTO, noAr, type LugarNoAr } from './geometriaDoBroto';
  *
  * No protótipo os dois são `<animate>` dentro do desenho. O `react-native-svg`
  * não roda SMIL, e animar propriedade de nó de SVG pelo `Animated` não pega no
- * `react-native-web` — a nota longa em `desenhosDosTemas` conta o episódio.
+ * `react-native-web` — a nota longa em `components/laco` conta o episódio.
  *
  * Cada zê e cada brilho é pequeno e independente, então sai barato dar a cada
  * um a sua `Animated.View`: opacidade e deslocamento são exatamente as duas

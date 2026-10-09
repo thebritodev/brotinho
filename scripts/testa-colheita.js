@@ -74,6 +74,8 @@ function chaveDoDia(t) {
   const primeiraColheita = chaveDoDia(diasAtras(30));
 
   const dados = {
+    /* A espécie de agora é a que a planta guarda ao amadurecer. */
+    profile: { especieAtual: 'lavanda' },
     settings: { analysis: true },
     moodHistory: [
       { date: chaveDoDia(diasAtras(40)), mood: 'triste' },
@@ -107,6 +109,27 @@ function chaveDoDia(t) {
   checa('e o humor do seu ciclo', p2.mood === 'feliz', String(p2.mood));
   checa('não repete o valor da planta anterior', p2.valor !== dados.garden[0].valor);
   checa('o id não colide com a planta existente', p2.id !== 'p1');
+
+  /*
+    E a espécie: a planta guarda a que ela **era**.
+
+    Sem isto, o jardim leria a espécie do perfil, que a pessoa troca no mesmo
+    toque em que colhe — e todas as plantas antigas mudariam de cor junto, a
+    cada ciclo. A planta de março é lavanda para sempre.
+  */
+  checa('a planta guarda a espécie que ela era', p2.especie === 'lavanda', String(p2.especie));
+  const especieEstranha = { ...dados, profile: { especieAtual: 'bananeira' } };
+  checa(
+    'espécie que não existe cai no brotinho',
+    colheita(especieEstranha).especie === 'brotinho',
+    String(colheita(especieEstranha).especie),
+  );
+  const semEspecie = { ...dados, profile: {} };
+  checa(
+    'perfil sem espécie também cai no brotinho',
+    colheita(semEspecie).especie === 'brotinho',
+    String(colheita(semEspecie).especie),
+  );
 
   // Primeira planta: sem jardim anterior, o período é a vida toda.
   const semJardim = { ...dados, garden: [] };

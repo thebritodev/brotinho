@@ -208,7 +208,7 @@ function razao(frente, fundo) {
   };
 
   /*
-    O convite da `FaixaDaComposta`, que fica escrito **em cima da terra**.
+    O convite do `CartaoDaComposta`, que fica escrito **em cima da terra**.
 
     Fora do laço dos temas de propósito: a terra é a mesma de dia e de
     noite, então este par de cores não tem dois casos — tem um.
@@ -300,6 +300,88 @@ function razao(frente, fundo) {
     ceu.TEXTO_NO_CEU,
     mistura(ceu.CEU_MEIO, '#FFFFFF', 0.75),
     AA_GRANDE,
+  );
+
+  /*
+    A paisagem das telas da Composta — e são **dois** céus, não um.
+
+    As cinco telas da ferramenta têm a mesma cena com a luz mudando: de chumbo
+    na tela do pensamento a dourado na tela da flor. Quem escreve em cima dela
+    sai do tema pela mesma razão de sempre (ver `planoDaPaisagem`), e por isso
+    precisa ser medido aqui — mas contra os dois extremos, e não contra um.
+
+    É uma conferência que pega um erro real e silencioso: um tom que passa com
+    folga sobre o cinza pode falhar sobre o dourado claro, e a tela em que ele
+    falha é a **última** da prática, a que a pessoa só vê depois de trinta e
+    seis segundos falando. Ninguém descobriria isso por acaso.
+
+    Três paradas de cada céu, porque o degradê é vertical e o texto da cena
+    atravessa as três: o cabeçalho no alto, a frase no meio, o rótulo do
+    microfone embaixo.
+  */
+  const saidaDaPaisagem = pastaTemporaria('paisagem');
+  execFileSync(
+    process.execPath,
+    [
+      tsc, '--outDir', saidaDaPaisagem, '--module', 'esnext', '--target', 'es2020',
+      '--moduleResolution', 'bundler', '--strict', '--skipLibCheck',
+      path.join(RAIZ, 'src', 'components', 'brand', 'planoDaPaisagem.ts'),
+    ],
+    { stdio: 'inherit', cwd: RAIZ },
+  );
+  const paisagemJs = path.join(saidaDaPaisagem, 'planoDaPaisagem.js');
+  const paisagemMjs = paisagemJs.replace(/\.js$/, '.mjs');
+  fs.renameSync(paisagemJs, paisagemMjs);
+  const paisagem = await import('file://' + paisagemMjs.split(path.sep).join('/'));
+
+  console.log('\n— texto sobre a paisagem da Composta (sem tema) —');
+  const CEUS_DA_COMPOSTA = [
+    ['chumbo', paisagem.CEU_PESADO],
+    ['dourado', paisagem.CEU_DOURADO],
+  ];
+  const ONDE = ['alto', 'meio', 'pé'];
+  for (const [nome, paradas] of CEUS_DA_COMPOSTA) {
+    paradas.forEach((tom, i) => {
+      linha(`título sobre o ${ONDE[i]} do céu ${nome}`, paisagem.TEXTO_NA_PAISAGEM, tom, AA_TEXTO);
+      linha(
+        `dica sobre o ${ONDE[i]} do céu ${nome}`,
+        paisagem.TEXTO_NA_PAISAGEM_FRACO,
+        tom,
+        AA_TEXTO,
+      );
+    });
+    /* As pastilhas de vidro do contador e do relógio, sobre o pior tom. */
+    linha(
+      `contador na pastilha, céu ${nome}`,
+      paisagem.TEXTO_NA_PAISAGEM,
+      mistura(paradas[1], '#FFFDF8', 0.72),
+      AA_TEXTO,
+    );
+    linha(
+      `relógio na pastilha fraca, céu ${nome}`,
+      paisagem.TEXTO_NA_PAISAGEM_FRACO,
+      mistura(paradas[1], '#FFFDF8', 0.45),
+      AA_TEXTO,
+    );
+    /*
+      A pastilha escura existe justamente para não depender do céu: ela é a
+      mesma no alto de chumbo e no pé dourado. Medida contra os dois para que
+      continue sendo verdade se alguém clarear o preto dela.
+    */
+    linha(
+      `rótulo do microfone na pastilha escura, céu ${nome}`,
+      paisagem.TEXTO_NA_PASTILHA,
+      mistura(paradas[2], '#2B2824', 0.72),
+      AA_TEXTO,
+    );
+  }
+
+  /* E a terra da cena, onde nada se escreve mas a crista precisa aparecer. */
+  linha(
+    'linha de luz sobre a terra da cena',
+    paisagem.TERRA_CLARA,
+    paisagem.TERRA,
+    1.4,
   );
 
   /*

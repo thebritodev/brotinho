@@ -34,9 +34,13 @@ export type HoraDoDia = 'manha' | 'tarde' | 'noite';
 /**
  * A hora do dia da **cena** — três faixas, não quatro.
  *
- * `saudacao.ts` tem quatro, com madrugada à parte, porque ali a diferença
- * importa: quem abre o app às três da manhã precisa ouvir outra coisa. Aqui a
- * pergunta é se o céu tem sol ou lua, e a madrugada é noite.
+ * Houve uma quarta, com a madrugada à parte, porque para *falar* a diferença
+ * importa: quem abre o app às três da manhã precisa ouvir outra coisa. Aquela
+ * tabela morava em `saudacao.ts`, que saiu do app com o redesenho da tela
+ * inicial — a saudação variável foi substituída pela linha do humor do dia.
+ *
+ * Aqui a pergunta sempre foi outra e continua valendo: o céu tem sol ou lua? E
+ * para o céu a madrugada é noite.
  */
 export function horaDaCena(agora: Date): HoraDoDia {
   const h = agora.getHours();

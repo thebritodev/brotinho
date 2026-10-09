@@ -427,10 +427,20 @@ export function BottomNav({ active = 'home', onChange, aoTocar }: Props) {
     lacos.forEach((l) => l.start());
     const pararMarola = () => lacos.forEach((l) => l.stop());
 
+    /*
+      Os tempos e a curva são os do documento de redesenho: 0,7 s para encher,
+      com `cubic-bezier(.25 .8 .35 1)`, e 0,55 s para esvaziar, acelerando.
+
+      Eram 1,1 s e 0,32 s, escolhidos no olho antes de o documento existir. A
+      diferença que se sente é a de encher: um segundo e pouco é tempo demais
+      para o retorno de um toque, e a água ainda estava subindo quando a tela
+      nova já tinha entrado. A curva nova sai forte e assenta, que é o gesto de
+      água enchendo um copo — a anterior começava devagar dos dois lados.
+    */
     const subida = Animated.timing(nivel, {
       toValue: cheio ? 0 : CENTER_SIZE,
-      duration: cheio ? 1100 : 320,
-      easing: cheio ? Easing.inOut(Easing.cubic) : Easing.in(Easing.quad),
+      duration: cheio ? 700 : 550,
+      easing: cheio ? Easing.bezier(0.25, 0.8, 0.35, 1) : Easing.in(Easing.quad),
       useNativeDriver: true,
     });
     subida.start(pararMarola);
