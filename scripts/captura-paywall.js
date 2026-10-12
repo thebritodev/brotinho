@@ -45,13 +45,39 @@ const FORCADO = 'const [step, setStep] = useState(PASSO.PAYWALL);';
     await page.reload({ waitUntil: 'networkidle', timeout: 180000 });
     await page.waitForTimeout(3000);
 
-    await page.evaluate(() => {
+    /*
+      O botao das boas-vindas se chama "Oi, Brotinho".
+
+      Ele se chamava "Começar", e era esse o nome procurado aqui. Quando a tela
+      foi reescrita o `find` passou a nao achar nada, `if (b)` engoliu a falta
+      em silencio, e o script seguiu ate o `screenshot` — que fotografou as
+      boas-vindas e anunciou "paywall.png" com o tamanho certo. A ficha da loja
+      ficou um mes mostrando a tela errada sem ninguem ver.
+    */
+    const entrou = await page.evaluate(() => {
       const b = [...document.querySelectorAll('[role="button"]')].find((x) =>
-        x.innerText.trim().startsWith('Começar'),
+        x.innerText.trim().startsWith('Oi, Brotinho'),
       );
-      if (b) b.click();
+      if (!b) return false;
+      b.click();
+      return true;
     });
+    if (!entrou) throw new Error('nao achei o botao das boas-vindas');
     await page.waitForTimeout(2500);
+
+    /*
+      E a prova de que a tela na frente e mesmo o paywall.
+
+      "MAIS POPULAR" so existe no cartao do plano anual. Sem esta linha o unico
+      jeito de saber que a captura esta certa e abrir o arquivo e olhar — que e
+      exatamente o que nao aconteceu da ultima vez.
+    */
+    await page.waitForFunction(
+      () => document.body.innerText.includes('MAIS POPULAR'),
+      { timeout: 20000 },
+    ).catch(() => {
+      throw new Error('o paywall nao apareceu: "MAIS POPULAR" nao esta na tela');
+    });
 
     fs.mkdirSync(SAIDA, { recursive: true });
     const arquivo = path.join(SAIDA, 'paywall.png');
