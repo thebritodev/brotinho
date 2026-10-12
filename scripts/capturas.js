@@ -100,6 +100,30 @@ function estadoDeExemplo() {
  * quinta tela parou de ser gerada sem ninguém reparar: os arquivos de agosto
  * seguiram no lugar, com cara de atuais.
  */
+/**
+ * Toca numa **aba** da barra de baixo, pelo nome exato.
+ *
+ * `tocar` casa por `includes` em qualquer botão, e na tela inicial isso é uma
+ * armadilha: "Brotinho" aparece em "Mexer com Brotinho" (o broto do cartão da
+ * Composta, que só faz ele falar), em "Falar com Brotinho" e em "Avaliar o
+ * Brotinho". O primeiro que casava era o errado, a aba não trocava, e a
+ * captura "6-brotinho" saía sendo a grade de práticas — a mesma da captura
+ * anterior. Ficou assim na ficha da App Store sem ninguém notar.
+ *
+ * Aqui só entram `role="tab"`, e o nome tem de bater inteiro.
+ */
+async function tocarNaAba(page, nome) {
+  const achou = await page.evaluate((n) => {
+    const abas = [...document.querySelectorAll('[role="tab"]')];
+    const aba = abas.find((x) => (x.getAttribute('aria-label') || x.innerText || '').trim() === n);
+    if (!aba) return false;
+    aba.click();
+    return true;
+  }, nome);
+  if (!achou) throw new Error(`não encontrei a aba "${nome}" na barra de baixo`);
+  await page.waitForTimeout(1200);
+}
+
 async function tocar(page, alvos) {
   const lista = Array.isArray(alvos) ? alvos : [alvos];
   const achou = await page.evaluate((ts) => {
@@ -165,6 +189,21 @@ async function capturar(page, nome) {
   }, estadoDeExemplo());
   await page.reload({ waitUntil: 'networkidle', timeout: 180000 });
 
+  /*
+    Esconde o atalho de desenvolvimento antes de fotografar qualquer coisa.
+
+    A versão web roda com `__DEV__` verdadeiro, então o botão "DEV · colher
+    agora" — que existe para testar a escolha de espécie sem esperar vinte e um
+    dias — desenha no meio da tela inicial. Ele saiu numa captura e foi parar a
+    um passo da ficha da App Store.
+
+    Esconder, e não remover: tirar um nó do documento por fora faz o React
+    reclamar na próxima renderização. O identificador vem de `HomeScreen`, para
+    os dois lados usarem o mesmo nome.
+  */
+  const ATALHO_DE_DEV = 'atalho-de-dev';
+  await page.addStyleTag({ content: `#${ATALHO_DE_DEV} { display: none !important; }` });
+
   console.log('capturando:');
 
   /*
@@ -195,7 +234,20 @@ async function capturar(page, nome) {
   await tocar(page, 'Desenterrar a frase de hoje');
   await page.waitForTimeout(3400);
   await capturar(page, '2-frase-do-dia');
-  await tocar(page, 'Fechar');
+  /*
+    E ela não fecha — a frase desenterrada fica aberta até o dia seguinte.
+
+    Havia um `tocar(page, 'Fechar')` aqui, de quando o cartão tinha um botão de
+    fechar. Ele saiu com a decisão de que desenterrar é por dia: `lendo` só é
+    posto como verdadeiro, nunca como falso, e o rodapé passou a dizer
+    "Desenterrada hoje. Amanhã vem outra.". O script seguiu pedindo o botão e
+    **parava aqui** — por isso as capturas da terceira em diante eram as de
+    agosto, com cara de atuais. É o mesmo tropeço que o comentário das práticas,
+    logo abaixo, já contava uma vez.
+
+    Não precisa fechar: o resto da tela inicial continua alcançável com ela
+    aberta, e é de lá que sai o próximo toque.
+  */
   await page.waitForTimeout(700);
 
   // 3. Composta, já em andamento não dá (precisa de microfone); a tela de
@@ -212,23 +264,32 @@ async function capturar(page, nome) {
     Home rolada até ela — e de quebra mostra onde ela mora.
   */
   /*
-    O título era "Práticas" e virou "Práticas guiadas" quando a tela inicial
-    foi reorganizada. Como a busca não achava nada e seguia em frente, a
-    captura saía igual à da tela inicial, sem erro. Agora, não achar para.
+    O título já foi "Práticas", depois "Práticas guiadas", e hoje é "Todas as
+    práticas". Como a busca não achava nada e seguia em frente, a captura saía
+    igual à da tela inicial, sem erro — por isso ela passa a parar quando não
+    acha. Parou mesmo, três vezes seguidas, e é assim que se descobre que o
+    rótulo mudou de novo.
+
+    A lista aceita os três nomes: o script é para gerar capturas, não para
+    exigir que o produto pare de evoluir. O que ele não pode é fotografar a
+    tela errada em silêncio.
   */
-  const rolou = await page.evaluate(() => {
+  const TITULOS_DAS_PRATICAS = ['Todas as práticas', 'Práticas guiadas', 'Práticas'];
+  const rolou = await page.evaluate((titulos) => {
     const alvo = [...document.querySelectorAll('div')].find(
-      (d) => d.innerText?.trim() === 'Práticas guiadas',
+      (d) => titulos.includes(d.innerText?.trim()),
     );
     alvo?.scrollIntoView({ block: 'start' });
     return Boolean(alvo);
-  });
-  if (!rolou) throw new Error('não achei o título "Práticas guiadas" na tela inicial');
+  }, TITULOS_DAS_PRATICAS);
+  if (!rolou) {
+    throw new Error(`não achei nenhum de ${JSON.stringify(TITULOS_DAS_PRATICAS)} na tela inicial`);
+  }
   await page.waitForTimeout(900);
   await capturar(page, '5-praticas');
 
-  // 5. A aba do broto: o personagem, o humor e a palavra mais exata.
-  await tocar(page, 'Brotinho');
+  // 5. A aba do broto: o personagem, o humor e a régua do ciclo.
+  await tocarNaAba(page, 'Brotinho');
   await capturar(page, '6-brotinho');
 
   /*
@@ -243,7 +304,7 @@ async function capturar(page, nome) {
   await tocar(page, 'Voltar');
 
   // 7. Resumo para a terapia
-  await tocar(page, 'Perfil');
+  await tocarNaAba(page, 'Perfil');
   await tocar(page, ['Para minha terapia', 'Um resumo do que você registrou']);
   await capturar(page, '7-terapia');
 

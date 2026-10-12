@@ -1168,7 +1168,22 @@ export function resumoDoPeriodo(
     registros: data.journal.filter((e) => e.createdAt >= desde).length,
     praticas: praticasNoPeriodo.length,
     compostas: compostasNoPeriodo.length,
-    praticaMaisFeita: maisFeita ? maisFeita[0] : null,
+    /*
+      O **nome** da prática, e não a chave dela.
+
+      `registrarPratica` guarda `practice.key` — "respiracao-478" —, e este
+      campo ia inteiro para a tela: "A mais feita: respiracao-478", no resumo
+      que a pessoa leva para a terapia. Apareceu numa captura da App Store, que
+      é onde defeito de texto vira vitrine.
+
+      O teste não pegava porque a fixture dele guardava o título no lugar da
+      chave; passou a guardar a chave de verdade.
+
+      O recuo para a própria chave cobre a prática que saiu do catálogo: o
+      registro dela continua existindo, e é melhor mostrar um identificador do
+      que apagar a linha. Ver `tituloDaPratica`.
+    */
+    praticaMaisFeita: maisFeita ? (tituloDaPratica(maisFeita[0]) ?? maisFeita[0]) : null,
     pensamentos: compostasNoPeriodo
       .slice()
       .sort((a, b) => b.createdAt - a.createdAt)

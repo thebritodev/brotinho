@@ -148,9 +148,17 @@ console.log('\n— o resumo de um periodo —\n');
       { id: 'b', createdAt: emMs(15), thought: 'vai dar tudo errado' },
     ],
     practicesDone: [
-      { topic: 'ansiedade', practice: 'Respiracao 4-7-8', at: emMs(1) },
-      { topic: 'ansiedade', practice: 'Respiracao 4-7-8', at: emMs(2) },
-      { topic: 'ansiedade', practice: 'Aterramento', at: emMs(12) },
+      /*
+        As chaves de verdade, que e o que `registrarPratica` guarda.
+
+        Antes a fixture guardava o titulo, e por isso o teste passava sem olhar
+        o unico ponto que importa: a traducao de chave para nome. O resumo
+        mostrava "A mais feita: respiracao-478" na tela, e numa captura da App
+        Store, com o teste verde.
+      */
+      { topic: 'ansiedade', practice: 'respiracao-478', at: emMs(1) },
+      { topic: 'ansiedade', practice: 'respiracao-478', at: emMs(2) },
+      { topic: 'ansiedade', practice: 'aterramento-54321', at: emMs(12) },
     ],
   };
   const sete = resumoDoPeriodo(dados, 7, HOJE);
@@ -168,7 +176,7 @@ console.log('\n— o resumo de um periodo —\n');
   confere('trinta dias: tres praticas', trinta.praticas, 3);
   confere('sete dias: uma composta', sete.compostas, 1);
   confere('trinta dias: duas compostas', trinta.compostas, 2);
-  confere('a pratica mais feita nos sete', sete.praticaMaisFeita, 'Respiracao 4-7-8');
+  confere('a pratica mais feita nos sete vem pelo nome', sete.praticaMaisFeita, 'Respiração 4-7-8');
   confere(
     'a lista de pensamentos acompanha o corte',
     sete.pensamentos.map((p) => p.texto),

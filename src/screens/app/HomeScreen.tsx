@@ -24,6 +24,14 @@ import {
 import { POR_TRAS_DA_BARRA } from '../../components/navigation/BottomNav';
 import { conselhoDoDia } from '../../data/conselhos';
 import { escolhasApos, especieValida, type EspecieKey } from '../../data/especies';
+
+/**
+ * O identificador do atalho de desenvolvimento, para as capturas o esconderem.
+ *
+ * Exportado para `capturas.js` poder usar o mesmo nome dos dois lados — ver o
+ * comentário no próprio botão.
+ */
+export const ATALHO_DE_DEV = 'atalho-de-dev';
 import { ehNoite, horaDaCena } from '../../data/falasDoBroto';
 import { TITULO_DO_DIA } from '../../data/humores';
 import { ANCORA_RAPIDA, PRACTICE_TOPICS } from '../../data/practices';
@@ -385,6 +393,16 @@ export function HomeScreen({
         */}
         {__DEV__ && (
           <Pressable
+            /*
+              O `nativeID` existe por causa das capturas da loja.
+
+              Elas são tiradas da versão web, onde `__DEV__` é verdadeiro — e
+              numa delas este botão apareceu no meio da tela inicial, a caminho
+              da App Store. Com um identificador estável, `capturas.js` o
+              esconde antes de fotografar, em vez de depender de procurar o
+              texto "DEV ·" no documento.
+            */
+            nativeID={ATALHO_DE_DEV}
             accessibilityRole="button"
             accessibilityLabel="Forçar a colheita, só em desenvolvimento"
             onPress={() => setColhendo(colheita(data))}
