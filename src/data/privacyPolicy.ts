@@ -28,7 +28,7 @@ export const OPERADOR = 'Pedro Henrique de Brito Pinto Ferreira';
 export const CONTATO = 'brotinho.suporte@gmail.com';
 
 export const POLICY_VERSION = '1.0';
-export const POLICY_DATE = 'agosto de 2026';
+export const POLICY_DATE = 'outubro de 2026';
 
 export type PolicySection = { title: string; paragraphs: string[] };
 
@@ -96,7 +96,7 @@ export const PRIVACY_POLICY: PolicySection[] = [
     title: 'Galeria de fotos',
     paragraphs: [
       'A tela de compartilhar a frase do dia tem um botão "Salvar imagem". Ele grava na sua galeria a imagem da frase — e só ela: nada do seu diário, do humor ou da Composta entra nessa imagem.',
-      'Você também pode escolher uma foto de perfil, em Perfil › Editar. Quem abre a galeria nesse momento é o seu próprio celular, não o Brotinho: o app recebe de volta uma cópia da única foto que você tocar, e nada além dela.',
+      'Você também pode escolher uma foto de perfil: toque no retrato ao lado do "Oi" na tela inicial, ou vá em Perfil › Meus dados. Quem abre a galeria nesse momento é o seu próprio celular, não o Brotinho: o app recebe de volta uma cópia da única foto que você tocar, e nada além dela.',
       'Essa cópia fica guardada na pasta do Brotinho, no seu aparelho, junto do resto. Ela não sobe para servidor nenhum, não aparece para mais ninguém, e sai de vez quando você toca em "Remover".',
       'O Brotinho não tem como listar, varrer ou enviar as suas fotos. No Android, as três permissões de leitura da galeria continuam explicitamente bloqueadas no app; no iPhone, o selecionador roda fora do app e não dá acesso à sua biblioteca.',
       'Se você não tocar em nenhum desses dois botões, o app nunca encosta na sua galeria.',
