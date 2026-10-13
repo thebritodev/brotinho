@@ -248,6 +248,20 @@ produção — o código impede o envio de áudio quando ela não está definida
 > transcrição, uma conta na nuvem ou qualquer análise remota obriga a refazer
 > este formulário antes da próxima publicação.
 
+**As fotos também não mudam a resposta, e é preciso saber dizer por quê.**
+Desde a 1.3.0 o app abre a galeria em dois momentos: para salvar a imagem da
+frase do dia, e para escolher uma foto de perfil. O formulário pergunta por
+"Fotos e vídeos" — e a definição do Google de *coletar* é **sair do aparelho**.
+A foto escolhida é copiada para a pasta do app e fica lá; não há servidor para
+onde mandá-la. Resposta: **não coleta**.
+
+O que sustenta isso no código, se um revisor perguntar: as três permissões de
+leitura da galeria (`READ_EXTERNAL_STORAGE`, `READ_MEDIA_IMAGES`,
+`READ_MEDIA_VISUAL_USER_SELECTED`) estão **bloqueadas** no `app.json` e saem do
+manifesto com `tools:node="remove"`. Quem abre a galeria é o seletor do próprio
+Android, fora do app, e o Brotinho recebe de volta só a foto tocada. A seção 05
+da política de privacidade descreve isso em português.
+
 **A assinatura é a exceção que não muda a resposta:** quem assina passa pelo
 Google Play Billing, e quem coleta ali é o Google, não o app. O RevenueCat
 recebe um identificador anônimo de aparelho e o status da compra — declare como
@@ -392,7 +406,7 @@ acesso ao Play Console em **Usuários e permissões**.
 
 ## Resumo do que depende de você
 
-**Estado em 20/09/2026: a conta ainda não existe, e vai ser pessoal.** Tudo
+**Estado em 12/10/2026: a conta ainda não existe, e vai ser pessoal.** Tudo
 abaixo é seu, e o primeiro item destrava todos os outros.
 
 1. **Criar a conta do Play Console** (US$ 25) — eu não crio contas, e a
