@@ -47,8 +47,7 @@
         "NSPrivacyTracking": false,
         "NSPrivacyCollectedDataTypes": []
       },
-      "appStoreUrl": "https://apps.apple.com/app/id6803963494",
-      "NSPhotoLibraryAddUsageDescription": "O Brotinho salva a imagem da frase na sua galeria, quando você pede. Ele não abre nem lê o que já está lá."
+      "appStoreUrl": "https://apps.apple.com/app/id6803963494"
     },
     "android": {
       "userInterfaceStyle": "automatic",
