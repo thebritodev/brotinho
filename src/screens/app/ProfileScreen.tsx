@@ -12,6 +12,7 @@ import {
   StatRow,
   Switch,
 } from '../../components';
+import { enviarFeedback } from '../../services/feedback';
 import { pedirAvaliacaoAPedido } from '../../services/pedirAvaliacao';
 import { useAppState } from '../../state/AppStateProvider';
 import {
@@ -112,6 +113,26 @@ export function ProfileScreen({ name, onNavigate, aoTopo = 0 }: Props) {
       evita que a Composta ou a colheita apareçam pedindo de novo.
     */
     marcarAvaliacaoPedida();
+  };
+
+  /**
+   * A sugestao, do lado da avaliacao — e nao tres toques abaixo.
+   *
+   * Ela morava em Configuracoes > Sobre, que e o fim da ultima secao de uma
+   * tela que ja esta atras de um toque. O Pedro pediu "na tela de
+   * configuracoes" e olhou aqui, nesta aba, tres vezes: para quem usa o app,
+   * a tela de ajustes e esta.
+   *
+   * E o argumento e o mesmo que trouxe "Avaliar o Brotinho" para ca. As duas
+   * sao a mesma coisa — a pessoa querendo falar com quem fez o app — e as
+   * duas acontecem num impulso que nao sobrevive a tres toques.
+   */
+  const [avisoSugestao, setAvisoSugestao] = useState<string | null>(null);
+  const tocarSugestao = async () => {
+    setAvisoSugestao(null);
+    const r = await enviarFeedback();
+    if (r === 'sem-destinatario') setAvisoSugestao('Falta definir o e-mail de contato do app.');
+    else if (r === 'sem-email') setAvisoSugestao('Não encontrei um app de e-mail neste aparelho.');
   };
 
   /** O rótulo de uma seção — ver `RotuloDeSecao`. */
@@ -388,6 +409,12 @@ export function ProfileScreen({ name, onNavigate, aoTopo = 0 }: Props) {
               'Avaliar o Brotinho',
               () => void tocarAvaliar(),
               avisoAvaliacao ?? 'Ajuda outras pessoas a acharem o app',
+            )}
+            {row(
+              'pencil',
+              'Enviar sugestão',
+              () => void tocarSugestao(),
+              avisoSugestao ?? 'Conta o que falta ou o que te incomodou',
             )}
             {row('settings', 'Configurações', () => onNavigate('config'))}
           </View>

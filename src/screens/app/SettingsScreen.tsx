@@ -18,7 +18,6 @@ import { MyDataScreen } from './MyDataScreen';
 import { MyValuesScreen } from './MyValuesScreen';
 import { PrivacyPolicyScreen } from './PrivacyPolicyScreen';
 import { RemindersScreen } from './RemindersScreen';
-import { enviarFeedback } from '../../services/feedback';
 import { useBotaoVoltar } from '../../navigation/useBotaoVoltar';
 import { POR_TRAS_DA_BARRA } from '../../components/navigation/BottomNav';
 
@@ -126,7 +125,6 @@ export function SettingsScreen({
     }
     return false;
   });
-  const [avisoFeedback, setAvisoFeedback] = useState<string | null>(null);
 
   const chevron = <Icon name="chevronRight" color={palette.brown400} />;
 
@@ -147,14 +145,6 @@ export function SettingsScreen({
       </ScreenTransition>
     );
 
-  const tocarFeedback = async () => {
-    const r = await enviarFeedback();
-    if (r === 'sem-destinatario') {
-      setAvisoFeedback('Falta definir o e-mail de contato do app.');
-    } else if (r === 'sem-email') {
-      setAvisoFeedback('Não encontrei um app de e-mail neste aparelho.');
-    }
-  };
 
   return (
     <ScreenTransition transitionKey="lista" ordem={PASSOS_DAS_CONFIGURACOES}>
@@ -242,30 +232,6 @@ export function SettingsScreen({
         </Section>
 
         <Section title="Sobre">
-          {/*
-            A ação vem antes da informação, e não depois.
-
-            Esta linha ficava embaixo de "Sobre o Brotinho", que é o último
-            item da última seção — ou seja, logo acima da barra de abas e
-            abaixo da dobra. A lista rola oitenta pontos: quem bate o olho vê
-            "Sobre o Brotinho" como fim da tela e vai embora. Foi exatamente
-            o que aconteceu — o Pedro leu "não aparece o botão de sugestão"
-            com o botão renderizado e funcionando.
-
-            Invertida, a ação fica visível sem rolar e quem herda o pé da
-            lista é a linha da versão, que ninguém procura.
-
-            E "Enviar sugestão", não "Enviar feedback": feedback é palavra de
-            quem faz o app, não de quem usa. A dica diz o que vale mandar.
-          */}
-          <Row
-            icon="pencil"
-            label="Enviar sugestão"
-            hint={avisoFeedback ?? 'Conta o que falta ou o que te incomodou'}
-            onPress={tocarFeedback}
-          >
-            {chevron}
-          </Row>
           <Row
             icon="info"
             label="Sobre o Brotinho"
