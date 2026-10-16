@@ -242,26 +242,35 @@ export function SettingsScreen({
         </Section>
 
         <Section title="Sobre">
-          <Row
-            icon="info"
-            label="Sobre o Brotinho"
-            hint={`Versão ${APP_VERSION}`}
-            onPress={() => setDetalhe('sobre')}
-          >
-            {chevron}
-          </Row>
           {/*
-            "Enviar sugestão", e não "Enviar feedback".
+            A ação vem antes da informação, e não depois.
 
-            Feedback é palavra de quem faz o app, não de quem usa. A linha
-            existia e quase ninguém tocava nela: ela não dizia o que acontece
-            ao tocar, nem o que vale mandar. Agora diz as duas coisas.
+            Esta linha ficava embaixo de "Sobre o Brotinho", que é o último
+            item da última seção — ou seja, logo acima da barra de abas e
+            abaixo da dobra. A lista rola oitenta pontos: quem bate o olho vê
+            "Sobre o Brotinho" como fim da tela e vai embora. Foi exatamente
+            o que aconteceu — o Pedro leu "não aparece o botão de sugestão"
+            com o botão renderizado e funcionando.
+
+            Invertida, a ação fica visível sem rolar e quem herda o pé da
+            lista é a linha da versão, que ninguém procura.
+
+            E "Enviar sugestão", não "Enviar feedback": feedback é palavra de
+            quem faz o app, não de quem usa. A dica diz o que vale mandar.
           */}
           <Row
             icon="pencil"
             label="Enviar sugestão"
             hint={avisoFeedback ?? 'Conta o que falta ou o que te incomodou'}
             onPress={tocarFeedback}
+          >
+            {chevron}
+          </Row>
+          <Row
+            icon="info"
+            label="Sobre o Brotinho"
+            hint={`Versão ${APP_VERSION}`}
+            onPress={() => setDetalhe('sobre')}
           >
             {chevron}
           </Row>
