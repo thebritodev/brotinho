@@ -91,6 +91,7 @@ type AppStateValue = {
    * em que a tela remonta.
    */
   colherPlanta: (planta: Plant, proxima: EspecieKey) => void;
+  marcarAvaliacaoPedida: () => void;
   /** Anota uma prática concluída. */
   registrarPratica: (topic: string, practice: string) => void;
   /** Põe no lugar de tudo o conteúdo de um arquivo trazido de volta. */
@@ -265,6 +266,24 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
     );
   }, []);
 
+  /**
+   * Anota que o pedido de avaliação foi disparado.
+   *
+   * Guarda o instante do **pedido**, nunca da avaliação: o sistema não conta
+   * ao app o que a pessoa fez com o modal. Ver `Profile.avaliacaoPedidaEm`.
+   *
+   * Só escreve na primeira vez. Sobrescrever moveria a data para frente a cada
+   * toque na linha "Avaliar o Brotinho", e essa data existe para dizer desde
+   * quando a cota foi gasta.
+   */
+  const marcarAvaliacaoPedida = useCallback(() => {
+    setData((prev) =>
+      prev.profile.avaliacaoPedidaEm !== null
+        ? prev
+        : { ...prev, profile: { ...prev.profile, avaliacaoPedidaEm: Date.now() } },
+    );
+  }, []);
+
   const registrarPratica = useCallback((topic: string, practice: string) => {
     setData((prev) => ({
       ...prev,
@@ -434,6 +453,7 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
       desenterrarConselho,
       guardarConselho,
       colherPlanta,
+      marcarAvaliacaoPedida,
       registrarPratica,
       trazerDeVolta,
       reset,
@@ -456,6 +476,7 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
       desenterrarConselho,
       guardarConselho,
       colherPlanta,
+      marcarAvaliacaoPedida,
       registrarPratica,
       trazerDeVolta,
       reset,

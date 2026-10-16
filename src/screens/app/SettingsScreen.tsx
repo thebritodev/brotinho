@@ -250,10 +250,17 @@ export function SettingsScreen({
           >
             {chevron}
           </Row>
+          {/*
+            "Enviar sugestão", e não "Enviar feedback".
+
+            Feedback é palavra de quem faz o app, não de quem usa. A linha
+            existia e quase ninguém tocava nela: ela não dizia o que acontece
+            ao tocar, nem o que vale mandar. Agora diz as duas coisas.
+          */}
           <Row
             icon="pencil"
-            label="Enviar feedback"
-            hint={avisoFeedback ?? undefined}
+            label="Enviar sugestão"
+            hint={avisoFeedback ?? 'Conta o que falta ou o que te incomodou'}
             onPress={tocarFeedback}
           >
             {chevron}

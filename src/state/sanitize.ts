@@ -80,6 +80,15 @@ const nomeDeArquivo = (v: unknown): string | null => {
 };
 
 /** A opção de recusa virou ausência de resposta. */
+/**
+ * Um instante vindo do disco, ou `null`.
+ *
+ * Recusa `NaN`, infinito e numero negativo: todos sobrevivem ao `JSON.parse`
+ * e nenhum e uma hora que existiu.
+ */
+const instante = (v: unknown): number | null =>
+  (typeof v === 'number' && Number.isFinite(v) && v > 0 ? v : null);
+
 const semRecusa = (v: string | null) => (v === 'Prefiro não responder' ? null : v);
 
 const MOODS = ['feliz', 'leve', 'ansioso', 'triste', 'cansado', 'neutro'] as const;
@@ -111,6 +120,7 @@ function perfilLimpo(v: unknown): Profile {
       de sempre é o pior caso aceitável; desenhar com `undefined` seria um
       broto sem cor nenhuma.
     */
+    avaliacaoPedidaEm: instante(p.avaliacaoPedidaEm),
     especieAtual: especieValida(textoOuNulo(p.especieAtual)),
     // Rótulos de resposta mudaram entre versões; `renomear` traduz os antigos.
     checkin: p.checkin ? textoOuNulo(renomear(String(p.checkin))) : null,

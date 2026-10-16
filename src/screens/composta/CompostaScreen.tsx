@@ -48,6 +48,10 @@ import { fonts, radius, useTema } from '../../theme';
 import { JardimDaComposta } from './JardimDaComposta';
 import { useCompostSession, type ModoDaComposta } from './useCompostSession';
 import { useBotaoVoltar } from '../../navigation/useBotaoVoltar';
+import {
+  jaPedimosAvaliacao,
+  pedirAvaliacaoNaComposta,
+} from '../../services/pedirAvaliacao';
 
 /**
  * A Composta — compostar um pensamento até ele virar só som, e depois flor.
@@ -225,7 +229,7 @@ export function CompostaScreen({
     do lugar em relação a nada.
   */
   const recuo = recuoDaCena(insets.top);
-  const { data, addCompost, pesarAgora } = useAppState();
+  const { data, addCompost, pesarAgora, marcarAvaliacaoPedida } = useAppState();
 
   /**
    * A ferramenta sempre abre na primeira tela, a que explica.
@@ -258,6 +262,33 @@ export function CompostaScreen({
   /** O `id` da compostagem que acabou de nascer — para a pergunta do peso. */
   const [idDaSessao, setIdDaSessao] = useState<string | null>(null);
   const [peso, setPeso] = useState<'menos' | 'igual' | 'mais' | null>(null);
+
+  /**
+   * O pedido de avaliação, preso na resposta "pesa menos".
+   *
+   * Fica aqui, e não num `useEffect` que observa `peso`, porque ele precisa
+   * acontecer **uma vez, no toque**. Observando o estado, trocar de resposta e
+   * voltar para "menos" dispararia de novo.
+   *
+   * O atraso é o mesmo da colheita, e pela mesma razão: o modal da loja sobe
+   * por cima da tela, e abri-lo no mesmo quadro do toque engole o retorno
+   * visual do botão que a pessoa acabou de escolher.
+   *
+   * `marcarAvaliacaoPedida` roda **antes** do atraso, e de propósito: se a
+   * pessoa sair da tela nesse meio segundo, o pedido não acontece e a cota não
+   * foi gasta — mas também não queremos que ele volte a disparar na próxima
+   * Composta como se nada tivesse sido tentado. Uma chance, uma anotação.
+   */
+  const avaliacaoAgendada = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const pedirAvaliacaoSePuder = () => {
+    if (jaPedimosAvaliacao(data.profile.avaliacaoPedidaEm)) return;
+    if (avaliacaoAgendada.current) return;
+    marcarAvaliacaoPedida();
+    avaliacaoAgendada.current = setTimeout(() => void pedirAvaliacaoNaComposta(), 1200);
+  };
+  useEffect(() => () => {
+    if (avaliacaoAgendada.current) clearTimeout(avaliacaoAgendada.current);
+  }, []);
   /*
     O botão de segurar está pressionado agora.
 
@@ -1527,6 +1558,7 @@ export function CompostaScreen({
                       onPress={() => {
                         setPeso(o.chave);
                         if (idDaSessao) pesarAgora(idDaSessao, o.chave);
+                        if (o.chave === 'menos') pedirAvaliacaoSePuder();
                       }}
                       style={{
                         flex: 1,

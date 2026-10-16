@@ -108,7 +108,7 @@ export function OnboardingScreen() {
   const { colors, palette } = useTema();
   const insets = useSafeAreaInsets();
   const { width: largura, height: altura } = useWindowDimensions();
-  const { data, updateProfile } = useAppState();
+  const { data, updateProfile, marcarAvaliacaoPedida } = useAppState();
 
   /**
    * O onboarding em andamento, atravessando uma interrupção.
@@ -340,7 +340,18 @@ export function OnboardingScreen() {
    * frente em silêncio, que é o contrário de agradecer por nada.
    */
   const tocarEmAvaliar = async () => {
-    if (await pedirAvaliacaoAPedido()) return setAvaliacaoPedida(true);
+    if (await pedirAvaliacaoAPedido()) {
+      /*
+        Anotado na hora, e não no `finish`.
+
+        É o que impede o app de pedir de novo no fim da primeira Composta,
+        dias depois, para quem já viu o pedido aqui — a cota da loja é a mesma.
+        Gravar agora também sobrevive a quem fecha o app no meio do onboarding;
+        o `finish` manda um perfil parcial e não encosta neste campo.
+      */
+      marcarAvaliacaoPedida();
+      return setAvaliacaoPedida(true);
+    }
     go(step + 1);
   };
 

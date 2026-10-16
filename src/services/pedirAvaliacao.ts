@@ -12,10 +12,15 @@ import * as StoreReview from 'expo-store-review';
  * **Onde este pedido NÃO pode aparecer, e o porquê.**
  *
  * A recomendação padrão é pedir "depois de uma ação concluída". Num app de
- * saúde mental isso é insuficiente: a Composta também termina em conclusão, e
- * ali a pessoa acabou de dizer em voz alta o pensamento que mais a machuca.
- * Pedir um favor naquele instante trata a dor dela como oportunidade de
- * marketing.
+ * saúde mental isso é insuficiente: terminar não quer dizer que foi bom. A
+ * Composta termina em conclusão, e no meio dela a pessoa está dizendo em voz
+ * alta o pensamento que mais a machuca — pedir um favor ali trataria a dor
+ * dela como oportunidade de marketing.
+ *
+ * O critério que substituiu "ação concluída" é mais estreito: só se a própria
+ * pessoa tiver acabado de dizer que está melhor. No fim da Composta existe a
+ * pergunta "quanto ele pesa agora", e só a resposta **"menos"** abre a porta.
+ * Ver `pedirAvaliacaoNaComposta`.
  *
  * ---
  *
@@ -77,6 +82,46 @@ async function pedir(): Promise<boolean> {
   } catch {
     return false;
   }
+}
+
+/**
+ * Já pedimos alguma vez?
+ *
+ * O portão dos dois pedidos **automáticos**. Nunca barra o pedido por toque:
+ * quem procura a linha "Avaliar o Brotinho" está escolhendo, e escolha não
+ * tem cota.
+ */
+export function jaPedimosAvaliacao(avaliacaoPedidaEm: number | null): boolean {
+  return avaliacaoPedidaEm !== null;
+}
+
+/**
+ * O pedido automático do fim da Composta — e por que ele passou a existir.
+ *
+ * Este arquivo dizia, com todas as letras, que a Composta era o pior lugar
+ * possível: a pessoa acabou de repetir em voz alta o pensamento que mais a
+ * machuca, e pedir um favor ali trata a dor dela como oportunidade.
+ *
+ * O argumento continua certo sobre o **meio** da Composta. Ele está errado
+ * sobre o fim dela, e o que mudou foi a tela: hoje a Composta termina com a
+ * frase virando flor, o solo contando quantas já tem, e a pergunta "quanto ele
+ * pesa agora". Quem responde **"menos"** acabou de dizer, com o próprio dedo,
+ * que a coisa funcionou.
+ *
+ * É por isso que o pedido é preso nessa resposta, e não no fim da Composta. A
+ * diferença entre os dois é a diferença entre perguntar a quem foi ajudado e
+ * perguntar a quem acabou de remexer numa ferida. Quem responde "igual" ou
+ * "mais", ou não responde, não vê nada — nem agora nem depois, porque a
+ * próxima chance continua guardada.
+ *
+ * Nada disto é um pré-filtro de nota: a pergunta do peso já existia, é parte
+ * da Composta e alimenta a repesagem da semana seguinte. O app só escolheu
+ * **quando** aproveitar o momento que ela revela, que é o que as duas lojas
+ * recomendam. O que elas desaconselham é o contrário: inventar uma pergunta
+ * só para filtrar quem vê o pedido.
+ */
+export async function pedirAvaliacaoNaComposta(): Promise<void> {
+  await pedir();
 }
 
 /** O pedido automático da colheita. Silencioso: falhar não pode estragá-la. */

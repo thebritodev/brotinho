@@ -34,6 +34,20 @@ export type Profile = {
    * exatamente as cores de sempre: ninguém vê o próprio broto trocar de cor
    * no meio de um ciclo por causa de uma atualização.
    */
+  /**
+   * Quando o app pediu a avaliacao da loja, ou `null` se nunca pediu.
+   *
+   * Guarda **o pedido**, e nao a avaliacao. A diferenca importa e nao da
+   * para contornar: no iOS a chamada resolve assim que o modal e solicitado,
+   * e o sistema pode decidir nao mostrar nada. O app nunca fica sabendo se a
+   * pessoa avaliou, entao qualquer campo chamado "jaAvaliou" seria mentira.
+   *
+   * Existe por causa da cota: a Apple mostra o pedido nativo no maximo tres
+   * vezes por ano e escolhe sozinha quando. Sem este campo, o pedido do fim
+   * da Composta e o da colheita disputariam a mesma cota, e o primeiro a
+   * acontecer gastaria a chance do outro.
+   */
+  avaliacaoPedidaEm: number | null;
   especieAtual: string;
   checkin: string | null;
   valores: string[];
@@ -275,6 +289,7 @@ export const INITIAL_PROFILE: Profile = {
   name: '',
   nomeDoBroto: '',
   fotoDePerfil: null,
+  avaliacaoPedidaEm: null,
   especieAtual: 'brotinho',
   checkin: null,
   valores: [],

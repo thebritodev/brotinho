@@ -59,7 +59,7 @@ type Props = {
 export function ProfileScreen({ name, onNavigate, aoTopo = 0 }: Props) {
   const { colors, palette, shadows, moodColors } = useTema();
   const insets = useSafeAreaInsets();
-  const { data, updateSettings } = useAppState();
+  const { data, updateSettings, marcarAvaliacaoPedida } = useAppState();
 
   const rolagem = useRef<ScrollView>(null);
 
@@ -102,7 +102,16 @@ export function ProfileScreen({ name, onNavigate, aoTopo = 0 }: Props) {
     setAvisoAvaliacao(null);
     if (!(await pedirAvaliacaoAPedido())) {
       setAvisoAvaliacao('Não consegui abrir a loja a partir daqui.');
+      return;
     }
+    /*
+      Quem pediu aqui não precisa ser abordado pelo app depois.
+
+      Esta linha nunca é barrada — tocar nela é escolha, e escolha não tem
+      cota. Mas ela gasta a mesma chance que a loja concede, então anotar
+      evita que a Composta ou a colheita apareçam pedindo de novo.
+    */
+    marcarAvaliacaoPedida();
   };
 
   /** O rótulo de uma seção — ver `RotuloDeSecao`. */

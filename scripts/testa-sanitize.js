@@ -47,6 +47,10 @@ const CASOS = [
   ['valores com lixo dentro', { profile: { valores: ['conexao', 5, null, 'saude'] } }],
   ['hora fora do intervalo', { profile: { sleepTime: '99:99', reminder: '-1:70' } }],
   ['hora sem formato', { profile: { sleepTime: 'de noite' } }],
+  ['avaliacao pedida virou texto', { profile: { avaliacaoPedidaEm: 'ontem' } }],
+  ['avaliacao pedida virou NaN', { profile: { avaliacaoPedidaEm: NaN } }],
+  ['avaliacao pedida negativa', { profile: { avaliacaoPedidaEm: -5 } }],
+  ['avaliacao pedida infinita', { profile: { avaliacaoPedidaEm: Infinity } }],
 
   ['humores com entradas quebradas', { moodHistory: [{ date: 1, mood: 'feliz' }, null, 'x', { date: '2026-01-01', mood: 'inventado' }] }],
   ['diário com item sem texto', { journal: [{ id: 'a' }, { text: 'ok', createdAt: 'ontem' }, 7] }],
@@ -120,6 +124,19 @@ const CASOS = [
       else {
         if (typeof r.profile !== 'object' || r.profile == null) problemas.push('profile inutilizável');
         else if (!Array.isArray(r.profile.tentou)) problemas.push('profile.tentou não é lista');
+        /*
+          `avaliacaoPedidaEm` so pode sair numero positivo ou `null`.
+
+          Ele e um portao: `jaPedimosAvaliacao` so olha se e diferente de
+          `null`. Um `NaN` vindo do disco passaria por "ja pedimos" e calaria
+          o pedido da loja para sempre, sem erro nenhum na tela.
+        */
+        if (r.profile && r.profile.avaliacaoPedidaEm !== null
+          && !(typeof r.profile.avaliacaoPedidaEm === 'number'
+            && Number.isFinite(r.profile.avaliacaoPedidaEm)
+            && r.profile.avaliacaoPedidaEm > 0)) {
+          problemas.push(`avaliacaoPedidaEm invalido: ${String(r.profile.avaliacaoPedidaEm)}`);
+        }
         for (const campo of ['moodHistory', 'journal', 'composts', 'garden', 'practicesDone', 'conselhos', 'conselhosGuardados']) {
           if (!Array.isArray(r[campo])) problemas.push(`${campo} não é lista`);
         }

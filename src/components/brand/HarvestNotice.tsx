@@ -7,7 +7,10 @@ import {
   especieValida,
   type EspecieKey,
 } from '../../data/especies';
-import { pedirAvaliacaoNaColheita } from '../../services/pedirAvaliacao';
+import {
+  jaPedimosAvaliacao,
+  pedirAvaliacaoNaColheita,
+} from '../../services/pedirAvaliacao';
 import { toqueDeConclusao } from '../../services/toque';
 import { useAppState } from '../../state/AppStateProvider';
 import { fonts, radius, useTema } from '../../theme';
@@ -52,7 +55,7 @@ export function HarvestNotice({
   onEscolher: (proxima: EspecieKey) => void;
 }) {
   const { colors, moodColorsFundo, palette, shadows } = useTema();
-  const { data } = useAppState();
+  const { data, marcarAvaliacaoPedida } = useAppState();
   const entrada = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
@@ -61,15 +64,20 @@ export function HarvestNotice({
     toqueDeConclusao(data.settings.vibracao);
 
     /*
-      E é o único lugar do app onde cabe pedir uma avaliação na loja.
+      O pedido de avaliação — agora o segundo lugar, e não mais o único.
 
-      A recomendação padrão — "peça depois de uma ação concluída" — não serve
-      aqui: a Composta também termina em conclusão, e ali a pessoa acabou de
-      dizer em voz alta o pensamento que mais a machuca. O porquê completo está
-      em `services/pedirAvaliacao.ts`.
+      O fim da Composta passou a pedir também, quando a pessoa responde que o
+      pensamento pesa menos. Os dois dividem a mesma cota escassa da loja, e é
+      por isso que existe `jaPedimosAvaliacao`: quem já viu o pedido depois de
+      uma Composta não vê de novo aqui, três semanas depois.
+
+      A colheita continua valendo para quem nunca compostou, ou nunca
+      respondeu "menos". O porquê completo está em `services/pedirAvaliacao`.
 
       Vai com atraso para não competir com a animação da planta chegando.
     */
+    if (jaPedimosAvaliacao(data.profile.avaliacaoPedidaEm)) return;
+    marcarAvaliacaoPedida();
     const id = setTimeout(() => void pedirAvaliacaoNaColheita(), 2600);
     return () => clearTimeout(id);
   }, []);

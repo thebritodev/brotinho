@@ -26,7 +26,7 @@ export async function enviarFeedback(): Promise<'ok' | 'sem-email' | 'sem-destin
 
   const url =
     `mailto:${CONTATO}` +
-    `?subject=${encodeURIComponent('Feedback sobre o Brotinho')}` +
+    `?subject=${encodeURIComponent('Sugestão para o Brotinho')}` +
     `&body=${encodeURIComponent(corpo)}`;
 
   const podeAbrir = await Linking.canOpenURL(url).catch(() => false);
