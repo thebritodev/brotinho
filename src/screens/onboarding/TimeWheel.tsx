@@ -91,15 +91,33 @@ type Props = {
   onChange: (next: string) => void;
   /** A roda nasceu para a hora de dormir; o lembrete usa outro símbolo. */
   icon?: IconName;
+  /**
+   * Avisa quem esta em volta que o dedo esta na roda.
+   *
+   * Existe por causa de uma briga de gestos: a roda e um `PanResponder`
+   * dentro de uma `ScrollView`, e no iOS o reconhecedor nativo da rolagem nao
+   * passa pela negociacao de responder do JS. Arrastar os numeros fazia a
+   * pagina descer junto. Quem recebe este aviso desliga a rolagem enquanto o
+   * arrasto dura.
+   */
+  aoArrastar?: (arrastando: boolean) => void;
 };
 
 /** TimeWheel — arraste o dedo sobre a hora ou os minutos para ajustar. */
-export function TimeWheel({ value, onChange, icon = 'moon' }: Props) {
+export function TimeWheel({ value, onChange, icon = 'moon', aoArrastar }: Props) {
   const { colors, palette, shadows } = useTema();
   const [h, m] = value.split(':').map(Number);
 
-  const estado = useRef({ h, m, onChange });
-  estado.current = { h, m, onChange };
+  /*
+    O espelho carrega o `aoArrastar` junto, e não é detalhe.
+
+    Os dois `PanResponder` são criados uma vez só (`useMemo` com lista vazia),
+    então o que eles fecharem em cima fica congelado para sempre. Lendo a
+    propriedade direto, eles avisariam a primeira versão dela a vida inteira.
+    O espelho é reescrito a cada render, e é dele que o gesto lê.
+  */
+  const estado = useRef({ h, m, onChange, aoArrastar });
+  estado.current = { h, m, onChange, aoArrastar };
 
   /** Horário no instante em que o dedo encostou. */
   const inicio = useRef({ h, m });
@@ -120,6 +138,7 @@ export function TimeWheel({ value, onChange, icon = 'moon' }: Props) {
       onPanResponderGrant: () => {
         inicio.current = { h: estado.current.h, m: estado.current.m };
         resto.setValue(0);
+        estado.current.aoArrastar?.(true);
       },
 
       onPanResponderMove: (_e, g) => {
@@ -135,6 +154,7 @@ export function TimeWheel({ value, onChange, icon = 'moon' }: Props) {
       },
 
       onPanResponderRelease: () => {
+        estado.current.aoArrastar?.(false);
         // Encaixa o número escolhido no centro.
         Animated.timing(resto, {
           toValue: 0,
@@ -146,7 +166,10 @@ export function TimeWheel({ value, onChange, icon = 'moon' }: Props) {
         }).start();
       },
 
-      onPanResponderTerminate: () => resto.setValue(0),
+      onPanResponderTerminate: () => {
+        estado.current.aoArrastar?.(false);
+        resto.setValue(0);
+      },
     });
 
   const responderHora = useMemo(() => criarResponder('h', restoHora), []);

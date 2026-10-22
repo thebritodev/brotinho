@@ -117,6 +117,16 @@ export function OnboardingScreen() {
    * depois pular para o passo nove seria pior do que esperar um instante.
    */
   const [restaurado, setRestaurado] = useState(false);
+  /**
+   * O dedo está na roda das horas?
+   *
+   * A roda é um `PanResponder` e a tela é uma `ScrollView`. No iOS o
+   * reconhecedor nativo da rolagem não passa pela negociação de responder do
+   * JavaScript, então arrastar os números fazia a página descer junto — foi o
+   * que o Pedro viu no TestFlight. Enquanto o arrasto dura, a rolagem fica
+   * desligada; nada mais no app precisa saber disto.
+   */
+  const [naRodaDasHoras, setNaRodaDasHoras] = useState(false);
 
   const [step, setStep] = useState(0);
   /**
@@ -497,7 +507,16 @@ export function OnboardingScreen() {
         <AskingSprout
           title={`Prazer${draft.name.trim() ? `, ${draft.name.trim()}` : ''}. E eu, como você quer me chamar?`}
           sub="Pode me dar outro nome ou me deixar como Brotinho. Dá para trocar depois, em Meus dados."
-          pose="pensa"
+          /*
+            Sem pose, que aqui quer dizer **com o rosto do humor**.
+
+            O `AskingSprout` já desenha `mood="feliz"`; era a pose `pensa` que
+            tirava o sorriso, porque ela traz boca própria e a boca da pose
+            ganha da boca do humor. Na tela em que ele pede o próprio nome,
+            pensativo é a expressão errada — ele está sendo apresentado, não
+            resolvendo nada. A pose padrão é `parado`, que não impõe boca
+            nenhuma e deixa o `feliz` sorrir.
+          */
           humor={ceuDoPasso}
           noite={ehDeNoite}
         />
@@ -591,7 +610,11 @@ export function OnboardingScreen() {
           humor={ceuDoPasso}
           noite
         />
-        <TimeWheel value={draft.sleepTime} onChange={(sleepTime) => set({ sleepTime })} />
+        <TimeWheel
+          value={draft.sleepTime}
+          onChange={(sleepTime) => set({ sleepTime })}
+          aoArrastar={setNaRodaDasHoras}
+        />
       </View>
     ),
 
@@ -986,24 +1009,51 @@ export function OnboardingScreen() {
         )}
       </View>
 
-      <ScrollView
+      {/*
+        A rolagem mora **dentro** da transição, e não em volta dela.
+
+        Era o contrário, e isso não rolava. A `ScreenTransition` desenha as
+        duas camadas com `StyleSheet.absoluteFill` — é de propósito, para a
+        ordem de pintura ser a mesma no Android e no navegador. Só que filho
+        absoluto não tem altura no layout: posto dentro de uma `ScrollView`,
+        ele fazia o contêiner de conteúdo medir exatamente a altura da janela,
+        a `ScrollView` concluía que estava tudo à vista, e o `overflow: hidden`
+        da transição cortava o que passava. Não era rolagem ruim — era rolagem
+        **inexistente**.
+
+        Medido num iPhone X (812 menos 44 do entalhe e 34 do indicador = 734 de
+        área útil), em seis passos: o conteúdo descia 90 pontos abaixo da
+        borda, 236 no paywall, e `scrollHeight - clientHeight` dava zero nos
+        seis. Foi exatamente o que o Pedro viu no TestFlight: a última opção
+        cortada, sem jeito de alcançar.
+
+        Invertido, cada camada da transição é uma caixa de altura definida com
+        a sua própria `ScrollView` dentro — que é a forma que a `ScrollView`
+        espera. O `justifyContent: 'center'` desceu para o contêiner de
+        conteúdo, onde ele centra enquanto sobra espaço e cede à rolagem quando
+        não sobra. Ver `ScreenTransition`.
+      */}
+      <ScreenTransition
+        transitionKey={step}
+        mode={sentido.current}
         style={{ flex: 1 }}
-        contentContainerStyle={{
-          flexGrow: 1,
-          paddingHorizontal: 20,
-          paddingVertical: 6,
-        }}
-        showsVerticalScrollIndicator={false}
-        keyboardShouldPersistTaps="handled"
       >
-        <ScreenTransition
-          transitionKey={step}
-          mode={sentido.current}
-          style={{ flexGrow: 1, justifyContent: 'center' }}
+        <ScrollView
+          style={{ flex: 1 }}
+          contentContainerStyle={{
+            flexGrow: 1,
+            paddingHorizontal: 20,
+            paddingVertical: 6,
+            justifyContent: 'center',
+          }}
+          showsVerticalScrollIndicator={false}
+          keyboardShouldPersistTaps="handled"
+          /* Ver `naRodaDasHoras`: arrastar os números não pode arrastar a tela. */
+          scrollEnabled={!naRodaDasHoras}
         >
           {screens[step]}
-        </ScreenTransition>
-      </ScrollView>
+        </ScrollView>
+      </ScreenTransition>
 
       {/* Rodapé fixo com a ação principal */}
       <View
