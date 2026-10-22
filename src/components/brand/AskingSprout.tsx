@@ -51,6 +51,13 @@ type Props = {
    * ficar pequeno no app inteiro por causa das duas mais cheias.
    */
   compacto?: boolean;
+  /**
+   * Quanta altura sobrou para o passo inteiro, em pixels.
+   *
+   * Zero quer dizer "ainda não sei" — no primeiro quadro, antes de o
+   * `onLayout` responder. Aí vale a conta antiga, pela janela.
+   */
+  espaco?: number;
   /** O que ele faz neste passo — acena na chegada, pensa quando pergunta. */
   pose?: Pose;
   /** O céu atrás dele. Antes do check-in, o azul de espera. */
@@ -65,6 +72,7 @@ export function AskingSprout({
   kicker,
   reageA = null,
   compacto = false,
+  espaco = 0,
   pose = 'parado',
   humor = null,
   noite = false,
@@ -80,9 +88,59 @@ export function AskingSprout({
    * cabem grandes ao mesmo tempo, e entre mascote e alvo de toque quem cede é
    * o mascote.
    */
-  const sproutSize = compacto
-    ? Math.min(width * 0.30, height * 0.095)
-    : Math.min(width * 0.44, height * 0.17);
+  /*
+    ## O broto cede ao que sobrou, e não ao tamanho da janela
+
+    A conta era `height * 0,17` — a janela inteira. Só que o passo não dispõe
+    da janela: dele saem ainda o cabeçalho, o rodapé e os recuos do sistema.
+    Num iPhone X isso são 142 pontos, e num SE de 320 por 548 o que sobra para
+    o conteúdo são **406**. Dimensionar pela janela fazia o mascote reservar
+    espaço que não existia, e quem pagava eram as opções, empurradas para fora.
+
+    Agora a referência é `espaco`, medido de verdade pelo `onLayout` de quem
+    desenha o passo. Medir, e não calcular, porque o cabeçalho e o rodapé mudam
+    de altura com o tamanho da fonte do sistema — e quem aumenta a fonte é
+    justamente quem mais precisa que caiba.
+
+    `TETO_DA_FAIXA` é a fatia do que sobrou que o mascote pode ocupar. Acima
+    disso ele empurra as respostas para fora, e entre mascote e alvo de toque
+    quem cede é o mascote — a mesma regra de antes, agora com o número certo
+    na frente.
+  */
+  /*
+    Os numeros saem de medida, nao de gosto.
+
+    Com a conta antiga, num iPhone X, faltavam 27 pontos no pior passo (a roda
+    das horas) para tudo caber sem rolar. 27 pontos de faixa sao 24 de broto, e
+    24 a menos num broto de 125 dao 101 — que e 0,17 do espaco de 592. O teto
+    do compacto desceu na mesma proporcao.
+
+    O teto absoluto existe para a tela grande: so com fracao, o mascote cresce
+    junto com o aparelho e o deficit nunca fecha.
+  */
+  const TETO_DA_FAIXA = compacto ? 0.1 : 0.17;
+  const TETO_ABSOLUTO = compacto ? 86 : 130;
+  const porAltura = espaco > 0 ? espaco * TETO_DA_FAIXA : height * (compacto ? 0.095 : 0.17);
+  const sproutSize = Math.min(width * (compacto ? 0.3 : 0.44), porAltura, TETO_ABSOLUTO);
+
+  /**
+   * Abaixo deste tamanho a cena sai inteira, e isso é melhor do que encolher.
+   *
+   * Um broto de cinquenta pontos dentro de uma faixa de céu não é um mascote
+   * menor: é uma tira de cor com uma bolinha no meio, que custa cem pontos de
+   * altura e não entrega personagem nenhum. Numa tela em que faltam cem
+   * pontos, essa é a primeira coisa que tem de ceder — e cede por inteiro,
+   * porque meio mascote é pior que nenhum.
+   *
+   * O balão fica. Ele é a pergunta, e a pergunta é a razão da tela existir; o
+   * bico dele passa a apontar para as respostas, que é para onde a pessoa vai
+   * mesmo olhar.
+   *
+   * Noventa pontos é onde o desenho ainda tem rosto e ainda paga a altura que
+   * custa: abaixo disso a cara some e a faixa vira só uma tira de cor.
+   */
+  const PISO_DO_MASCOTE = 90;
+  const temCena = sproutSize >= PISO_DO_MASCOTE;
 
   /*
     Sem vaso, o broto nasce da terra — e o pé dele precisa ficar **abaixo** da
@@ -147,6 +205,7 @@ export function AskingSprout({
         azul perderia o contorno; mais baixa, o broto ficaria com a cabeça
         fora do mundo dele.
       */}
+      {temCena && (
       <View style={{ marginHorizontal: -MARGEM_DA_TELA, marginTop: 6 }}>
         <View style={{ height: alturaDaFaixa }}>
           <Cena
@@ -193,6 +252,7 @@ export function AskingSprout({
           </View>
         </View>
       </View>
+      )}
     </View>
   );
 }

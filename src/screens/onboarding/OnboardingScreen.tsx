@@ -127,6 +127,19 @@ export function OnboardingScreen() {
    * desligada; nada mais no app precisa saber disto.
    */
   const [naRodaDasHoras, setNaRodaDasHoras] = useState(false);
+  /**
+   * A altura que sobra para o passo, medida.
+   *
+   * O Pedro pediu que tudo coubesse sem rolar. Para caber é preciso saber em
+   * quanto — e isso não dá para calcular de cabeça: o cabeçalho e o rodapé
+   * mudam de altura com o tamanho da fonte do sistema, e os recuos mudam com o
+   * aparelho. O `onLayout` da área de conteúdo responde o número certo, já
+   * descontado tudo.
+   *
+   * Zero até a primeira medida; quem recebe trata isso como "ainda não sei" e
+   * usa a conta antiga por um quadro.
+   */
+  const [espacoDoPasso, setEspacoDoPasso] = useState(0);
 
   const [step, setStep] = useState(0);
   /**
@@ -478,6 +491,7 @@ export function OnboardingScreen() {
     [PASSO.NOME]: (
       <View style={{ gap: 20 }}>
         <AskingSprout
+          espaco={espacoDoPasso}
           title="Como posso te chamar?"
           sub="Só para eu não falar com você como se fosse um formulário."
           pose="acena"
@@ -505,6 +519,7 @@ export function OnboardingScreen() {
     [PASSO.NOME_DO_BROTO]: (
       <View style={{ gap: 20 }}>
         <AskingSprout
+          espaco={espacoDoPasso}
           title={`Prazer${draft.name.trim() ? `, ${draft.name.trim()}` : ''}. E eu, como você quer me chamar?`}
           sub="Pode me dar outro nome ou me deixar como Brotinho. Dá para trocar depois, em Meus dados."
           /*
@@ -532,6 +547,7 @@ export function OnboardingScreen() {
     [PASSO.CHECKIN]: (
       <View style={{ gap: 20 }}>
         <AskingSprout
+          espaco={espacoDoPasso}
           title={`Como você tem estado${draft.name.trim() ? `, ${draft.name.trim()}` : ''}?`}
           sub="Pense nas últimas semanas, não só em hoje."
           reageA={draft.checkin}
@@ -546,6 +562,7 @@ export function OnboardingScreen() {
 
     [PASSO.ESPELHO_MOMENTO]: espelhoMomento ? (
       <AskingSprout
+          espaco={espacoDoPasso}
         kicker={espelhoMomento.kicker}
         title={espelhoMomento.title}
         sub={espelhoMomento.body}
@@ -558,6 +575,7 @@ export function OnboardingScreen() {
     [PASSO.TENTOU]: (
       <View style={{ gap: 20 }}>
         <AskingSprout
+          espaco={espacoDoPasso}
           title="E o que você tem feito com isso?"
           sub="Pode marcar mais de um."
           reageA={draft.tentou.join('|')}
@@ -572,6 +590,7 @@ export function OnboardingScreen() {
 
     [PASSO.ESPELHO_TENTATIVA]: espelhoTentativa ? (
       <AskingSprout
+          espaco={espacoDoPasso}
         kicker={espelhoTentativa.kicker}
         title={espelhoTentativa.title}
         sub={espelhoTentativa.body}
@@ -584,6 +603,7 @@ export function OnboardingScreen() {
     [PASSO.VALORES]: (
       <View style={{ gap: 20 }}>
         <AskingSprout
+          espaco={espacoDoPasso}
           title="O que você queria ter mais no seu dia?"
           sub={`Escolha até ${MAX_VALUES} — ${draft.valores.length} escolhido${draft.valores.length === 1 ? '' : 's'}. Isso vira o que eu procuro no que você escrever.`}
           reageA={draft.valores.join('|')}
@@ -604,6 +624,7 @@ export function OnboardingScreen() {
     [PASSO.SONO]: (
       <View style={{ gap: 20 }}>
         <AskingSprout
+          espaco={espacoDoPasso}
           title="Que horas você costuma ir dormir?"
           sub="Noite mal dormida e dia difícil andam juntos com mais frequência do que parece."
           pose="dorme"
@@ -1040,6 +1061,13 @@ export function OnboardingScreen() {
       >
         <ScrollView
           style={{ flex: 1 }}
+          onLayout={(e) => {
+            const h = Math.round(e.nativeEvent.layout.height);
+            /* Só quando muda de verdade: `onLayout` dispara em cada rotação e
+               em cada quadro de teclado, e um `setState` por quadro aqui
+               redesenharia o passo inteiro no meio da transição. */
+            if (h > 0 && Math.abs(h - espacoDoPasso) > 2) setEspacoDoPasso(h);
+          }}
           contentContainerStyle={{
             flexGrow: 1,
             paddingHorizontal: 20,
