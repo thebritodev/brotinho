@@ -113,11 +113,23 @@ const VAZIO: number[] = [];
 function Face({
   mood,
   pose = 'parado',
+  rostoDoHumor = false,
   cx,
   cy,
 }: {
   mood: Mood;
   pose?: Pose;
+  /**
+   * O rosto vem do humor, mesmo quando a pose traria o seu.
+   *
+   * A pose sobrepõe o humor peça por peça (ver abaixo), e isso é o certo quase
+   * sempre: pensar, dormir e acalmar mudam a cara de quem faz. No onboarding
+   * não — ali o broto está sendo apresentado, e o Pedro pediu que ele tivesse
+   * a cara do humor feliz do primeiro passo ao último. Com isto, a pose
+   * continua mexendo as folhas, balançando e soltando os zês; só os olhos, o
+   * olhar e a boca passam a ser os do humor.
+   */
+  rostoDoHumor?: boolean;
   cx: number;
   cy: number;
 }) {
@@ -129,7 +141,11 @@ function Face({
     o olho um ponto maior, e quem pensa continua ansioso enquanto pensa. Cada
     campo que a pose não traz deixa o do humor passar.
   */
-  const p = POSES[pose] ?? POSES.parado;
+  const posePura = POSES[pose] ?? POSES.parado;
+  /* Ver `rostoDoHumor`: a pose segue valendo para o corpo, não para a cara. */
+  const p = rostoDoHumor
+    ? { ...posePura, olho: undefined, boca: undefined, olhar: undefined }
+    : posePura;
   const olho = p.olho ? OLHOS_DE_POSE[p.olho] : f.eye;
   const dx = p.olhar?.x ?? 0;
   const dy = p.olhar?.y ?? 0;
@@ -503,6 +519,8 @@ export type ParteDoBroto = 'tudo' | 'planta' | 'sombra' | 'atras' | 'cabeca';
 
 type Props = {
   mood?: Mood;
+  /** O rosto vem do humor mesmo sob uma pose que traria o seu. Ver `Face`. */
+  rostoDoHumor?: boolean;
   stage?: SproutStage;
   decorations?: Decoration[];
   size?: number;
@@ -545,6 +563,7 @@ export function Sprout({
   showPot = true,
   parte = 'tudo',
   pose = 'parado',
+  rostoDoHumor = false,
   folhasSoltas = VAZIO,
   especie,
 }: Props) {
@@ -815,7 +834,7 @@ export function Sprout({
         fill="none"
       />
 
-      <Face mood={mood} pose={pose} cx={CX} cy={stemTopY - 4} />
+      <Face mood={mood} pose={pose} rostoDoHumor={rostoDoHumor} cx={CX} cy={stemTopY - 4} />
       <Decorations list={decorations} cx={CX} cy={stemTopY - 4} tinta={tinta} />
         </>
       )}

@@ -437,7 +437,7 @@ export function OnboardingScreen() {
   const screens: Record<number, React.ReactNode> = {
     [PASSO.INTRO]: (
       <View style={{ alignItems: 'center', gap: 26, paddingVertical: 20 }}>
-        <AnimatedSprout mood="feliz" stage={3} size={brotoGrande} swayOnMount pose="acena" />
+        <AnimatedSprout mood="feliz" rostoDoHumor stage={3} size={brotoGrande} swayOnMount pose="acena" />
         <View style={{ gap: 12 }}>
           <Text
             style={{

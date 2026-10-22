@@ -144,6 +144,14 @@ type Props = {
    * e o que flutua em volta.
    */
   pose?: Pose;
+  /**
+   * O rosto vem do humor, mesmo sob uma pose que traria o seu.
+   *
+   * O onboarding usa isto do primeiro passo ao ultimo: ali o broto esta sendo
+   * apresentado, e trocar de cara a cada pergunta fazia parecer que ele estava
+   * julgando a resposta. Ver `Face` em `Sprout`.
+   */
+  rostoDoHumor?: boolean;
   /** Sem vaso: o broto plantado direto na terra das cenas. */
   showPot?: boolean;
 };
@@ -158,6 +166,7 @@ export function AnimatedSprout({
   swayOn = null,
   bamboleia = false,
   pose = 'parado',
+  rostoDoHumor = false,
   showPot = true,
 }: Props) {
   const sway = useRef(new Animated.Value(0)).current;
@@ -366,6 +375,7 @@ export function AnimatedSprout({
         decorations={decorations}
         parte="planta"
         pose={pose}
+        rostoDoHumor={rostoDoHumor}
         showPot={showPot}
       />
     ) : (
@@ -377,6 +387,7 @@ export function AnimatedSprout({
           decorations={decorations}
           parte="atras"
           pose={pose}
+          rostoDoHumor={rostoDoHumor}
           showPot={showPot}
           folhasSoltas={folhasDaAnimacao}
         />
@@ -423,6 +434,7 @@ export function AnimatedSprout({
             decorations={decorations}
             parte="cabeca"
             pose={pose}
+            rostoDoHumor={rostoDoHumor}
             showPot={showPot}
           />
         </View>

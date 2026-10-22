@@ -169,8 +169,20 @@ export function AskingSprout({
               alignItems: 'center',
             }}
           >
+            {/*
+              O rosto e sempre o do humor feliz — `rostoDoHumor`.
+
+              Este componente so existe no onboarding, e ali o broto esta sendo
+              apresentado. As poses das perguntas trocavam a cara a cada passo:
+              `calmo` e `dorme` fecham os olhos, `pensa` torce a boca. Lado a
+              lado isso lia como ele reagindo ao que a pessoa respondeu — e
+              numa conversa em que ela conta que anda mal, uma cara fechada em
+              resposta e a leitura errada. O corpo da pose continua: as folhas
+              mexem, ele balanca, os zes sobem. So a expressao nao muda.
+            */}
             <AnimatedSprout
               mood="feliz"
+              rostoDoHumor
               stage={3}
               size={sproutSize}
               bamboleia
