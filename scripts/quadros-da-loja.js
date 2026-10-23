@@ -48,13 +48,29 @@ const MARROM = '#3A3630';
 const MARROM_FRACO = '#6B6457';
 const TERRACOTA = '#C9754F';
 
+/**
+ * Onde esta, em cada captura, o pedaco que o zoom amplia.
+ *
+ * Escrito por `capturas.js` no mesmo instante da foto, com o mesmo layout na
+ * frente. Coordenada digitada a mao quebra calada na primeira vez que a tela
+ * muda de altura — e quem olha a loja nao tem como saber que quebrou.
+ */
+const DESTAQUES = (() => {
+  const f = path.join(CAPTURAS, 'destaques.json');
+  return fs.existsSync(f) ? JSON.parse(fs.readFileSync(f, 'utf8')) : {};
+})();
+
+/** O tamanho da captura, em pixels — as fotos saem todas do mesmo molde. */
+const CAPTURA_L = 1242;
+const CAPTURA_A = 2688;
+
 function comoDataUri(arquivo) {
   const b = fs.readFileSync(path.join(CAPTURAS, arquivo));
   return 'data:image/png;base64,' + b.toString('base64');
 }
 
 /** A moldura do aparelho, com a captura dentro. */
-function aparelho({ imagem, largura, inclinacao = 0, sombra = true }) {
+function aparelho({ imagem, largura, inclinacao = 0, sombra = true, desfoque = 0 }) {
   const alturaDoVidro = Math.round(largura * (2688 / 1242));
   return `
     <div style="
@@ -72,7 +88,10 @@ function aparelho({ imagem, largura, inclinacao = 0, sombra = true }) {
         border-radius:${Math.round(largura * 0.11)}px;
         overflow:hidden;background:${CREME};
       ">
-        <img src="${imagem}" style="width:100%;height:100%;object-fit:cover;object-position:top;display:block">
+        <img src="${imagem}" style="
+          width:100%;height:100%;object-fit:cover;object-position:top;display:block;
+          ${desfoque ? `filter:blur(${desfoque}px) brightness(.8) saturate(.92);` : ''}
+        ">
       </div>
     </div>`;
 }
@@ -95,9 +114,70 @@ const destaque = (texto, cor) => `
  * de busca, ao lado do icone, e por isso leva o mecanismo — a coisa que
  * nenhum concorrente tem. Os outros cinco sao lidos por quem ja parou.
  */
+/**
+ * O pedaco ampliado, pousado por cima do aparelho.
+ *
+ * E a tecnica que o Heat usa: um cartao da interface e arrancado da tela,
+ * ampliado e posto na frente, enquanto o resto do aparelho fica borrado. O
+ * olho nao tem para onde fugir — vai no elemento que o titulo cita.
+ *
+ * O recorte sai de `background-position`, e nao de uma imagem cortada: a
+ * captura inteira entra como fundo, ampliada pela escala, e deslocada para a
+ * regiao certa aparecer na janela. Assim nao ha segundo arquivo para
+ * envelhecer fora de sincronia com o primeiro.
+ */
+function ampliado({ imagem, caixa: medida, larguraFinal, folga = {}, topo = 58 }) {
+  /*
+    A folga em volta do retangulo medido, e ela nao e enfeite.
+
+    A medida sai da uniao dos **textos** dos tres passos, e os numeros ficam
+    numa coluna a esquerda, fora dela. Sem folga o recorte entregava tres
+    paragrafos soltos no lugar de uma sequencia — a informacao que faz a
+    mecanica ser entendida estava justamente no que ficou de fora.
+  */
+  const fx = folga.x || 0;
+  const fy = folga.y || 0;
+  const x0 = Math.max(0, medida.x - fx);
+  const y0 = Math.max(0, medida.y - fy);
+  const caixa = {
+    x: x0,
+    y: y0,
+    largura: Math.min(CAPTURA_L, medida.x + medida.largura + fx) - x0,
+    altura: Math.min(CAPTURA_A, medida.y + medida.altura + fy) - y0,
+  };
+  const escala = larguraFinal / caixa.largura;
+  const alturaFinal = Math.round(caixa.altura * escala);
+  return `
+    <div style="
+      position:absolute;
+      left:50%;
+      top:${topo}%;
+      transform:translate(-50%,-50%) rotate(-1.5deg);
+      width:${Math.round(larguraFinal)}px;
+      height:${alturaFinal}px;
+      border-radius:34px;
+      background-image:url('${imagem}');
+      background-size:${Math.round(CAPTURA_L * escala)}px ${Math.round(CAPTURA_A * escala)}px;
+      background-position:-${Math.round(caixa.x * escala)}px -${Math.round(caixa.y * escala)}px;
+      box-shadow:0 36px 90px rgba(28,24,20,.42), 0 0 0 10px rgba(251,246,236,.96);
+      z-index:3;
+    "></div>`;
+}
+
 const QUADROS = [
   {
     arquivo: '3-composta.png',
+    /* Ver `ampliado`: os tres passos saem da tela e viram o assunto. */
+    zoom: 760,
+    /*
+      Larga na horizontal, estreita na vertical.
+
+      Os numeros dos passos moram a esquerda do texto medido, entao a folga
+      lateral tem de busca-los. A vertical nao: com 120 em cima, o recorte
+      trazia junto uma fatia cortada do titulo, e meia linha de texto cortada
+      no alto de um cartao le como defeito, nao como recorte.
+    */
+    folga: { x: 120, y: 26 },
     frase: ['Tire o pensamento', 'da cabeça'],
     sub: 'Repita em voz alta até ele virar só som.',
   },
@@ -118,6 +198,17 @@ const QUADROS = [
   },
   {
     arquivo: '2-frase-do-dia.png',
+    zoom: 800,
+    folga: { x: 40, y: 30 },
+    /*
+      A peca sobe para **cobrir** o original.
+
+      Aqui o que se amplia e a propria frase, e ela continua legivel atras do
+      desfoque: sem subir, o quadro mostrava a mesma frase duas vezes, uma
+      borrada e uma nitida, que le como falha de montagem. Pousada em cima do
+      original, sobra uma leitura so.
+    */
+    zoomTopo: 32,
     frase: ['Uma frase por dia,', 'enterrada na terra'],
     sub: 'Toque no papel para desenterrar a de hoje.',
   },
@@ -179,7 +270,7 @@ const TRATAMENTOS = {
     C — a mais ousada: frase grande ocupando o alto, aparelho sangrando pela
     base, e a faixa de terra do próprio app fechando o quadro embaixo.
   */
-  c: ({ imagem, frase, sub }) => `
+  c: ({ imagem, frase, sub, zoom, caixa, folga, zoomTopo }) => `
     <div style="
       width:${LARGURA}px;height:${ALTURA}px;background:${CREME};
       display:flex;flex-direction:column;align-items:center;
@@ -211,7 +302,10 @@ const TRATAMENTOS = {
       <div style="position:relative;z-index:1;height:128px;display:flex;align-items:center;justify-content:center;margin-top:30px">
         <div style="font:600 44px/1.4 'Nunito';color:${VERDE_FORTE};text-align:center;max-width:980px">${sub}</div>
       </div>
-      <div style="position:relative;z-index:1;margin-top:26px">${aparelho({ imagem, largura: 820, inclinacao: 2 })}</div>
+      <div style="position:relative;z-index:1;margin-top:26px">
+        ${aparelho({ imagem, largura: 820, inclinacao: 2, desfoque: zoom ? 7 : 0 })}
+        ${zoom && caixa ? ampliado({ imagem, caixa, larguraFinal: zoom, folga, topo: zoomTopo }) : ''}
+      </div>
     </div>`,
 };
 
@@ -246,6 +340,10 @@ const TRATAMENTOS = {
       imagem: comoDataUri(q.arquivo),
       frase: q.frase,
       sub: q.sub,
+      zoom: q.zoom,
+      folga: q.folga || {},
+      zoomTopo: q.zoomTopo,
+      caixa: DESTAQUES[q.arquivo],
     })}</body></html>`;
 
     await p.setContent(html, { waitUntil: 'networkidle' });

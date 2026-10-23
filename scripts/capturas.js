@@ -212,11 +212,79 @@ async function esperarAsDuasPrimeiras(page) {
   throw new Error('a frase da Composta não chegou ao instante das duas primeiras palavras');
 }
 
-async function capturar(page, nome) {
+/**
+ * Onde esta, dentro de cada captura, o elemento que o quadro vai ampliar.
+ *
+ * O compositor da loja recorta uma regiao da captura, amplia e pousa por cima
+ * do aparelho com o fundo borrado — a tecnica que o Heat usa. O recorte
+ * precisa das coordenadas, e coordenada digitada a mao quebra calada na
+ * primeira vez que a tela muda de altura. Entao quem mede e quem fotografa,
+ * no mesmo instante, com o mesmo layout na frente.
+ *
+ * As medidas saem em **pixels da imagem**: o retangulo do navegador vezes a
+ * densidade.
+ */
+const destaques = {};
+
+/** O retangulo de um elemento cujo texto comeca com `pista`, em pixels. */
+async function medirDestaque(page, pistas, alturaMinima = 40) {
+  const r = await page.evaluate(([pistas, minA]) => {
+    /*
+      Varias pistas viram **uniao** dos retangulos.
+
+      Procurar o cartao por uma pista so nao funciona: ou o menor bloco que
+      comeca com o titulo e o proprio titulo, ou o proximo e a tela inteira —
+      nao ha nada no meio, porque o cartao nao comeca com o texto que eu
+      conheco. Medindo os tres passos e juntando, o retangulo sai exatamente
+      em volta do que importa, sem depender da arvore.
+    */
+    const caixaDe = (p) => {
+      const todos = [...document.querySelectorAll('div')];
+    /* O menor bloco que comeca com a pista: o maior seria a tela inteira. */
+    let achado = null;
+    for (const d of todos) {
+      const t = (d.innerText || '').replace(/\s+/g, ' ').trim();
+      if (!t.startsWith(p)) continue;
+      const c = d.getBoundingClientRect();
+      /* O piso de altura escolhe o **cartao**, e nao o titulo dentro dele:
+         sem ele, o menor bloco que comeca com a pista e sempre a propria
+         linha de titulo, e o zoom ampliaria uma frase solta. */
+      if (c.width < 60 || c.height < minA) continue;
+      if (!achado || c.width * c.height < achado.a) {
+        achado = { x: c.left, y: c.top, w: c.width, h: c.height, a: c.width * c.height };
+      }
+    }
+      return achado;
+    };
+    const caixas = (Array.isArray(pistas) ? pistas : [pistas]).map(caixaDe).filter(Boolean);
+    if (!caixas.length) return null;
+    const x = Math.min(...caixas.map((c) => c.x));
+    const y = Math.min(...caixas.map((c) => c.y));
+    const dir = Math.max(...caixas.map((c) => c.x + c.w));
+    const base = Math.max(...caixas.map((c) => c.y + c.h));
+    return { x, y, w: dir - x, h: base - y };
+  }, [pistas, alturaMinima]);
+  if (!r) throw new Error(`não achei o destaque de ${JSON.stringify(pistas)}`);
+  return r;
+}
+
+async function capturar(page, nome, pistaDoDestaque) {
   fs.mkdirSync(SAIDA, { recursive: true });
   const arquivo = path.join(SAIDA, `${nome}.png`);
   await page.screenshot({ path: arquivo });
-  console.log(`  ${nome}.png  ${LARGURA * DENSIDADE} × ${ALTURA * DENSIDADE}`);
+  let marca = '';
+  if (pistaDoDestaque) {
+    const [pista, minA] = Array.isArray(pistaDoDestaque) ? pistaDoDestaque : [pistaDoDestaque, 40];
+    const r = await medirDestaque(page, pista, minA);
+    destaques[`${nome}.png`] = {
+      x: Math.round(r.x * DENSIDADE),
+      y: Math.round(r.y * DENSIDADE),
+      largura: Math.round(r.w * DENSIDADE),
+      altura: Math.round(r.h * DENSIDADE),
+    };
+    marca = `  · destaque ${destaques[`${nome}.png`].largura} × ${destaques[`${nome}.png`].altura}`;
+  }
+  console.log(`  ${nome}.png  ${LARGURA * DENSIDADE} × ${ALTURA * DENSIDADE}${marca}`);
 }
 
 (async () => {
@@ -335,7 +403,7 @@ async function capturar(page, nome) {
     rolador.scrollTop += r.top - lim.top - lim.height * 0.12;
   });
   await page.waitForTimeout(1200);
-  await capturar(page, '2-frase-do-dia');
+  await capturar(page, '2-frase-do-dia', '“');
   /*
     E ela não fecha — a frase desenterrada fica aberta até o dia seguinte.
 
@@ -355,7 +423,10 @@ async function capturar(page, nome) {
   // 3. Composta, já em andamento não dá (precisa de microfone); a tela de
   //    entrada é a que explica a ideia, e é ela que vende o app.
   await tocar(page, 'Composta');
-  await capturar(page, '3-composta');
+  await capturar(page, '3-composta', [
+    ['Você escreve o pensamento', 'Repete ele em voz alta', 'A frase vai desmanchando'],
+    30,
+  ]);
   await tocar(page, 'Voltar');
 
   /*
@@ -411,6 +482,10 @@ async function capturar(page, nome) {
   await capturar(page, '7-terapia');
 
   await browser.close();
+  fs.writeFileSync(
+    path.join(SAIDA, 'destaques.json'),
+    JSON.stringify(destaques, null, 1) + '\n',
+  );
   console.log(`\npronto — arquivos em ${SAIDA}`);
 })().catch((e) => {
   console.error('falhou:', e.message);
