@@ -124,6 +124,52 @@ async function tocarNaAba(page, nome) {
   await page.waitForTimeout(1200);
 }
 
+/**
+ * Espera um alvo de toque existir na tela, e devolve o rotulo dele.
+ *
+ * Existe por causa de uma captura que mentiu: a tela da frase do dia saiu
+ * mostrando a tela inicial, porque o toque pegou outro botao e ninguem
+ * conferiu. `tocar` so garante que **algum** elemento foi clicado — nao que a
+ * tela esperada chegou.
+ *
+ * Aqui a regra e outra: se a prova nao aparecer no tempo, o script para. Uma
+ * captura errada na loja e pior do que nenhuma, porque ela promete uma tela
+ * que o app nao tem.
+ */
+async function esperarAlvo(page, rotulos, segundos = 8) {
+  const lista = Array.isArray(rotulos) ? rotulos : [rotulos];
+  for (let i = 0; i < segundos * 10; i += 1) {
+    const achado = await page.evaluate((ts) => {
+      const bs = [...document.querySelectorAll('[role="button"], [role="tab"]')];
+      const b = bs.find((x) => {
+        const t = (x.getAttribute('aria-label') || x.innerText || '').trim();
+        return ts.some((alvo) => t.startsWith(alvo));
+      });
+      return b ? (b.getAttribute('aria-label') || b.innerText || '').trim() : null;
+    }, lista);
+    if (achado) return achado;
+    await page.waitForTimeout(100);
+  }
+  throw new Error(`esperei ${segundos}s e ${JSON.stringify(lista)} não apareceu na tela`);
+}
+
+/** Toca num alvo cujo rotulo **comeca** com um dos textos dados. */
+async function tocarExato(page, rotulos) {
+  const lista = Array.isArray(rotulos) ? rotulos : [rotulos];
+  const achou = await page.evaluate((ts) => {
+    const bs = [...document.querySelectorAll('[role="button"], [role="tab"]')];
+    const b = bs.find((x) => {
+      const t = (x.getAttribute('aria-label') || x.innerText || '').trim();
+      return ts.some((alvo) => t.startsWith(alvo));
+    });
+    if (!b) return false;
+    b.click();
+    return true;
+  }, lista);
+  if (!achou) throw new Error(`não encontrei nenhum de ${JSON.stringify(lista)}`);
+  await page.waitForTimeout(600);
+}
+
 async function tocar(page, alvos) {
   const lista = Array.isArray(alvos) ? alvos : [alvos];
   const achou = await page.evaluate((ts) => {
@@ -231,8 +277,64 @@ async function capturar(page, nome) {
     nada. Aqui a flor já desabrochou — o tempo de espera é a animação inteira
     mais folga, senão a foto pega a cápsula no meio do caminho.
   */
-  await tocar(page, 'Desenterrar a frase de hoje');
-  await page.waitForTimeout(3400);
+  /*
+    O rótulo muda conforme ela já leu a frase hoje ou não — "Desenterrar" na
+    primeira vez, "Ler de novo" depois. Os dois abrem o mesmo cartão, e tentar
+    só um dos dois é como a captura saiu errada da última vez.
+  */
+  await esperarAlvo(page, ['Desenterrar a frase', 'Ler a frase de hoje']);
+  await tocarExato(page, ['Desenterrar a frase', 'Ler a frase de hoje']);
+  /*
+    A prova de que a frase apareceu.
+
+    O cartão aberto traz "Guardar esta frase" e "Compartilhar", que não
+    existem em lugar nenhum da tela fechada. Enquanto um deles não estiver na
+    tela, a frase não está à mostra — e sem esta espera a foto saía da tela
+    inicial com o canteiro ainda fechado, que foi o que o Pedro viu.
+
+    Doze segundos porque a abertura leva mais de quatro e meio, medidos: a
+    terra se abre, o papel sobe e a flor desabrocha, em sequência.
+  */
+  await esperarAlvo(page, ['Guardar esta frase', 'Tirar das guardadas'], 15);
+  await page.waitForTimeout(1800);
+
+  /*
+    E a frase precisa estar **enquadrada**.
+
+    O cartão abre dentro da tela inicial, que é longa: aberto, ele pode ficar
+    abaixo da dobra, e a foto pegaria o topo da home de novo. Aqui a rolagem
+    vai até ele antes do clique do obturador.
+  */
+  await page.evaluate(() => {
+    const alvo = [...document.querySelectorAll('[role="button"]')].find((x) =>
+      /Guardar esta frase|Tirar das guardadas/.test(x.getAttribute('aria-label') || ''),
+    );
+    if (!alvo) return;
+    let rolador = alvo.parentElement;
+    while (
+      rolador &&
+      !(rolador.scrollHeight > rolador.clientHeight + 40 && rolador.clientHeight > 300)
+    ) {
+      rolador = rolador.parentElement;
+    }
+    if (!rolador) return;
+    /*
+      O alvo da mira e o **cabecalho** da frase, nao o botao de guardar.
+
+      Mirando no botao, o cartao acabava no pe da foto e o alto pegava o
+      cartao de cima cortado no meio de uma palavra — "vou / demitido", que
+      fora de contexto e so uma palavra ruim no topo de uma imagem de loja.
+      Mirando no titulo e deixando um oitavo de tela acima dele, a frase fica
+      no meio do quadro, que e onde o olho cai.
+    */
+    const titulo = [...rolador.querySelectorAll("div")].find(
+      (d) => (d.innerText || "").trim().startsWith("A frase de hoje") && d.children.length <= 3,
+    );
+    const r = (titulo || alvo).getBoundingClientRect();
+    const lim = rolador.getBoundingClientRect();
+    rolador.scrollTop += r.top - lim.top - lim.height * 0.12;
+  });
+  await page.waitForTimeout(1200);
   await capturar(page, '2-frase-do-dia');
   /*
     E ela não fecha — a frase desenterrada fica aberta até o dia seguinte.
