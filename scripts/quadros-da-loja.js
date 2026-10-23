@@ -70,7 +70,17 @@ function comoDataUri(arquivo) {
 }
 
 /** A moldura do aparelho, com a captura dentro. */
-function aparelho({ imagem, largura, inclinacao = 0, sombra = true, desfoque = 0 }) {
+/**
+ * `recuoDoTopo` e a falta de barra de status.
+ *
+ * A captura sai do navegador, que nao tem area segura: a tela comeca no pixel
+ * zero. Numa tela cujo titulo e a primeira coisa do conteudo — a lista de
+ * praticas — ele encosta na curva da moldura e parece cortado. O recuo empurra
+ * a captura para baixo e preenche a faixa esticando a **primeira linha de
+ * pixels** da propria imagem (`background-size` absurdo na vertical), em vez de
+ * uma cor chapada: assim o degrade e o brilho do canto continuam.
+ */
+function aparelho({ imagem, largura, inclinacao = 0, sombra = true, desfoque = 0, recuoDoTopo = 0 }) {
   const alturaDoVidro = Math.round(largura * (2688 / 1242));
   return `
     <div style="
@@ -87,9 +97,18 @@ function aparelho({ imagem, largura, inclinacao = 0, sombra = true, desfoque = 0
         width:100%;height:100%;
         border-radius:${Math.round(largura * 0.11)}px;
         overflow:hidden;background:${CREME};
+        position:relative;
       ">
+        ${recuoDoTopo ? `<div style="
+          position:absolute;left:0;top:0;right:0;height:${recuoDoTopo}px;
+          background-image:url('${imagem}');
+          background-size:100% 100000px;
+          background-position:0 0;
+        "></div>` : ''}
         <img src="${imagem}" style="
-          width:100%;height:100%;object-fit:cover;object-position:top;display:block;
+          width:100%;height:calc(100% - ${recuoDoTopo}px);
+          margin-top:${recuoDoTopo}px;
+          object-fit:cover;object-position:top;display:block;
           ${desfoque ? `filter:blur(${desfoque}px) brightness(.8) saturate(.92);` : ''}
         ">
       </div>
@@ -126,7 +145,7 @@ const destaque = (texto, cor) => `
  * regiao certa aparecer na janela. Assim nao ha segundo arquivo para
  * envelhecer fora de sincronia com o primeiro.
  */
-function ampliado({ imagem, caixa: medida, larguraFinal, folga = {}, topo = 58 }) {
+function ampliado({ imagem, caixa: medida, larguraFinal, folga = {}, topo = 58, giro = -1.5 }) {
   /*
     A folga em volta do retangulo medido, e ela nao e enfeite.
 
@@ -152,7 +171,7 @@ function ampliado({ imagem, caixa: medida, larguraFinal, folga = {}, topo = 58 }
       position:absolute;
       left:50%;
       top:${topo}%;
-      transform:translate(-50%,-50%) rotate(-1.5deg);
+      transform:translate(-50%,-50%) rotate(${giro}deg);
       width:${Math.round(larguraFinal)}px;
       height:${alturaFinal}px;
       border-radius:34px;
@@ -168,18 +187,41 @@ const QUADROS = [
   {
     arquivo: '3-composta.png',
     /* Ver `ampliado`: os tres passos saem da tela e viram o assunto. */
-    zoom: 760,
+    zoom: 880,
     /*
       Larga na horizontal, estreita na vertical.
 
-      Os numeros dos passos moram a esquerda do texto medido, entao a folga
-      lateral tem de busca-los. A vertical nao: com 120 em cima, o recorte
-      trazia junto uma fatia cortada do titulo, e meia linha de texto cortada
-      no alto de um cartao le como defeito, nao como recorte.
+      O que `destaques.json` mede e a **coluna de texto**: comeca em 252, e os
+      circulos dos passos moram antes disso, perto da borda do cartao. Com 120
+      de folga o recorte caia em cima deles e fatiava a nuvem, o microfone e a
+      flor — era o corte que aparecia no quadro pronto. 210 alcanca a borda do
+      cartao sem passar dela, entao nada de fundo entra.
+
+      A vertical e menor de proposito: ela so precisa cobrir o alto do primeiro
+      circulo. Mais que isso traz uma fatia do titulo, e meia linha cortada no
+      alto de um cartao le como defeito, nao como recorte.
     */
-    folga: { x: 120, y: 26 },
+    folga: { x: 210, y: 60 },
     frase: ['Tire o pensamento', 'da cabeça'],
     sub: 'Repita em voz alta até ele virar só som.',
+  },
+  {
+    /*
+      A sessao rodando, com o pensamento ampliado por cima.
+
+      O aparelho mostra a sessao no **modo normal** — "Repita em voz alta,
+      rapido, sem pausar". Foi preciso dar um microfone falso ao navegador para
+      isso: sem microfone o app cai no modo manual, que e um estado real mas
+      secundario, e a foto diria "segure o botao" para quem vai falar.
+
+      Sem zoom, de proposito. A frase ja ocupa o meio da tela em tamanho
+      grande — ampliar o que ja e grande so empilha a mesma palavra duas vezes
+      e borra o resto sem motivo. Entre os sete quadros, tres ja usam o zoom
+      com desfoque; este descansa o olho.
+    */
+    arquivo: '9-composta-ouvindo.png',
+    frase: ['Repita até', 'virar só som'],
+    sub: 'A frase perde a força a cada repetição.',
   },
   {
     arquivo: '4-diario.png',
@@ -188,6 +230,9 @@ const QUADROS = [
   },
   {
     arquivo: '5-praticas.png',
+    /* O titulo da lista e a primeira coisa da tela: sem recuo ele encosta na
+       curva da moldura e parece cortado. Ver `aparelho`. */
+    recuoDoTopo: 34,
     frase: ['41 práticas guiadas,', 'em 13 temas'],
     sub: 'Para a ansiedade, a tristeza, a insônia e o resto.',
   },
@@ -198,7 +243,7 @@ const QUADROS = [
   },
   {
     arquivo: '2-frase-do-dia.png',
-    zoom: 800,
+    zoom: 980,
     folga: { x: 40, y: 30 },
     /*
       A peca sobe para **cobrir** o original.
@@ -270,7 +315,7 @@ const TRATAMENTOS = {
     C — a mais ousada: frase grande ocupando o alto, aparelho sangrando pela
     base, e a faixa de terra do próprio app fechando o quadro embaixo.
   */
-  c: ({ imagem, frase, sub, zoom, caixa, folga, zoomTopo }) => `
+  c: ({ imagem, frase, sub, zoom, caixa, folga, zoomTopo, imagemDoZoom, giroDoZoom, recuoDoTopo }) => `
     <div style="
       width:${LARGURA}px;height:${ALTURA}px;background:${CREME};
       display:flex;flex-direction:column;align-items:center;
@@ -303,8 +348,19 @@ const TRATAMENTOS = {
         <div style="font:600 44px/1.4 'Nunito';color:${VERDE_FORTE};text-align:center;max-width:980px">${sub}</div>
       </div>
       <div style="position:relative;z-index:1;margin-top:26px">
-        ${aparelho({ imagem, largura: 820, inclinacao: 2, desfoque: zoom ? 7 : 0 })}
-        ${zoom && caixa ? ampliado({ imagem, caixa, larguraFinal: zoom, folga, topo: zoomTopo }) : ''}
+        ${aparelho({ imagem, largura: 820, inclinacao: 2, desfoque: zoom ? 7 : 0, recuoDoTopo })}
+        ${
+          zoom && caixa
+            ? ampliado({
+                imagem: imagemDoZoom || imagem,
+                caixa,
+                larguraFinal: zoom,
+                folga,
+                topo: zoomTopo,
+                giro: giroDoZoom,
+              })
+            : ''
+        }
       </div>
     </div>`,
 };
@@ -343,7 +399,19 @@ const TRATAMENTOS = {
       zoom: q.zoom,
       folga: q.folga || {},
       zoomTopo: q.zoomTopo,
-      caixa: DESTAQUES[q.arquivo],
+      recuoDoTopo: q.recuoDoTopo || 0,
+      giroDoZoom: q.giroDoZoom,
+      imagemDoZoom: q.imagemDoZoom ? comoDataUri(q.imagemDoZoom) : null,
+      /* O recorte vem medido quando da, e em fracao quando o alvo nao e um
+         elemento so — ver o quadro da frase se desfazendo. */
+      caixa: q.recorteEmFracao
+        ? {
+            x: Math.round(q.recorteEmFracao.x * CAPTURA_L),
+            y: Math.round(q.recorteEmFracao.y * CAPTURA_A),
+            largura: Math.round(q.recorteEmFracao.largura * CAPTURA_L),
+            altura: Math.round(q.recorteEmFracao.altura * CAPTURA_A),
+          }
+        : DESTAQUES[q.arquivo],
     })}</body></html>`;
 
     await p.setContent(html, { waitUntil: 'networkidle' });
