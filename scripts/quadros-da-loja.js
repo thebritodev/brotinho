@@ -17,8 +17,15 @@
  *
  * Nada de transparencia: a Apple recusa PNG com canal alfa.
  *
- * Uso: node scripts/quadros-da-loja.js [variante]
- *   variante: a | b | c   (os tres tratamentos do rascunho)
+ * ## A onda fica **atras** do aparelho
+ *
+ * Ela e desenhada depois dele no documento, e filho posicionado que vem
+ * depois pinta por cima: a faixa de terra cobria os icones da barra do app.
+ * O `z-index` resolve sem mexer em posicao — a terra passa a ser fundo, que e
+ * o que ela sempre quis ser.
+ *
+ * Uso: node scripts/quadros-da-loja.js [quadro]
+ *   quadro: 1..6, ou `todos`
  */
 const { chromium } = require('playwright');
 const path = require('path');
@@ -81,6 +88,46 @@ const destaque = (texto, cor) => `
     line-height:1;
   ">${texto}</span>`;
 
+/**
+ * Os seis quadros, na ordem em que aparecem na ficha.
+ *
+ * Cada um tem **um** trabalho. O primeiro e o unico que aparece no resultado
+ * de busca, ao lado do icone, e por isso leva o mecanismo — a coisa que
+ * nenhum concorrente tem. Os outros cinco sao lidos por quem ja parou.
+ */
+const QUADROS = [
+  {
+    arquivo: '3-composta.png',
+    frase: ['Tire o pensamento', 'da cabeça'],
+    sub: 'Repita em voz alta até ele virar só som.',
+  },
+  {
+    arquivo: '4-diario.png',
+    frase: ['Um diário que não sai', 'do seu aparelho'],
+    sub: 'Nem eu consigo ler o que você escreve.',
+  },
+  {
+    arquivo: '5-praticas.png',
+    frase: ['41 práticas guiadas,', 'em 13 temas'],
+    sub: 'Para a ansiedade, a tristeza, a insônia e o resto.',
+  },
+  {
+    arquivo: '6-brotinho.png',
+    frase: ['Ele cresce com', 'o seu cuidado'],
+    sub: 'Cada dia em que você se cuida vira uma folha.',
+  },
+  {
+    arquivo: '2-frase-do-dia.png',
+    frase: ['Uma frase por dia,', 'enterrada na terra'],
+    sub: 'Toque no papel para desenterrar a de hoje.',
+  },
+  {
+    arquivo: '7-terapia.png',
+    frase: ['Um resumo para', 'levar à terapia'],
+    sub: 'O que você sentiu nas últimas semanas, em uma página.',
+  },
+];
+
 const TRATAMENTOS = {
   /*
     A — a lógica do Finch: frase em cima, aparelho embaixo, fundo chapado.
@@ -132,56 +179,83 @@ const TRATAMENTOS = {
     C — a mais ousada: frase grande ocupando o alto, aparelho sangrando pela
     base, e a faixa de terra do próprio app fechando o quadro embaixo.
   */
-  c: ({ imagem }) => `
+  c: ({ imagem, frase, sub }) => `
     <div style="
       width:${LARGURA}px;height:${ALTURA}px;background:${CREME};
       display:flex;flex-direction:column;align-items:center;
-      padding:160px 72px 0;box-sizing:border-box;overflow:hidden;position:relative;
+      padding:150px 60px 0;box-sizing:border-box;overflow:hidden;position:relative;
     ">
-      <div style="font:800 128px/1.04 'Baloo 2';color:${MARROM};text-align:center;letter-spacing:-2px">
-        Tire o pensamento<br>${destaque('da cabeça', TERRACOTA)}
-      </div>
-      <div style="font:600 46px/1.4 'Nunito';color:${VERDE_FORTE};text-align:center;margin-top:36px">
-        Repita em voz alta até ele virar só som.
-      </div>
-      <div style="margin-top:70px">${aparelho({ imagem, largura: 820, inclinacao: 2 })}</div>
-      <svg viewBox="0 0 1179 320" style="position:absolute;left:0;bottom:0;width:${LARGURA}px">
+      <!--
+        A terra vem **primeiro** e fica no fundo.
+
+        Desenhada depois do aparelho ela pintava por cima, e a faixa cobria os
+        ícones da barra do app. Primeiro no documento e com \`z-index\` zero,
+        ela volta a ser o que era para ser: chão atrás do aparelho.
+      -->
+      <svg viewBox="0 0 1179 320" style="position:absolute;left:0;bottom:0;width:${LARGURA}px;z-index:0">
         <path d="M0 120 C300 40 760 180 1179 70 L1179 320 L0 320 Z" fill="${VERDE}" opacity=".16"/>
         <path d="M0 190 C340 120 820 240 1179 150 L1179 320 L0 320 Z" fill="${VERDE}" opacity=".22"/>
       </svg>
+
+      <div style="position:relative;z-index:1;font:800 112px/1.06 'Baloo 2';color:${MARROM};text-align:center;letter-spacing:-2px">
+        ${frase[0]}<br>${destaque(frase[1], TERRACOTA)}
+      </div>
+      <!--
+        A legenda tem altura fixa, e isso e sobre o conjunto, nao sobre ela.
+
+        Uma legenda de duas linhas empurra o aparelho para baixo so naquele
+        quadro, e quem desliza a ficha ve o telefone pulando de posicao a cada
+        passada. Com a caixa reservada, o aparelho comeca na mesma altura nos
+        seis, e a unica coisa que se mexe e o que deve se mexer: a tela.
+      -->
+      <div style="position:relative;z-index:1;height:128px;display:flex;align-items:center;justify-content:center;margin-top:30px">
+        <div style="font:600 44px/1.4 'Nunito';color:${VERDE_FORTE};text-align:center;max-width:980px">${sub}</div>
+      </div>
+      <div style="position:relative;z-index:1;margin-top:26px">${aparelho({ imagem, largura: 820, inclinacao: 2 })}</div>
     </div>`,
 };
 
 (async () => {
-  const variante = (process.argv[2] || 'a').toLowerCase();
-  const fazer = TRATAMENTOS[variante];
-  if (!fazer) {
-    console.error('variante desconhecida: ' + variante + ' (use a, b ou c)');
-    process.exit(1);
-  }
-  const fonte = path.join(CAPTURAS, '3-composta.png');
-  if (!fs.existsSync(fonte)) {
-    console.error('não achei capturas/3-composta.png — rode `node scripts/capturas.js` antes');
+  const pedido = (process.argv[2] || 'todos').toLowerCase();
+  const quais =
+    pedido === 'todos'
+      ? QUADROS.map((_, i) => i)
+      : [Number(pedido) - 1].filter((i) => i >= 0 && i < QUADROS.length);
+  if (!quais.length) {
+    console.error('use um número de 1 a ' + QUADROS.length + ', ou `todos`');
     process.exit(1);
   }
   fs.mkdirSync(SAIDA, { recursive: true });
 
-  const html = `<!doctype html><html><head><meta charset="utf-8">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@400;600;700;800&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
-    <style>*{margin:0;padding:0;box-sizing:border-box}body{background:${CREME}}</style>
-  </head><body>${fazer({ imagem: comoDataUri('3-composta.png') })}</body></html>`;
-
   const b = await chromium.launch();
   const p = await b.newPage({ viewport: { width: LARGURA, height: ALTURA } });
-  await p.setContent(html, { waitUntil: 'networkidle' });
-  /* As fontes do Google chegam depois do `networkidle` em alguns casos. */
-  await p.evaluate(() => document.fonts.ready);
-  await p.waitForTimeout(600);
 
-  const arquivo = path.join(SAIDA, `rascunho-${variante}.png`);
-  await p.screenshot({ path: arquivo });
-  console.log(`  ${path.relative(RAIZ, arquivo)}  ${LARGURA} × ${ALTURA}`);
+  for (const i of quais) {
+    const q = QUADROS[i];
+    const fonte = path.join(CAPTURAS, q.arquivo);
+    if (!fs.existsSync(fonte)) {
+      console.error(`  faltou capturas/${q.arquivo} — rode \`node scripts/capturas.js\` antes`);
+      continue;
+    }
+    const html = `<!doctype html><html><head><meta charset="utf-8">
+      <link rel="preconnect" href="https://fonts.googleapis.com">
+      <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+      <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@400;600;700;800&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+      <style>*{margin:0;padding:0;box-sizing:border-box}body{background:${CREME}}</style>
+    </head><body>${TRATAMENTOS.c({
+      imagem: comoDataUri(q.arquivo),
+      frase: q.frase,
+      sub: q.sub,
+    })}</body></html>`;
+
+    await p.setContent(html, { waitUntil: 'networkidle' });
+    /* As fontes do Google chegam depois do `networkidle` em alguns casos. */
+    await p.evaluate(() => document.fonts.ready);
+    await p.waitForTimeout(500);
+
+    const arquivo = path.join(SAIDA, `${i + 1}-${q.arquivo.replace(/^\d+-/, '')}`);
+    await p.screenshot({ path: arquivo });
+    console.log(`  ${path.relative(RAIZ, arquivo)}  ${LARGURA} × ${ALTURA}`);
+  }
   await b.close();
 })();
