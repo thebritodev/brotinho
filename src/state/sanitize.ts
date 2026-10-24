@@ -166,6 +166,12 @@ function ajustesLimpos(v: unknown): Settings {
     tema: (['sistema', 'claro', 'escuro'] as const).includes(s.tema as never)
       ? (s.tema as Settings['tema'])
       : INITIAL_SETTINGS.tema,
+    // Só os dois valores de uma resposta dada; qualquer outra coisa é "não
+    // perguntamos ainda", e a pergunta volta — nunca vira permissão sozinha.
+    vozForaDoAparelho:
+      s.vozForaDoAparelho === 'permitida' || s.vozForaDoAparelho === 'recusada'
+        ? s.vozForaDoAparelho
+        : null,
   };
 }
 

@@ -61,19 +61,19 @@ export const PRIVACY_POLICY: PolicySection[] = [
   {
     title: 'Microfone',
     paragraphs: [
-      'A prática Composta usa o reconhecimento de fala do próprio aparelho para conferir se o que você falou é mesmo a frase que você escreveu — sem isso, qualquer som contaria como uma repetição. Esse reconhecimento acontece dentro do seu celular, e o áudio não sai dele.',
+      'A prática Composta usa reconhecimento de fala para conferir se o que você falou é mesmo a frase que você escreveu — sem isso, qualquer som contaria como uma repetição. Sempre que o seu aparelho consegue, esse reconhecimento acontece dentro dele, e o áudio não sai.',
       'Nada disso é guardado: nem o áudio, nem o texto reconhecido. Da prática ficam salvos apenas a frase que você mesmo escreveu, quantas repetições você fez e quantos segundos durou.',
-      'Em aparelhos que não conseguem reconhecer fala sem internet, a Composta não transcreve nada: ela volta a apenas medir se há som com jeito de voz, sem saber o que foi dito.',
+      'Alguns aparelhos não reconhecem fala sem internet — no iPhone, os anteriores ao iPhone XS. Neles, antes da primeira Composta em voz alta, o app pergunta se pode usar o reconhecimento de fala da Apple (no iPhone) ou do Google (no Android). Se você deixar, o áudio da prática vai para esse serviço para virar texto, só enquanto a prática dura. Ele não passa por nós: o Brotinho não tem servidor, e não recebe nem guarda o áudio ou o texto. Se você não deixar, a Composta conta pelo som, sem saber o que foi dito. Dá para mudar a resposta em Perfil › Privacidade.',
       'No diário, você pode ditar em vez de escrever. A transcrição é feita pelo reconhecimento de fala do próprio sistema do seu aparelho, funcionando sem internet — o áudio não sai dele.',
       'Se o seu celular não tiver o pacote de voz do português instalado, o ditado não funciona e o app avisa. Preferimos que ele não funcione a mandar a sua voz para um servidor sem você saber.',
       'O microfone só liga quando você toca no botão correspondente, e desliga quando a prática termina.',
     ],
   },
   {
-    title: 'O áudio nunca sai do aparelho',
+    title: 'Quando o áudio sai do aparelho',
     paragraphs: [
-      'Tanto a Composta quanto o ditado do diário usam o reconhecimento de fala do próprio celular, configurado para funcionar sem internet. Nenhum áudio é enviado para nós nem para terceiros.',
-      'Não existe caminho alternativo: o app não tem servidor de transcrição. Se o seu aparelho não conseguir reconhecer fala sem internet, o recurso simplesmente não funciona e o app avisa.',
+      'O ditado do diário usa só o reconhecimento de fala do próprio celular, configurado para funcionar sem internet. O áudio do diário nunca é enviado para nós nem para terceiros.',
+      'A Composta faz o mesmo sempre que o aparelho consegue. A única exceção é a descrita acima: em aparelho que não reconhece fala sozinho, e só se você permitir, o áudio da prática vai para o reconhecimento de fala da Apple ou do Google. Nunca para nós — o app não tem servidor de transcrição.',
       'Nenhuma gravação fica guardada. O arquivo temporário que o microfone cria é apagado assim que a prática termina, mesmo quando ela termina com erro.',
     ],
   },

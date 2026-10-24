@@ -187,7 +187,7 @@ export function WelcomeScreen({ onStart }: { onStart: () => void }) {
               }}
             >
               Escreva ou fale o que passou hoje. E repita em voz alta o pensamento que te
-              persegue, até ele virar só som. Nada disso sai do seu aparelho.
+              persegue, até ele virar só som. Nada disso sai do seu aparelho sem você deixar.
             </Text>
           </View>
         </View>

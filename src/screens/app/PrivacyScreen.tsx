@@ -15,6 +15,7 @@ import {
   type IconName,
 } from '../../components';
 import { exportarJson, exportarLegivel } from '../../services/exportarDados';
+import { precisaDaLicencaDeVoz, SERVICO_DE_VOZ } from '../../services/licencaDeVoz';
 import { useAppState } from '../../state/AppStateProvider';
 import { useBotaoVoltar } from '../../navigation/useBotaoVoltar';
 import { borderWidth, fonts, radius, useTema } from '../../theme';
@@ -186,6 +187,30 @@ export function PrivacyScreen({ onBack }: { onBack: () => void }) {
                 onChange={(analysis) => updateSettings({ analysis })}
               />
             </PrivRow>
+            {/*
+              A licença da Composta para conferir a frase pela internet.
+
+              Só aparece onde ela faz sentido — aparelho que não reconhece
+              fala sozinho — ou onde ela já foi dada, para poder ser tirada.
+              Num aparelho que reconhece sozinho, um interruptor sobre mandar a
+              voz para fora seria uma pergunta sobre algo que não acontece. Ver
+              `licencaDeVoz`.
+            */}
+            {(precisaDaLicencaDeVoz() || s.vozForaDoAparelho === 'permitida') && (
+              <PrivRow
+                icon="mic"
+                label="Conferir a Composta pela internet"
+                hint={`Usa o reconhecimento de fala ${SERVICO_DE_VOZ} só durante a prática. O diário nunca sai do aparelho.`}
+              >
+                <Switch
+                  label="Conferir a Composta pela internet"
+                  checked={s.vozForaDoAparelho === 'permitida'}
+                  onChange={(ligado) =>
+                    updateSettings({ vozForaDoAparelho: ligado ? 'permitida' : 'recusada' })
+                  }
+                />
+              </PrivRow>
+            )}
           </View>
         </Card>
 

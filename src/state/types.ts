@@ -162,6 +162,21 @@ export type Settings = {
    * diário no escuro.
    */
   tema: PreferenciaDeTema;
+  /**
+   * Se a Composta pode usar o reconhecimento de fala da Apple ou do Google,
+   * pela internet, quando o aparelho não reconhece fala sozinho.
+   *
+   * `null` é "ainda não perguntamos". A pergunta só existe em aparelho que não
+   * reconhece fala sem internet — no iPhone, do XS para trás —, e só aparece
+   * uma vez, na primeira Composta em voz alta. Ali, sem reconhecimento, a
+   * prática conta pelo som e não sabe o que foi dito: qualquer fala vira
+   * repetição. Com ele, só a frase escrita conta.
+   *
+   * Nunca vale para o diário. O ditado do diário continua só no aparelho, e
+   * não pergunta nada: o que a pessoa conta ali é o que este app promete não
+   * deixar sair.
+   */
+  vozForaDoAparelho: 'permitida' | 'recusada' | null;
 };
 
 /**
@@ -313,6 +328,7 @@ export const INITIAL_SETTINGS: Settings = {
   vibracao: true,
   somDaRespiracao: true,
   voz: true,
+  vozForaDoAparelho: null,
 };
 
 export const INITIAL_APP_DATA: AppData = {

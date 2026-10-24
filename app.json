@@ -13,7 +13,7 @@
       "infoPlist": {
         "RCTAsyncStorageExcludeFromBackup": false,
         "ITSAppUsesNonExemptEncryption": false,
-        "NSSpeechRecognitionUsageDescription": "O Brotinho usa o reconhecimento de fala do próprio aparelho para escrever o que você falar.",
+        "NSSpeechRecognitionUsageDescription": "O Brotinho usa o reconhecimento de fala para escrever o que você dita no diário e para conferir a frase da Composta. O diário é reconhecido só no aparelho; a Composta usa o serviço da Apple apenas se você permitir.",
         "NSMicrophoneUsageDescription": "O Brotinho usa o microfone para transformar seu desabafo em texto.",
         "NSPhotoLibraryUsageDescription": "O Brotinho abre a sua galeria quando você escolhe uma foto de perfil, e só a foto que você toca vem para o app. A tela de compartilhar do iPhone também permite salvar o resumo para a terapia ou a imagem da frase nas suas fotos."
       },

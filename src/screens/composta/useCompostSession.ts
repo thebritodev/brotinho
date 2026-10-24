@@ -9,6 +9,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 
 import {
   isNativeSpeechAvailable,
+  reconheceSemInternet,
   requestSpeechPermissions,
   startPhraseSpeech,
   stopNativeSpeech,
@@ -215,6 +216,12 @@ export type CompostSession = {
    * que a tela promete: com isto ligado, falar outra coisa não conta.
    */
   porFrase: boolean;
+  /**
+   * true quando a conferência da frase está indo pela internet, no serviço da
+   * Apple ou do Google. A tela diz isso enquanto acontece: a pessoa deu a
+   * licença uma vez, e merece saber quando ela está sendo usada.
+   */
+  naInternet: boolean;
   /** Cada valor novo é uma repetição a mais — dispara as partículas caindo. */
   repTick: number;
   error: string | null;
@@ -222,7 +229,11 @@ export type CompostSession = {
    * Começa a sessão. Em `silencio` o microfone não entra: quem conta é o
    * botão de segurar, e `manual` já nasce verdadeiro.
    */
-  start: (modo?: ModoDaComposta) => Promise<void>;
+  /**
+   * `licencaNova` é a resposta que a pessoa acabou de dar à pergunta da
+   * internet, quando ela foi feita neste mesmo toque — ver `licenca`.
+   */
+  start: (modo?: ModoDaComposta, licencaNova?: boolean) => Promise<void>;
   stop: () => void;
   /** Usados só no modo manual, enquanto o botão fica pressionado. */
   holdOn: () => void;
@@ -254,15 +265,39 @@ type Options = {
   /** O pensamento que a pessoa escreveu — o alvo da conferência. */
   frase: string;
   onFinish: (result: { reps: number; secs: number }) => void;
+  /**
+   * A pessoa permitiu o reconhecimento pela internet (`vozForaDoAparelho`).
+   *
+   * Só é usado quando o aparelho não reconhece sozinho, ou quando o
+   * reconhecimento dele quebra no meio. Ver `iniciarPorFrase`.
+   */
+  podeUsarAInternet?: boolean;
 };
 
-export function useCompostSession({ targetSeconds, frase, onFinish }: Options): CompostSession {
+export function useCompostSession({
+  targetSeconds,
+  frase,
+  onFinish,
+  podeUsarAInternet = false,
+}: Options): CompostSession {
   const recorder = useAudioRecorder({ ...RecordingPresets.HIGH_QUALITY, isMeteringEnabled: true });
   const recorderState = useAudioRecorderState(recorder, TICK);
 
   const [running, setRunning] = useState(false);
   const [manual, setManual] = useState(false);
   const [porFrase, setPorFrase] = useState(false);
+  /** A conferência está acontecendo pela internet — ver `podeUsarAInternet`. */
+  const [naInternet, setNaInternet] = useState(false);
+  /**
+   * A licença, lida na hora de começar — e não presa num `useCallback`.
+   *
+   * A pergunta da licença e o começo da prática acontecem no mesmo toque:
+   * a pessoa responde "pode", e a sessão começa em seguida. Lendo a
+   * propriedade, a sessão ainda veria a resposta de antes, porque a tela não
+   * redesenhou. `start` aceita a resposta nova direto; sem ela, vale a guardada.
+   */
+  const licenca = useRef(podeUsarAInternet);
+  licenca.current = podeUsarAInternet;
   const [error, setError] = useState<string | null>(null);
 
   const [secs, setSecs] = useState(0);
@@ -345,6 +380,7 @@ export function useCompostSession({ targetSeconds, frase, onFinish }: Options): 
   /** Caminho acústico: o gravador mede o volume e o portão decide. */
   const iniciarAcustico = useCallback(async () => {
     setPorFrase(false);
+    setNaInternet(false);
     try {
       const permission = await janelaDoSistema(() =>
         AudioModule.requestRecordingPermissionsAsync(),
@@ -379,6 +415,17 @@ export function useCompostSession({ targetSeconds, frase, onFinish }: Options): 
   const iniciarPorFrase = useCallback(async (): Promise<boolean> => {
     const alvo = frase.trim();
     if (!alvo || !isNativeSpeechAvailable()) return false;
+
+    /*
+      Dentro do aparelho quando ele consegue; pela internet só com licença.
+
+      Aparelho que não reconhece sozinho e pessoa que não deu licença: nem
+      tenta. O reconhecimento dentro do aparelho falharia na largada de
+      qualquer jeito, e pedir a permissão de fala para depois não usar seria
+      pedir por nada.
+    */
+    let naInternet = !reconheceSemInternet();
+    if (naInternet && !licenca.current) return false;
     if (!(await requestSpeechPermissions())) return false;
 
     conferidor.current = criarConferidor(alvo);
@@ -387,9 +434,28 @@ export function useCompostSession({ targetSeconds, frase, onFinish }: Options): 
     let reinicios = 0;
     const desistir = () => {
       if (!vivo) return;
+      /*
+        O aparelho diz que reconhece sozinho e quebra mesmo assim — o pacote do
+        português que não está baixado é o caso comum. Com licença, tenta pela
+        internet antes de cair no som; uma vez só.
+      */
+      if (!naInternet && licenca.current) {
+        naInternet = true;
+        reinicios = 0;
+        try {
+          stopNativeSpeech();
+          conferidor.current = criarConferidor(alvo);
+          startPhraseSpeech(alvo, INTERVALO_DO_VOLUME_MS, true);
+          setNaInternet(true);
+          return;
+        } catch {
+          // Segue para o som.
+        }
+      }
       vivo = false;
       soltarEventos();
       stopNativeSpeech();
+      setNaInternet(false);
       void iniciarAcustico();
     };
 
@@ -473,7 +539,7 @@ export function useCompostSession({ targetSeconds, frase, onFinish }: Options): 
           // A transcrição recomeça vazia, então o conferidor precisa recomeçar
           // junto: ele guarda até onde já contou, e esse índice não vale mais.
           conferidor.current = criarConferidor(alvo);
-          startPhraseSpeech(alvo, INTERVALO_DO_VOLUME_MS);
+          startPhraseSpeech(alvo, INTERVALO_DO_VOLUME_MS, naInternet);
         } catch {
           desistir();
         }
@@ -481,7 +547,7 @@ export function useCompostSession({ targetSeconds, frase, onFinish }: Options): 
     ];
 
     try {
-      startPhraseSpeech(alvo, INTERVALO_DO_VOLUME_MS);
+      startPhraseSpeech(alvo, INTERVALO_DO_VOLUME_MS, naInternet);
     } catch {
       soltarEventos();
       return false;
@@ -489,12 +555,14 @@ export function useCompostSession({ targetSeconds, frase, onFinish }: Options): 
 
     setManual(false);
     setPorFrase(true);
+    setNaInternet(naInternet);
     setRunning(true);
     return true;
   }, [frase, acumular, somarReps, soltarEventos, iniciarAcustico]);
 
   const start = useCallback(
-    async (modo: ModoDaComposta = 'voz') => {
+    async (modo: ModoDaComposta = 'voz', licencaNova?: boolean) => {
+      if (licencaNova !== undefined) licenca.current = licencaNova;
       setError(null);
       setPausado(false);
       machine.current = estadoInicial();
@@ -518,6 +586,7 @@ export function useCompostSession({ targetSeconds, frase, onFinish }: Options): 
       */
       if (modo === 'silencio') {
         setPorFrase(false);
+        setNaInternet(false);
         setManual(true);
         setRunning(true);
         return;
@@ -709,6 +778,7 @@ export function useCompostSession({ targetSeconds, frase, onFinish }: Options): 
     running,
     manual,
     porFrase,
+    naInternet,
     repTick,
     error,
     start,

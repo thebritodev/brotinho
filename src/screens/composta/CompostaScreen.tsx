@@ -50,6 +50,7 @@ import {
 } from '../../components/brand/planoDaPaisagem';
 import { ALTURA_ERGUIDA, POR_TRAS_DA_BARRA } from '../../components/navigation/BottomNav';
 import { useMenosMovimento } from '../../hooks/useMenosMovimento';
+import { perguntarSobreAInternet, precisaDaLicencaDeVoz, SERVICO_DE_VOZ } from '../../services/licencaDeVoz';
 import { toqueDeConclusao, toqueLeve } from '../../services/toque';
 import { useAppState } from '../../state/AppStateProvider';
 import { sproutStage, vezesQueVoltou, voltouAntes } from '../../state/derived';
@@ -239,7 +240,7 @@ export function CompostaScreen({
     do lugar em relação a nada.
   */
   const recuo = recuoDaCena(insets.top);
-  const { data, addCompost, pesarAgora, marcarAvaliacaoPedida } = useAppState();
+  const { data, addCompost, pesarAgora, marcarAvaliacaoPedida, updateSettings } = useAppState();
 
   /**
    * A ferramenta sempre abre na primeira tela, a que explica.
@@ -326,6 +327,7 @@ export function CompostaScreen({
   const session = useCompostSession({
     targetSeconds: SEGUNDOS_DA_COMPOSTA,
     frase: thought.trim() || SUGESTOES[0],
+    podeUsarAInternet: data.settings.vozForaDoAparelho === 'permitida',
     onFinish: ({ reps, secs }) => {
       setJaVoltou(vezesQueVoltou(data, thought.trim()) + 1);
       setResult({ reps, secs });
@@ -349,8 +351,21 @@ export function CompostaScreen({
   }, [session.repTick, data.settings.vibracao]);
 
   const começar = async () => {
+    /*
+      A pergunta da internet, antes da primeira Composta em voz alta.
+
+      Só em aparelho que não reconhece fala sozinho, e só uma vez: a resposta
+      fica guardada, e muda em Perfil › Privacidade. Vem antes de trocar de
+      tela para a janela não abrir em cima da prática já rodando. Ver
+      `licencaDeVoz`.
+    */
+    let licencaNova: boolean | undefined;
+    if (modo === 'voz' && data.settings.vozForaDoAparelho === null && precisaDaLicencaDeVoz()) {
+      licencaNova = await perguntarSobreAInternet();
+      updateSettings({ vozForaDoAparelho: licencaNova ? 'permitida' : 'recusada' });
+    }
     setStep('record');
-    await session.start(modo);
+    await session.start(modo, licencaNova);
   };
 
   const cancelar = () => {
@@ -1192,6 +1207,28 @@ export function CompostaScreen({
             rodapé para cima: o microfone subia por cima do balão do broto,
             que é posicionado por uma conta (`peDaFala`) que não sabia dele.
           */}
+          {/*
+            E quando a frase está sendo conferida pela internet, a tela diz.
+            A pessoa deu a licença uma vez, talvez semanas antes; ela merece
+            saber, a cada prática, quando a voz dela está saindo do aparelho.
+          */}
+          {session.running && session.porFrase && session.naInternet && (
+            <Text
+              style={{
+                position: 'absolute',
+                top: recuo + 142,
+                left: 40,
+                right: 40,
+                textAlign: 'center',
+                fontFamily: fonts.body.regular,
+                fontSize: 12,
+                lineHeight: 12 * 1.45,
+                color: TEXTO_NA_PAISAGEM_FRACO,
+              }}
+            >
+              {`Conferindo a frase pelo reconhecimento de fala ${SERVICO_DE_VOZ}.`}
+            </Text>
+          )}
           {session.running && !session.porFrase && !session.manual && (
             <Text
               style={{

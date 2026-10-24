@@ -21,12 +21,33 @@ type SpeechModule = {
   stop: () => void;
   requestPermissionsAsync: () => Promise<{ granted: boolean }>;
   addListener: (event: string, listener: (payload: never) => void) => SpeechSubscription;
+  supportsOnDeviceRecognition?: () => boolean;
 };
 
 const speechModule = requireOptionalNativeModule<SpeechModule>('ExpoSpeechRecognition');
 
 export function isNativeSpeechAvailable(): boolean {
   return speechModule !== null;
+}
+
+/**
+ * O aparelho reconhece fala sem internet?
+ *
+ * No iPhone, só do XS em diante; no Android, do 13 em diante com o pacote de
+ * voz instalado. É a pergunta que decide se a Composta precisa pedir licença
+ * para usar o reconhecimento pela internet — ver `vozForaDoAparelho`.
+ *
+ * Sem módulo nativo (Expo Go, web), ou se a consulta falhar, responde `true`:
+ * quem não tem como reconhecer nada não deve ver uma pergunta sobre como
+ * reconhecer, e o app segue para o modo de contar pelo som, como sempre.
+ */
+export function reconheceSemInternet(): boolean {
+  if (!speechModule?.supportsOnDeviceRecognition) return true;
+  try {
+    return speechModule.supportsOnDeviceRecognition();
+  } catch {
+    return true;
+  }
 }
 
 export async function requestSpeechPermissions(): Promise<boolean> {
@@ -74,9 +95,11 @@ export function startNativeSpeech(): void {
  *
  * - **`requiresOnDeviceRecognition`** obriga o reconhecimento a acontecer dentro
  *   do aparelho. A Composta é a pessoa dizendo em voz alta o pensamento que mais
- *   a machuca; esse áudio não vai para servidor de ninguém. Se o aparelho não
- *   tiver o modelo do português instalado, o reconhecimento falha — e quem chama
- *   cai no portão acústico, que é pior mas não expõe nada.
+ *   a machuca; esse áudio não vai para servidor de ninguém **sem ela dizer que
+ *   pode**. Se o aparelho não reconhece fala sozinho, a Composta pergunta uma
+ *   vez se pode usar o serviço da Apple ou do Google (`foraDoAparelho`); sem
+ *   essa resposta, quem chama cai no portão acústico, que é pior mas não expõe
+ *   nada.
  *
  * - **`contextualStrings`** entrega a própria frase ao reconhecedor como pista.
  *   É o que mais aumenta a chance de ele escrever exatamente aquelas palavras,
@@ -88,13 +111,25 @@ export function startNativeSpeech(): void {
  *
  * Sem pontuação de propósito: aqui o texto não é lido por ninguém, só comparado.
  */
-export function startPhraseSpeech(frase: string, intervaloDoVolumeMs: number): void {
+export function startPhraseSpeech(
+  frase: string,
+  intervaloDoVolumeMs: number,
+  /**
+   * Pela internet, no serviço da Apple ou do Google.
+   *
+   * Só com `vozForaDoAparelho === 'permitida'`, e só quando o aparelho não
+   * reconhece sozinho: a pessoa disse que sim a uma pergunta que explicava
+   * exatamente isso. O áudio vai para o serviço de reconhecimento do sistema,
+   * não para nós — o app não tem servidor nenhum —, e nada é guardado aqui.
+   */
+  foraDoAparelho = false,
+): void {
   speechModule?.start({
     lang: 'pt-BR',
     interimResults: true,
     continuous: true,
     addsPunctuation: false,
-    requiresOnDeviceRecognition: true,
+    requiresOnDeviceRecognition: !foraDoAparelho,
     contextualStrings: [frase],
     volumeChangeEventOptions: { enabled: true, intervalMillis: intervaloDoVolumeMs },
   });
