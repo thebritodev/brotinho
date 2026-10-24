@@ -36,10 +36,11 @@ import { contagemInicial, passoPeloSom, vozDeUmaRepeticao } from './contagemPelo
  * (`requiresOnDeviceRecognition`), porque aqui a pessoa está dizendo em voz alta
  * exatamente o que mais a machuca, e esse áudio não vai para servidor nenhum.
  *
- * **2. Acústico** — a rede de segurança. Vale quando não há módulo nativo (Expo
- * Go), quando falta permissão, ou quando o aparelho não tem o modelo do
- * português instalado. Não sabe *o que* foi dito, só se houve som com jeito de
- * voz, e usa três testes para separar fala de barulho:
+ * **2. Acústico** — só onde não existe reconhecimento de fala nenhum: o
+ * navegador e o Expo Go. Num app instalado ele não roda mais: no iPhone X,
+ * onde era o modo de sempre, contou repetições em silêncio total — ver
+ * `iniciarSemConferencia`. Não sabe *o que* foi dito, só se houve som com
+ * jeito de voz, e usa três testes para separar fala de barulho:
  *
  * - **alto** — acima do piso de ruído
  * - **sustentado** — dura pelo menos 120 ms, o que mata porta batendo e clique
@@ -50,8 +51,10 @@ import { contagemInicial, passoPeloSom, vozDeUmaRepeticao } from './contagemPelo
  * estouro isolado caem a zero ou quase. O que ainda passa é o que tem a forma
  * da fala — televisão, conversa ao lado, música com batida.
  *
- * **3. Manual** — o botão pressionado faz as vezes da voz, quando não há
- * microfone nenhum. A prática não morre por falta de sensor.
+ * **3. Manual** — o botão pressionado faz as vezes da voz. Num app instalado é
+ * o caminho de quem não tem a frase conferida: aparelho sem reconhecimento
+ * próprio e sem a licença da internet, ou permissão de fala negada. E de quem
+ * não tem microfone nenhum: a prática não morre por falta de sensor.
  *
  * Preferimos errar contando a mais do que travar quem está fazendo a prática
  * direito: cobrar de alguém que está tentando é pior do que contar a mais.
@@ -212,6 +215,11 @@ export type CompostSession = {
   /** true quando não há permissão/medidor e a sessão depende do botão manual. */
   manual: boolean;
   /**
+   * O botão manual está ali porque o aparelho não confere a frase — e não por
+   * falta de microfone. Muda o que a tela diz: ver `iniciarSemConferencia`.
+   */
+  semConferencia: boolean;
+  /**
    * true quando o aparelho está conferindo a **frase**, não só o som. Muda o
    * que a tela promete: com isto ligado, falar outra coisa não conta.
    */
@@ -285,6 +293,7 @@ export function useCompostSession({
 
   const [running, setRunning] = useState(false);
   const [manual, setManual] = useState(false);
+  const [semConferencia, setSemConferencia] = useState(false);
   const [porFrase, setPorFrase] = useState(false);
   /** A conferência está acontecendo pela internet — ver `podeUsarAInternet`. */
   const [naInternet, setNaInternet] = useState(false);
@@ -377,10 +386,38 @@ export function useCompostSession({
     setRepTick((t) => t + quantas);
   }, []);
 
+  /**
+   * Sem conferência da frase, num aparelho de verdade: conta o botão.
+   *
+   * ## Por que o modo de contar pelo som saiu daqui
+   *
+   * Ele era o recuo de quem não tinha reconhecimento de fala, e no iPhone X —
+   * que não reconhece sem internet — era o modo de sempre. Lá ele contou
+   * repetições com o Pedro em silêncio total. A regra de contagem estava
+   * certa (ver `contagemPeloSom`); o que errava era o medidor achar voz onde
+   * não havia, e o silêncio de um celular de verdade não se deixou reproduzir
+   * aqui: simulado com fundo estável, ele quase não engana o medidor. Ajustar
+   * o medidor às cegas seria trocar um palpite por outro.
+   *
+   * O botão não erra por construção: só conta enquanto a pessoa segura. Então
+   * num aparelho com reconhecimento de fala nativo — todo app instalado — quem
+   * não tem a frase conferida, por não ter dado a licença da internet ou por
+   * ter negado a permissão de fala, segura o botão enquanto repete. O som fica
+   * só onde não há reconhecimento nenhum: o navegador e o Expo Go.
+   */
+  const iniciarSemConferencia = useCallback(() => {
+    setPorFrase(false);
+    setNaInternet(false);
+    setSemConferencia(true);
+    setManual(true);
+    setRunning(true);
+  }, []);
+
   /** Caminho acústico: o gravador mede o volume e o portão decide. */
   const iniciarAcustico = useCallback(async () => {
     setPorFrase(false);
     setNaInternet(false);
+    setSemConferencia(false);
     try {
       const permission = await janelaDoSistema(() =>
         AudioModule.requestRecordingPermissionsAsync(),
@@ -456,7 +493,7 @@ export function useCompostSession({
       soltarEventos();
       stopNativeSpeech();
       setNaInternet(false);
-      void iniciarAcustico();
+      iniciarSemConferencia();
     };
 
     cancelamentos.current = [
@@ -558,7 +595,7 @@ export function useCompostSession({
     setNaInternet(naInternet);
     setRunning(true);
     return true;
-  }, [frase, acumular, somarReps, soltarEventos, iniciarAcustico]);
+  }, [frase, acumular, somarReps, soltarEventos, iniciarSemConferencia]);
 
   const start = useCallback(
     async (modo: ModoDaComposta = 'voz', licencaNova?: boolean) => {
@@ -587,15 +624,18 @@ export function useCompostSession({
       if (modo === 'silencio') {
         setPorFrase(false);
         setNaInternet(false);
+        setSemConferencia(false);
         setManual(true);
         setRunning(true);
         return;
       }
 
       if (await iniciarPorFrase()) return;
-      await iniciarAcustico();
+      /* Ver `iniciarSemConferencia`: o som só onde não existe reconhecimento. */
+      if (isNativeSpeechAvailable()) iniciarSemConferencia();
+      else await iniciarAcustico();
     },
-    [iniciarPorFrase, iniciarAcustico, soltarEventos],
+    [iniciarPorFrase, iniciarAcustico, iniciarSemConferencia, soltarEventos],
   );
 
   const holdOn = useCallback(() => {
@@ -629,9 +669,10 @@ export function useCompostSession({
         return;
       }
       if (await iniciarPorFrase()) return;
-      await iniciarAcustico();
+      if (isNativeSpeechAvailable()) iniciarSemConferencia();
+      else await iniciarAcustico();
     },
-    [iniciarPorFrase, iniciarAcustico],
+    [iniciarPorFrase, iniciarAcustico, iniciarSemConferencia],
   );
 
   /** Quanto de voz contínua vale uma repetição desta frase — ver `contagemPeloSom`. */
@@ -777,6 +818,7 @@ export function useCompostSession({
     silent,
     running,
     manual,
+    semConferencia,
     porFrase,
     naInternet,
     repTick,

@@ -1229,6 +1229,30 @@ export function CompostaScreen({
               {`Conferindo a frase pelo reconhecimento de fala ${SERVICO_DE_VOZ}.`}
             </Text>
           )}
+          {/*
+            Sem conferência da frase, num aparelho de verdade, conta o botão —
+            ver `iniciarSemConferencia`. A tela diz por quê, e onde ligar a
+            conferência quando ela existe para este aparelho.
+          */}
+          {session.running && session.semConferencia && modo === 'voz' && (
+            <Text
+              style={{
+                position: 'absolute',
+                top: recuo + 142,
+                left: 40,
+                right: 40,
+                textAlign: 'center',
+                fontFamily: fonts.body.regular,
+                fontSize: 12,
+                lineHeight: 12 * 1.45,
+                color: TEXTO_NA_PAISAGEM_FRACO,
+              }}
+            >
+              {precisaDaLicencaDeVoz()
+                ? 'Este aparelho não confere a frase sozinho. Segure o botão enquanto repete — ou ligue a conferência em Perfil › Privacidade.'
+                : 'Sem o reconhecimento de fala, segure o botão enquanto repete.'}
+            </Text>
+          )}
           {session.running && !session.porFrase && !session.manual && (
             <Text
               style={{
@@ -1351,7 +1375,7 @@ export function CompostaScreen({
 
             <PastilhaEscura>
               <TextoNaPastilha>
-                {session.manual && modo === 'voz'
+                {session.manual && modo === 'voz' && !session.semConferencia
                   ? 'Sem microfone · segure e repita'
                   : rotuloDoMicrofone}
               </TextoNaPastilha>
