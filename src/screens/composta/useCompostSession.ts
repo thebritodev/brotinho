@@ -17,6 +17,7 @@ import {
 import { pararEApagar } from '../../services/apagarGravacao';
 import { janelaDoSistema } from '../../services/janelaDoSistema';
 import { criarConferidor, type Conferidor } from './casaFrase';
+import { contagemInicial, passoPeloSom, vozDeUmaRepeticao } from './contagemPeloSom';
 
 /**
  * Sessão de compostagem: escuta enquanto a pessoa repete a frase em voz alta,
@@ -115,38 +116,6 @@ const MIN_REP_GAP = 0.35;
 /** Fala contínua sem pausa também conta uma repetição a cada tanto. */
 const MAX_REP_GAP = 2.1;
 
-/**
- * Quanto de voz o modo acústico exige para contar **uma** repetição.
- *
- * O modo acústico contava uma repetição a cada começo de som: um "ah", uma
- * tosse, uma palavra solta — qualquer coisa com cento e vinte milissegundos de
- * voz — virava uma frase repetida. No iPhone X isso é o modo de sempre, e não
- * a exceção: o reconhecimento de fala dentro do aparelho só existe do iPhone
- * XS em diante, e o app não manda voz para servidor nenhum. Foi o que o Pedro
- * viu lá: "qualquer som emitido ele entende como repetição".
- *
- * Sem saber *o que* foi dito, o que dá para exigir é **quanto**: a frase
- * escrita tem um tanto de sílabas, e dita depressa — que é como a prática pede
- * — cada uma leva perto de um décimo e meio de segundo. A conta usa 0,12 s,
- * abaixo disso, porque o medidor perde o começo de cada som (ver
- * `MIN_ONSET_SECS`) e os vales entre sílabas: a voz que ele conta é sempre um
- * pouco menos que a voz que houve. Meio segundo é o piso, para frase de uma
- * palavra só não voltar a contar tosse.
- */
-const SEGUNDOS_POR_SILABA = 0.12;
-const MENOR_REPETICAO = 0.5;
-const MAIOR_REPETICAO = 3;
-
-/** As sílabas de uma frase em português, contadas pelos grupos de vogais. */
-export function silabasDe(frase: string) {
-  return (frase.toLowerCase().match(/[aeiouáéíóúâêôãõàü]+/g) ?? []).length;
-}
-
-/** Quanto de voz vale uma repetição desta frase, no modo acústico. */
-export function vozDeUmaRepeticao(frase: string) {
-  return Math.min(MAIOR_REPETICAO, Math.max(MENOR_REPETICAO, silabasDe(frase) * SEGUNDOS_POR_SILABA));
-}
-
 /** Silêncio a partir do qual o broto avisa que parou de ouvir. */
 const SILENCE_HINT = 1.1;
 
@@ -209,6 +178,8 @@ function estadoInicial() {
     gapSecs: 0,
     /** Últimas leituras do medidor, para o teste de oscilação. */
     recent: [] as number[],
+    /** A voz contínua do modo acústico — ver `contagemPeloSom`. */
+    peloSom: contagemInicial(),
   };
 }
 
@@ -594,21 +565,24 @@ export function useCompostSession({ targetSeconds, frase, onFinish }: Options): 
     [iniciarPorFrase, iniciarAcustico],
   );
 
-  /** Quanto de voz vale uma repetição desta frase — ver `vozDeUmaRepeticao`. */
+  /** Quanto de voz contínua vale uma repetição desta frase — ver `contagemPeloSom`. */
   const vozPorRepeticao = vozDeUmaRepeticao(frase);
 
   /**
    * Um passo da máquina: recebe se há voz e quanto tempo passou.
    *
-   * `peloSom` é o modo acústico. Ali uma repetição só conta depois de voz
-   * suficiente para a frase inteira — ver `vozDeUmaRepeticao`. No modo manual
-   * continua valendo cada toque no botão: quem segura está dizendo que repetiu,
-   * e não há som a medir.
+   * `peloSom` é o modo acústico, e quem decide se contou é `passoPeloSom`: um
+   * trecho de voz contínua do tamanho da frase, e a pausa apaga o pedaço que
+   * não chegou lá. No modo manual continua valendo cada toque no botão: quem
+   * segura está dizendo que repetiu, e não há som a medir.
    */
   const step = useCallback(
     (voiced: boolean, dt: number, peloSom = false) => {
       const m = machine.current;
       if (m.finished) return;
+
+      /* O modo acústico anda também no silêncio: é ali que a pausa apaga o pedaço. */
+      const contouPeloSom = peloSom && passoPeloSom(m.peloSom, voiced, dt, vozPorRepeticao);
 
       if (voiced) {
         m.secs += dt;
@@ -617,7 +591,7 @@ export function useCompostSession({ targetSeconds, frase, onFinish }: Options): 
 
         const onset = !m.wasVoiced;
         const contou = peloSom
-          ? m.sinceRep >= vozPorRepeticao
+          ? contouPeloSom
           : (onset && m.sinceRep > MIN_REP_GAP) || m.sinceRep > MAX_REP_GAP;
         if (contou) {
           m.reps += 1;
