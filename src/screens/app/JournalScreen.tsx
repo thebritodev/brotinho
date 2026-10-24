@@ -82,6 +82,31 @@ const FOLGA_ACIMA_DA_PAUTA = 4 * PixelRatio.getFontScale();
  */
 const POUSO_SEM_MEDIDA = 9;
 
+/**
+ * Onde a letra do **campo de escrever** cai no iPhone — calculado, não medido.
+ *
+ * A régua invisível abaixo mede um `<Text>`, e no iPhone isso deixou de valer
+ * para o `TextInput`. Na arquitetura nova do React Native, o `<Text>` recebe
+ * um deslocamento de base que centraliza a letra dentro de uma linha mais alta
+ * que a fonte (`RCTApplyBaselineOffset`, chamado só pelo desenho de texto); o
+ * campo de digitar não recebe, e o iOS deixa a letra no **fundo** da linha. A
+ * diferença é metade da sobra da linha — uns seis pontos —, e era exatamente o
+ * texto escrito "fora das linhas" que o Pedro viu no iPhone.
+ *
+ * Então no iPhone o campo não usa a régua: a base da primeira linha fica a
+ * uma descendente da Nunito acima do pé da faixa, e o pé da faixa é a pauta.
+ * A descendente vem do próprio arquivo da fonte (`hhea`: 353 em 1000, e a
+ * fonte pede as métricas tipográficas, que dão o mesmo número).
+ */
+const DESCENDENTE_DA_NUNITO = 0.353;
+const CORPO_DO_PAPEL = 16;
+
+function pousoDoCampoNoIOS() {
+  const descendente = DESCENDENTE_DA_NUNITO * CORPO_DO_PAPEL * PixelRatio.getFontScale();
+  /* Base desejada: a pauta menos a folga. Base sem recuo: a pauta menos a descendente. */
+  return Math.max(0, Math.round(descendente - FOLGA_ACIMA_DA_PAUTA));
+}
+
 /** As três linhas da régua invisível. Três, e não uma, para medir a deriva. */
 const REGUA = ['Ag', 'Ag', 'Ag'].join('\n');
 
@@ -137,7 +162,12 @@ function usePousoNaPauta() {
     setDeslocamento((antigo) => (antigo === novo ? antigo : novo));
   };
 
-  return { deslocamento, medir };
+  return {
+    deslocamento,
+    /** O do campo de escrever: no iPhone, calculado — ver `pousoDoCampoNoIOS`. */
+    deslocamentoDoCampo: Platform.OS === 'ios' ? pousoDoCampoNoIOS() : deslocamento,
+    medir,
+  };
 }
 
 /** O recuo da coluna do broto dentro da faixa. */
@@ -328,7 +358,8 @@ export function JournalScreen({
    * `escrito` guarda o valor atual fora do ciclo de render, para a gravação de
    * saída poder registrar o último estado sem depender de um novo render.
    */
-  const { deslocamento: pouso, medir: medirPouso } = usePousoNaPauta();
+  const { deslocamento: pouso, deslocamentoDoCampo: pousoDoCampo, medir: medirPouso } =
+    usePousoNaPauta();
 
   /**
    * Alinha o texto às pautas — usado tanto na folha em uso quanto na que vira.
@@ -340,7 +371,7 @@ export function JournalScreen({
   const paperTextStyle = {
     minHeight: PAUTA * 7,
     fontFamily: fonts.body.regular,
-    fontSize: 16,
+    fontSize: CORPO_DO_PAPEL,
     /*
       Aqui vai a altura **em sp**, não a já escalada.
 
@@ -665,6 +696,26 @@ export function JournalScreen({
         keyboardShouldPersistTaps="handled"
       >
         {/*
+          O céu que aparece quando se puxa o topo.
+
+          No iPhone a rolagem estica além do começo, e o que aparece no vão
+          entre o cabeçalho e a faixa é o fundo de trás da rolagem — a cor da
+          página, que no tema escuro é quase preta. Era a faixa escura que o
+          Pedro via ao puxar para baixo. Esta `View` fica acima do conteúdo, fora
+          de vista em repouso, com a cor da faixa: esticando, o céu continua.
+        */}
+        <View
+          pointerEvents="none"
+          style={{
+            position: 'absolute',
+            top: -1000,
+            left: 0,
+            right: 0,
+            height: 1000,
+            backgroundColor: corDaFaixa,
+          }}
+        />
+        {/*
           O broto esperando o que ela vai escrever.
 
           A faixa e curta de proposito: esta e a unica tela do app em que o
@@ -820,7 +871,9 @@ export function JournalScreen({
               placeholderTextColor={colors.textSecondary}
               multiline
               textAlignVertical="top"
-              style={paperTextStyle}
+              /* O campo tem o seu próprio pouso no iPhone — ver `pousoDoCampoNoIOS`.
+                 A folha que vira continua com o do `<Text>`, que é o que ela é. */
+              style={[paperTextStyle, { paddingTop: pousoDoCampo }]}
             />
           </RuledPaper>
 

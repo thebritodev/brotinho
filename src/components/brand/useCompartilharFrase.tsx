@@ -376,12 +376,21 @@ function TelaDoStory({
     + 18 // o vão até o rodapé
     + 52 // "Postar nos stories"
     + 10 + 46 // "Salvar imagem" e "Copiar texto"
-    + 10 + 40 // "Agora não"
-    + 18 // a linha do recado
     + insets.bottom
     + 16;
+  /*
+    O "Agora não" e a linha de baixo saíram, e os 68 pontos deles foram para a
+    prévia: fechar já tem o X do alto, e "só você decide o que é compartilhado"
+    era uma promessa que a própria tela cumpre sem dizer. O recado de quando
+    algo acontece ("Imagem salva") passou a aparecer por cima da prévia — ver
+    abaixo.
+
+    A largura também solta: a margem era de 55 por lado, e agora é a da
+    própria tela. Na maioria dos aparelhos quem limita é a altura, mas nos
+    largos e baixos era a largura que segurava a prévia pequena.
+  */
   const alturaLivre = Math.max(220, height - reservado);
-  const escala = Math.min(alturaLivre / STORY.altura, (width - 110) / STORY.largura);
+  const escala = Math.min(alturaLivre / STORY.altura, (width - 48) / STORY.largura);
 
   return (
     <Modal visible transparent={false} animationType="slide" onRequestClose={aoFechar}>
@@ -447,6 +456,46 @@ function TelaDoStory({
             <CardDoStory ref={previa} texto={texto} estilo={estilo} />
           </View>
         </View>
+
+        {/*
+          O recado de quando algo acontece — "Imagem salva", "Texto copiado",
+          ou o que deu errado —, pousado na base da prévia.
+
+          Ele vivia numa linha própria no rodapé, que ficava ocupada mesmo
+          vazia para o rodapé não pular a cada toque. Por cima da prévia ele
+          não ocupa lugar nenhum: aparece, diz, e sai sozinho.
+        */}
+        {aviso && (
+          <View
+            pointerEvents="none"
+            accessibilityLiveRegion="polite"
+            style={{
+              position: 'absolute',
+              left: 24,
+              right: 24,
+              top: insets.top + 10 + 44 + 18 + STORY.altura * escala - 52,
+              alignItems: 'center',
+            }}
+          >
+            <Text
+              style={{
+                maxWidth: STORY.largura * escala - 24,
+                paddingVertical: 8,
+                paddingHorizontal: 14,
+                borderRadius: 999,
+                overflow: 'hidden',
+                backgroundColor: 'rgba(20,18,15,0.82)',
+                textAlign: 'center',
+                fontFamily: fonts.body.bold,
+                fontSize: 13,
+                lineHeight: 13 * 1.4,
+                color: '#A8CDB6',
+              }}
+            >
+              {aviso}
+            </Text>
+          </View>
+        )}
 
         <View style={{ flexDirection: 'row', gap: 12 }}>
           {ESTILOS_DO_STORY.map((e) => {
@@ -562,42 +611,6 @@ function TelaDoStory({
               desligado={trabalhando !== null}
             />
           </View>
-
-          <Pressable
-            accessibilityRole="button"
-            onPress={aoFechar}
-            style={({ pressed }) => ({
-              paddingVertical: 10,
-              alignItems: 'center',
-              opacity: pressed ? 0.6 : 1,
-            })}
-          >
-            <Text
-              style={{ fontFamily: fonts.body.bold, fontSize: 15, color: ESTUDIO.tinta }}
-            >
-              Agora não
-            </Text>
-          </Pressable>
-
-          {/*
-            Uma linha só, no mesmo lugar, para as duas coisas que ela pode
-            dizer: o recado de quando algo acontece e a promessa de quando nada
-            acontece. Duas linhas empilhadas fariam o rodapé pular de altura a
-            cada toque.
-          */}
-          <Text
-            accessibilityLiveRegion="polite"
-            style={{
-              textAlign: 'center',
-              fontFamily: aviso ? fonts.body.bold : fonts.body.regular,
-              fontSize: 13,
-              lineHeight: 13 * 1.4,
-              color: aviso ? '#A8CDB6' : ESTUDIO.tinta,
-              opacity: aviso ? 1 : 0.6,
-            }}
-          >
-            {aviso ?? 'Só você decide o que é compartilhado.'}
-          </Text>
         </View>
       </View>
     </Modal>

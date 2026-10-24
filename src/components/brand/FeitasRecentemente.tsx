@@ -6,6 +6,7 @@ import { findPractice } from '../../data/practices';
 import type { FeitaRecentemente, PraticaVisitada } from '../../state/derived';
 import { fonts, radius, useTema } from '../../theme';
 import { Sprout, type Pose, type SproutStage } from './Sprout';
+import { caixaDoMascote, LARGURA_DE_REFERENCIA } from './geometriaDoBroto';
 import { FolhaDoSelo } from './folhaDoSelo';
 
 /** O cartão, do documento: 176 por 124. */
@@ -14,6 +15,23 @@ const ALTURA = 124;
 
 /** O broto no canto, do documento: 66 por 80, a 8 pontos de cada borda. */
 const BROTO = { largura: 66, altura: 80, margem: 8 };
+
+/**
+ * O `size` que faz o broto **preencher** o canto, em qualquer estágio.
+ *
+ * O mascote tem escala fixa — `size / 200` unidades por pixel, ver
+ * `medidasDoMascote` —, para ter o mesmo tamanho em todas as telas. Aqui isso
+ * era o defeito: com `size` 66, um broto no estágio 1, que é o de quem acabou
+ * de instalar, ocupava uma fração do canto e lia como um pontinho. Justo
+ * na seção "Para começar", que só aparece para essa pessoa.
+ *
+ * O canto é um espaço fixo, e o broto ali é ilustração do cartão, não o
+ * mascote da tela: ele cresce até encostar no lado que limitar primeiro.
+ */
+function tamanhoQuePreenche(estagio: SproutStage) {
+  const caixa = caixaDoMascote(estagio, false);
+  return Math.min(BROTO.largura / caixa.largura, BROTO.altura / caixa.altura) * LARGURA_DE_REFERENCIA;
+}
 
 /**
  * "hoje", "ontem", "há 4 dias" — a data sem número quando dá.
@@ -278,7 +296,7 @@ export function FeitasRecentemente({
               justifyContent: 'flex-end',
             }}
           >
-            <Sprout mood="leve" stage={estagio} size={BROTO.largura} pose={c.pose} />
+            <Sprout mood="leve" stage={estagio} size={tamanhoQuePreenche(estagio)} pose={c.pose} />
           </View>
         </Pressable>
       ))}
