@@ -104,6 +104,28 @@ const PASSO = {
   PAYWALL: 15,
 } as const;
 
+/**
+ * Os passos em que o broto pergunta — e o céu dele sobe até o topo da tela.
+ *
+ * São exatamente os que desenham `AskingSprout`. A lista é explícita, e não
+ * descoberta, porque o passo muda de forma por causa dela: o contêiner da
+ * rolagem deixa de centrar e passa a usar as duas molas (ver o
+ * `contentContainerStyle`), e a raiz do passo precisa de `flexGrow: 1` para a
+ * mola de cima ter onde crescer. Um passo novo com o broto entra aqui **e**
+ * ganha o `flexGrow`; esquecido aqui, ele aparece centrado sob um cabeçalho
+ * flutuando sobre o nada.
+ */
+const PASSOS_COM_CEU: ReadonlySet<number> = new Set([
+  PASSO.NOME,
+  PASSO.NOME_DO_BROTO,
+  PASSO.CHECKIN,
+  PASSO.ESPELHO_MOMENTO,
+  PASSO.TENTOU,
+  PASSO.ESPELHO_TENTATIVA,
+  PASSO.VALORES,
+  PASSO.SONO,
+]);
+
 export function OnboardingScreen() {
   const { colors, palette } = useTema();
   const insets = useSafeAreaInsets();
@@ -139,7 +161,22 @@ export function OnboardingScreen() {
    * Zero até a primeira medida; quem recebe trata isso como "ainda não sei" e
    * usa a conta antiga por um quadro.
    */
-  const [espacoDoPasso, setEspacoDoPasso] = useState(0);
+  const [alturaDaRolagem, setAlturaDaRolagem] = useState(0);
+  /**
+   * A altura do cabeçalho, que agora flutua **por cima** do passo.
+   *
+   * Ele saiu do fluxo para o céu do broto poder subir até o topo da tela, por
+   * trás do "voltar" e do progresso. Com isso a rolagem passou a começar no
+   * pixel zero, e o espaço que o passo tem de verdade é a rolagem **menos**
+   * o cabeçalho — que é o número que o broto sempre usou para se dimensionar.
+   * Descontar aqui mantém o encaixe sem rolagem que foi medido no iPhone X.
+   *
+   * O valor inicial é a conta do próprio cabeçalho (recuo + 12 + o botão de
+   * 36 + 4), para o primeiro quadro não reservar espaço errado antes de o
+   * `onLayout` responder.
+   */
+  const [alturaDoCabecalho, setAlturaDoCabecalho] = useState(insets.top + 52);
+  const espacoDoPasso = alturaDaRolagem > 0 ? Math.max(0, alturaDaRolagem - alturaDoCabecalho) : 0;
 
   const [step, setStep] = useState(0);
   /**
@@ -283,6 +320,7 @@ export function OnboardingScreen() {
   };
 
   const isPaywall = step === PASSO.PAYWALL;
+  const comCeu = PASSOS_COM_CEU.has(step);
   const isReminder = step === PASSO.LEMBRETE;
   const plan = PLANS[draft.plan];
 
@@ -489,9 +527,10 @@ export function OnboardingScreen() {
       ganhou tela própria, logo em seguida.
     */
     [PASSO.NOME]: (
-      <View style={{ gap: 20 }}>
+      <View style={{ gap: 20, flexGrow: 1 }}>
         <AskingSprout
           espaco={espacoDoPasso}
+          folgaDoTopo={alturaDoCabecalho}
           title="Como posso te chamar?"
           sub="Só para eu não falar com você como se fosse um formulário."
           pose="acena"
@@ -517,9 +556,10 @@ export function OnboardingScreen() {
       outra.
     */
     [PASSO.NOME_DO_BROTO]: (
-      <View style={{ gap: 20 }}>
+      <View style={{ gap: 20, flexGrow: 1 }}>
         <AskingSprout
           espaco={espacoDoPasso}
+          folgaDoTopo={alturaDoCabecalho}
           title={`Prazer${draft.name.trim() ? `, ${draft.name.trim()}` : ''}. E eu, como você quer me chamar?`}
           sub="Pode me dar outro nome ou me deixar como Brotinho. Dá para trocar depois, em Meus dados."
           /*
@@ -545,9 +585,10 @@ export function OnboardingScreen() {
     ),
 
     [PASSO.CHECKIN]: (
-      <View style={{ gap: 20 }}>
+      <View style={{ gap: 20, flexGrow: 1 }}>
         <AskingSprout
           espaco={espacoDoPasso}
+          folgaDoTopo={alturaDoCabecalho}
           title={`Como você tem estado${draft.name.trim() ? `, ${draft.name.trim()}` : ''}?`}
           sub="Pense nas últimas semanas, não só em hoje."
           reageA={draft.checkin}
@@ -563,6 +604,7 @@ export function OnboardingScreen() {
     [PASSO.ESPELHO_MOMENTO]: espelhoMomento ? (
       <AskingSprout
           espaco={espacoDoPasso}
+          folgaDoTopo={alturaDoCabecalho}
         kicker={espelhoMomento.kicker}
         title={espelhoMomento.title}
         sub={espelhoMomento.body}
@@ -573,9 +615,10 @@ export function OnboardingScreen() {
     ) : null,
 
     [PASSO.TENTOU]: (
-      <View style={{ gap: 20 }}>
+      <View style={{ gap: 20, flexGrow: 1 }}>
         <AskingSprout
           espaco={espacoDoPasso}
+          folgaDoTopo={alturaDoCabecalho}
           title="E o que você tem feito com isso?"
           sub="Pode marcar mais de um."
           reageA={draft.tentou.join('|')}
@@ -591,6 +634,7 @@ export function OnboardingScreen() {
     [PASSO.ESPELHO_TENTATIVA]: espelhoTentativa ? (
       <AskingSprout
           espaco={espacoDoPasso}
+          folgaDoTopo={alturaDoCabecalho}
         kicker={espelhoTentativa.kicker}
         title={espelhoTentativa.title}
         sub={espelhoTentativa.body}
@@ -601,9 +645,10 @@ export function OnboardingScreen() {
     ) : null,
 
     [PASSO.VALORES]: (
-      <View style={{ gap: 20 }}>
+      <View style={{ gap: 20, flexGrow: 1 }}>
         <AskingSprout
           espaco={espacoDoPasso}
+          folgaDoTopo={alturaDoCabecalho}
           title="O que você queria ter mais no seu dia?"
           sub={`Escolha até ${MAX_VALUES} — ${draft.valores.length} escolhido${draft.valores.length === 1 ? '' : 's'}. Isso vira o que eu procuro no que você escrever.`}
           reageA={draft.valores.join('|')}
@@ -622,9 +667,10 @@ export function OnboardingScreen() {
     ),
 
     [PASSO.SONO]: (
-      <View style={{ gap: 20 }}>
+      <View style={{ gap: 20, flexGrow: 1 }}>
         <AskingSprout
           espaco={espacoDoPasso}
+          folgaDoTopo={alturaDoCabecalho}
           title="Que horas você costuma ir dormir?"
           sub="Noite mal dormida e dia difícil andam juntos com mais frequência do que parece."
           pose="dorme"
@@ -954,9 +1000,27 @@ export function OnboardingScreen() {
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       style={{ flex: 1, backgroundColor: colors.bg }}
     >
-      {/* Cabeçalho: voltar · progresso · contador (ou "Restaurar" no paywall) */}
+      {/*
+        Cabeçalho: voltar · progresso · contador (ou "Restaurar" no paywall).
+
+        Ele flutua **por cima** do passo, e não empurra o passo para baixo: é
+        isso que deixa o céu do broto subir até o topo da tela, por trás do
+        "voltar" e do progresso. Fica transparente; nos passos sem céu, quem
+        pinta o creme atrás dele é a própria camada do passo — ver
+        `PASSOS_COM_CEU` —, para a faixa deslizar junto com o passo na troca em
+        vez de mudar de cor de uma vez por cima dele.
+      */}
       <View
+        onLayout={(e) => {
+          const h = Math.round(e.nativeEvent.layout.height);
+          if (h > 0 && Math.abs(h - alturaDoCabecalho) > 1) setAlturaDoCabecalho(h);
+        }}
         style={{
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          right: 0,
+          zIndex: 2,
           flexDirection: 'row',
           alignItems: 'center',
           gap: 12,
@@ -1059,28 +1123,78 @@ export function OnboardingScreen() {
         mode={sentido.current}
         style={{ flex: 1 }}
       >
-        <ScrollView
-          style={{ flex: 1 }}
-          onLayout={(e) => {
-            const h = Math.round(e.nativeEvent.layout.height);
-            /* Só quando muda de verdade: `onLayout` dispara em cada rotação e
-               em cada quadro de teclado, e um `setState` por quadro aqui
-               redesenharia o passo inteiro no meio da transição. */
-            if (h > 0 && Math.abs(h - espacoDoPasso) > 2) setEspacoDoPasso(h);
-          }}
-          contentContainerStyle={{
-            flexGrow: 1,
-            paddingHorizontal: 20,
-            paddingVertical: 6,
-            justifyContent: 'center',
-          }}
-          showsVerticalScrollIndicator={false}
-          keyboardShouldPersistTaps="handled"
-          /* Ver `naRodaDasHoras`: arrastar os números não pode arrastar a tela. */
-          scrollEnabled={!naRodaDasHoras}
-        >
-          {screens[step]}
-        </ScrollView>
+        <View style={{ flex: 1 }}>
+          <ScrollView
+            style={{ flex: 1 }}
+            onLayout={(e) => {
+              const h = Math.round(e.nativeEvent.layout.height);
+              /* Só quando muda de verdade: `onLayout` dispara em cada rotação e
+                 em cada quadro de teclado, e um `setState` por quadro aqui
+                 redesenharia o passo inteiro no meio da transição. */
+              if (h > 0 && Math.abs(h - alturaDaRolagem) > 2) setAlturaDaRolagem(h);
+            }}
+            contentContainerStyle={
+              comCeu
+                ? {
+                    /*
+                      Com céu, o passo não é centrado por `justifyContent`, e
+                      sim por duas molas iguais.
+
+                      A de cima é o próprio `AskingSprout`, que cresce para
+                      cima pintado de céu — com o balão e o morro encostados
+                      embaixo — até o topo da tela, já contando o cabeçalho que
+                      flutua ali. A de baixo é a `View` vazia depois do passo.
+                      Molas iguais dividem a sobra ao meio, e o conteúdo fica
+                      centrado exatamente onde ficava; só que agora a sobra de
+                      cima é céu, e não creme.
+
+                      Sem `paddingTop`: qualquer folga aqui seria uma tira de
+                      creme acima do céu, no alto da tela.
+                    */
+                    flexGrow: 1,
+                    paddingHorizontal: 20,
+                    paddingBottom: 6,
+                  }
+                : {
+                    flexGrow: 1,
+                    paddingHorizontal: 20,
+                    paddingTop: alturaDoCabecalho + 6,
+                    paddingBottom: 6,
+                    justifyContent: 'center',
+                  }
+            }
+            showsVerticalScrollIndicator={false}
+            keyboardShouldPersistTaps="handled"
+            /* Ver `naRodaDasHoras`: arrastar os números não pode arrastar a tela. */
+            scrollEnabled={!naRodaDasHoras}
+          >
+            {screens[step]}
+            {comCeu && <View style={{ flexGrow: 1 }} />}
+          </ScrollView>
+          {!comCeu && (
+            /*
+              O creme atrás do cabeçalho, nos passos sem céu.
+
+              Ele mora **na camada do passo**, e não no cabeçalho, por causa da
+              troca: o cabeçalho é um só e fica parado, enquanto as camadas
+              deslizam. Pintado no cabeçalho, ele mudaria de transparente para
+              creme de uma vez, por cima do céu do passo que ainda está saindo.
+              Aqui ele desliza junto, e serve também para o que rola por baixo
+              do "voltar" no paywall, que é o passo que mais rola.
+            */
+            <View
+              pointerEvents="none"
+              style={{
+                position: 'absolute',
+                top: 0,
+                left: 0,
+                right: 0,
+                height: alturaDoCabecalho,
+                backgroundColor: colors.bg,
+              }}
+            />
+          )}
+        </View>
       </ScreenTransition>
 
       {/* Rodapé fixo com a ação principal */}

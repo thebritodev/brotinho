@@ -64,6 +64,14 @@ type Props = {
   humor?: Mood | null;
   /** Depois do pôr do sol o céu escurece, mesmo no tema claro. */
   noite?: boolean;
+  /**
+   * A altura do cabeçalho que flutua por cima do passo.
+   *
+   * O céu sobe até o topo da tela, por trás dele; o balão não pode subir
+   * junto, senão a pergunta fica embaixo do "voltar". Esta é a folga que
+   * mantém o balão onde ele sempre esteve.
+   */
+  folgaDoTopo?: number;
 };
 
 export function AskingSprout({
@@ -76,8 +84,9 @@ export function AskingSprout({
   pose = 'parado',
   humor = null,
   noite = false,
+  folgaDoTopo = 0,
 }: Props) {
-  const { colors, palette } = useTema();
+  const { colors, palette, moodColorsFundo, cena } = useTema();
   const { width, height } = useWindowDimensions();
   /**
    * Largura e altura entram as duas: a largura define o quanto ele domina a
@@ -152,8 +161,75 @@ export function AskingSprout({
   /* A altura do desenho sem vaso é `size * 1,12` — ver `quadroDoBroto`. */
   const alturaDaFaixa = Math.round(sproutSize * 1.12) + CRISTA_DO_MORRO.grama + 10;
 
+  /*
+    A cor do céu, calculada igual à `Cena` calcula a dela.
+
+    O céu daqui de cima e o da faixa do morro são dois desenhos encostados um
+    no outro, e a emenda só some se as duas contas derem o mesmo pixel: o tom
+    do humor (ou o azul de espera), e de noite a mesma camada de
+    `cena.noite` com a mesma força por cima. Os dois são chapados — não há
+    degradê para casar.
+  */
+  const corDoCeu = humor ? moodColorsFundo[humor] : palette.blue100;
+
   return (
-    <View style={{ alignItems: 'center', gap: 2 }}>
+    /*
+      ## O céu sobe até o topo da tela
+
+      Esta `View` é a **mola de cima** do passo: ela cresce (`flexGrow`) com o
+      balão e o morro encostados embaixo (`justifyContent: 'flex-end'`), e a
+      sobra que ela ganha é pintada de céu. Com a mola de baixo do
+      `OnboardingScreen`, a sobra se divide ao meio e o conteúdo continua
+      centrado onde estava — o que mudou é que a metade de cima deixou de ser
+      creme.
+
+      Ela desfaz a margem da tela (`marginHorizontal` negativo, devolvido em
+      `paddingHorizontal`) para o céu ir de borda a borda, e começa no pixel
+      zero da tela: o cabeçalho flutua por cima, e `folgaDoTopo` segura o balão
+      abaixo dele.
+
+      Sem cena — tela pequena demais para o mascote —, não há morro para o céu
+      nascer, e o fundo fica creme. A mola continua, para a centragem não
+      mudar.
+    */
+    <View
+      style={{
+        flexGrow: 1,
+        justifyContent: 'flex-end',
+        alignItems: 'center',
+        gap: 2,
+        marginHorizontal: -MARGEM_DA_TELA,
+        paddingHorizontal: MARGEM_DA_TELA,
+        paddingTop: folgaDoTopo + 6,
+      }}
+    >
+      {temCena && (
+        <View
+          pointerEvents="none"
+          style={{
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backgroundColor: corDoCeu,
+          }}
+        >
+          {noite && (
+            <View
+              style={{
+                position: 'absolute',
+                top: 0,
+                left: 0,
+                right: 0,
+                bottom: 0,
+                backgroundColor: cena.noite,
+                opacity: cena.noiteForca,
+              }}
+            />
+          )}
+        </View>
+      )}
       {/*
         O balão saiu daqui para `BalaoDoBroto`: ele era o único do app com bico,
         e o bico é justamente o que marca a fala do broto. Agora a saudação da
@@ -199,11 +275,13 @@ export function AskingSprout({
       </BalaoDoBroto>
 
       {/*
-        A faixa de céu tem a altura do broto mais o morro, e nada além disso.
+        A faixa do morro tem a altura do broto mais o chão, e nada além disso.
 
-        Uma faixa mais alta subiria atrás do balão e o balão branco sobre céu
-        azul perderia o contorno; mais baixa, o broto ficaria com a cabeça
-        fora do mundo dele.
+        O céu acima dela não é mais desta faixa: é o fundo da mola, pintado
+        com a mesma conta de cor. Antes a faixa parava aqui de propósito, com
+        medo de o balão branco perder o contorno sobre o céu — mas o balão tem
+        sombra própria, e o que se perdia era o mundo do broto acabando numa
+        linha reta no meio da tela, com creme por cima.
       */}
       {temCena && (
       <View style={{ marginHorizontal: -MARGEM_DA_TELA, marginTop: 6 }}>
