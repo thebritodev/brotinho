@@ -1,4 +1,4 @@
-import { Linking } from 'react-native';
+import { Linking, Platform } from 'react-native';
 import * as StoreReview from 'expo-store-review';
 
 /**
@@ -44,6 +44,25 @@ import * as StoreReview from 'expo-store-review';
  *   razão: quem acabou de instalar ainda não tem opinião. Um botão resolve as
  *   duas coisas — ninguém é emboscado, e a chance só é gasta com quem já
  *   decidiu usá-la.
+ *
+ * ---
+ *
+ * **Por que o botão não usa o modal nativo.**
+ *
+ * A mesma diretriz da Apple que desaconselha o pedido automático no primeiro
+ * uso desaconselha prender `requestReview` a um toque, e pelo motivo oposto ao
+ * que parece: quem decide se o modal aparece é o sistema, e ele pode não
+ * aparecer. Num pedido automático isso é aceitável — ninguém esperava nada.
+ * Num botão é um defeito: a pessoa toca, escolhe avaliar, e não acontece nada
+ * na tela.
+ *
+ * Foi exatamente o que apareceu aqui, só que pela outra ponta: sem modal, o
+ * código caía na ficha da loja — a ficha, não a avaliação. Tocar em "avaliar"
+ * e chegar na página do app é pedir para a pessoa procurar sozinha o lugar de
+ * escrever.
+ *
+ * Por isso o toque não passa mais pelo modal. Ele abre direto o compositor de
+ * avaliação da loja, que é um link comum e sempre abre. Ver `urlDeAvaliar`.
  */
 
 /**
@@ -82,6 +101,29 @@ async function pedir(): Promise<boolean> {
   } catch {
     return false;
   }
+}
+
+/**
+ * O endereço do compositor de avaliação da loja, quando existe um.
+ *
+ * Parte da mesma URL do `app.json` que o plano B usa (`ios.appStoreUrl`,
+ * `android.playStoreUrl`), para não haver dois lugares guardando o endereço da
+ * ficha.
+ *
+ * No iOS, `action=write-review` faz a App Store abrir já com a caixa de
+ * escrever por cima da ficha. É o caminho que a Apple indica para um botão,
+ * justamente porque não depende da cota do modal nativo.
+ *
+ * Só no iOS. Na Play não existe parâmetro equivalente — mandar o toque para a
+ * ficha seria trocar o modal de in-app review, que é melhor e aparece dentro
+ * do app, por uma viagem até a loja. Por isso o Android devolve `null` e segue
+ * por `pedir`, que tenta a API primeiro e só então cai na ficha.
+ */
+function urlDeAvaliar(): string | null {
+  if (Platform.OS !== 'ios') return null;
+  const url = StoreReview.storeUrl();
+  if (!url) return null;
+  return url.includes('?') ? `${url}&action=write-review` : `${url}?action=write-review`;
 }
 
 /**
@@ -132,9 +174,25 @@ export async function pedirAvaliacaoNaColheita(): Promise<void> {
 /**
  * O pedido disparado por um toque — no onboarding e nas Configurações.
  *
+ * Abre o compositor da loja direto, sem passar pelo modal nativo: quem tocou
+ * já escolheu, e o modal podia simplesmente não vir. Ver o cabeçalho.
+ *
+ * `pedir` continua como rede, para o caso de não haver URL no `app.json` ou de
+ * a loja não abrir — no Android, em especial, é por ela que passa a API de
+ * in-app review.
+ *
  * Devolve `false` quando não havia como pedir. Quem chama usa isso para seguir
  * em frente em silêncio, em vez de agradecer por uma coisa que não aconteceu.
  */
 export async function pedirAvaliacaoAPedido(): Promise<boolean> {
+  const url = urlDeAvaliar();
+  if (url) {
+    try {
+      await Linking.openURL(url);
+      return true;
+    } catch {
+      // Cai para o modal nativo.
+    }
+  }
   return pedir();
 }

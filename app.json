@@ -52,6 +52,7 @@
     "android": {
       "userInterfaceStyle": "automatic",
       "package": "com.brotinho.app",
+      "playStoreUrl": "https://play.google.com/store/apps/details?id=com.brotinho.app",
       "adaptiveIcon": {
         "backgroundColor": "#D98866",
         "foregroundImage": "./assets/android-icon-foreground.png",
