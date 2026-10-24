@@ -108,53 +108,77 @@ export function ProgressStem({ step, total, width }: Props) {
     if (de === step) return;
 
     const avancou = step > de;
-    const mudadas = folhas.current.filter((_, i) =>
-      avancou ? i > de && i <= step : i > step && i <= de,
-    );
+
+    /*
+      ## Toda troca leva **todas** as folhas ao lugar certo
+
+      Antes, cada troca animava só as folhas do trecho que mudou. Só que um
+      toque novo interrompe a animação do anterior — é o `animacao.stop()` da
+      limpeza logo abaixo —, e a folha interrompida ficava parada onde
+      estava. Voltando depressa, isso deixava rastro: medido no navegador,
+      quatro toques em "voltar" a 80 ms um do outro, do passo 11 ao 7,
+      deixavam as folhas 8, 9 e 10 verdes, com opacidade 1, ao lado de um
+      contador que já dizia 7. Recolher dura 200 ms; quem volta três passos
+      seguidos toca mais rápido que isso.
+
+      Agora o alvo de cada folha sai do passo, e não da diferença entre dois
+      passos: até o passo atual, inteira; depois dele, recolhida. A animação
+      interrompida deixa a folha no meio do caminho, e a troca seguinte termina
+      o caminho dela, qualquer que seja. Animar uma folha que já está no alvo
+      não desenha nada — e é mais barato do que descobrir qual está.
+
+      A folha recém-alcançada continua sendo a única que **brota**, com o caule
+      chegando antes. As outras só se acertam, depressa e sem cerimônia.
+    */
+    const novas = avancou ? folhas.current.filter((_, i) => i > de && i <= step) : [];
+    const firmar = folhas.current.filter((_, i) => i <= (avancou ? de : step));
+    const recolher = folhas.current.filter((_, i) => i > step);
 
     if (menosMovimento) {
       caule.setValue(step);
-      mudadas.forEach((v) => v.setValue(avancou ? 1 : 0));
+      folhas.current.forEach((v, i) => v.setValue(i <= step ? 1 : 0));
       return;
     }
 
-    const animacao = avancou
-      ? Animated.sequence([
-          Animated.timing(caule, {
-            toValue: step,
-            duration: CAULE_MS,
-            easing: Easing.out(Easing.cubic),
-            useNativeDriver: false,
-          }),
-          Animated.stagger(
-            90,
-            mudadas.map((v) =>
-              Animated.timing(v, {
-                toValue: 1,
-                duration: FOLHA_MS,
-                // O "passar do ponto e voltar" é o que lê como vivo.
-                easing: Easing.out(Easing.back(1.8)),
-                useNativeDriver: true,
-              }),
-            ),
-          ),
-        ])
-      : Animated.parallel([
-          ...mudadas.map((v) =>
-            Animated.timing(v, {
-              toValue: 0,
-              duration: RECOLHE_MS,
-              easing: Easing.in(Easing.quad),
-              useNativeDriver: true,
+    const acerta = (v: Animated.Value, toValue: number) =>
+      Animated.timing(v, {
+        toValue,
+        duration: RECOLHE_MS,
+        easing: toValue ? Easing.out(Easing.quad) : Easing.in(Easing.quad),
+        useNativeDriver: true,
+      });
+
+    const animacao = Animated.parallel([
+      ...firmar.map((v) => acerta(v, 1)),
+      ...recolher.map((v) => acerta(v, 0)),
+      avancou
+        ? Animated.sequence([
+            Animated.timing(caule, {
+              toValue: step,
+              duration: CAULE_MS,
+              easing: Easing.out(Easing.cubic),
+              useNativeDriver: false,
             }),
-          ),
-          Animated.timing(caule, {
+            Animated.stagger(
+              90,
+              novas.map((v) =>
+                Animated.timing(v, {
+                  toValue: 1,
+                  duration: FOLHA_MS,
+                  // O "passar do ponto e voltar" é o que lê como vivo.
+                  easing: Easing.out(Easing.back(1.8)),
+                  useNativeDriver: true,
+                }),
+              ),
+            ),
+          ])
+        : Animated.timing(caule, {
             toValue: step,
             duration: RECOLHE_MS,
             easing: Easing.out(Easing.quad),
             useNativeDriver: false,
           }),
-        ]);
+    ]);
 
     animacao.start();
     return () => animacao.stop();
@@ -212,6 +236,7 @@ export function ProgressStem({ step, total, width }: Props) {
           >
             {/* O botão bege some logo no começo: quem cresce ali é a folha nova. */}
             <Animated.View
+              collapsable={false}
               style={{
                 position: 'absolute',
                 opacity: v.interpolate({ inputRange: [0, 0.3], outputRange: [0.7, 0], extrapolate: 'clamp' }),
@@ -223,6 +248,18 @@ export function ProgressStem({ step, total, width }: Props) {
             </Animated.View>
 
             <Animated.View
+              /*
+                `collapsable={false}`: esta View não pode ser achatada.
+
+                A nova arquitetura do React Native remove da árvore nativa a
+                View que não desenha nada por conta própria — e uma folha que
+                nasce pronta (opacidade 1, sem giro, escala 1) parece
+                exatamente isso. Quem volta ao onboarding no passo nove ganha
+                nove folhas assim. Achatada, a animação nativa que deveria
+                recolhê-la não tem em quem mexer, e a folha fica. Não reproduz
+                no navegador, que não achata nada; aqui é seguro de graça.
+              */
+              collapsable={false}
               style={{
                 position: 'absolute',
                 opacity: v.interpolate({ inputRange: [0, 0.05], outputRange: [0, 1], extrapolate: 'clamp' }),
