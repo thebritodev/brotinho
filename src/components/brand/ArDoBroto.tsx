@@ -68,7 +68,35 @@ export function ArDoBroto({ ar, centro, raio, escala }: Props) {
   const itens = AR_DO_BROTO[ar];
 
   return (
-    <View style={{ position: 'absolute', left: 0, top: 0 }} pointerEvents="none">
+    /*
+      A caixa ocupa a moldura do broto inteira — e não pode ter tamanho zero.
+
+      Ela era `left: 0, top: 0` e mais nada: como os zês dentro dela são todos
+      absolutos, ela media zero por zero. No navegador isso não muda nada. No
+      iPhone, era o contorno em forma de pílula em cima do broto dormindo, que
+      o Pedro viu de novo a cada build.
+
+      O mecanismo é do iOS. A arquitetura nova recicla as `View` nativas: a de
+      uma opção que sai de tela é guardada e reaproveitada para a próxima
+      `View` que precisar. Ao reaproveitar, quem apaga as camadas de sombra da
+      dona antiga é o `invalidateLayer` — e a primeira linha dele é
+      `if (bounds == zero) return`. Uma `View` de tamanho zero nunca chega a
+      apagar nada. Então, quando a peça reaproveitada para esta caixa tinha
+      sido uma opção do onboarding — 44 de altura, cantos redondos e o anel de
+      luz da sombra `sm` —, o anel continuava desenhado, do tamanho da opção,
+      a partir do canto do broto. Por isso havia um zê dentro do contorno: a
+      caixa é a dos zês.
+
+      Com tamanho de verdade, o `invalidateLayer` roda e refaz as camadas a
+      partir das propriedades desta caixa, que não tem sombra nenhuma. As
+      posições dos zês não mudam: continuam contadas do mesmo canto.
+
+      Ver `confere-caixa-sem-tamanho`, que impede o mesmo formato de voltar.
+    */
+    <View
+      style={{ position: 'absolute', left: 0, top: 0, right: 0, bottom: 0 }}
+      pointerEvents="none"
+    >
       {itens.map((lugar, i) => (
         <Pedaco
           key={i}
