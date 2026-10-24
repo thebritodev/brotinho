@@ -69,6 +69,24 @@ export function toqueLeve(ligado: boolean) {
   if (iOS) void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
 }
 
+/**
+ * O tique de quem gira uma roda de números: um a cada valor que passa.
+ *
+ * É o mais leve de todos, e precisa ser: numa roda de horário ele dispara
+ * dezenas de vezes por gesto. No iPhone é o `selectionAsync`, o mesmo tique do
+ * seletor de horas do sistema. No Android, o tique de relógio do sistema, que
+ * segue a preferência de vibração ao toque; e se ele não existir, nada — um
+ * vibrador direto vinte vezes por gesto seria uma britadeira.
+ */
+export function toqueDeSelecao(ligado: boolean) {
+  if (!ligado) return;
+  if (android) {
+    void Haptics.performAndroidHapticsAsync(Haptics.AndroidHaptics.Clock_Tick).catch(() => {});
+    return;
+  }
+  if (iOS) void Haptics.selectionAsync().catch(() => {});
+}
+
 /** Marca uma virada: a fase da respiração mudou. */
 export function toqueMedio(ligado: boolean) {
   if (!ligado) return;

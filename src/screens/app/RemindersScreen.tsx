@@ -168,6 +168,7 @@ export function RemindersScreen({ onBack }: { onBack: () => void }) {
               value={data.profile.reminder}
               onChange={(reminder) => updateProfile({ reminder })}
               icon="bell"
+              vibrar={s.vibracao}
             />
 
             {/* O mesmo aviso do onboarding: aqui é onde o horário é trocado

@@ -154,6 +154,18 @@ type Props = {
   capim?: boolean;
   /** Onde o broto está, para o capim nascer em volta dele. */
   xDoBroto?: number;
+  /**
+   * O sol e as nuvens num lugar próprio, em pontos, no lugar do desenho padrão.
+   *
+   * O padrão foi desenhado para uma cena de uns trezentos pontos, com o morro
+   * ocupando os cem de baixo. Numa cena mais baixa — a do paywall, que divide a
+   * tela com o preço — o sol e as nuvens caíam em cima do morro. Quem tem a
+   * cena curta diz onde está o céu livre.
+   */
+  ceuLivre?: {
+    sol: { x: number; y: number };
+    nuvens: Array<{ x: number; y: number; escala: number }>;
+  };
 };
 
 export function Cena({
@@ -169,6 +181,7 @@ export function Cena({
   chao = 'grama',
   capim = false,
   xDoBroto,
+  ceuLivre,
 }: Props) {
   const { moodColorsFundo, cena } = useTema();
   const menosMovimento = useMenosMovimento();
@@ -277,7 +290,12 @@ export function Cena({
       </Svg>
 
       {!ehNoite && !semAstro && (
-        <Sol x={ASTRO.x * k} y={ASTRO.y} k={k} parado={menosMovimento} />
+        <Sol
+          x={ceuLivre ? ceuLivre.sol.x : ASTRO.x * k}
+          y={ceuLivre ? ceuLivre.sol.y : ASTRO.y}
+          k={k}
+          parado={menosMovimento}
+        />
       )}
 
       {ehNoite &&
@@ -286,12 +304,15 @@ export function Cena({
         ))}
 
       {nuvens &&
-        NUVENS.map((n, i) => (
+        (ceuLivre
+          ? ceuLivre.nuvens.map((n, i) => ({ ...n, ms: NUVENS[i % NUVENS.length].ms }))
+          : NUVENS.map((n) => ({ x: n.x * k, y: n.y, escala: n.escala * k, ms: n.ms }))
+        ).map((n, i) => (
           <Nuvem
             key={i}
-            x={n.x * k}
+            x={n.x}
             y={n.y}
-            escala={n.escala * k}
+            escala={n.escala}
             ms={n.ms}
             cor={cena.nuvem}
             k={k}

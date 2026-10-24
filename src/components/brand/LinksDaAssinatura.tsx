@@ -33,7 +33,28 @@ import { fonts, useTema } from '../../theme';
 /** O contrato padrão da Apple, para apps sem EULA próprio. */
 const EULA_PADRAO = 'https://www.apple.com/legal/internet-services/itunes/dev/stdeula/';
 
-export function LinksDaAssinatura({ aoAbrirPolitica }: { aoAbrirPolitica: () => void }) {
+export function LinksDaAssinatura({
+  aoAbrirPolitica,
+  aoRestaurar,
+  restaurando = false,
+}: {
+  aoAbrirPolitica: () => void;
+  /**
+   * Restaurar uma compra feita antes, em outro aparelho ou antes de reinstalar.
+   *
+   * Morava no alto do paywall, como um botão do cabeçalho; o Pedro pediu para
+   * tirar de lá. Sumir de vez não dá: é o único lugar do app onde dá para
+   * restaurar, e a Apple exige esse caminho em app com assinatura e com plano
+   * vitalício — sem ele, quem já pagou e reinstala fica preso no paywall, e a
+   * revisão recusa. Aqui ele fica junto dos outros links que a loja pede, no
+   * mesmo tamanho e sem disputar atenção com o botão de assinar.
+   *
+   * Sem esta função o link não aparece — onde não há loja, ele não teria o que
+   * fazer.
+   */
+  aoRestaurar?: () => void;
+  restaurando?: boolean;
+}) {
   const { colors } = useTema();
 
   const estilo = {
@@ -47,9 +68,11 @@ export function LinksDaAssinatura({ aoAbrirPolitica }: { aoAbrirPolitica: () => 
     <View
       style={{
         flexDirection: 'row',
+        flexWrap: 'wrap',
         justifyContent: 'center',
         alignItems: 'center',
-        gap: 6,
+        columnGap: 6,
+        rowGap: 4,
       }}
     >
       <Pressable
@@ -76,6 +99,23 @@ export function LinksDaAssinatura({ aoAbrirPolitica }: { aoAbrirPolitica: () => 
       >
         <Text style={estilo}>Política de privacidade</Text>
       </Pressable>
+
+      {aoRestaurar && (
+        <>
+          <Text style={{ fontFamily: fonts.body.regular, fontSize: 12, color: colors.textSecondary }}>
+            ·
+          </Text>
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel="Restaurar compra"
+            hitSlop={10}
+            disabled={restaurando}
+            onPress={aoRestaurar}
+          >
+            <Text style={estilo}>{restaurando ? 'Restaurando…' : 'Restaurar compra'}</Text>
+          </Pressable>
+        </>
+      )}
     </View>
   );
 }

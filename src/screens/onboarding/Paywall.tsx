@@ -61,6 +61,38 @@ export function Paywall({ plan, onSelectPlan, folgaDoTopo = 0 }: Props) {
   */
   const alturaDoConvite = Math.max(140, Math.min(alturaDaTela * 0.2, 200));
 
+  /*
+    Onde ficam o sol e as nuvens.
+
+    O céu livre vai de logo abaixo da barra de status até um pouco acima do
+    morro de trás, que sobe até 105 pontos do fim da cena. O sol vai à
+    direita, no meio dessa faixa: o canto direito do cabeçalho ficou vazio sem
+    o "Restaurar", e à esquerda mora o "voltar". As nuvens ficam à esquerda,
+    uma ao lado do "voltar" e outra abaixo dele, longe do broto, que ocupa o
+    meio.
+
+    As contas são todas a partir do cabeçalho (`folgaDoTopo`), que já inclui o
+    recorte do aparelho: num iPhone com entalhe ele é mais alto, e o céu
+    também.
+  */
+  const alturaDaCena = folgaDoTopo + 14 + alturaDoConvite;
+  const topoDoMorro = alturaDaCena - 105;
+  const raioDoSol = 30 * (largura / 390);
+  /* A barra de status ocupa o cabeçalho menos os 52 da linha do "voltar". */
+  const abaixoDoStatus = Math.max(0, folgaDoTopo - 52) + 6;
+  const ceuLivre = {
+    sol: {
+      x: largura - 70,
+      y: Math.round(
+        Math.max(abaixoDoStatus + raioDoSol, (abaixoDoStatus + raioDoSol + topoDoMorro - raioDoSol - 12) / 2),
+      ),
+    },
+    nuvens: [
+      { x: 96, y: Math.round(abaixoDoStatus + 16), escala: 0.7 },
+      { x: 24, y: Math.round(topoDoMorro - 46), escala: 0.5 },
+    ],
+  };
+
   /**
    * O preço da loja tem precedência sobre o que está escrito aqui.
    *
@@ -104,26 +136,30 @@ export function Paywall({ plan, onSelectPlan, folgaDoTopo = 0 }: Props) {
 
         Esta `View` é a mola de cima do passo (ver `RolagemDoPasso`): cresce
         para cima com a cena encostada embaixo, pintada com a cor do céu da
-        própria `Cena` — `feliz`, sem noite —, e reserva o cabeçalho em
-        `folgaDoTopo`. Os 14 de folga que a tela tinha no alto moram aqui
-        agora; fora dela, virariam uma tira de creme acima do céu.
+        própria `Cena` — `feliz`, sem noite.
+
+        A cena começa no topo da tela, e não abaixo do cabeçalho: a altura
+        dela é o convite **mais** o cabeçalho e os 14 de folga que a tela tinha
+        no alto. É isso que dá ao sol e às nuvens um céu onde caber. Com a cena
+        só da altura do convite, o desenho padrão punha os dois em cima do
+        morro — ver `ceuLivre` na `Cena`.
       */}
       <View
         style={{
           flexGrow: 1,
           justifyContent: 'flex-end',
           marginHorizontal: -20,
-          paddingTop: folgaDoTopo + 14,
           backgroundColor: moodColorsFundo.feliz,
         }}
       >
-        <View style={{ height: alturaDoConvite }}>
+        <View style={{ height: alturaDaCena }}>
           <Cena
             largura={largura}
-            altura={alturaDoConvite}
+            altura={alturaDaCena}
             humor="feliz"
             chao="grama"
             capim
+            ceuLivre={ceuLivre}
           />
           <View
             style={{

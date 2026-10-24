@@ -1169,33 +1169,12 @@ export function OnboardingScreen() {
         )}
 
         {/*
-          "Restaurar" só aparece onde existe loja.
-
-          Ele chamava um `tocarEmRestaurar` que começa com `if (!podeCobrar)
-          return` — e `podeCobrar` é false no Expo Go, na web, e em qualquer
-          build sem a chave da RevenueCat. Tocar não fazia nada: nem aviso, nem
-          "Restaurando…", nada. Um controle que não pode funcionar não devia
-          estar na tela, e escondê-lo é mais honesto que dar a ele uma mensagem
-          de erro para justificar a própria presença.
-
-          O espaçador mantém o cabeçalho equilibrado: sem ele o "voltar" e o
-          progresso escorregam para a direita quando o link some.
+          No paywall o canto direito fica vazio: o "Restaurar" que morava aqui
+          desceu para os links do rodapé — ver `LinksDaAssinatura`. O espaçador
+          mantém o cabeçalho equilibrado, e o canto livre é onde o sol da cena
+          do paywall aparece.
         */}
-        {isPaywall && podeCobrar ? (
-          <Pressable
-            accessibilityRole="button"
-            accessibilityLabel="Restaurar compra"
-            onPress={() => void tocarEmRestaurar()}
-            disabled={!!ocupado}
-            style={{ flex: 1, alignItems: 'flex-end', paddingVertical: 6 }}
-          >
-            <Text
-              style={{ fontFamily: fonts.body.bold, fontSize: 13, color: palette.brown400 }}
-            >
-              {ocupado === 'restaurando' ? 'Restaurando…' : 'Restaurar'}
-            </Text>
-          </Pressable>
-        ) : isPaywall ? (
+        {isPaywall ? (
           <View style={{ flex: 1 }} />
         ) : (
           <Text
@@ -1317,7 +1296,18 @@ export function OnboardingScreen() {
           duração e preço já estavam na tela; os termos e a política não
           estavam em paywall nenhum do app.
         */}
-        {isPaywall && <LinksDaAssinatura aoAbrirPolitica={() => setVendoPolitica(true)} />}
+        {isPaywall && (
+          <LinksDaAssinatura
+            aoAbrirPolitica={() => setVendoPolitica(true)}
+            /*
+              Só onde existe loja: sem a chave da RevenueCat (Expo Go, web)
+              `tocarEmRestaurar` volta sem fazer nada, e um controle que não pode
+              funcionar não devia estar na tela.
+            */
+            aoRestaurar={podeCobrar ? () => void tocarEmRestaurar() : undefined}
+            restaurando={ocupado === 'restaurando'}
+          />
+        )}
 
         {showSecondary && (
           <Pressable

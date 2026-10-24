@@ -4,6 +4,7 @@ import { Animated, Easing, PanResponder, PixelRatio, Text, View } from 'react-na
 import { Icon, type IconName } from '../../components';
 import { fonts, radius, useTema } from '../../theme';
 import { MIN_STEP, pad } from '../../data/onboarding';
+import { toqueDeSelecao } from '../../services/toque';
 
 /**
  * O carretel é geometria travada em pixels: a altura da linha é o passo do
@@ -101,10 +102,17 @@ type Props = {
    * arrasto dura.
    */
   aoArrastar?: (arrastando: boolean) => void;
+  /**
+   * Um tique a cada número que passa, como no seletor de horas do sistema.
+   *
+   * Ligado por padrão: no onboarding ainda não existe o ajuste de vibração, e
+   * quem tem o ajuste passa o valor dele.
+   */
+  vibrar?: boolean;
 };
 
 /** TimeWheel — arraste o dedo sobre a hora ou os minutos para ajustar. */
-export function TimeWheel({ value, onChange, icon = 'moon', aoArrastar }: Props) {
+export function TimeWheel({ value, onChange, icon = 'moon', aoArrastar, vibrar = true }: Props) {
   const { colors, palette, shadows } = useTema();
   const [h, m] = value.split(':').map(Number);
 
@@ -116,8 +124,17 @@ export function TimeWheel({ value, onChange, icon = 'moon', aoArrastar }: Props)
     propriedade direto, eles avisariam a primeira versão dela a vida inteira.
     O espelho é reescrito a cada render, e é dele que o gesto lê.
   */
-  const estado = useRef({ h, m, onChange, aoArrastar });
-  estado.current = { h, m, onChange, aoArrastar };
+  const estado = useRef({ h, m, onChange, aoArrastar, vibrar });
+  estado.current = { h, m, onChange, aoArrastar, vibrar };
+
+  /**
+   * O último horário que a roda anunciou, para o tique sair uma vez por número.
+   *
+   * Não dá para comparar com `estado.current.h`: ele só muda quando a tela
+   * redesenha, e o dedo manda vários movimentos entre um desenho e outro —
+   * cada um deles acharia que o número acabou de mudar e tiquetaria de novo.
+   */
+  const anunciado = useRef(value);
 
   /** Horário no instante em que o dedo encostou. */
   const inicio = useRef({ h, m });
@@ -137,6 +154,7 @@ export function TimeWheel({ value, onChange, icon = 'moon', aoArrastar }: Props)
 
       onPanResponderGrant: () => {
         inicio.current = { h: estado.current.h, m: estado.current.m };
+        anunciado.current = `${pad(estado.current.h)}:${pad(estado.current.m)}`;
         resto.setValue(0);
         estado.current.aoArrastar?.(true);
       },
@@ -150,7 +168,12 @@ export function TimeWheel({ value, onChange, icon = 'moon', aoArrastar }: Props)
         const nh = unidade === 'h' ? (((h0 + passos) % 24) + 24) % 24 : h0;
         const nm =
           unidade === 'm' ? (((m0 + passos * MIN_STEP) % 60) + 60) % 60 : m0;
-        estado.current.onChange(`${pad(nh)}:${pad(nm)}`);
+        const novo = `${pad(nh)}:${pad(nm)}`;
+        if (novo !== anunciado.current) {
+          anunciado.current = novo;
+          toqueDeSelecao(estado.current.vibrar);
+          estado.current.onChange(novo);
+        }
       },
 
       onPanResponderRelease: () => {
