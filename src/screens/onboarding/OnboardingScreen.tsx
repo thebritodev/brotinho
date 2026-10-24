@@ -1,9 +1,9 @@
 import React, { useEffect, useRef, useState } from 'react';
 import {
+  Animated,
   KeyboardAvoidingView,
   Platform,
   Pressable,
-  ScrollView,
   Text,
   useWindowDimensions,
   View,
@@ -124,7 +124,119 @@ const PASSOS_COM_CEU: ReadonlySet<number> = new Set([
   PASSO.ESPELHO_TENTATIVA,
   PASSO.VALORES,
   PASSO.SONO,
+  /* Não desenha `AskingSprout`, mas tem a mesma cena no alto — ver `Paywall`. */
+  PASSO.PAYWALL,
 ]);
+
+/**
+ * A rolagem de um passo, com o creme que aparece atrás do cabeçalho quando
+ * ela sai do lugar.
+ *
+ * O cabeçalho flutua transparente por cima do passo. Em repouso nada passa por
+ * baixo dele: os passos sem céu reservam a altura dele no alto, e os com céu
+ * põem céu ali. Mas quando o passo rola — o paywall quase sempre, os outros nas
+ * telas pequenas —, o conteúdo sobe por baixo do "voltar" e do "Restaurar", e
+ * os dois textos ficam um em cima do outro.
+ *
+ * A faixa creme resolve isso aparecendo **com a rolagem**: invisível no zero,
+ * inteira depois de 24 pontos. Em repouso ela não tapa o céu; rolando, ela
+ * separa o cabeçalho do que passa embaixo, que é o que o iOS faz nas barras
+ * de navegação.
+ *
+ * É um componente, e não um trecho do `OnboardingScreen`, por causa da troca de
+ * passo: as duas camadas da transição desenham cada uma a sua rolagem, e cada
+ * uma precisa do **seu** valor de rolagem. Guardado aqui num `useRef`, ele nasce
+ * com a camada e morre com ela. E a opacidade vai pelo driver nativo: rolar não
+ * renderiza nada em React.
+ *
+ * A faixa mora na camada do passo, e não no cabeçalho, pelo mesmo motivo: o
+ * cabeçalho é um só e fica parado enquanto as camadas deslizam.
+ */
+function RolagemDoPasso({
+  comCeu,
+  alturaDoCabecalho,
+  corDaFaixa,
+  rolavel,
+  aoMedir,
+  children,
+}: {
+  comCeu: boolean;
+  alturaDoCabecalho: number;
+  corDaFaixa: string;
+  rolavel: boolean;
+  aoMedir: (altura: number) => void;
+  children: React.ReactNode;
+}) {
+  const rolagem = useRef(new Animated.Value(0)).current;
+  const aoRolar = useRef(
+    Animated.event([{ nativeEvent: { contentOffset: { y: rolagem } } }], {
+      useNativeDriver: true,
+    }),
+  ).current;
+
+  return (
+    <View style={{ flex: 1 }}>
+      <Animated.ScrollView
+        style={{ flex: 1 }}
+        onLayout={(e) => aoMedir(Math.round(e.nativeEvent.layout.height))}
+        onScroll={aoRolar}
+        scrollEventThrottle={16}
+        contentContainerStyle={
+          comCeu
+            ? {
+                /*
+                  Com céu, o passo não é centrado por `justifyContent`, e sim
+                  por duas molas iguais.
+
+                  A de cima é o próprio passo, que cresce para cima pintado de
+                  céu — com o conteúdo encostado embaixo — até o topo da tela,
+                  já contando o cabeçalho que flutua ali (`AskingSprout`, e a
+                  cena do `Paywall`). A de baixo é a `View` vazia depois do
+                  passo. Molas iguais dividem a sobra ao meio, e o conteúdo
+                  fica centrado exatamente onde ficava; só que agora a sobra de
+                  cima é céu, e não creme.
+
+                  Sem `paddingTop`: qualquer folga aqui seria uma tira de creme
+                  acima do céu, no alto da tela.
+                */
+                flexGrow: 1,
+                paddingHorizontal: 20,
+                paddingBottom: 6,
+              }
+            : {
+                flexGrow: 1,
+                paddingHorizontal: 20,
+                paddingTop: alturaDoCabecalho + 6,
+                paddingBottom: 6,
+                justifyContent: 'center',
+              }
+        }
+        showsVerticalScrollIndicator={false}
+        keyboardShouldPersistTaps="handled"
+        scrollEnabled={rolavel}
+      >
+        {children}
+        {comCeu && <View style={{ flexGrow: 1 }} />}
+      </Animated.ScrollView>
+      <Animated.View
+        pointerEvents="none"
+        style={{
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          right: 0,
+          height: alturaDoCabecalho,
+          backgroundColor: corDaFaixa,
+          opacity: rolagem.interpolate({
+            inputRange: [0, 24],
+            outputRange: [0, 1],
+            extrapolate: 'clamp',
+          }),
+        }}
+      />
+    </View>
+  );
+}
 
 export function OnboardingScreen() {
   const { colors, palette } = useTema();
@@ -979,7 +1091,13 @@ export function OnboardingScreen() {
       </View>
     ),
 
-    [PASSO.PAYWALL]: <Paywall plan={draft.plan} onSelectPlan={(p) => set({ plan: p })} />,
+    [PASSO.PAYWALL]: (
+      <Paywall
+        plan={draft.plan}
+        onSelectPlan={(p) => set({ plan: p })}
+        folgaDoTopo={alturaDoCabecalho}
+      />
+    ),
   };
 
   /*
@@ -1005,10 +1123,10 @@ export function OnboardingScreen() {
 
         Ele flutua **por cima** do passo, e não empurra o passo para baixo: é
         isso que deixa o céu do broto subir até o topo da tela, por trás do
-        "voltar" e do progresso. Fica transparente; nos passos sem céu, quem
-        pinta o creme atrás dele é a própria camada do passo — ver
-        `PASSOS_COM_CEU` —, para a faixa deslizar junto com o passo na troca em
-        vez de mudar de cor de uma vez por cima dele.
+        "voltar" e do progresso. Fica transparente; o creme que aparece atrás
+        dele quando o passo rola é da própria camada do passo — ver
+        `RolagemDoPasso` —, para deslizar junto com o passo na troca em vez de
+        mudar de cor de uma vez por cima dele.
       */}
       <View
         onLayout={(e) => {
@@ -1123,78 +1241,21 @@ export function OnboardingScreen() {
         mode={sentido.current}
         style={{ flex: 1 }}
       >
-        <View style={{ flex: 1 }}>
-          <ScrollView
-            style={{ flex: 1 }}
-            onLayout={(e) => {
-              const h = Math.round(e.nativeEvent.layout.height);
-              /* Só quando muda de verdade: `onLayout` dispara em cada rotação e
-                 em cada quadro de teclado, e um `setState` por quadro aqui
-                 redesenharia o passo inteiro no meio da transição. */
-              if (h > 0 && Math.abs(h - alturaDaRolagem) > 2) setAlturaDaRolagem(h);
-            }}
-            contentContainerStyle={
-              comCeu
-                ? {
-                    /*
-                      Com céu, o passo não é centrado por `justifyContent`, e
-                      sim por duas molas iguais.
-
-                      A de cima é o próprio `AskingSprout`, que cresce para
-                      cima pintado de céu — com o balão e o morro encostados
-                      embaixo — até o topo da tela, já contando o cabeçalho que
-                      flutua ali. A de baixo é a `View` vazia depois do passo.
-                      Molas iguais dividem a sobra ao meio, e o conteúdo fica
-                      centrado exatamente onde ficava; só que agora a sobra de
-                      cima é céu, e não creme.
-
-                      Sem `paddingTop`: qualquer folga aqui seria uma tira de
-                      creme acima do céu, no alto da tela.
-                    */
-                    flexGrow: 1,
-                    paddingHorizontal: 20,
-                    paddingBottom: 6,
-                  }
-                : {
-                    flexGrow: 1,
-                    paddingHorizontal: 20,
-                    paddingTop: alturaDoCabecalho + 6,
-                    paddingBottom: 6,
-                    justifyContent: 'center',
-                  }
-            }
-            showsVerticalScrollIndicator={false}
-            keyboardShouldPersistTaps="handled"
-            /* Ver `naRodaDasHoras`: arrastar os números não pode arrastar a tela. */
-            scrollEnabled={!naRodaDasHoras}
-          >
-            {screens[step]}
-            {comCeu && <View style={{ flexGrow: 1 }} />}
-          </ScrollView>
-          {!comCeu && (
-            /*
-              O creme atrás do cabeçalho, nos passos sem céu.
-
-              Ele mora **na camada do passo**, e não no cabeçalho, por causa da
-              troca: o cabeçalho é um só e fica parado, enquanto as camadas
-              deslizam. Pintado no cabeçalho, ele mudaria de transparente para
-              creme de uma vez, por cima do céu do passo que ainda está saindo.
-              Aqui ele desliza junto, e serve também para o que rola por baixo
-              do "voltar" no paywall, que é o passo que mais rola.
-            */
-            <View
-              pointerEvents="none"
-              style={{
-                position: 'absolute',
-                top: 0,
-                left: 0,
-                right: 0,
-                height: alturaDoCabecalho,
-                backgroundColor: colors.bg,
-              }}
-            />
-          )}
-        </View>
+        <RolagemDoPasso
+          comCeu={comCeu}
+          alturaDoCabecalho={alturaDoCabecalho}
+          corDaFaixa={colors.bg}
+          /* Ver `naRodaDasHoras`: arrastar os números não pode arrastar a tela. */
+          rolavel={!naRodaDasHoras}
+          aoMedir={(h) => {
+            /* Só quando muda de verdade: `onLayout` dispara em cada rotação e
+               em cada quadro de teclado, e um `setState` por quadro aqui
+               redesenharia o passo inteiro no meio da transição. */
+            if (h > 0 && Math.abs(h - alturaDaRolagem) > 2) setAlturaDaRolagem(h);
+          }}
+        >
+          {screens[step]}
+        </RolagemDoPasso>
       </ScreenTransition>
 
       {/* Rodapé fixo com a ação principal */}

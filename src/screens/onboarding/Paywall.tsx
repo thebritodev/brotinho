@@ -39,11 +39,18 @@ const planCardStyle = (
 type Props = {
   plan: PlanKey;
   onSelectPlan: (plan: PlanKey) => void;
+  /**
+   * A altura do cabeçalho que flutua por cima da tela.
+   *
+   * O céu da cena sobe até o topo, por trás do "voltar" e do "Restaurar"; o
+   * broto e o morro ficam onde sempre estiveram, abaixo dele.
+   */
+  folgaDoTopo?: number;
 };
 
 /** Tela de planos — destaque para o anual, com mensal ao lado e as demais opções abaixo. */
-export function Paywall({ plan, onSelectPlan }: Props) {
-  const { colors, palette, vidros, shadows } = useTema();
+export function Paywall({ plan, onSelectPlan, folgaDoTopo = 0 }: Props) {
+  const { colors, palette, vidros, shadows, moodColorsFundo } = useTema();
   const { width: largura, height: alturaDaTela } = useWindowDimensions();
   const { planos } = useAssinatura();
 
@@ -79,7 +86,7 @@ export function Paywall({ plan, onSelectPlan }: Props) {
     daLoja(chave)?.precoMensal ?? PLANS[chave].precoMensal ?? PLANS[chave].price;
 
   return (
-    <View style={{ gap: 22, paddingTop: 14, paddingBottom: 4 }}>
+    <View style={{ gap: 22, paddingBottom: 4, flexGrow: 1 }}>
       {/*
         O broto crescido, acenando, antes do preco.
 
@@ -92,29 +99,48 @@ export function Paywall({ plan, onSelectPlan }: Props) {
         Acenando, e nao comemorando: comemorar no momento do pagamento seria o
         app festejando o proprio dinheiro.
       */}
-      <View style={{ marginHorizontal: -20, height: alturaDoConvite }}>
-        <Cena
-          largura={largura}
-          altura={alturaDoConvite}
-          humor="feliz"
-          chao="grama"
-          capim
-        />
-        <View
-          style={{
-            position: 'absolute',
-            left: 0,
-            right: 0,
-            bottom: CRISTA_DO_MORRO.grama - 8,
-            alignItems: 'center',
-          }}
-        >
-          <AnimatedSprout
-            mood="feliz"
-            stage={3}
-            size={Math.round(alturaDoConvite * 0.62)}
-            pose="acena"
+      {/*
+        O céu sobe até o topo da tela, como nos passos em que o broto pergunta.
+
+        Esta `View` é a mola de cima do passo (ver `RolagemDoPasso`): cresce
+        para cima com a cena encostada embaixo, pintada com a cor do céu da
+        própria `Cena` — `feliz`, sem noite —, e reserva o cabeçalho em
+        `folgaDoTopo`. Os 14 de folga que a tela tinha no alto moram aqui
+        agora; fora dela, virariam uma tira de creme acima do céu.
+      */}
+      <View
+        style={{
+          flexGrow: 1,
+          justifyContent: 'flex-end',
+          marginHorizontal: -20,
+          paddingTop: folgaDoTopo + 14,
+          backgroundColor: moodColorsFundo.feliz,
+        }}
+      >
+        <View style={{ height: alturaDoConvite }}>
+          <Cena
+            largura={largura}
+            altura={alturaDoConvite}
+            humor="feliz"
+            chao="grama"
+            capim
           />
+          <View
+            style={{
+              position: 'absolute',
+              left: 0,
+              right: 0,
+              bottom: CRISTA_DO_MORRO.grama - 8,
+              alignItems: 'center',
+            }}
+          >
+            <AnimatedSprout
+              mood="feliz"
+              stage={3}
+              size={Math.round(alturaDoConvite * 0.62)}
+              pose="acena"
+            />
+          </View>
         </View>
       </View>
 
