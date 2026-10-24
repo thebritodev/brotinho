@@ -151,6 +151,8 @@ type Props = {
   nuvemGrande?: boolean;
   /** A chuva caindo da nuvem grande. */
   chuva?: boolean;
+  /** O que vai dentro da nuvem grande, balançando com ela — ver `NuvemGrande`. */
+  naNuvemGrande?: React.ReactNode;
   broto?: BrotoNaPaisagem | null;
   /**
    * Quanto a cena desce por causa da barra de status.
@@ -371,14 +373,35 @@ function NuvemPequena({
  * mais lento da cena de propósito: a frase escrita mora dentro dela, e texto
  * que balança é texto que não se lê.
  */
+/**
+ * Onde a nuvem grande está na tela, em pontos.
+ *
+ * Exportado para quem põe alguma coisa **dentro** dela: o que vai na nuvem é
+ * posicionado em relação à caixa dela, e é dentro dela que balança junto.
+ */
+export function caixaDaNuvemGrande(largura: number, recuo: number) {
+  const caixa = { x: -174, y: -70, largura: 348, altura: 158 };
+  return { left: largura / 2 + caixa.x, top: recuo + 180 + caixa.y, width: caixa.largura, height: caixa.altura };
+}
+
 function NuvemGrande({
   largura,
   recuo,
   parado,
+  children,
 }: {
   largura: number;
   recuo: number;
   parado: boolean;
+  /**
+   * O que mora na nuvem — a frase da tela do pensamento.
+   *
+   * Desenhada por fora, a frase ficava parada enquanto a nuvem subia e
+   * descia: cinco pontos de descompasso, que o Pedro notou. Aqui dentro ela
+   * anda na mesma `Animated.View`, então não há dois movimentos para manter
+   * em sincronia. Posição em relação à caixa — ver `caixaDaNuvemGrande`.
+   */
+  children?: React.ReactNode;
 }) {
   const passo = useRef(new Animated.Value(0)).current;
 
@@ -426,6 +449,7 @@ function NuvemGrande({
           fill="#fff"
         />
       </Svg>
+      {children}
     </Animated.View>
   );
 }
@@ -831,6 +855,7 @@ export function PaisagemDaComposta({
   chuva = false,
   broto = null,
   recuo = 0,
+  naNuvemGrande = null,
 }: Props) {
   const id = useId().replace(/[^a-zA-Z0-9]/g, '');
   const parado = useMenosMovimento();
@@ -950,7 +975,9 @@ export function PaisagemDaComposta({
 
       {/* 5. As nuvens. */}
       {nuvemGrande ? (
-        <NuvemGrande largura={largura} recuo={recuo} parado={parado} />
+        <NuvemGrande largura={largura} recuo={recuo} parado={parado}>
+          {naNuvemGrande}
+        </NuvemGrande>
       ) : (
         <>
           <NuvemPequena

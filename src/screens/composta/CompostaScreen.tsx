@@ -1,5 +1,14 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { Animated, Easing, Pressable, ScrollView, Text, useWindowDimensions, View } from 'react-native';
+import {
+  Animated,
+  Easing,
+  Platform,
+  Pressable,
+  ScrollView,
+  Text,
+  useWindowDimensions,
+  View,
+} from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Svg, { Circle, Line, Path } from 'react-native-svg';
 
@@ -19,6 +28,7 @@ import {
   Input,
   MicrofoneDaComposta,
   PaisagemDaComposta,
+  caixaDaNuvemGrande,
   PastilhaEscura,
   PastilhaNoCeu,
   ScreenTransition,
@@ -713,6 +723,9 @@ export function CompostaScreen({
     const alturaDaCena = ALTURA_DA_CENA.pensamento + recuo;
     const escrito = thought.trim();
 
+    /* Onde a nuvem grande está — a frase é posicionada a partir dela. */
+    const nuvem = caixaDaNuvemGrande(largura, recuo);
+
     return (
       <ScreenTransition transitionKey="thought" ordem={PASSOS_DA_COMPOSTA}>
         <View style={{ flex: 1, backgroundColor: colors.bg }}>
@@ -738,6 +751,52 @@ export function CompostaScreen({
                 luz={0}
                 nuvemGrande
                 chuva
+                naNuvemGrande={
+                  /*
+                    A frase escrita aparece **dentro da nuvem**.
+
+                    É a melhor ideia do documento para esta tela, e vale dizer
+                    por quê: ela põe o que a pessoa digitou no lugar de onde a
+                    chuva cai. O pensamento deixa de ser texto num campo e passa
+                    a ser a coisa que está fazendo chover em cima dela — que é
+                    exatamente o que a prática vai desmanchar nos próximos
+                    trinta e seis segundos.
+
+                    Vazia, a nuvem mostra a sugestão em tom fraco: a nuvem nunca
+                    fica vazia, porque uma nuvem vazia não explica nada.
+
+                    Mora **dentro** da nuvem, e não por cima dela, para subir e
+                    descer junto. A caixa é a mesma de antes — 28 de cada borda
+                    da tela, 118 abaixo do recuo, 120 de altura —, só que
+                    contada a partir da nuvem.
+                  */
+                  <View
+                    pointerEvents="none"
+                    style={{
+                      position: 'absolute',
+                      left: 28 - nuvem.left,
+                      top: recuo + 118 - nuvem.top,
+                      width: largura - 56,
+                      height: 120,
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      paddingHorizontal: 34,
+                    }}
+                  >
+                    <Text
+                      numberOfLines={3}
+                      style={{
+                        fontFamily: fonts.display.bold,
+                        fontSize: 23,
+                        lineHeight: 23 * 1.2,
+                        textAlign: 'center',
+                        color: escrito ? TEXTO_NA_PAISAGEM : palette.brown400,
+                      }}
+                    >
+                      {`“${escrito || SUGESTOES[0]}”`}
+                    </Text>
+                  </View>
+                }
               />
 
               <CabecalhoNoCeu recuo={recuo}>
@@ -745,45 +804,6 @@ export function CompostaScreen({
                 <TituloNoCeu>O pensamento</TituloNoCeu>
               </CabecalhoNoCeu>
 
-              {/*
-                A frase escrita aparece **dentro da nuvem**.
-
-                É a melhor ideia do documento para esta tela, e vale dizer por
-                quê: ela põe o que a pessoa digitou no lugar de onde a chuva
-                cai. O pensamento deixa de ser texto num campo e passa a ser a
-                coisa que está fazendo chover em cima dela — que é exatamente o
-                que a prática vai desmanchar nos próximos trinta e seis
-                segundos.
-
-                Vazia, a nuvem mostra a sugestão em tom fraco: a nuvem nunca
-                fica vazia, porque uma nuvem vazia não explica nada.
-              */}
-              <View
-                pointerEvents="none"
-                style={{
-                  position: 'absolute',
-                  left: 28,
-                  right: 28,
-                  top: recuo + 118,
-                  height: 120,
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  paddingHorizontal: 34,
-                }}
-              >
-                <Text
-                  numberOfLines={3}
-                  style={{
-                    fontFamily: fonts.display.bold,
-                    fontSize: 23,
-                    lineHeight: 23 * 1.2,
-                    textAlign: 'center',
-                    color: escrito ? TEXTO_NA_PAISAGEM : palette.brown400,
-                  }}
-                >
-                  {`“${escrito || SUGESTOES[0]}”`}
-                </Text>
-              </View>
             </View>
 
             <FolhaDaComposta style={{ paddingBottom: 32, gap: 18, flex: 1 }}>
@@ -1158,6 +1178,39 @@ export function CompostaScreen({
             {dica}
           </Text>
 
+          {/*
+            O aparelho não conferiu a frase e voltou a contar só pelo som.
+            Calar sobre isso faria a tela ficar idêntica à de quem tem a
+            conferência — e qualquer barulho passaria a contar, que é
+            exatamente a queixa que originou este trabalho todo.
+
+            Mora **no céu**, logo abaixo da instrução, e não mais no rodapé.
+            Lá embaixo ele tinha dois defeitos que o Pedro viu no iPhone X —
+            que é justamente o aparelho que sempre mostra este aviso, porque
+            não reconhece fala sem servidor. O texto, feito para o céu, ficava
+            em cima da terra e sumia nela. E as duas linhas dele cresciam o
+            rodapé para cima: o microfone subia por cima do balão do broto,
+            que é posicionado por uma conta (`peDaFala`) que não sabia dele.
+          */}
+          {session.running && !session.porFrase && !session.manual && (
+            <Text
+              style={{
+                position: 'absolute',
+                top: recuo + 142,
+                left: 40,
+                right: 40,
+                textAlign: 'center',
+                fontFamily: fonts.body.regular,
+                fontSize: 12,
+                lineHeight: 12 * 1.45,
+                color: TEXTO_NA_PAISAGEM_FRACO,
+              }}
+            >
+              Este aparelho não confere a frase — estou contando pelo som da sua voz. Procure um
+              lugar quieto.
+            </Text>
+          )}
+
           <FraseSeDesmanchando
             frase={thought.trim() || SUGESTOES[0]}
             repeticoes={session.reps}
@@ -1267,27 +1320,6 @@ export function CompostaScreen({
               </TextoNaPastilha>
             </PastilhaEscura>
 
-            {/*
-              O aparelho não conferiu a frase e voltou a contar só pelo som.
-              Calar sobre isso faria a tela ficar idêntica à de quem tem a
-              conferência — e qualquer barulho passaria a contar, que é
-              exatamente a queixa que originou este trabalho todo.
-            */}
-            {session.running && !session.porFrase && !session.manual && (
-              <Text
-                style={{
-                  maxWidth: largura - 60,
-                  textAlign: 'center',
-                  fontFamily: fonts.body.regular,
-                  fontSize: 12,
-                  lineHeight: 12 * 1.45,
-                  color: TEXTO_NA_PAISAGEM_FRACO,
-                }}
-              >
-                Este aparelho não confere a frase — estou contando pelo som da sua voz. Procure um
-                lugar quieto.
-              </Text>
-            )}
           </View>
         </View>
       </ScreenTransition>
@@ -1718,7 +1750,19 @@ function FraseSeDesmanchando({
           textShadowColor: 'rgba(255,255,255,0.35)',
           textShadowOffset: { width: 0, height: 2 },
           textShadowRadius: 0,
-          filter: desfoque > 0 ? `blur(${desfoque}px)` : undefined,
+          /*
+            Sem desfoque no iPhone.
+
+            O React Native não sabe desfocar no iOS: para qualquer `filter` ele
+            põe uma camada branca por cima da peça, que deveria se misturar em
+            modo multiplicar — e o iOS ignora esse modo de mistura. O resultado
+            era uma caixa branca sólida em cada letra, a partir da repetição em
+            que o desfoque começa: o Pedro viu "uma caixa de texto branca"
+            atrás da frase. Lá a letra cai, gira e some sem desfocar; no
+            Android e na web o desfoque continua.
+          */
+          filter:
+            desfoque > 0 && Platform.OS !== 'ios' ? `blur(${desfoque}px)` : undefined,
           opacity: andado.interpolate({
             inputRange: entrada,
             outputRange: [1, 1, destino.opacidade, destino.opacidade],

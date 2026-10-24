@@ -40,7 +40,7 @@ export {
   florDoIndice,
   type TipoDeFlor,
 } from './brand/floresDaComposta';
-export { PaisagemDaComposta, type BrotoNaPaisagem } from './brand/PaisagemDaComposta';
+export { PaisagemDaComposta, caixaDaNuvemGrande, type BrotoNaPaisagem } from './brand/PaisagemDaComposta';
 export {
   ALTURA_DA_CENA,
   CRISTA,
