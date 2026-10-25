@@ -357,20 +357,24 @@ Diário, humores, compostagens, respostas do onboarding, valores: **tudo fica no
 aparelho**. Responda **não** para Saúde e Fitness, Conteúdo do Usuário,
 Localização, Contatos, Histórico de Busca e Informações Sensíveis.
 
-> **A conferir antes de enviar a versão com a licença de voz (1.3.4 em diante).**
+> **A licença de voz não muda o questionário — conferido em 25/10/2026.**
 >
 > Em iPhone que não reconhece fala sem internet (do XS para trás), a Composta
 > pode, **com licença da pessoa**, usar o reconhecimento de fala da Apple pela
-> internet — o áudio da prática vai para a Apple virar texto. Ele não passa por
-> nenhum servidor nosso e nada é guardado. O diário continua só no aparelho.
+> internet: o áudio da prática vai para a Apple virar texto. Não passa por
+> servidor nosso e nada é guardado. O diário continua só no aparelho.
 >
-> A dúvida é se isso conta como "coletado" no questionário: a regra fala de
-> dado que sai do aparelho e fica acessível a quem desenvolve o app ou a
-> parceiros dele, e aqui quem recebe é a própria Apple, pelo framework de fala
-> do sistema. Não achei a resposta oficial. Confira na documentação de "App
-> privacy" do App Store Connect; se contar, a categoria é **Conteúdo do
-> Usuário › Dados de áudio**, uso **Funcionalidade do app**, **não** ligado à
-> identidade, **sem** rastreamento.
+> A página "App privacy details" da Apple resolve isso em duas frases. A
+> primeira: *"You are not responsible for disclosing data collected by
+> Apple."* A segunda define os parceiros cujo dado conta como coletado:
+> *"analytics tools, advertising networks, third-party SDKs, or other external
+> vendors whose code you've added to your app"* — o framework de fala do
+> próprio sistema não é nenhum deles. E "coletar", pela definição dela, é
+> mandar para fora de um jeito que **você ou seus parceiros** possam acessar; o
+> Brotinho nunca acessa esse áudio.
+>
+> **Resposta: continua "não coleta".** Fonte:
+> https://developer.apple.com/app-store/app-privacy-details/
 
 ### O que o Brotinho coleta
 

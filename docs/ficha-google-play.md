@@ -235,12 +235,27 @@ Brotinho como ele está hoje:
 
 | Pergunta | Resposta |
 |---|---|
-| O app coleta ou compartilha algum dos tipos de dados exigidos? | **Não** |
-| Os dados são criptografados em trânsito? | *não se aplica — não há trânsito* |
+| O app coleta ou compartilha algum dos tipos de dados exigidos? | **Sim** — só um, ver abaixo |
+| Tipo coletado | **Áudio › Gravações de voz ou som** |
+| É processado de forma efêmera? | **Sim** — só em memória, durante a prática, e nada é guardado |
+| É obrigatório ou opcional? | **Opcional** — só com a licença da pessoa |
+| Para quê | **Funcionalidade do app** |
+| É compartilhado? | **Não** — o Google transcreve em nome do app, como prestador de serviço |
+| Os dados são criptografados em trânsito? | **Sim** — o reconhecimento de fala do sistema usa conexão segura |
 | Você permite que o usuário peça a exclusão dos dados? | **Sim** — Perfil › Privacidade › Apagar tudo, e desinstalar leva o resto junto |
 
-**Por que "Não coleta":** não há cadastro, não há servidor e o diário não sai do
-aparelho. A transcrição de voz roda no próprio dispositivo
+**Por que "Sim", e só isso — decidido em 25/10/2026.** Em celular que não
+reconhece fala sem internet, a Composta pode, **com licença da pessoa**, usar o
+reconhecimento de fala do Google para conferir a frase. O áudio sai do aparelho
+para isso. A regra do Google não fala do caso de um serviço do sistema
+mandando o áudio em nome do app — ela só diz que *"'Collect' means
+transmitting data from your app off a user's device"*. Sem resposta clara, a
+escolha é declarar: declarar a mais não custa nada, e declarar a menos é
+declaração falsa. Como é efêmero, o Google pode nem mostrar na ficha pública.
+Fonte: https://support.google.com/googleplay/android-developer/answer/10787469
+
+**Por que o resto continua "não coleta":** não há cadastro, não há servidor e o
+diário não sai do aparelho. A transcrição de voz roda no próprio dispositivo
 (`expo-speech-recognition`), e o `EXPO_PUBLIC_TRANSCRIPTION_URL` fica vazio em
 produção — o código impede o envio de áudio quando ela não está definida.
 
