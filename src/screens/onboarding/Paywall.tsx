@@ -2,6 +2,7 @@ import React from 'react';
 import { Pressable, Text, useWindowDimensions, View } from 'react-native';
 
 import { AnimatedSprout, Cena, CRISTA_DO_MORRO, Icon } from '../../components';
+import { alturaDoMascote } from '../../components/brand/geometriaDoBroto';
 import { fonts, radius, useTema, type Palette, type Sombra, type Vidro } from '../../theme';
 import { PLANS, PRODUTO_DO_PLANO, type PlanKey } from '../../data/onboarding';
 import { useAssinatura } from '../../state/SubscriptionProvider';
@@ -62,34 +63,56 @@ export function Paywall({ plan, onSelectPlan, folgaDoTopo = 0 }: Props) {
   const alturaDoConvite = Math.max(140, Math.min(alturaDaTela * 0.2, 200));
 
   /*
-    Onde ficam o sol e as nuvens.
+    ## A cena tem a altura do broto, e não a do convite mais o cabeçalho
 
-    O céu livre vai de logo abaixo da barra de status até um pouco acima do
-    morro de trás, que sobe até 105 pontos do fim da cena. O sol vai à
-    direita, no meio dessa faixa: o canto direito do cabeçalho ficou vazio sem
-    o "Restaurar", e à esquerda mora o "voltar". As nuvens ficam à esquerda,
-    uma ao lado do "voltar" e outra abaixo dele, longe do broto, que ocupa o
-    meio.
+    O paywall é a tela que mais rola — num iPhone X faltavam 174 pontos para
+    tudo caber —, e acima da cabeça do broto sobravam 130 pontos de céu
+    vazio. O Pedro pediu para tirar um pouco desse céu.
 
-    As contas são todas a partir do cabeçalho (`folgaDoTopo`), que já inclui o
-    recorte do aparelho: num iPhone com entalhe ele é mais alto, e o céu
-    também.
+    Agora a altura sai de baixo para cima: o pé do broto no morro, o broto
+    inteiro, e a cabeça subindo até a linha do "voltar". No paywall o meio
+    dessa linha está vazio — não há caule de progresso —, então a cabeça pode
+    morar ali, um pouco abaixo do meio dela. Ela nunca sobe para a barra de
+    status: fica pelo menos a oito pontos dela, para não encostar no entalhe.
+
+    O broto continua do tamanho de antes. O que encolhe é só o céu: 58 pontos
+    em qualquer aparelho com o cabeçalho de sempre.
   */
-  const alturaDaCena = folgaDoTopo + 14 + alturaDoConvite;
-  const topoDoMorro = alturaDaCena - 105;
-  const raioDoSol = 30 * (largura / 390);
+  const tamanhoDoBroto = Math.round(alturaDoConvite * 0.62);
+  const PE_DO_BROTO = CRISTA_DO_MORRO.grama - 8;
   /* A barra de status ocupa o cabeçalho menos os 52 da linha do "voltar". */
   const abaixoDoStatus = Math.max(0, folgaDoTopo - 52) + 6;
+  const topoDaCabeca = Math.max(abaixoDoStatus + 8, folgaDoTopo - 24);
+  const alturaDaCena = Math.round(topoDaCabeca + alturaDoMascote(3, tamanhoDoBroto) + PE_DO_BROTO);
+  /* O morro de trás sobe até 105 pontos do fim da cena — ver `Cena`. */
+  const topoDoMorro = alturaDaCena - 105;
+
+  /*
+    Onde ficam o sol e as nuvens, no céu que sobrou.
+
+    O sol vai à direita, no canto que ficou vazio sem o "Restaurar", a 80% do
+    tamanho: com o céu mais baixo, o de tamanho cheio voltava a encostar no
+    morro. Uma nuvem fica entre o "voltar" e o broto. A segunda, embaixo do
+    "voltar", só entra se houver céu ali — num cabeçalho alto, a cabeça do
+    broto já ocupa a altura dela, e uma nuvem espremida contra o morro é pior
+    que nenhuma.
+  */
+  const ESCALA_DO_SOL = 0.8;
+  const raioDoSol = 30 * (largura / 390) * ESCALA_DO_SOL;
+  const yDaSegundaNuvem = topoDoMorro - 26;
   const ceuLivre = {
     sol: {
-      x: largura - 70,
+      x: largura - 62,
       y: Math.round(
-        Math.max(abaixoDoStatus + raioDoSol, (abaixoDoStatus + raioDoSol + topoDoMorro - raioDoSol - 12) / 2),
+        Math.max(abaixoDoStatus + raioDoSol, (abaixoDoStatus + raioDoSol + topoDoMorro - raioDoSol - 8) / 2),
       ),
+      escala: ESCALA_DO_SOL,
     },
     nuvens: [
-      { x: 96, y: Math.round(abaixoDoStatus + 16), escala: 0.7 },
-      { x: 24, y: Math.round(topoDoMorro - 46), escala: 0.5 },
+      { x: 60, y: Math.round(abaixoDoStatus + 14), escala: 0.6 },
+      ...(yDaSegundaNuvem > folgaDoTopo + 2
+        ? [{ x: 22, y: Math.round(yDaSegundaNuvem), escala: 0.45 }]
+        : []),
     ],
   };
 
@@ -138,11 +161,10 @@ export function Paywall({ plan, onSelectPlan, folgaDoTopo = 0 }: Props) {
         para cima com a cena encostada embaixo, pintada com a cor do céu da
         própria `Cena` — `feliz`, sem noite.
 
-        A cena começa no topo da tela, e não abaixo do cabeçalho: a altura
-        dela é o convite **mais** o cabeçalho e os 14 de folga que a tela tinha
-        no alto. É isso que dá ao sol e às nuvens um céu onde caber. Com a cena
-        só da altura do convite, o desenho padrão punha os dois em cima do
-        morro — ver `ceuLivre` na `Cena`.
+        A cena começa no topo da tela, e não abaixo do cabeçalho, e tem a
+        altura do broto em pé no morro — ver `alturaDaCena`, lá em cima. O sol
+        e as nuvens vão no céu que sobra, em lugares contados para não
+        encostarem no morro nem no broto — ver `ceuLivre` na `Cena`.
       */}
       <View
         style={{
@@ -173,7 +195,7 @@ export function Paywall({ plan, onSelectPlan, folgaDoTopo = 0 }: Props) {
             <AnimatedSprout
               mood="feliz"
               stage={3}
-              size={Math.round(alturaDoConvite * 0.62)}
+              size={tamanhoDoBroto}
               pose="acena"
             />
           </View>

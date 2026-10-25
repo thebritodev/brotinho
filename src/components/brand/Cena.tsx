@@ -163,7 +163,8 @@ type Props = {
    * cena curta diz onde está o céu livre.
    */
   ceuLivre?: {
-    sol: { x: number; y: number };
+    /** `escala` encolhe o sol, para céu baixo demais para o tamanho cheio. */
+    sol: { x: number; y: number; escala?: number };
     nuvens: Array<{ x: number; y: number; escala: number }>;
   };
 };
@@ -293,7 +294,7 @@ export function Cena({
         <Sol
           x={ceuLivre ? ceuLivre.sol.x : ASTRO.x * k}
           y={ceuLivre ? ceuLivre.sol.y : ASTRO.y}
-          k={k}
+          k={k * (ceuLivre?.sol.escala ?? 1)}
           parado={menosMovimento}
         />
       )}
