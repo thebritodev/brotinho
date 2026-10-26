@@ -28,6 +28,7 @@ enviar em **Visão geral da publicação**.
 | Categoria | Saúde e fitness |
 | Contato | `brotinho.suporte@gmail.com` · site `https://thebritodev.github.io/brotinho/` |
 | Teste de licença | lista "Brotinho - testes de assinatura" com o seu e-mail |
+| Teste interno | a mesma lista como testadores — falta só o `.aab` |
 | ID de publicidade | **não usa** — conferido no manifesto do `.aab`: não tem `AD_ID` |
 
 ---
@@ -112,18 +113,34 @@ controlo não envia arquivo desse tamanho — por isso é seu.
 Ative o plano básico de cada um (cada um tem o botão **Ativar**). `brotinho_semanal`
 **não** entra.
 
+**Os IDs dos planos básicos têm de ser exatamente `mensal` e `anual`**, e
+cada um marcado como compatível com versões anteriores (o primeiro plano já
+vem assim). A RevenueCat já está esperando por `brotinho_mensal:mensal` e
+`brotinho_anual:anual` — um ID diferente e a compra não libera nada.
+
 > Se preferir, me avise quando os passos 3 e 4 estiverem feitos e eu crio os
 > três produtos pelo navegador — não tem termo nem dado sensível ali.
 
 ## 6. RevenueCat no Android — **a chave é sua**
 
+**Já feito na RevenueCat (26/10/2026):** o app **Brotinho Android**
+(`com.brotinho.app`), os três produtos (`brotinho_mensal:mensal`,
+`brotinho_anual:anual`, `brotinho_vitalicio`), todos ligados ao `premium`, e
+cada um no pacote certo da oferta `brotinho` — que também está confirmada
+como a padrão. O semanal fica sem Android, de propósito.
+
+Falta só a credencial e a chave:
+
 1. **Google Cloud → IAM → Contas de serviço → Criar** · baixe a chave **JSON**
 2. Play Console → **Usuários e permissões → Convidar** o e-mail da conta de
    serviço, com permissão de **ver dados financeiros e gerenciar pedidos**
-3. RevenueCat → projeto Brotinho → **+ App → Google Play** · pacote
-   `com.brotinho.app` · envie o JSON
-4. Ligue os três produtos ao direito `premium` e à oferta `brotinho`
-5. Copie a chave pública `goog_…` e guarde no EAS **você mesmo**:
+3. RevenueCat → **Apps → Brotinho Android** → solte o JSON em *Service
+   Account Credentials JSON* → **Save changes**
+4. Ainda ali, siga *Google developer notifications* (a RevenueCat mostra o
+   tópico do Pub/Sub para colar no Play Console) — sem isso, cancelamentos e
+   renovações chegam com atraso
+5. **API keys → Brotinho Android** → copie a chave pública `goog_…` e guarde
+   no EAS **você mesmo**:
 
 ```bash
 npx eas-cli env:create --environment production --name EXPO_PUBLIC_REVENUECAT_ANDROID --value goog_COLE_AQUI --visibility sensitive
@@ -158,7 +175,7 @@ Antes de mandar essa build para o teste fechado:
 
 ---
 
-## App Store — dois itens
+## App Store — dois itens, e dois opcionais
 
 ### A etiqueta de privacidade — **falta uma finalidade**
 
@@ -175,6 +192,25 @@ Aprovada e parada em "Aguardando lançamento pelo desenvolvedor". Quando
 quiser: **App Store Connect → Distribuição → 1.3.3 → Lançar esta versão**.
 Depois disso eu abro a 1.3.4, e a build nova de iPhone sai a partir de
 **01/11**, quando a cota do EAS volta.
+
+### Opcional — a RevenueCat enxergar os produtos da Apple
+
+Os quatro produtos do iOS aparecem como **"Could not check"** na RevenueCat.
+Não é defeito de cobrança: a chave de compras (`XN4R2J2C47`) está válida, e é
+ela que confirma as compras. O que falta é a **chave da API do App Store
+Connect**, que só serve para a RevenueCat ler o estado e o preço dos produtos.
+Eu não envio chave privada para outro serviço, então é sua:
+
+**RevenueCat → Apps → Brotinho iOS → App Store Connect API → solte o
+`AuthKey_….p8`** (o Key ID e o Issuer são pedidos ali) **→ Save changes.**
+
+### Opcional — notificações do servidor da Apple
+
+Na mesma página, *Apple Server Notification URL* diz "No notifications
+received". Copie a URL que ela mostra e cole em **App Store Connect →
+Brotinho → Informações do app → Notificações do servidor da App Store →
+Produção** (versão 2). Assim cancelamentos e reembolsos chegam na hora, e não
+só quando a pessoa abre o app.
 
 ---
 

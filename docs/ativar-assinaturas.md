@@ -302,10 +302,11 @@ sai de venda na Apple assim que a 1.1.0 estiver no ar.
 
 ### 3.5 RevenueCat do lado Android
 
-- [ ] Criar o app **Brotinho Android** no projeto `b4c10115`
+- [x] Criar o app **Brotinho Android** no projeto `b4c10115` — `appebfea9312b`
 - [ ] Ligar à conta de serviço do Google (a mesma chave JSON do 3.3)
-- [ ] Vincular os três produtos ao direito **`premium`**
-- [ ] Acrescentar os pacotes à oferta **`brotinho`**
+- [x] Vincular os três produtos ao direito **`premium`** —
+      `brotinho_mensal:mensal`, `brotinho_anual:anual`, `brotinho_vitalicio`
+- [x] Acrescentar os pacotes à oferta **`brotinho`** — o semanal fica sem Android
 - [ ] Copiar a chave pública `goog_…` e guardá-la no EAS:
 
 ```
@@ -352,7 +353,8 @@ npm run confere-cobranca
 
 ### Os dois cliques que faltam
 
-**1. Confirmar que a oferta `brotinho` é a padrão.** O app pede
+**1. Confirmar que a oferta `brotinho` é a padrão.** ✅ Conferido em
+26/10/2026: a lista de ofertas mostra o selo de atual nela. O app pede
 `getOfferings().current`, e quem responde isso é a oferta marcada como
 **Default**. Cliquei em "Make Default" no menu dela, mas o painel não mostra
 indicador de qual é a atual, e a opção continua aparecendo — então **não dá para
