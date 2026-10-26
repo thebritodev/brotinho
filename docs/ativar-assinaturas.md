@@ -269,11 +269,20 @@ por nada.
 ### 3.3 Subir o primeiro `.aab` — **obrigatório antes dos produtos**
 
 ```
-npx eas-cli build --profile production --platform android
-npx eas-cli submit --platform android --profile production
+npx eas-cli build --profile primeiro-envio-play --platform android
 ```
 
-O segundo comando precisa de `chave-google-play.json` na raiz: sai do Google
+**O perfil é `primeiro-envio-play`, e não `production`** — corrigido em
+26/10/2026. A build de `production` exige a chave `goog_…`, e a trava da build
+(`scripts/trava-da-build.js`) para a compilação sem ela. Só que a chave só
+existe depois dos produtos, e os produtos só depois deste `.aab`. O perfil
+próprio abre essa porta e só ela: só Android, e o binário **não cobra** —
+teste interno, nunca produção.
+
+**O envio deste primeiro `.aab` é à mão**, no console: **Testar e lançar →
+Teste interno → Criar versão**, e arrastar o arquivo. O Google não aceita que o
+primeiro envio de um app novo venha pela API, então `eas submit` só funciona a
+partir do segundo. Para ele, `chave-google-play.json` na raiz: sai do Google
 Cloud em **IAM → Contas de serviço → Chaves → JSON**, depois de dar a essa conta
 acesso ao Play Console em **Usuários e permissões**. O `eas.json` já aponta para
 esse caminho, na trilha `internal` e como rascunho.

@@ -443,7 +443,7 @@ passo só existe depois do anterior, e nenhum deles pode ser invertido.
 |---|---|---|---|
 | 1 | Conta do Play Console criada e verificada | você | tudo |
 | 2 | App criado no console, com a ficha colada | você, com os textos daqui | o envio do `.aab` |
-| 3 | `.aab` de produção e envio para o teste fechado | eu, a partir de 01/10 | os produtos de assinatura |
+| 3 | `.aab` do perfil `primeiro-envio-play` (sem cobrança) e envio **à mão** para o teste interno | eu gero, você envia | os produtos de assinatura |
 | 4 | Produtos `brotinho_mensal` e `brotinho_anual` criados e ativos | você, no console | o RevenueCat enxergar |
 | 5 | App Android no RevenueCat e chave `goog_…` guardada no EAS | você gera, eu guardo | **a build que cobra** |
 | 6 | Build nova com a chave, e o teste fechado de 14 dias | eu | o pedido de produção |
