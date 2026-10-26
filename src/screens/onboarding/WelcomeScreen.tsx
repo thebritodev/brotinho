@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import {
+  type LayoutChangeEvent,
   Modal,
   Pressable,
   ScrollView,
@@ -18,6 +19,11 @@ import {
   CRISTA_DO_MORRO,
   TrazerDeVolta,
 } from '../../components';
+import {
+  alturaDoMascote,
+  caixaDoMascote,
+  medidasDoMascote,
+} from '../../components/brand/geometriaDoBroto';
 import { NA_CHEGADA } from '../../data/falasDoBroto';
 import { fonts, radius, useTema } from '../../theme';
 
@@ -44,14 +50,94 @@ export function WelcomeScreen({ onStart }: { onStart: () => void }) {
   const insets = useSafeAreaInsets();
   const { width, height } = useWindowDimensions();
   /*
-    A cena ocupa a metade de cima, e não uma altura fixa.
+    ## A cena fica com o que sobra, e o botão nunca sai da tela
 
-    540 sobre 844 é o que o documento desenha — pouco menos de dois terços.
-    Escrito como número fixo, num aparelho curto ela empurraria o botão para
-    fora da tela, e num alto sobraria uma faixa de céu sem nada. Como fração,
-    o enquadramento é o mesmo em qualquer aparelho.
+    A cena era 62% da altura da **janela**, sem descontar o que vem embaixo
+    dela. O texto e os dois botões medem uns 440 pontos, e a soma passava da
+    tela em todo aparelho: medido no navegador, o "Oi, Brotinho" ficava abaixo
+    da borda até numa tela de 414 por 814, e num iPhone X sobravam 181 pontos
+    para fora. A rolagem estava lá para resolver — e no iPhone do Pedro ela não
+    respondeu, com a primeira tela do app cortada e sem saída.
+
+    Agora a conta vai ao contrário: a altura da rolagem, menos o que o texto e
+    os botões medem **de verdade** (`onLayout`), é o que a cena recebe. Medir,
+    e não estimar, porque o texto muda de altura com a largura do aparelho e
+    com o tamanho da fonte do sistema. O broto acompanha a cena — ver
+    `tamanhoDoBroto`.
+
+    `CENA_MINIMA` é o piso: abaixo dele o desenho deixa de ser lugar. Uma tela
+    minúscula com letra gigante passa dele, e aí a rolagem volta a valer.
+    Antes da primeira medida, os números de partida são os do navegador.
   */
-  const alturaDaCena = Math.max(320, Math.min(height * 0.62, 560));
+  const respiroDeBaixo = 24 + insets.bottom;
+  const [alturaDaRolagem, setAlturaDaRolagem] = useState(height - insets.top);
+  /*
+    Tela baixa — os iPhone SE, de 647 pontos úteis para baixo: o texto aperta.
+
+    Ali o texto e os botões sozinhos já passam de dois terços da tela, e nenhum
+    tamanho de cena salva o botão. Título um pouco menor, margens menores e um
+    piso de cena mais baixo devolvem o "Oi, Brotinho" para dentro da tela sem
+    mudar nenhuma palavra.
+  */
+  const apertada = alturaDaRolagem < 700;
+  const CENA_MINIMA = apertada ? 170 : 220;
+  const MARGEM_DO_TEXTO = apertada ? 16 : 28;
+  const MARGEM_DOS_BOTOES = apertada ? 18 : 32;
+  const [alturaDoTexto, setAlturaDoTexto] = useState(270);
+  const [alturaDosBotoes, setAlturaDosBotoes] = useState(118);
+  const mede = (atual: number, definir: (v: number) => void) => (e: LayoutChangeEvent) => {
+    const h = Math.round(e.nativeEvent.layout.height);
+    if (h > 0 && Math.abs(h - atual) > 1) definir(h);
+  };
+  const alturaDaCena = Math.round(
+    Math.max(
+      CENA_MINIMA,
+      Math.min(
+        560,
+        alturaDaRolagem - respiroDeBaixo - MARGEM_DO_TEXTO - alturaDoTexto - MARGEM_DOS_BOTOES - alturaDosBotoes,
+      ),
+    ),
+  );
+  /*
+    O broto do tamanho da cena.
+
+    Era 270 fixo, para uma cena de 540 a 560. Com a cena encolhendo, um broto
+    fixo passaria do céu e encostaria no balão. Ele ocupa no máximo 62% da
+    altura da cena, acima da crista do morro, e nunca cresce além do 270 do
+    documento.
+  */
+  const tamanhoDoBroto = Math.round(
+    Math.min(270, ((alturaDaCena - CRISTA_DO_MORRO.grama) * 0.62 * 270) / alturaDoMascote(1, 270)),
+  );
+  /*
+    O broto à esquerda, e o balão começando onde ele termina.
+
+    Com o broto de 270 no meio, o balão cabia ao lado da cabeça dele. Com o
+    broto do tamanho da cena, o balão no mesmo lugar caía em cima do vaso. Então
+    o broto sai do meio — centrado no terço esquerdo da tela — e o balão começa
+    na borda direita do desenho, na altura da cabeça, com o bico apontando para
+    ela. As medidas são as do próprio desenho (`medidasDoMascote`), as mesmas
+    que o `AnimatedSprout` usa para se desenhar.
+  */
+  const quadroDoBroto = medidasDoMascote(caixaDoMascote(1, false), tamanhoDoBroto);
+  const centroDoBroto = Math.round(width * 0.32);
+  const pesDoBroto = alturaDaCena - CRISTA_DO_MORRO.grama;
+  const cabecaDoBroto = pesDoBroto - quadroDoBroto.altura;
+  const inicioDoBalao = Math.round(centroDoBroto + quadroDoBroto.largura / 2 - 6);
+  const topoDoBalao = Math.max(8, Math.round(cabecaDoBroto + quadroDoBroto.altura * 0.08));
+  /*
+    O sol sai da esquerda, onde agora mora o broto, e vai para o alto à
+    direita, acima do balão. Fica a 75% e só aparece se couber ali inteiro:
+    numa tela baixa o balão sobe até o topo, e um sol espremido contra ele é
+    pior que céu sem sol. A nuvem fica entre o broto e o balão, no alto.
+  */
+  const ESCALA_DO_SOL = 0.75;
+  const raioDoSol = 30 * (width / 390) * ESCALA_DO_SOL;
+  const solCabe = topoDoBalao >= raioDoSol * 2 + 22;
+  const ceuDaChegada = {
+    sol: { x: Math.round(width - 18 - raioDoSol * 1.5), y: Math.round(12 + raioDoSol), escala: ESCALA_DO_SOL },
+    nuvens: [{ x: Math.round(width * 0.4), y: 16, escala: 0.55 }],
+  };
   const [explicando, setExplicando] = useState(false);
   /**
    * A confirmação da volta ocupa o mesmo modal, como segundo passo.
@@ -69,9 +155,10 @@ export function WelcomeScreen({ onStart }: { onStart: () => void }) {
   return (
     <View style={{ flex: 1, paddingTop: insets.top }}>
       <ScrollView
+        onLayout={mede(alturaDaRolagem, setAlturaDaRolagem)}
         contentContainerStyle={{
           flexGrow: 1,
-          paddingBottom: 24 + insets.bottom,
+          paddingBottom: respiroDeBaixo,
           justifyContent: 'space-between',
         }}
         showsVerticalScrollIndicator={false}
@@ -97,6 +184,9 @@ export function WelcomeScreen({ onStart }: { onStart: () => void }) {
               ceu={palette.blue100}
               chao="grama"
               capim
+              semAstro={!solCabe}
+              ceuLivre={ceuDaChegada}
+              xDoBroto={centroDoBroto}
             />
             {/*
               O broto no meio, com os pés na crista do morro.
@@ -107,13 +197,13 @@ export function WelcomeScreen({ onStart }: { onStart: () => void }) {
             <View
               style={{
                 position: 'absolute',
-                left: 0,
-                right: 0,
+                left: centroDoBroto - quadroDoBroto.largura / 2,
+                width: quadroDoBroto.largura,
                 bottom: CRISTA_DO_MORRO.grama,
                 alignItems: 'center',
               }}
             >
-              <AnimatedSprout mood="feliz" stage={1} pose="acena" size={270} />
+              <AnimatedSprout mood="feliz" stage={1} pose="acena" size={tamanhoDoBroto} />
             </View>
             {/*
               O balão fica à esquerda do broto e aponta para ele.
@@ -123,7 +213,12 @@ export function WelcomeScreen({ onStart }: { onStart: () => void }) {
             */}
             <BalaoDoBroto
               lado="esquerda"
-              style={{ position: 'absolute', right: 20, top: alturaDaCena * 0.42, maxWidth: 190 }}
+              style={{
+                position: 'absolute',
+                left: inicioDoBalao,
+                right: 16,
+                top: topoDoBalao,
+              }}
             >
               <Text
                 style={{
@@ -138,13 +233,16 @@ export function WelcomeScreen({ onStart }: { onStart: () => void }) {
             </BalaoDoBroto>
           </View>
 
-          <View style={{ paddingHorizontal: 24, gap: 12, marginTop: 28 }}>
+          <View
+            onLayout={mede(alturaDoTexto, setAlturaDoTexto)}
+            style={{ paddingHorizontal: 24, gap: apertada ? 8 : 12, marginTop: MARGEM_DO_TEXTO }}
+          >
             <Text
               style={{
                 color: palette.brown400,
                 fontFamily: fonts.display.bold,
-                fontSize: 24,
-                lineHeight: 24 * 1.2,
+                fontSize: apertada ? 21 : 24,
+                lineHeight: (apertada ? 21 : 24) * 1.2,
               }}
             >
               Oi, eu sou o Brotinho
@@ -153,8 +251,8 @@ export function WelcomeScreen({ onStart }: { onStart: () => void }) {
               style={{
                 color: colors.textPrimary,
                 fontFamily: fonts.display.extraBold,
-                fontSize: 30,
-                lineHeight: 30 * 1.2,
+                fontSize: apertada ? 25 : 30,
+                lineHeight: (apertada ? 25 : 30) * 1.2,
               }}
             >
               Vou crescer junto com você, um dia de cada vez
@@ -181,8 +279,8 @@ export function WelcomeScreen({ onStart }: { onStart: () => void }) {
             <Text
               style={{
                 fontFamily: fonts.body.regular,
-                fontSize: 16,
-                lineHeight: 16 * 1.55,
+                fontSize: apertada ? 15 : 16,
+                lineHeight: (apertada ? 15 : 16) * (apertada ? 1.45 : 1.55),
                 color: palette.brown700,
               }}
             >
@@ -192,7 +290,10 @@ export function WelcomeScreen({ onStart }: { onStart: () => void }) {
           </View>
         </View>
 
-        <View style={{ paddingHorizontal: 24, gap: 10, marginTop: 32 }}>
+        <View
+          onLayout={mede(alturaDosBotoes, setAlturaDosBotoes)}
+          style={{ paddingHorizontal: 24, gap: 10, marginTop: MARGEM_DOS_BOTOES }}
+        >
           <Button size="lg" style={{ width: '100%' }} onPress={onStart}>
             Oi, Brotinho
           </Button>
