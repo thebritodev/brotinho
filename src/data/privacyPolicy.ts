@@ -27,7 +27,7 @@ export const OPERADOR = 'Pedro Henrique de Brito Pinto Ferreira';
  */
 export const CONTATO = 'brotinho.suporte@gmail.com';
 
-export const POLICY_VERSION = '1.0';
+export const POLICY_VERSION = '1.1';
 export const POLICY_DATE = 'outubro de 2026';
 
 export type PolicySection = { title: string; paragraphs: string[] };
@@ -54,7 +54,7 @@ export const PRIVACY_POLICY: PolicySection[] = [
     paragraphs: [
       'Não pedimos cadastro, e-mail ou senha.',
       'Não usamos serviços de análise de uso, rastreadores ou publicidade.',
-      'Não vendemos nem compartilhamos dados com terceiros.',
+      'Não vendemos dados. O único serviço de fora que recebe alguma coisa é o que confere a assinatura, descrito em “Assinatura” — e ele não recebe nada do que você registra.',
       'Não mantemos servidor nem banco de dados com os seus registros. Nós não temos acesso ao que você escreve.',
     ],
   },
@@ -131,11 +131,20 @@ export const PRIVACY_POLICY: PolicySection[] = [
     ],
   },
   {
+    title: 'Assinatura',
+    paragraphs: [
+      'Quem assina paga pela loja do próprio celular: a App Store, no iPhone, ou o Google Play, no Android. O pagamento, o cartão e os seus dados de cobrança ficam com a Apple ou com o Google — o Brotinho nunca os vê.',
+      'Para saber se a sua assinatura está ativa, o app usa a RevenueCat, uma empresa que presta esse serviço para nós. Ela recebe um código aleatório criado pelo app, que não traz seu nome, e-mail ou telefone, e o histórico de compras da assinatura na loja: qual plano, quando começou, se foi renovada ou cancelada. Com isso ela também nos mostra números somados das assinaturas, como quantas renovaram no mês. Nada do seu diário, do humor ou da Composta vai junto.',
+      'Esse histórico fica guardado enquanto for necessário para a assinatura funcionar. Para pedir que ele seja apagado, escreva para brotinho.suporte@gmail.com com o número do pedido que a loja mandou no recibo por e-mail: apagamos o registro na RevenueCat e respondemos confirmando. Cancelar a assinatura é com a própria loja, nas assinaturas da sua conta Apple ou Google.',
+    ],
+  },
+  {
     title: 'Seus direitos',
     paragraphs: [
       'Você pode ver e corrigir o que informou em Configurações › Meus dados.',
       'Você pode apagar tudo em Privacidade › Apagar meus dados. A exclusão no aparelho é imediata e definitiva. Se você usa a cópia de segurança do sistema, apague os dados pelo app antes de desinstalar, para que a cópia também fique vazia.',
       'A Lei Geral de Proteção de Dados (Lei 13.709/2018) garante a você acesso, correção, portabilidade e eliminação dos seus dados. Como todo o tratamento acontece no seu aparelho e sob seu controle, esses direitos se exercem pelas próprias telas do app: os registros estão no Diário, onde também dá para editá-los e apagá-los um a um, e em Privacidade você encontra “Baixar meus dados”, que gera um arquivo com tudo, e “Apagar meus dados”.',
+      'O que você registra fica todo no aparelho. Fora dele, só existe o histórico de compras de quem assina, guardado pela RevenueCat; para apagá-lo, veja “Assinatura”.',
     ],
   },
   {

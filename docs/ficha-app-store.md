@@ -382,8 +382,16 @@ Só o que vem junto com a assinatura, através do RevenueCat:
 
 | Categoria | Uso | Ligado à identidade? | Rastreamento? |
 |---|---|---|---|
-| Compras | Funcionalidade do app | Não | Não |
+| Compras | Funcionalidade do app **e Análise** | Não | Não |
 | Identificadores | Funcionalidade do app | Não | Não |
+
+> **Conferido na página pública em 26/10/2026:** a etiqueta publicada traz
+> Compras (histórico de compras) e Identificadores (ID de usuário e ID do
+> aparelho), não vinculados, só com "Funcionalidade do app". Falta **Análise**
+> em Compras: a RevenueCat diz que *"All RevenueCat users must select these
+> two options"* — funcionalidade e análise, porque o painel dela mostra os
+> números das assinaturas. Fonte:
+> https://www.revenuecat.com/docs/platform-resources/apple-platform-resources/apple-app-privacy
 
 > O RevenueCat publica um guia de como preencher esse questionário. **Siga o
 > deles**, porque muda conforme as versões do SDK — e é a fonte oficial.

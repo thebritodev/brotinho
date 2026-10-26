@@ -241,16 +241,32 @@ são as que a maioria vê.
 É um formulário, e é declaração legal sua. As respostas verdadeiras para o
 Brotinho como ele está hoje:
 
+**Preenchido no console em 26/10/2026**, como abaixo. Fica pendente até o
+primeiro envio para revisão.
+
 | Pergunta | Resposta |
 |---|---|
-| O app coleta ou compartilha algum dos tipos de dados exigidos? | **Sim** — só um, ver abaixo |
-| Tipo coletado | **Áudio › Gravações de voz ou som** |
-| É processado de forma efêmera? | **Sim** — só em memória, durante a prática, e nada é guardado |
-| É obrigatório ou opcional? | **Opcional** — só com a licença da pessoa |
-| Para quê | **Funcionalidade do app** |
-| É compartilhado? | **Não** — o Google transcreve em nome do app, como prestador de serviço |
-| Os dados são criptografados em trânsito? | **Sim** — o reconhecimento de fala do sistema usa conexão segura |
-| Você permite que o usuário peça a exclusão dos dados? | **Sim** — Perfil › Privacidade › Apagar tudo, e desinstalar leva o resto junto |
+| O app coleta ou compartilha algum dos tipos de dados exigidos? | **Sim** — dois, ver abaixo |
+| Os dados são criptografados em trânsito? | **Sim** |
+| Métodos de criação de conta | **Meu app não permite que os usuários criem uma conta** · login com conta de fora: **Não** |
+| Você oferece um meio de pedir a exclusão dos dados? | **Sim** — `https://thebritodev.github.io/brotinho/privacidade.html#s11` |
+
+| Tipo | Coletado / compartilhado | Efêmero | Obrigatório | Para quê |
+|---|---|---|---|---|
+| **Áudio › Gravações de voz ou som** | coletado, não compartilhado | **sim** | **não** — só com a licença da pessoa | funcionalidade do app |
+| **Informações financeiras › Histórico de compras** | coletado, não compartilhado | **não** | **sim** | funcionalidade do app **e** análise |
+
+**O histórico de compras entrou em 26/10/2026, e a versão anterior desta
+tabela estava errada.** Ela dizia que a assinatura não mudava a resposta. A
+RevenueCat diz o contrário, com todas as letras: *"Select 'Yes'. RevenueCat
+collects a customer's purchase history"*, obrigatório, para funcionalidade e
+análise. Fonte:
+https://www.revenuecat.com/docs/platform-resources/google-platform-resources/google-plays-data-safety
+
+A política de privacidade ganhou a seção 10, "Assinatura", no mesmo dia: ela
+dizia que nada era compartilhado com terceiros e não falava da RevenueCat. O
+link de exclusão aponta para a seção 11, "Seus direitos", que agora cobre as
+duas coisas — o que fica no aparelho e o histórico de compras.
 
 **Por que "Sim", e só isso — decidido em 25/10/2026.** Em celular que não
 reconhece fala sem internet, a Composta pode, **com licença da pessoa**, usar o
@@ -285,11 +301,10 @@ manifesto com `tools:node="remove"`. Quem abre a galeria é o seletor do própri
 Android, fora do app, e o Brotinho recebe de volta só a foto tocada. A seção 05
 da política de privacidade descreve isso em português.
 
-**A assinatura é a exceção que não muda a resposta:** quem assina passa pelo
-Google Play Billing, e quem coleta ali é o Google, não o app. O RevenueCat
-recebe um identificador anônimo de aparelho e o status da compra — declare como
-**compartilhado** apenas se o formulário perguntar por "IDs de dispositivo", e
-marque o uso como "gerenciamento de conta / funcionalidade do app".
+**A assinatura entra como histórico de compras, e só isso.** O pagamento é do
+Google Play Billing, e o cartão nunca chega ao app. A RevenueCat recebe um
+código anônimo criado pelo app e o histórico de compras. "IDs de dispositivo"
+só seria exigido se o app usasse o ID de publicidade, e não usa.
 
 ---
 
