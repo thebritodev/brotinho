@@ -229,7 +229,7 @@ Precisa definir uma senha, e senha eu não digito.
 
 ---
 
-## FASE 3 — Google (Android) — não começado
+## FASE 3 — Google (Android) — app criado em 26/10/2026
 
 **Decidido em 13/09/2026: o Android estreia cobrando.** Isso fixa a ordem
 abaixo, porque no Google a cobrança depende de coisas que só existem depois do
@@ -252,15 +252,17 @@ por nada.
 
 ### 3.1 Criar a conta
 
-- [ ] <https://play.google.com/console/signup> — US$ 25, uma vez só
-- [ ] Verificação de identidade — 1 a 3 dias, às vezes mais
+- [x] <https://play.google.com/console/signup> — US$ 25, uma vez só
+- [x] Verificação de identidade — 1 a 3 dias, às vezes mais
 - [ ] **Configurações → Perfil de pagamentos** — dados bancários e fiscais.
       Sem ele o Google não repassa dinheiro nenhum, mesmo com produto ativo.
 
 ### 3.2 Criar o app
 
-- [ ] Play Console → **Criar app**
-- [ ] Nome: `Brotinho: Diário e Bem-estar` · Tipo: App · **Gratuito**
+- [x] Play Console → **Criar app** — `4973115602686237176`
+- [x] Nome: `Brotinho: Diário e Bem-estar` · Tipo: App · **Gratuito**
+- [x] Ficha, categoria, contato e dez das onze tarefas de configuração (falta a classificação de conteúdo) —
+      o que falta, e o passo a passo, em [`passo-a-passo-pedro.md`](passo-a-passo-pedro.md)
 
 > Sim, **gratuito**. "Pago" é quando se cobra para baixar. O Brotinho é baixado
 > de graça e cobra dentro do app — para o Google, isso é um app gratuito com
@@ -318,7 +320,7 @@ npm run confere-cobranca
 
 ### 3.6 Testadores
 
-- [ ] **Configurações → Teste de licença** — adicione seu e-mail do Google
+- [x] **Configurações → Teste de licença** — lista "Brotinho - testes de assinatura", com o seu e-mail
 - [ ] Trilha de **Teste fechado** — os 12 e-mails, e eles precisam **aceitar o
       convite e instalar**; contar 12 na lista não basta
 - [ ] Os 14 dias correm a partir daí, sem interrupção
