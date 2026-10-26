@@ -106,6 +106,52 @@ confere(
   1,
 );
 
+/*
+  O primeiro envio da Play, e so ele.
+
+  A Play so deixa criar as assinaturas depois que um .aab com permissao de
+  cobranca foi enviado — e a chave da RevenueCat so existe depois das
+  assinaturas. Entao o primeiro .aab sai sem a chave, por um perfil proprio. Os
+  casos abaixo cercam essa porta: ela abre so para Android, e continua fechada
+  para o audio sair do aparelho.
+*/
+confere(
+  'primeiro envio da Play, android sem a chave: segue',
+  { ...LIMPO, EAS_BUILD_PROFILE: 'primeiro-envio-play', EAS_BUILD_PLATFORM: 'android' },
+  0,
+);
+confere(
+  'primeiro envio da Play no iPhone: para a build',
+  { ...LIMPO, EAS_BUILD_PROFILE: 'primeiro-envio-play', EAS_BUILD_PLATFORM: 'ios' },
+  1,
+);
+confere(
+  'primeiro envio da Play com a transcrição: para a build',
+  {
+    ...LIMPO,
+    EAS_BUILD_PROFILE: 'primeiro-envio-play',
+    EAS_BUILD_PLATFORM: 'android',
+    EXPO_PUBLIC_TRANSCRIPTION_URL: 'https://exemplo.com/transcrever',
+  },
+  1,
+);
+/* E o perfil precisa existir no eas.json, como Android que gera .aab, e no
+   ambiente de producao: um perfil de nome certo apontando para outro ambiente
+   escaparia da conferencia do audio por outro caminho. */
+const eas = require(path.join(__dirname, '..', 'eas.json'));
+const primeiro = eas.build && eas.build['primeiro-envio-play'];
+casos += 1;
+const perfilCerto =
+  !!primeiro
+  && primeiro.extends === 'production'
+  && primeiro.android
+  && primeiro.android.buildType === 'app-bundle';
+if (!perfilCerto) {
+  falhas += 1;
+  detalhes.push('  FALHA o perfil `primeiro-envio-play` não existe, ou não estende `production` gerando .aab');
+}
+console.log(`  ${perfilCerto ? 'ok   ' : 'FALHA'} o perfil \`primeiro-envio-play\` estende produção e gera .aab`);
+
 /* E o gancho precisa continuar ligado no `package.json`: a trava mais bem
    escrita do mundo nao serve se o EAS nunca a chamar. */
 const pkg = require(path.join(__dirname, '..', 'package.json'));

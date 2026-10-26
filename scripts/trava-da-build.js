@@ -36,6 +36,38 @@ console.log(`[trava-da-build] perfil "${perfil}", plataforma "${plataforma}"`);
 const problemas = [];
 
 /*
+  ## O primeiro envio da Play
+
+  A Play so deixa criar as assinaturas depois que um .aab com permissao de
+  cobranca foi enviado ao console — e a chave da RevenueCat so existe depois
+  das assinaturas. O primeiro .aab, entao, sai **sem** a chave, e a regra de
+  baixo o barraria. Ele tem perfil proprio no `eas.json`, e e so por ele que a
+  porta abre:
+
+  - so Android: no iPhone nao ha esse ovo-e-galinha, e a chave ja existe;
+  - a conferencia do audio continua valendo, como em producao;
+  - o binario nao cobra. Ele vai para o teste interno e nunca para producao —
+    a build que vai para a loja e a de `production`, com a chave, e versao maior.
+*/
+const PRIMEIRO_ENVIO = 'primeiro-envio-play';
+const deLoja = perfil === 'production' || perfil === PRIMEIRO_ENVIO;
+
+if (perfil === PRIMEIRO_ENVIO) {
+  if (plataforma !== 'android') {
+    problemas.push(
+      `O perfil "${PRIMEIRO_ENVIO}" é só para o primeiro .aab da Play.\n` +
+        '    No iPhone a build de loja é a de "production", com a chave.',
+    );
+  } else {
+    console.log('');
+    console.log('[trava-da-build] ATENÇÃO — PRIMEIRO ENVIO DA PLAY, SEM COBRANÇA');
+    console.log('[trava-da-build] Este .aab não cobra: existe só para destravar as');
+    console.log('[trava-da-build] assinaturas no console. Teste interno, nunca produção.');
+    console.log('');
+  }
+}
+
+/*
   A chave da loja. So em producao: as builds de desenvolvimento e de preview
   existem justamente para rodar o app sem cobrar, e `cobrancaDisponivel()`
   devolve falso sem ela, o que faz o paywall deixar passar. Ver
@@ -62,9 +94,10 @@ if (perfil === 'production') {
   E nada pode mandar o diario para fora.
 
   A declaracao de privacidade das duas lojas diz que nada sai do aparelho, e
-  isso so e verdade enquanto esta variavel nao chega a uma build de producao.
+  isso so e verdade enquanto esta variavel nao chega a uma build de loja —
+  inclusive a do primeiro envio da Play.
 */
-if (perfil === 'production') {
+if (deLoja) {
   const fora = (process.env.EXPO_PUBLIC_TRANSCRIPTION_URL || '').trim();
   if (fora) {
     problemas.push(

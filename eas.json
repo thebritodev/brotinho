@@ -29,6 +29,12 @@
       "ios": {
         "resourceClass": "m-medium"
       }
+    },
+    "primeiro-envio-play": {
+      "extends": "production",
+      "android": {
+        "buildType": "app-bundle"
+      }
     }
   },
   "submit": {
