@@ -21,8 +21,11 @@ import {
 } from '../../components';
 import {
   alturaDoMascote,
-  caixaDoMascote,
-  medidasDoMascote,
+  BULB_R,
+  CX,
+  noQuadro,
+  quadroDoBroto,
+  STEM_TOP_Y,
 } from '../../components/brand/geometriaDoBroto';
 import { NA_CHEGADA } from '../../data/falasDoBroto';
 import { fonts, radius, useTema } from '../../theme';
@@ -70,7 +73,20 @@ export function WelcomeScreen({ onStart }: { onStart: () => void }) {
     Antes da primeira medida, os números de partida são os do navegador.
   */
   const respiroDeBaixo = 24 + insets.bottom;
-  const [alturaDaRolagem, setAlturaDaRolagem] = useState(height - insets.top);
+  /*
+    O céu sobe até o topo da tela, por trás da barra de status.
+
+    A tela tinha `paddingTop: insets.top` na raiz, e a faixa do relógio e da
+    bateria ficava com a cor da página — o céu começava abaixo dela, como um
+    quadro colado. Agora a rolagem começa no pixel zero, a cena ganha a altura
+    da barra de status (`topo`) e o desenho dela continua por trás. Tudo que é
+    posicionado no alto da cena — balão, sol, nuvem — soma `topo`; o broto é
+    contado do chão e não muda.
+  */
+  const topo = insets.top;
+  const [alturaDaRolagem, setAlturaDaRolagem] = useState(height);
+  /** A altura que a tela tem para o conteúdo, abaixo da barra de status. */
+  const util = alturaDaRolagem - topo;
   /*
     Tela baixa — os iPhone SE, de 647 pontos úteis para baixo: o texto aperta.
 
@@ -79,7 +95,7 @@ export function WelcomeScreen({ onStart }: { onStart: () => void }) {
     piso de cena mais baixo devolvem o "Oi, Brotinho" para dentro da tela sem
     mudar nenhuma palavra.
   */
-  const apertada = alturaDaRolagem < 700;
+  const apertada = util < 700;
   const CENA_MINIMA = apertada ? 170 : 220;
   const MARGEM_DO_TEXTO = apertada ? 16 : 28;
   const MARGEM_DOS_BOTOES = apertada ? 18 : 32;
@@ -94,7 +110,7 @@ export function WelcomeScreen({ onStart }: { onStart: () => void }) {
       CENA_MINIMA,
       Math.min(
         560,
-        alturaDaRolagem - respiroDeBaixo - MARGEM_DO_TEXTO - alturaDoTexto - MARGEM_DOS_BOTOES - alturaDosBotoes,
+        util - respiroDeBaixo - MARGEM_DO_TEXTO - alturaDoTexto - MARGEM_DOS_BOTOES - alturaDosBotoes,
       ),
     ),
   );
@@ -110,21 +126,30 @@ export function WelcomeScreen({ onStart }: { onStart: () => void }) {
     Math.min(270, ((alturaDaCena - CRISTA_DO_MORRO.grama) * 0.62 * 270) / alturaDoMascote(1, 270)),
   );
   /*
-    O broto à esquerda, e o balão começando onde ele termina.
+    O broto à esquerda, e o balão apontando para a cabeça dele.
 
     Com o broto de 270 no meio, o balão cabia ao lado da cabeça dele. Com o
     broto do tamanho da cena, o balão no mesmo lugar caía em cima do vaso. Então
-    o broto sai do meio — centrado no terço esquerdo da tela — e o balão começa
-    na borda direita do desenho, na altura da cabeça, com o bico apontando para
-    ela. As medidas são as do próprio desenho (`medidasDoMascote`), as mesmas
-    que o `AnimatedSprout` usa para se desenhar.
+    o broto sai do meio — centrado no terço esquerdo da tela — e o balão vem
+    para a direita dele.
+
+    O bico do balão sai do meio da lateral e aponta reto. Para apontar **para o
+    broto**, o meio do balão fica na altura do centro da cabeça, e a ponta do
+    bico encosta um pouco à direita dela. O centro da cabeça é a mesma conta que
+    o `AnimatedSprout` faz para pôr os zês e os brilhos (`noQuadro` no topo da
+    haste), então os dois não têm como discordar. A altura do balão é medida:
+    ela muda com a fonte do sistema.
   */
-  const quadroDoBroto = medidasDoMascote(caixaDoMascote(1, false), tamanhoDoBroto);
+  const quadro = quadroDoBroto(1, tamanhoDoBroto);
   const centroDoBroto = Math.round(width * 0.32);
-  const pesDoBroto = alturaDaCena - CRISTA_DO_MORRO.grama;
-  const cabecaDoBroto = pesDoBroto - quadroDoBroto.altura;
-  const inicioDoBalao = Math.round(centroDoBroto + quadroDoBroto.largura / 2 - 6);
-  const topoDoBalao = Math.max(8, Math.round(cabecaDoBroto + quadroDoBroto.altura * 0.08));
+  const pesDoBroto = alturaDaCena + topo - CRISTA_DO_MORRO.grama;
+  const cabeca = noQuadro(quadro, CX, STEM_TOP_Y[1] - 4);
+  const cabecaX = centroDoBroto - quadro.largura / 2 + cabeca.x;
+  const cabecaY = pesDoBroto - quadro.altura + cabeca.y;
+  const raioDaCabeca = BULB_R[1] * quadro.escala;
+  const [alturaDoBalao, setAlturaDoBalao] = useState(72);
+  const inicioDoBalao = Math.round(cabecaX + raioDaCabeca + 6);
+  const topoDoBalao = Math.max(topo + 8, Math.round(cabecaY - alturaDoBalao / 2));
   /*
     O sol sai da esquerda, onde agora mora o broto, e vai para o alto à
     direita, acima do balão. Fica a 75% e só aparece se couber ali inteiro:
@@ -133,10 +158,14 @@ export function WelcomeScreen({ onStart }: { onStart: () => void }) {
   */
   const ESCALA_DO_SOL = 0.75;
   const raioDoSol = 30 * (width / 390) * ESCALA_DO_SOL;
-  const solCabe = topoDoBalao >= raioDoSol * 2 + 22;
+  const solCabe = topoDoBalao - topo >= raioDoSol * 2 + 22;
   const ceuDaChegada = {
-    sol: { x: Math.round(width - 18 - raioDoSol * 1.5), y: Math.round(12 + raioDoSol), escala: ESCALA_DO_SOL },
-    nuvens: [{ x: Math.round(width * 0.4), y: 16, escala: 0.55 }],
+    sol: {
+      x: Math.round(width - 18 - raioDoSol * 1.5),
+      y: Math.round(topo + 12 + raioDoSol),
+      escala: ESCALA_DO_SOL,
+    },
+    nuvens: [{ x: Math.round(width * 0.4), y: topo + 16, escala: 0.55 }],
   };
   const [explicando, setExplicando] = useState(false);
   /**
@@ -153,7 +182,7 @@ export function WelcomeScreen({ onStart }: { onStart: () => void }) {
   };
 
   return (
-    <View style={{ flex: 1, paddingTop: insets.top }}>
+    <View style={{ flex: 1 }}>
       <ScrollView
         onLayout={mede(alturaDaRolagem, setAlturaDaRolagem)}
         contentContainerStyle={{
@@ -176,11 +205,27 @@ export function WelcomeScreen({ onStart }: { onStart: () => void }) {
           certo: acima do botão. O texto encosta no desenho e vira legenda
           dele, que é o que ele sempre foi.
         */}
+        {/*
+          O céu de quando se puxa o topo: no iPhone a rolagem estica além do
+          começo, e o que aparecia ali era a cor da página. Fora de vista em
+          repouso.
+        */}
+        <View
+          pointerEvents="none"
+          style={{
+            position: 'absolute',
+            top: -1000,
+            left: 0,
+            right: 0,
+            height: 1000,
+            backgroundColor: palette.blue100,
+          }}
+        />
         <View>
-          <View style={{ height: alturaDaCena }}>
+          <View style={{ height: alturaDaCena + topo }}>
             <Cena
               largura={width}
-              altura={alturaDaCena}
+              altura={alturaDaCena + topo}
               ceu={palette.blue100}
               chao="grama"
               capim
@@ -197,8 +242,8 @@ export function WelcomeScreen({ onStart }: { onStart: () => void }) {
             <View
               style={{
                 position: 'absolute',
-                left: centroDoBroto - quadroDoBroto.largura / 2,
-                width: quadroDoBroto.largura,
+                left: centroDoBroto - quadro.largura / 2,
+                width: quadro.largura,
                 bottom: CRISTA_DO_MORRO.grama,
                 alignItems: 'center',
               }}
@@ -211,15 +256,11 @@ export function WelcomeScreen({ onStart }: { onStart: () => void }) {
               Ele sai do alinhamento do texto de baixo de propósito: fala não é
               parágrafo, e um balão alinhado à margem lê como legenda.
             */}
-            <BalaoDoBroto
-              lado="esquerda"
-              style={{
-                position: 'absolute',
-                left: inicioDoBalao,
-                right: 16,
-                top: topoDoBalao,
-              }}
+            <View
+              onLayout={mede(alturaDoBalao, setAlturaDoBalao)}
+              style={{ position: 'absolute', left: inicioDoBalao, right: 16, top: topoDoBalao }}
             >
+            <BalaoDoBroto lado="esquerda">
               <Text
                 style={{
                   fontFamily: fonts.body.bold,
@@ -231,6 +272,7 @@ export function WelcomeScreen({ onStart }: { onStart: () => void }) {
                 {NA_CHEGADA}
               </Text>
             </BalaoDoBroto>
+            </View>
           </View>
 
           <View
