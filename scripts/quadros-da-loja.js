@@ -24,8 +24,15 @@
  * O `z-index` resolve sem mexer em posicao — a terra passa a ser fundo, que e
  * o que ela sempre quis ser.
  *
- * Uso: node scripts/quadros-da-loja.js [quadro]
- *   quadro: 1..6, ou `todos`
+ * ## E a Play, com `--play`
+ *
+ * A Google recusa captura em que o lado maior passa do dobro do menor, e
+ * 2556 / 1179 da 2,17. O mesmo quadro sai entao em 9:16, 1080 x 1920 — o
+ * tamanho que a Play recomenda para destaque. A composicao e a mesma, numa
+ * pagina mais baixa: o aparelho ja sangra pela base, so sangra mais.
+ *
+ * Uso: node scripts/quadros-da-loja.js [quadro] [--play]
+ *   quadro: 1..7, ou `todos`
  */
 const { chromium } = require('playwright');
 const path = require('path');
@@ -33,11 +40,16 @@ const fs = require('fs');
 
 const RAIZ = path.join(__dirname, '..');
 const CAPTURAS = path.join(RAIZ, 'capturas');
-const SAIDA = path.join(RAIZ, 'loja', 'app-store');
+const PLAY = process.argv.includes('--play');
+const SAIDA = PLAY
+  ? path.join(RAIZ, 'loja', 'google-play', 'capturas')
+  : path.join(RAIZ, 'loja', 'app-store');
 
 /** O obrigatorio de hoje: iPhone com Dynamic Island, tamanho medio. */
 const LARGURA = 1179;
-const ALTURA = 2556;
+/* Na Play, 9:16 na mesma largura; a foto sai reduzida para 1080 x 1920. */
+const ALTURA = PLAY ? Math.round((LARGURA * 16) / 9) : 2556;
+const ESCALA = PLAY ? 1080 / LARGURA : 1;
 
 /* A paleta, copiada de `theme/tokens` — a mesma do app, e nao uma segunda. */
 const CREME = '#FBF6EC';
@@ -366,7 +378,7 @@ const TRATAMENTOS = {
 };
 
 (async () => {
-  const pedido = (process.argv[2] || 'todos').toLowerCase();
+  const pedido = (process.argv.slice(2).find((a) => !a.startsWith('--')) || 'todos').toLowerCase();
   const quais =
     pedido === 'todos'
       ? QUADROS.map((_, i) => i)
@@ -378,7 +390,10 @@ const TRATAMENTOS = {
   fs.mkdirSync(SAIDA, { recursive: true });
 
   const b = await chromium.launch();
-  const p = await b.newPage({ viewport: { width: LARGURA, height: ALTURA } });
+  const p = await b.newPage({
+    viewport: { width: LARGURA, height: ALTURA },
+    deviceScaleFactor: ESCALA,
+  });
 
   for (const i of quais) {
     const q = QUADROS[i];
@@ -421,7 +436,9 @@ const TRATAMENTOS = {
 
     const arquivo = path.join(SAIDA, `${i + 1}-${q.arquivo.replace(/^\d+-/, '')}`);
     await p.screenshot({ path: arquivo });
-    console.log(`  ${path.relative(RAIZ, arquivo)}  ${LARGURA} × ${ALTURA}`);
+    console.log(
+      `  ${path.relative(RAIZ, arquivo)}  ${Math.round(LARGURA * ESCALA)} × ${Math.round(ALTURA * ESCALA)}`,
+    );
   }
   await b.close();
 })();

@@ -215,9 +215,17 @@ canal alfa nesse campo. O script já gera sem.
 
 ### Capturas de tela
 
-As sete de `capturas/` servem: o Google aceita de 320 a 3840 px de lado, e
-1242 × 2688 cai dentro. São **as mesmas** da App Store, geradas por
-`node scripts/capturas.js`.
+São as sete de `loja/google-play/capturas/`, em 1080 × 1920. **Não** são os
+arquivos da App Store: o Google aceita de 320 a 3840 px de lado, mas recusa
+captura em que o lado maior passa do dobro do menor, e 1179 × 2556 dá 2,17.
+Os quadros são os mesmos, na mesma ordem, recompostos em 9:16:
+
+```
+node scripts/quadros-da-loja.js todos --play
+```
+
+O 9:16 em 1080 × 1920 também é o que a Play pede para a ficha poder aparecer
+nas vitrines dela.
 
 O mínimo é 2 e o máximo é 8. A ordem importa menos do que na Apple, porque a
 Play mostra a faixa de destaque antes das capturas — mas as duas primeiras ainda

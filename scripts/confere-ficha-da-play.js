@@ -18,7 +18,9 @@
  *   exige, com todas as letras — app de saúde sem elas é recusado;
  * - o ícone tem 512 × 512 e o destaque 1024 × 500, sem transparência;
  * - existem pelo menos duas capturas, no máximo oito, todas entre 320 e 3840
- *   pixels de lado;
+ *   pixels de lado, e nenhuma com o lado maior passando do dobro do menor —
+ *   as da App Store (2556 / 1179) passam, e por isso a Play tem as suas, em
+ *   `loja/google-play/capturas/` (`quadros-da-loja.js --play`);
  * - os links obrigatórios estão na ficha e são https.
  *
  * Ele **não** acessa a internet: se os endereços ainda respondem é outra
@@ -27,7 +29,7 @@
  * ## Por que as imagens ficam fora da bateria
  *
  * O ícone, o destaque e as capturas são **gerados** (`graficos-da-play.js`,
- * `capturas.js`) e o Git os ignora. Num checkout limpo eles não existem — e
+ * `quadros-da-loja.js --play`) e o Git os ignora. Num checkout limpo eles não existem — e
  * a bateria, que roda em checkout limpo antes de cada commit, quebrava por
  * causa de um arquivo que ninguém esqueceu de versionar: ele não é para ser
  * versionado. Na bateria entram só os textos; as imagens são conferidas
@@ -144,8 +146,8 @@ if (SO_TEXTOS) {
   if (destaque.transparente) falhou('o destaque tem transparência, e o Google recusa alfa nesse campo');
   else ok('o destaque não tem transparência');
 
-  const capturas = fs
-    .readdirSync(path.join(RAIZ, 'capturas'))
+  const PASTA = path.join('loja', 'google-play', 'capturas');
+  const capturas = (fs.existsSync(path.join(RAIZ, PASTA)) ? fs.readdirSync(path.join(RAIZ, PASTA)) : [])
     .filter((n) => /^\d/.test(n) && n.endsWith('.png'))
     .sort();
   if (capturas.length < 2) falhou(`${capturas.length} captura(s): o Google exige pelo menos 2`);
@@ -153,14 +155,20 @@ if (SO_TEXTOS) {
   else ok(`${capturas.length} capturas, entre 2 e 8`);
 
   for (const nome of capturas) {
-    const c = imagem(path.join('capturas', nome));
+    const c = imagem(path.join(PASTA, nome));
     const menor = Math.min(c.largura, c.altura);
     const maior = Math.max(c.largura, c.altura);
     if (menor < 320 || maior > 3840) {
       falhou(`${nome}: ${c.largura} × ${c.altura}, fora da faixa de 320 a 3840`);
     }
+    if (maior > 2 * menor) {
+      falhou(`${nome}: ${c.largura} × ${c.altura}, o lado maior passa do dobro do menor`);
+    }
   }
-  if (capturas.length) ok('todas as capturas cabem na faixa de 320 a 3840 pixels');
+  if (capturas.length) {
+    ok('todas as capturas cabem na faixa de 320 a 3840 pixels');
+    ok('nenhuma passa de 2 : 1');
+  }
 }
 
 for (const link of LINKS) {
