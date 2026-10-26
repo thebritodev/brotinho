@@ -28,7 +28,7 @@ enviar em **Visão geral da publicação**.
 | Categoria | Saúde e fitness |
 | Contato | `brotinho.suporte@gmail.com` · site `https://thebritodev.github.io/brotinho/` |
 | Teste de licença | lista "Brotinho - testes de assinatura" com o seu e-mail |
-| Teste interno | a mesma lista como testadores — falta só o `.aab` |
+| Teste interno | a mesma lista como testadores, e o rascunho da versão com nome e notas — falta só o `.aab` |
 | ID de publicidade | **não usa** — conferido no manifesto do `.aab`: não tem `AD_ID` |
 
 ---
@@ -89,14 +89,15 @@ que estou acompanhando; o link e o caminho do arquivo ficam no fim deste
 documento quando ela terminar. O arquivo passa de 10 MB, e o navegador que eu
 controlo não envia arquivo desse tamanho — por isso é seu.
 
-1. **Testar e lançar → Teste interno → Criar versão**
-2. Se pedir, aceite a **Assinatura de apps do Google Play** (termos — seu)
-3. Arraste o `.aab`
-4. Nome da versão: deixe o sugerido · Notas: `Primeira versão do Brotinho no Android.`
-5. **Avançar → Salvar e publicar** (o teste interno não passa por revisão
-   demorada; quem instala são só os testadores internos)
-6. Em **Testadores**, crie uma lista com o seu e-mail e copie o link de
-   participação para instalar no seu Android
+**O rascunho da versão já existe**, com nome `1.3.3 (2)` e as notas
+`Primeira versão do Brotinho no Android.` — e a assinatura de apps pelo Google
+Play já está ligada, então não aparece termo nenhum. Os testadores também já
+estão escolhidos (a lista com o seu e-mail).
+
+1. **Testar e lançar → Teste interno → Editar versão** (o rascunho)
+2. Arraste o `.aab` na caixa **"Solte os pacotes de apps aqui"**
+3. **Avançar → Salvar e publicar**
+4. Na aba **Testadores**, **Copiar link** e abra no seu Android para instalar
 
 ## 5. Criar os produtos — **depois dos passos 3 e 4**
 
