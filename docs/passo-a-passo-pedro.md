@@ -33,7 +33,11 @@ enviar em **Visão geral da publicação**.
 
 ---
 
-## 1. Autorizar a política nova no site — **uma palavra**
+## 1. Autorizar a política nova no site — **feito em 26/10/2026**
+
+> Publicada e conferida no ar: versão 1.1, seção 10 "Assinatura", e o link
+> de exclusão (#s11) cai em "Seus direitos". O resto desta seção fica como
+> registro.
 
 A política dizia que nada era compartilhado com terceiros e não falava da
 RevenueCat, que recebe um código anônimo e o histórico de compras de quem
