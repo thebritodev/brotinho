@@ -304,11 +304,17 @@ sai de venda na Apple assim que a 1.1.0 estiver no ar.
 ### 3.5 RevenueCat do lado Android
 
 - [x] Criar o app **Brotinho Android** no projeto `b4c10115` — `appebfea9312b`
-- [ ] Ligar à conta de serviço do Google (a mesma chave JSON do 3.3)
+- [x] Ligar à conta de serviço do Google (a mesma chave JSON do 3.3) — salva
+      em 26/10/2026; a checagem "validar compras" fica verde sozinha em até 36 h
+- [x] Notificações em tempo real (27/10/2026): tópico
+      `projects/brotinho-512902/topics/Play-Store-Notifications`, ligado no Play
+      Console, teste recebido pela RevenueCat. A conta de serviço precisa de
+      **Administrador do Pub/Sub** — com o Editor que o guia da RevenueCat
+      indica, o tópico é criado mas o Google Play não ganha acesso a ele
 - [x] Vincular os três produtos ao direito **`premium`** —
       `brotinho_mensal:mensal`, `brotinho_anual:anual`, `brotinho_vitalicio`
 - [x] Acrescentar os pacotes à oferta **`brotinho`** — o semanal fica sem Android
-- [ ] Copiar a chave pública `goog_…` e guardá-la no EAS:
+- [x] Copiar a chave pública `goog_…` e guardá-la no EAS (27/10/2026):
 
 ```
 npx eas-cli env:create --environment production --name EXPO_PUBLIC_REVENUECAT_ANDROID --value goog_xxx --visibility sensitive

@@ -148,7 +148,12 @@ vem assim). A RevenueCat já está esperando por `brotinho_mensal:mensal` e
 > Se preferir, me avise quando os passos 3 e 4 estiverem feitos e eu crio os
 > três produtos pelo navegador — não tem termo nem dado sensível ali.
 
-## 6. RevenueCat no Android — **a chave é sua**
+## 6. RevenueCat no Android — feito em 27/10/2026
+
+Credencial salva, notificações em tempo real ligadas (teste recebido) e chave
+`goog_…` no EAS; `confere-cobranca production android` passou. O que segue é o
+registro de como foi. Na conta de serviço, o papel que funcionou foi
+**Administrador do Pub/Sub** (não o "Lite", e não o Editor).
 
 **Já feito na RevenueCat (26/10/2026):** o app **Brotinho Android**
 (`com.brotinho.app`), os três produtos (`brotinho_mensal:mensal`,
@@ -248,7 +253,7 @@ só quando a pessoa abre o app.
 | Arquivo | `loja/google-play/brotinho-1.3.3-2-primeiro-envio.aab` (70 MB) |
 | Link | https://expo.dev/artifacts/eas/H1WDXo_62V1stCGceknCnXzgpZqWloTb96VJjE5W_QA.aab |
 | Versão | 1.3.3, código 2 · perfil `primeiro-envio-play` · commit `13cbee5` |
-| Cobrança | **não cobra** — sem a chave `goog_…`; é para o teste interno |
+| Cobrança | **não cobra** — sem a chave `goog_…`; é para o teste interno (a build seguinte, de 27/10/2026, já cobra) |
 
 Conferido no manifesto: tem `com.android.vending.BILLING` (é o que destrava a
 criação das assinaturas) e não tem `AD_ID` nem as permissões de leitura da
