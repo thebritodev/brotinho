@@ -51,6 +51,28 @@ O link de exclusão da Segurança dos dados já aponta para a seção 11 nova.
 **Até publicar, ele cai na seção errada** — no site de hoje, a 11 é "Crianças e
 adolescentes". Publique antes de mandar qualquer coisa para revisão.
 
+## Feito em 26/10/2026, na sua tela
+
+| Passo | Resultado |
+|---|---|
+| 2. Classificação de conteúdo | enviada; **14 anos no Brasil** (só por ter compra no app), Livre/3+ no resto |
+| 3. Perfil de pagamentos | criado, pessoa física, informações fiscais aceitas para o Brasil |
+| 4. Primeiro `.aab` | `1.3.3 (2)` publicado no teste interno às 22:56 |
+| 5. Produtos | `brotinho_mensal` (plano `mensal`, R$ 29,90) e `brotinho_anual` (plano `anual`, R$ 179,90), os dois **ativos**, 178 países |
+
+**Ainda seu, no Play Console:**
+- **Taxa de 15%:** o grupo de contas está criado, só com a sua conta. Falta o aceite: em *Gerenciar conta → Contas de desenvolvedor associadas*, a faixa **Revisar e fazer inscrição** (pode levar alguns minutos para aparecer depois de criar o grupo) → aceitar os termos. As assinaturas já pagam 15% sem isso; a inscrição vale para o que não for assinatura.
+- **Conta bancária:** *Perfil para pagamentos → Como você recebe pagamentos*. Sem ela, o que vender fica parado.
+
+**O vitalício não foi criado na Play, de propósito.** Ele saiu de venda (só
+mensal e anual aparecem no paywall, ver `src/data/onboarding.ts`); no iOS ele
+existe porque já tinha sido cadastrado. No Android não há quem o tenha
+comprado, então criar seria só um produto sem tela. Na RevenueCat ele aparece
+no app Android como produto esperado — não atrapalha, porque o app nunca o
+oferece.
+
+---
+
 ## 2. Classificação de conteúdo (IARC) — **5 minutos**
 
 Eu não preencho: a primeira tela traz *"Concordo com os Termos de Uso"* da

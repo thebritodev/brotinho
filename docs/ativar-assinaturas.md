@@ -293,9 +293,10 @@ esse caminho, na trilha `internal` e como rascunho.
 
 ### 3.4 Criar os produtos
 
-- [ ] **Monetizar → Assinaturas** — `brotinho_mensal` e `brotinho_anual`, cada
-      uma com um plano base
-- [ ] **Monetizar → Produtos avulsos** — `brotinho_vitalicio`
+- [x] **Monetizar → Assinaturas** — `brotinho_mensal` e `brotinho_anual`, cada
+      uma com um plano base (`mensal` R$ 29,90, `anual` R$ 179,90), ativos desde 26/10/2026
+- [ ] ~~**Monetizar → Produtos avulsos** — `brotinho_vitalicio`~~ — não criado:
+      o vitalício saiu de venda, e no Android não há quem o tenha comprado
 
 Use os **mesmos identificadores da Apple**. `brotinho_semanal` **não** entra: ele
 sai de venda na Apple assim que a 1.1.0 estiver no ar.
